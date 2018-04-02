@@ -233,3 +233,25 @@ body .layui-layer-dir .layui-layer-content{padding: 10px;}
     color: #999!important;
     text-align: center ;
 }
+.site-block .layui-form {
+    margin-right: 0;
+}
+.layui-form-item .input-width{
+    width: 400px;
+}
+@media screen and (min-width: 992px){
+    .frame-body{
+        width:970px;
+    }
+    .layui-form-item .input-width{
+        width: 400px;
+    }
+}
+@media screen and (min-width: 1170px){
+    .frame-body{
+        width: 1170px;
+    }
+    .layui-form-item .input-width{
+        width: 500px;
+    }
+}

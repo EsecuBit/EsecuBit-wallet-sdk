@@ -9,7 +9,7 @@
     <link href="../statics/js/layui/css/layui.css" rel="stylesheet">
     <link href="../statics/css/global.css" rel="stylesheet">
 </head>
-<body>
+<body class="frame-body">
 <blockquote class="site-text layui-elem-quote" style="margin-top: 30px">
     <i class="layui-icon">&#xe645;</i>   Make sure you have the correct beneficiary address！
 </blockquote>
@@ -20,25 +20,23 @@
     <form class="layui-form" action="">
         <div class="layui-form-item">
             <label class="layui-form-label">金额</label>
-            <div class="layui-input-block">
-                <input type="text" name="money" lay-verify="phone" placeholder="金额" autocomplete="off" class="layui-input">
-            </div>
+            <div class="layui-input-inline input-width">
+                <input type="text" name="money" lay-verify="required|money" placeholder="最大200" onkeyup="value=value.replace(/[^\-?\d.]/g,'')" onblur="value=value.replace(/[^\-?\d.]/g,'')"
+                       autocomplete="off" class="layui-input">
+            </div><button class="layui-btn layui-btn-radius layui-btn-primary" id="max">MAX</button><div class="layui-form-mid layui-word-aux">辅助文字</div>
         </div>
-        <div class="layui-form-item">
-            <label class="layui-form-label">收件人地址</label>
-            <div class="layui-input-inline" style="width: 70%">
-                <input type="text" name="address1" required="" lay-verify="required" lay-vertype="tips" placeholder="比特币地址" autocomplete="off" class="layui-input">
-            </div><button class="layui-btn"><i class="layui-icon">&#xe608;</i></button>
-        </div>
-        <div class="layui-form-item">
-            <label class="layui-form-label"></label>
-            <div class="layui-input-inline" style="width: 70%">
-                <input type="text" name="address2" required="" lay-verify="required" lay-vertype="tips" placeholder="比特币地址" autocomplete="off" class="layui-input">
+        <div class="money-address">
+            <div class="layui-form-item">
+                <label class="layui-form-label">收件人地址</label>
+                <div class="layui-input-inline input-width">
+                    <input type="text" name="address"  lay-verify="required"  placeholder="比特币地址" autocomplete="off" class="layui-input">
+                </div><button class="layui-btn layui-btn-radius layui-btn-primary" id="addAddress">添加</button>
             </div>
+
         </div>
         <div class="layui-form-item">
             <label class="layui-form-label">选择账户</label>
-            <div class="layui-input-block">
+            <div class="layui-input-inline input-width">
                 <select name="account" lay-verify="required">
                     <option value="0">账户一</option>
                     <option value="1">账户二</option>
@@ -47,7 +45,7 @@
         </div>
         <div class="layui-form-item">
             <label class="layui-form-label">交易费用</label>
-            <div class="layui-input-block">
+            <div class="layui-input-inline input-width">
                 <select name="fee" lay-verify="required">
                     <option value="0">高（快速确认）</option>
                     <option value="1">标准（正常确认）</option>
@@ -58,7 +56,7 @@
         </div>
         <div class="layui-form-item">
             <label class="layui-form-label">总花费</label>
-            <div class="layui-input-block">
+            <div class="layui-input-inline input-width">
                 <textarea disabled style="color: #999;" required lay-verify="required" placeholder="请输入内容" class="layui-textarea" name="desc">BTC 0(含BTC 0 的交易费用) &#13;USD 0.00(含USD 0.00 的交易费用)</textarea>
             </div>
         </div>
@@ -70,6 +68,7 @@
         </div>
     </form>
 </div>
+
 <script src="../statics/js/layui/layui.js"></script>
 <script src="../js/send.js"></script>
 </body>
