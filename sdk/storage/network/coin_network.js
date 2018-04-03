@@ -1,0 +1,4 @@
+
+var CoinNetWork = function() {
+
+};

@@ -42,15 +42,11 @@ openRequest.onsuccess = function(e) {
     var request = store.put(o, 112);
     request.onerror = function(e) {
         console.log("request error: ",e.target.error.name);
-    }
+    };
 
     request.onsuccess = function(e) {
         console.log("request succeed!");
-    }
-    request = store.put(o, 112);
-    request = store.put(o, 112);
-    request = store.put(o, 112);
-    request = store.put(o, 112);
+    };
 };
 
 openRequest.onerror = function(e) {

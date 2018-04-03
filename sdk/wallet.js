@@ -1,6 +1,7 @@
 
 var Wallet = function() {
     this._device = new CoreWallet();
+    this._coinData = new CoinData();
 };
 
 Wallet.prototype.initWallet = function(callback) {
@@ -28,7 +29,7 @@ Wallet.prototype.requestLogin = function(callback) {
 };
 
 Wallet.prototype.getAccounts = function(deviceID, passPhraseID, callback) {
-    callback(ERROR_NOT_IMPLEMENTED);
+    this._coinData.loadAccounts(deviceID, passPhraseID, callback);
 };
 
 Wallet.prototype.getWalletInfo = function(callback) {
