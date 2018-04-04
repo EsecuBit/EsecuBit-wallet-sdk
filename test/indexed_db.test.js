@@ -1,9 +1,8 @@
 
-require('sdk');
+import IndexedDB from '../sdk/data/database/indexed_db';
+import assert from 'node_modules/chai/register-assert';
 
-var assert = require('chai').assert;
-
-var indexedDB = new IndexedDB();
+let indexedDB = new IndexedDB();
 describe('expect', function() {
     it('4 + 5 = 9', function() {
         assert.equal(4 + 5, 9);

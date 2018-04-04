@@ -1,7 +1,7 @@
 
-import * as D from '../../def'
+import * as D from '../../def.js'
 
-export let IndexedDB = function() {
+let IndexedDB = function() {
     this._db = null;
 
     let _thisRef = this;
@@ -40,6 +40,7 @@ export let IndexedDB = function() {
         console.dir(e);
     };
 };
+export default IndexedDB;
 
 IndexedDB.prototype.saveAccount = function(account, callback) {
     if (this._db === null) {
