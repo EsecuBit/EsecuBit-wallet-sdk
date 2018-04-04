@@ -51,8 +51,8 @@ IndexedDB.prototype.saveAccount = function(account, callback) {
         .objectStore("account")
         .add(account);
 
-    request.onsuccess = function(e) { callback(ERROR_NO_ERROR, account) };
-    request.onerror = function(e) { callback(ERROR_EXEC_DATABASE_FAILED, account) };
+    request.onsuccess = function(e) { callback(ERROR_NO_ERROR, account); };
+    request.onerror = function(e) { callback(ERROR_EXEC_DATABASE_FAILED, account); };
 };
 
 IndexedDB.prototype.loadAccounts = function(deviceID, passPhraseID, callback) {
@@ -66,8 +66,28 @@ IndexedDB.prototype.loadAccounts = function(deviceID, passPhraseID, callback) {
         .index("deviceID, passPhraseID")
         .get(deviceID, passPhraseID);
 
-    request.onsuccess = function(e) { callback(ERROR_NO_ERROR, e.target.result) };
-    request.onerror = function(e) { callback(ERROR_EXEC_DATABASE_FAILED) };
+    request.onsuccess = function(e) {
+        var accounts = e.target.result;
+        callback(ERROR_NO_ERROR, accounts);
+    };
+    request.onerror = function(e) { callback(ERROR_EXEC_DATABASE_FAILED); };
+};
+
+IndexedDB.prototype.clearAccounts = function(deviceID, passPhraseID, callback) {
+    if (this._db === null) {
+        callback(ERROR_OPEN_DATABASE_FAILED);
+        return;
+    }
+
+    var request = this._db.transaction(["account"], "read")
+        .objectStore("account")
+        .index("deviceID, passPhraseID")
+        .delete(deviceID, passPhraseID);
+
+    request.onsuccess = function(e) {
+        callback(ERROR_NO_ERROR);
+    };
+    request.onerror = function(e) { callback(ERROR_EXEC_DATABASE_FAILED); };
 };
 
 IndexedDB.prototype.saveTransactionInfo = function(transactionInfo) {
@@ -80,8 +100,8 @@ IndexedDB.prototype.saveTransactionInfo = function(transactionInfo) {
         .objectStore("transactionInfo")
         .add(transactionInfo);
 
-    request.onsuccess = function(e) { callback(ERROR_NO_ERROR, transactionInfo) };
-    request.onerror = function(e) { callback(ERROR_EXEC_DATABASE_FAILED, transactionInfo) };
+    request.onsuccess = function(e) { callback(ERROR_NO_ERROR, transactionInfo); };
+    request.onerror = function(e) { callback(ERROR_EXEC_DATABASE_FAILED, transactionInfo); };
 };
 
 IndexedDB.prototype.getTransactionInfo = function(accountID, startIndex, endIndex, callback) {
@@ -109,5 +129,5 @@ IndexedDB.prototype.getTransactionInfo = function(accountID, startIndex, endInde
         }
         callback(ERROR_NO_ERROR, array);
     };
-    request.onerror = function(e) { callback(ERROR_EXEC_DATABASE_FAILED) };
+    request.onerror = function(e) { callback(ERROR_EXEC_DATABASE_FAILED); };
 };

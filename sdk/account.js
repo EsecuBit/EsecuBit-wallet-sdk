@@ -1,9 +1,12 @@
 
-var Account = function(accountID, label, passPhraseID, coinType) {
-    this.accountID = accountID;
+var Account = function(label, deviceID, passPhraseID, coinType) {
+    // accountID init by db
+    this.accountID = "";
     this.label = label;
+    this.deviceID = deviceID;
     this.passPhraseID = passPhraseID;
     this.coinType = coinType;
+
 };
 
 Account.prototype.getTransactionInfos = function(callback) {

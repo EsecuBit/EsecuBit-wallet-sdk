@@ -9,6 +9,10 @@ DataBase.prototype.loadAccounts = function(deviceID, passPhraseID, callback) {
     callback(ERROR_NOT_IMPLEMENTED);
 };
 
+DataBase.prototype.clearAccounts = function(deviceID, passPhraseID, callback) {
+    callback(ERROR_NOT_IMPLEMENTED);
+};
+
 DataBase.prototype.saveTransactionInfo = function(transactionInfo) {
     callback(ERROR_NOT_IMPLEMENTED);
 };

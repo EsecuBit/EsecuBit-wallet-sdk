@@ -1,11 +1,22 @@
 var CoinData = function() {
     this._db = new IndexedDB();
-
     this._blockHeight = -1;
 };
 
 CoinData.prototype.loadAccounts = function(deviceID, passPhraseID, callback) {
-    _db.loadAccounts(deviceID, passPhraseID, callback);
+    _db.loadAccounts(deviceID, passPhraseID, function(error, accounts) {
+        if (error !== ERROR_NO_ERROR) {
+            callback(error);
+            return;
+        }
+        if (accounts === 0) {
+            // initialize first account
+            var firstAccount = new Account("Account", deviceID, passPhraseID, COIN_BIT_COIN);
+            _db.saveAccount(firstAccount, function(error, account) {
+                callback(error, [account]);
+            });
+        }
+    });
 };
 
 CoinData.prototype.saveAccount = function(account, callback) {
