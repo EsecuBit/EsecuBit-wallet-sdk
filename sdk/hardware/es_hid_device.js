@@ -1,9 +1,11 @@
 
-var MY_HID_VENDOR_ID  = 7848;
-var MY_HID_PRODUCT_ID = 49189;
+import * as D from '../def'
 
-var EsHidDevice = function() {
-    var _thisRef = this;
+let MY_HID_VENDOR_ID  = 7848;
+let MY_HID_PRODUCT_ID = 49189;
+
+let EsHidDevice = function() {
+    let _thisRef = this;
     this._deviceId = null;
     this._connectionHandle = null;
     this._listener = null;
@@ -18,7 +20,7 @@ var EsHidDevice = function() {
                         _thisRef._connectionHandle = connectionHandle;
                         console.log('Connected to the USB device!', connectionHandle);
                         chrome.usb.listInterfaces(connectionHandle, function(descriptors) {
-                            for (var des in descriptors) {
+                            for (let des in descriptors) {
                                 console.log('device interface info' + des);
                             }
                         });
@@ -26,13 +28,13 @@ var EsHidDevice = function() {
                         chrome.usb.claimInterface(connectionHandle, 0, function() {
                             if (chrome.runtime.lastError !== undefined) {
                                 console.warn('chrome.usb.bulkTransfer error: ' + chrome.runtime.lastError.message);
-                                callback(ERROR_CONNECT_FAILED, true);
+                                callback(D.ERROR_CONNECT_FAILED, true);
                                 return;
                             }
                             console.log("Claimed");
                             // send(hexToArrayBuffer('0204048033000004bd02000000000000'));
                             if (_thisRef._listener !== null) {
-                                callback(ERROR_NO_ERROR, true);
+                                callback(D.ERROR_NO_ERROR, true);
                             }
                         });
                     });
@@ -46,23 +48,22 @@ var EsHidDevice = function() {
         console.log('plug out vid=' + device.vendorId + ', pid=' + device.productId);
         if (device.device === _thisRef._deviceId) {
             if (_thisRef._listener !== null) {
-                callback(ERROR_NO_ERROR, false);
+                callback(D.ERROR_NO_ERROR, false);
             }
         }
     });
 };
-
-EsHidDevice.prototype = new Device();
+export default EsHidDevice;
 
 EsHidDevice.prototype.sendAndReceive = function (apdu, callback) {
-    var _connectionHandle = this._connectionHandle;
+    let _connectionHandle = this._connectionHandle;
     if (!this.isPlugedIn) {
-        callback(ERROR_NO_DEVICE);
+        callback(D.ERROR_NO_DEVICE);
         return;
     }
 
-    var send = function(data, callback) {
-        var transferInfo = {
+    let send = function(data, callback) {
+        let transferInfo = {
             direction: 'out',
             requestType: 'class',
             recipient: 'interface',
@@ -80,12 +81,12 @@ EsHidDevice.prototype.sendAndReceive = function (apdu, callback) {
             }
             console.log('Sent to the USB device!', _connectionHandle);
             if (!info) {
-                callback(ERROR_UNKNOWN);
+                callback(D.ERROR_UNKNOWN);
                 return;
             }
             if (info.resultCode !== 0) {
                 console.warn("send apdu error ", info.resultCode);
-                callback(ERROR_COMM);
+                callback(D.ERROR_COMM);
                 return;
             }
 
@@ -95,8 +96,8 @@ EsHidDevice.prototype.sendAndReceive = function (apdu, callback) {
         });
     };
 
-    var receive = function(callback) {
-        var transferInfo = {
+    let receive = function(callback) {
+        let transferInfo = {
             direction: 'in',
             requestType: 'class',
             recipient: 'interface',
@@ -106,7 +107,7 @@ EsHidDevice.prototype.sendAndReceive = function (apdu, callback) {
             index: 0,
             length: 0x0010
         };
-        // var transferInfo = {
+        // let transferInfo = {
         //   "direction": "in",
         //   "recipient": "interface",
         //     "requestType": "standard",
@@ -123,18 +124,18 @@ EsHidDevice.prototype.sendAndReceive = function (apdu, callback) {
             }
             console.log('receive from the USB device!', _connectionHandle);
             if (!info) {
-                callback(ERROR_UNKNOWN);
+                callback(D.ERROR_UNKNOWN);
                 return;
             }
             if (info.resultCode !== 0) {
                 console.warn("receive apdu error ", info.resultCode);
-                callback(ERROR_COMM);
+                callback(D.ERROR_COMM);
                 return;
             }
 
             console.log("receive got " + info.data.byteLength + " bytes:");
             console.log(arrayBufferToHex(info.data));
-            callback(ERROR_NO_ERROR, info.data);
+            callback(D.ERROR_NO_ERROR, info.data);
         });
     };
 

@@ -1,13 +1,14 @@
 
-var Account = function(label, deviceID, passPhraseID, coinType) {
+let Account = function(label, deviceID, passPhraseID, coinType) {
     // accountID init by db
-    this.accountID = "";
+    this.accountID = '0';
     this.label = label;
     this.deviceID = deviceID;
     this.passPhraseID = passPhraseID;
     this.coinType = coinType;
 
 };
+export default Account;
 
 Account.prototype.getTransactionInfos = function(callback) {
 
