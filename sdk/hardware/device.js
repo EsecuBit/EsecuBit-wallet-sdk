@@ -1,5 +1,5 @@
 
-import * as D from '../def'
+import * as D from '../def.js'
 
 let Device = function() {
     this.isPlugedIn = false;

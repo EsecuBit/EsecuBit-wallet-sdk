@@ -1,5 +1,5 @@
 
-import * as D from '../def'
+import * as D from '../def.js'
 
 let MY_HID_VENDOR_ID  = 7848;
 let MY_HID_PRODUCT_ID = 49189;

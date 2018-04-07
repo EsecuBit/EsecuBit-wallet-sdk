@@ -1,5 +1,5 @@
 
-import * as D from '../def'
+import * as D from '../def.js'
 
 let MockDevice = function() {
 };
@@ -11,15 +11,23 @@ MockDevice.prototype.listenPlug = function(callback) {
         // setTimeout(function () {
         //     callback(D.ERROR_NO_ERROR, false);
         // }, 2000);
-    },2000);
+    }, 500);
 };
 
 MockDevice.prototype.sendAndReceive = function(apdu, callback) {
     if (arrayBufferToHex(apdu) === "0003000000") {
-        callback(D.ERROR_NO_ERROR, hexToArrayBuffer("0100010001009000"));
+        callback(D.ERROR_NO_ERROR, hexToArrayBuffer("010001000100"));
         return;
     }
-    callback(D.ERROR_NO_ERROR, apdu);
+    if (arrayBufferToHex(apdu) === "000FF00000") {
+        callback(D.ERROR_NO_ERROR, hexToArrayBuffer("010001000200"));
+        return;
+    }
+    if (arrayBufferToHex(apdu) === "0012000000") {
+        callback(D.ERROR_NO_ERROR, hexToArrayBuffer("3141317A5031655035514765666932444D505466544C35534C6D7637446976664E61"));
+        return;
+    }
+    callback(D.ERROR_COMM);
 };
 
 

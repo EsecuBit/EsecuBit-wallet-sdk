@@ -1,5 +1,6 @@
 
 import * as D from '../../def.js'
+import Account from '../../account.js'
 
 let IndexedDB = function() {
     this._db = null;
@@ -7,36 +8,36 @@ let IndexedDB = function() {
     let _thisRef = this;
 
     if (!('indexedDB' in window)) {
-        console.warn("no indexedDB implementation");
+        console.warn('no indexedDB implementation');
         return;
     }
 
-    let openRequest = indexedDB.open("wallet", 1);
+    let openRequest = indexedDB.open('wallet', 1);
     openRequest.onupgradeneeded = function(e) {
-        console.log("indexedDB upgrading...");
+        console.log('indexedDB upgrading...');
 
         let db = e.target.result;
 
-        if(!db.objectStoreNames.contains("account")) {
-            let account = db.createObjectStore("account", {autoIncrement: true});
-            account.createIndex("deviceID, passPhraseID", ["deviceID", "passPhraseID"], {unique: false});
-            account.createIndex("coinType", "coinType", {unique: false});
+        if(!db.objectStoreNames.contains('account')) {
+            let account = db.createObjectStore('account', {autoIncrement: true});
+            account.createIndex('deviceID, passPhraseID', ['deviceID', 'passPhraseID'], {unique: false});
+            account.createIndex('coinType', 'coinType', {unique: false});
         }
 
-        if(!db.objectStoreNames.contains("transactionInfo")) {
-            let transactionInfo = db.createObjectStore("transactionInfo", {autoIncrement: true});
-            account.createIndex("accountID", "accountID", {unique: false});
-            account.createIndex("firstConfirmedTime", "firstConfirmedTime", {unique: false});
+        if(!db.objectStoreNames.contains('transactionInfo')) {
+            let transactionInfo = db.createObjectStore('transactionInfo', {autoIncrement: true});
+            transactionInfo.createIndex('accountID', 'accountID', {unique: false});
+            transactionInfo.createIndex('firstConfirmedTime', 'firstConfirmedTime', {unique: false});
         }
     };
 
     openRequest.onsuccess = function(e) {
-        console.log("indexedDB open success!");
-        _thisRef._db =db;
+        console.log('indexedDB open success!');
+        _thisRef._db = e.target.result;
     };
 
     openRequest.onerror = function(e) {
-        console.log("indexedDB open error");
+        console.log('indexedDB open error');
         console.dir(e);
     };
 };
@@ -47,8 +48,8 @@ IndexedDB.prototype.saveAccount = function(account, callback) {
         callback(D.ERROR_OPEN_DATABASE_FAILED);
         return;
     }
-    let request = this._db.transaction(["account"], "write")
-        .objectStore("account")
+    let request = this._db.transaction(['account'], 'readwrite')
+        .objectStore('account')
         .add(account);
 
     request.onsuccess = function(e) { callback(D.ERROR_NO_ERROR, account); };
@@ -61,14 +62,13 @@ IndexedDB.prototype.loadAccounts = function(deviceID, passPhraseID, callback) {
         return;
     }
 
-    let request = this._db.transaction(["account"], "read")
-        .objectStore("account")
-        .index("deviceID, passPhraseID")
-        .get(deviceID, passPhraseID);
+    let request = this._db.transaction(['account'], 'readonly')
+        .objectStore('account')
+        .index('deviceID, passPhraseID')
+        .getAll([deviceID, passPhraseID]);
 
     request.onsuccess = function(e) {
-        let accounts = e.target.result;
-        callback(D.ERROR_NO_ERROR, accounts);
+        callback(D.ERROR_NO_ERROR, e.target.result);
     };
     request.onerror = function(e) { callback(D.ERROR_EXEC_DATABASE_FAILED); };
 };
@@ -79,9 +79,9 @@ IndexedDB.prototype.clearAccounts = function(deviceID, passPhraseID, callback) {
         return;
     }
 
-    let request = this._db.transaction(["account"], "read")
-        .objectStore("account")
-        .index("deviceID, passPhraseID")
+    let request = this._db.transaction(['account'], 'readonly')
+        .objectStore('account')
+        .index('deviceID, passPhraseID')
         .delete(deviceID, passPhraseID);
 
     request.onsuccess = function(e) {
@@ -96,8 +96,8 @@ IndexedDB.prototype.saveTransactionInfo = function(transactionInfo) {
         return;
     }
 
-    let request = this._db.transaction(["transactionInfo"], "write")
-        .objectStore("transactionInfo")
+    let request = this._db.transaction(['transactionInfo'], 'readwrite')
+        .objectStore('transactionInfo')
         .add(transactionInfo);
 
     request.onsuccess = function(e) { callback(D.ERROR_NO_ERROR, transactionInfo); };
@@ -111,9 +111,9 @@ IndexedDB.prototype.getTransactionInfo = function(accountID, startIndex, endInde
     }
 
     let range = IDBKeyRange.bound(startIndex, endIndex);
-    let request = this._db.transaction(["transactionInfo"], "read")
-        .objectStore("transactionInfo")
-        .index("accountID")
+    let request = this._db.transaction(['transactionInfo'], 'readonly')
+        .objectStore('transactionInfo')
+        .index('accountID')
         .openCursor(range);
 
     request.onsuccess = function(e) {
@@ -121,8 +121,9 @@ IndexedDB.prototype.getTransactionInfo = function(accountID, startIndex, endInde
         let array = [];
         if(cursor) {
             array.add(cursor.value);
-            console.log(cursor.key + ":");
+            console.log(cursor.key + ':');
             for(let field in cursor.value) {
+                // TODO missing has own property check?
                 console.log(cursor.value[field]);
             }
             cursor.continue();

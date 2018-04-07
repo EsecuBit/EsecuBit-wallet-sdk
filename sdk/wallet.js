@@ -1,10 +1,11 @@
 
 
-import CoreWallet from 'hardware/core_wallet'
-import CoinData from 'sdk/data/coin_data'
+import CoreWallet from './hardware/core_wallet.js'
+import CoinData from './data/coin_data.js'
+import * as D from './def.js'
 
 let Wallet = function () {
-    this._device = new CoreWallet();
+    this._device = CoreWallet.instance;
     this._coinData = new CoinData();
 };
 export default Wallet;
@@ -35,6 +36,10 @@ Wallet.prototype.requestLogin = function (callback) {
 
 Wallet.prototype.getAccounts = function (deviceID, passPhraseID, callback) {
     this._coinData.loadAccounts(deviceID, passPhraseID, callback);
+};
+
+Wallet.prototype.newAccount = function (deviceID, passPhraseID, coinType, callback) {
+    this._coinData.newAccount(deviceID, passPhraseID, coinType, callback);
 };
 
 Wallet.prototype.getWalletInfo = function (callback) {
