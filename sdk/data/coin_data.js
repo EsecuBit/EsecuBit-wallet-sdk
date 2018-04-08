@@ -7,11 +7,12 @@ var CoinData = function() {
     this._db = new IndexedDB();
     this._blockHeight = -1;
 };
+CoinData.instance = new CoinData();
 module.exports = CoinData;
 
 CoinData.prototype.loadAccounts = function(deviceID, passPhraseID, callback) {
-    var _db = this._db;
-    _db.loadAccounts(deviceID, passPhraseID, function(error, accounts) {
+    var that = this;
+    that._db.loadAccounts(deviceID, passPhraseID, function(error, accounts) {
         if (error !== D.ERROR_NO_ERROR) {
             callback(error);
             return;
@@ -27,7 +28,7 @@ CoinData.prototype.loadAccounts = function(deviceID, passPhraseID, callback) {
                 passPhraseID: passPhraseID,
                 coinType: D.COIN_BIT_COIN});
             console.dir(firstAccount);
-            _db.saveAccount(firstAccount, function(error, account) {
+            that._db.saveAccount(firstAccount, function(error, account) {
                 console.log(error + ' ' + account);
                 callback(error, [new Account(account)]);
             });
@@ -45,21 +46,39 @@ CoinData.prototype.loadAccounts = function(deviceID, passPhraseID, callback) {
 };
 
 CoinData.prototype.newAccount = function(deviceID, passPhraseID, coinType, callback) {
-    var _db = this._db;
-    _db.loadAccounts(deviceID, passPhraseID, function (error, accounts) {
+    var that = this;
+    that._db.loadAccounts(deviceID, passPhraseID, function (error, accounts) {
         if (error !== D.ERROR_NO_ERROR) {
             callback(error);
             return;
         }
-        var index = accounts.length + 1;
-        _db.saveAccount(
-            {label: "Account#" + index, deviceID:deviceID, passPhraseID: passPhraseID, coinType: coinType},
-            callback);
+
+        // check whether the last account has transaction
+        var lastAccountInfo = accounts[accounts.length - 1];
+        that.getTransactionInfos(
+            lastAccountInfo.accountID, 0, 1,
+            function (error, transactions) {
+
+            if (transactions.length === 0) {
+                callback(D.ERROR_LAST_WALLET_NO_TRANSACTION);
+                return;
+            }
+            var index = accounts.length + 1;
+            that._db.saveAccount(
+                {
+                    accountID: makeID(),
+                    label: "Account#" + index,
+                    deviceID: deviceID,
+                    passPhraseID: passPhraseID,
+                    coinType: coinType
+                },
+                callback);
+         });
     });
 };
 
-CoinData.prototype.getTransactionInfo = function(accountID, startIndex, endIndex, callback) {
-    this._db.getTransactionInfo(accountID, startIndex, endIndex, callback);
+CoinData.prototype.getTransactionInfos = function(accountID, startIndex, endIndex, callback) {
+    this._db.getTransactionInfos(accountID, startIndex, endIndex, callback);
 };
 
 CoinData.prototype.listenNewTransactionInfo = function(callback) {

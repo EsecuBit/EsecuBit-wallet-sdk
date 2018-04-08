@@ -1,6 +1,7 @@
 
 var D = require('./def');
 var CoreWallet = require('./hardware/core_wallet');
+var CoinData = require('./data/coin_data');
 
 var Account = function(info) {
     this.accountID = info.accountID;
@@ -9,11 +10,12 @@ var Account = function(info) {
     this.passPhraseID = info.passPhraseID;
     this.coinType = info.coinType;
     this._device = CoreWallet.instance;
+    this._coinData = CoinData.instance;
 };
 module.exports = Account;
 
 Account.prototype.getTransactionInfos = function(callback) {
-
+    this._coinData.getTransactionInfos(callback);
 };
 
 Account.prototype.getAddress = function(addressParam, callback) {

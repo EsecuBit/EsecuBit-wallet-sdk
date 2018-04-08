@@ -104,7 +104,7 @@ IndexedDB.prototype.saveTransactionInfo = function(transactionInfo) {
     request.onerror = function(e) { callback(D.ERROR_EXEC_DATABASE_FAILED, transactionInfo); };
 };
 
-IndexedDB.prototype.getTransactionInfo = function(accountID, startIndex, endIndex, callback) {
+IndexedDB.prototype.getTransactionInfos = function(accountID, startIndex, endIndex, callback) {
     if (this._db === null) {
         callback(D.ERROR_OPEN_DATABASE_FAILED);
         return;
@@ -116,19 +116,15 @@ IndexedDB.prototype.getTransactionInfo = function(accountID, startIndex, endInde
         .index('accountID')
         .openCursor(range);
 
+    var array = [];
     request.onsuccess = function(e) {
         var cursor = e.target.result;
-        var array = [];
         if(cursor) {
             array.add(cursor.value);
-            console.log(cursor.key + ':');
-            for(var field in cursor.value) {
-                // TODO missing has own property check?
-                console.log(cursor.value[field]);
-            }
             cursor.continue();
+        } else {
+            callback(D.ERROR_NO_ERROR, array);
         }
-        callback(D.ERROR_NO_ERROR, array);
     };
     request.onerror = function(e) { callback(D.ERROR_EXEC_DATABASE_FAILED); };
 };

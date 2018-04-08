@@ -16,14 +16,14 @@ MockDevice.prototype.listenPlug = function(callback) {
 
 MockDevice.prototype.sendAndReceive = function(apdu, callback) {
     if (arrayBufferToHex(apdu) === "0003000000") {
-        callback(D.ERROR_NO_ERROR, hexToArrayBuffer("010001000100"));
+        callback(D.ERROR_NO_ERROR, hexToArrayBuffer("010100"));
         return;
     }
-    if (arrayBufferToHex(apdu) === "000FF00000") {
-        callback(D.ERROR_NO_ERROR, hexToArrayBuffer("010001000200"));
+    if (arrayBufferToHex(apdu) === "00FF000000") {
+        callback(D.ERROR_NO_ERROR, hexToArrayBuffer("010102"));
         return;
     }
-    if (arrayBufferToHex(apdu) === "0012000000") {
+    if (arrayBufferToHex(apdu) === "0023000000") {
         callback(D.ERROR_NO_ERROR, hexToArrayBuffer("3141317A5031655035514765666932444D505466544C35534C6D7637446976664E61"));
         return;
     }

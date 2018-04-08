@@ -6,7 +6,7 @@ var D = require('./def');
 
 var Wallet = function () {
     this._device = CoreWallet.instance;
-    this._coinData = new CoinData();
+    this._coinData = CoinData.instance;
 };
 module.exports = Wallet;
 
@@ -43,5 +43,5 @@ Wallet.prototype.newAccount = function (deviceID, passPhraseID, coinType, callba
 };
 
 Wallet.prototype.getWalletInfo = function (callback) {
-    callback(D.ERROR_NOT_IMPLEMENTED);
+    this._device.getWalletInfo(callback);
 };
