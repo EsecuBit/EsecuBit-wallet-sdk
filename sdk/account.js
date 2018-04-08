@@ -1,8 +1,8 @@
 
-import * as D from "./def.js"
-import CoreWallet from "./hardware/core_wallet.js";
+var D = require('./def');
+var CoreWallet = require('./hardware/core_wallet');
 
-let Account = function(info) {
+var Account = function(info) {
     this.accountID = info.accountID;
     this.label = info.label;
     this.deviceID = info.deviceID;
@@ -10,7 +10,7 @@ let Account = function(info) {
     this.coinType = info.coinType;
     this._device = CoreWallet.instance;
 };
-export default Account;
+module.exports = Account;
 
 Account.prototype.getTransactionInfos = function(callback) {
 

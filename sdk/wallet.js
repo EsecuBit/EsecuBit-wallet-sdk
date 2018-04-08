@@ -1,14 +1,14 @@
 
 
-import CoreWallet from './hardware/core_wallet.js'
-import CoinData from './data/coin_data.js'
-import * as D from './def.js'
+var CoreWallet = require('./hardware/core_wallet');
+var CoinData = require('./data/coin_data');
+var D = require('./def');
 
-let Wallet = function () {
+var Wallet = function () {
     this._device = CoreWallet.instance;
     this._coinData = new CoinData();
 };
-export default Wallet;
+module.exports = Wallet;
 
 Wallet.prototype.initWallet = function (callback) {
     this._device.init(callback);

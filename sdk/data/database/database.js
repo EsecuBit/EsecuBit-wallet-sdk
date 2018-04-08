@@ -1,7 +1,7 @@
 
-let DataBase = function() {
+var DataBase = function() {
 };
-export default DataBase;
+module.exports = DataBase;
 
 DataBase.prototype.saveAccount = function(account, callback) {
     callback(D.ERROR_NOT_IMPLEMENTED);

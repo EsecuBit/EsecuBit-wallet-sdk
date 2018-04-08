@@ -1,5 +1,5 @@
 
-let CoinNetWork = function() {
+var CoinNetWork = function() {
 
 };
-export default CoinNetWork;
+module.exports = CoinNetWork;

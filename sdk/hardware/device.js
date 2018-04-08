@@ -1,7 +1,7 @@
 
-import * as D from '../def.js'
+var D = require('../def');
 
-let Device = function() {
+var Device = function() {
     this.isPlugedIn = false;
 };
 

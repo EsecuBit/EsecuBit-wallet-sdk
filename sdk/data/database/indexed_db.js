@@ -1,31 +1,31 @@
 
-import * as D from '../../def.js'
-import Account from '../../account.js'
+var D = require('../../def');
+var Account = require('../../account');
 
-let IndexedDB = function() {
+var IndexedDB = function() {
     this._db = null;
 
-    let _thisRef = this;
+    var _thisRef = this;
 
     if (!('indexedDB' in window)) {
         console.warn('no indexedDB implementation');
         return;
     }
 
-    let openRequest = indexedDB.open('wallet', 1);
+    var openRequest = indexedDB.open('wallet', 1);
     openRequest.onupgradeneeded = function(e) {
         console.log('indexedDB upgrading...');
 
-        let db = e.target.result;
+        var db = e.target.result;
 
         if(!db.objectStoreNames.contains('account')) {
-            let account = db.createObjectStore('account', {autoIncrement: true});
+            var account = db.createObjectStore('account', {autoIncrement: true});
             account.createIndex('deviceID, passPhraseID', ['deviceID', 'passPhraseID'], {unique: false});
             account.createIndex('coinType', 'coinType', {unique: false});
         }
 
         if(!db.objectStoreNames.contains('transactionInfo')) {
-            let transactionInfo = db.createObjectStore('transactionInfo', {autoIncrement: true});
+            var transactionInfo = db.createObjectStore('transactionInfo', {autoIncrement: true});
             transactionInfo.createIndex('accountID', 'accountID', {unique: false});
             transactionInfo.createIndex('firstConfirmedTime', 'firstConfirmedTime', {unique: false});
         }
@@ -41,14 +41,14 @@ let IndexedDB = function() {
         console.dir(e);
     };
 };
-export default IndexedDB;
+module.exports = IndexedDB;
 
 IndexedDB.prototype.saveAccount = function(account, callback) {
     if (this._db === null) {
         callback(D.ERROR_OPEN_DATABASE_FAILED);
         return;
     }
-    let request = this._db.transaction(['account'], 'readwrite')
+    var request = this._db.transaction(['account'], 'readwrite')
         .objectStore('account')
         .add(account);
 
@@ -62,7 +62,7 @@ IndexedDB.prototype.loadAccounts = function(deviceID, passPhraseID, callback) {
         return;
     }
 
-    let request = this._db.transaction(['account'], 'readonly')
+    var request = this._db.transaction(['account'], 'readonly')
         .objectStore('account')
         .index('deviceID, passPhraseID')
         .getAll([deviceID, passPhraseID]);
@@ -79,7 +79,7 @@ IndexedDB.prototype.clearAccounts = function(deviceID, passPhraseID, callback) {
         return;
     }
 
-    let request = this._db.transaction(['account'], 'readonly')
+    var request = this._db.transaction(['account'], 'readonly')
         .objectStore('account')
         .index('deviceID, passPhraseID')
         .delete(deviceID, passPhraseID);
@@ -96,7 +96,7 @@ IndexedDB.prototype.saveTransactionInfo = function(transactionInfo) {
         return;
     }
 
-    let request = this._db.transaction(['transactionInfo'], 'readwrite')
+    var request = this._db.transaction(['transactionInfo'], 'readwrite')
         .objectStore('transactionInfo')
         .add(transactionInfo);
 
@@ -110,19 +110,19 @@ IndexedDB.prototype.getTransactionInfo = function(accountID, startIndex, endInde
         return;
     }
 
-    let range = IDBKeyRange.bound(startIndex, endIndex);
-    let request = this._db.transaction(['transactionInfo'], 'readonly')
+    var range = IDBKeyRange.bound(startIndex, endIndex);
+    var request = this._db.transaction(['transactionInfo'], 'readonly')
         .objectStore('transactionInfo')
         .index('accountID')
         .openCursor(range);
 
     request.onsuccess = function(e) {
-        let cursor = e.target.result;
-        let array = [];
+        var cursor = e.target.result;
+        var array = [];
         if(cursor) {
             array.add(cursor.value);
             console.log(cursor.key + ':');
-            for(let field in cursor.value) {
+            for(var field in cursor.value) {
                 // TODO missing has own property check?
                 console.log(cursor.value[field]);
             }

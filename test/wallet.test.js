@@ -1,9 +1,9 @@
 
-import Wallet from '../sdk/wallet.js'
+var Wallet = require('../sdk/wallet');
 
-let deviceID = "1";
-let passPhraseID = "";
-let wallet = new Wallet();
+var deviceID = "1";
+var passPhraseID = "";
+var wallet = new Wallet();
 
 wallet.listenDevice(function (error, isPlugIn) {
     console.log('listenDevice: error: ' + error + ', isPlugIn ' + isPlugIn);
@@ -18,7 +18,7 @@ wallet.listenDevice(function (error, isPlugIn) {
         console.log('getAccounts: error: ' + error);
         console.dir(accounts);
 
-        let account = accounts[0];
+        var account = accounts[0];
         account.getAddress({}, function (error, address) {
             console.log('getAddress: error: ' + error);
             console.dir(address);

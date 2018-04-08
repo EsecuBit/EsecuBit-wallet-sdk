@@ -1,11 +1,11 @@
 
-import * as D from '../def.js'
+var D = require('../def');
 
-let MY_HID_VENDOR_ID  = 7848;
-let MY_HID_PRODUCT_ID = 49189;
+var MY_HID_VENDOR_ID  = 7848;
+var MY_HID_PRODUCT_ID = 49189;
 
-let EsHidDevice = function() {
-    let _thisRef = this;
+var EsHidDevice = function() {
+    var _thisRef = this;
     this._deviceId = null;
     this._connectionHandle = null;
     this._listener = null;
@@ -20,7 +20,7 @@ let EsHidDevice = function() {
                         _thisRef._connectionHandle = connectionHandle;
                         console.log('Connected to the USB device!', connectionHandle);
                         chrome.usb.listInterfaces(connectionHandle, function(descriptors) {
-                            for (let des in descriptors) {
+                            for (var des in descriptors) {
                                 console.log('device interface info' + des);
                             }
                         });
@@ -53,17 +53,17 @@ let EsHidDevice = function() {
         }
     });
 };
-export default EsHidDevice;
+module.exports = EsHidDevice;
 
 EsHidDevice.prototype.sendAndReceive = function (apdu, callback) {
-    let _connectionHandle = this._connectionHandle;
+    var _connectionHandle = this._connectionHandle;
     if (!this.isPlugedIn) {
         callback(D.ERROR_NO_DEVICE);
         return;
     }
 
-    let send = function(data, callback) {
-        let transferInfo = {
+    var send = function(data, callback) {
+        var transferInfo = {
             direction: 'out',
             requestType: 'class',
             recipient: 'interface',
@@ -96,8 +96,8 @@ EsHidDevice.prototype.sendAndReceive = function (apdu, callback) {
         });
     };
 
-    let receive = function(callback) {
-        let transferInfo = {
+    var receive = function(callback) {
+        var transferInfo = {
             direction: 'in',
             requestType: 'class',
             recipient: 'interface',
@@ -107,7 +107,7 @@ EsHidDevice.prototype.sendAndReceive = function (apdu, callback) {
             index: 0,
             length: 0x0010
         };
-        // let transferInfo = {
+        // var transferInfo = {
         //   "direction": "in",
         //   "recipient": "interface",
         //     "requestType": "standard",

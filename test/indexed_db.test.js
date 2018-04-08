@@ -1,6 +1,6 @@
 
-import IndexedDB from '../sdk/data/database/indexed_db.js';
-import assert from '../node_modules/chai/register-assert.js';
+var IndexedDB = require('../sdk/data/database/indexed_db.js';);
+var assert = require('../node_modules/chai/register-assert.js';);
 
 let indexedDB = new IndexedDB();
 describe('expect', function() {

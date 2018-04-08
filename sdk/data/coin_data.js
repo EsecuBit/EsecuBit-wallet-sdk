@@ -1,16 +1,16 @@
 
-import * as D from '../def.js'
-import IndexedDB from './database/indexed_db.js';
-import Account from '../account.js'
+var D = require('../def');
+var IndexedDB = require('./database/indexed_db');
+var Account = require('../account');
 
-let CoinData = function() {
+var CoinData = function() {
     this._db = new IndexedDB();
     this._blockHeight = -1;
 };
-export default CoinData;
+module.exports = CoinData;
 
 CoinData.prototype.loadAccounts = function(deviceID, passPhraseID, callback) {
-    let _db = this._db;
+    var _db = this._db;
     _db.loadAccounts(deviceID, passPhraseID, function(error, accounts) {
         if (error !== D.ERROR_NO_ERROR) {
             callback(error);
@@ -20,7 +20,7 @@ CoinData.prototype.loadAccounts = function(deviceID, passPhraseID, callback) {
         if (accounts.length === 0) {
             console.log('no accounts, init the first account');
             // initialize first account
-            let firstAccount = new Account({
+            var firstAccount = new Account({
                 accountID: makeID(),
                 label: "Account#1",
                 deviceID: deviceID,
@@ -34,22 +34,24 @@ CoinData.prototype.loadAccounts = function(deviceID, passPhraseID, callback) {
             return;
         }
 
-        let objAccounts = [];
-        for (let account of accounts) {
-            objAccounts.push(new Account(account));
+        var objAccounts = [];
+        for (var index in accounts) {
+            if (accounts.hasOwnProperty(index)) {
+                objAccounts.push(new Account(accounts[index]));
+            }
         }
         callback(error, objAccounts);
     });
 };
 
 CoinData.prototype.newAccount = function(deviceID, passPhraseID, coinType, callback) {
-    let _db = this._db;
+    var _db = this._db;
     _db.loadAccounts(deviceID, passPhraseID, function (error, accounts) {
         if (error !== D.ERROR_NO_ERROR) {
             callback(error);
             return;
         }
-        let index = accounts.length + 1;
+        var index = accounts.length + 1;
         _db.saveAccount(
             {label: "Account#" + index, deviceID:deviceID, passPhraseID: passPhraseID, coinType: coinType},
             callback);
@@ -76,9 +78,9 @@ CoinData.prototype.getBlockHeight = function() {
 };
 
 function makeID() {
-    let text = "";
-    let possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    for(let i = 0; i < 32; i++) {
+    var text = "";
+    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    for(var i = 0; i < 32; i++) {
         text += possible.charAt(Math.floor(Math.random() * possible.length))
     }
     return text;
