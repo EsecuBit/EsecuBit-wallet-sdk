@@ -1,4 +1,4 @@
-html,body{height:100%;margin:0;overflow-y: hidden}
+
 .bg-black{
     background-color:#263238;
 }
@@ -19,6 +19,4 @@ img {
 .fly-column{
     background-color: #f5f5f5;
 }
-.page-content{
-    min-height:100%;
-}
+

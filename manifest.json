@@ -18,8 +18,7 @@
         "storage",
         "unlimitedStorage",
         "hid",
-        "usb",
-        {"fileSystem": ["write", "directory"]}
+        "usb"
         // {
         //     "usbDevices": [
         //         // // Excelsecu

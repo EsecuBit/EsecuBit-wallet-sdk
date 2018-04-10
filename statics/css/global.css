@@ -1,5 +1,11 @@
 /* 全局 */
-html,body{overflow-x: hidden;}
+html,body{margin:0;
+ }
+* {
+     -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
 i{font-style: normal;}
 dd, dt{
     line-height: inherit;
@@ -41,7 +47,6 @@ label{
 button, input, textarea, select, optgroup, option {
     font: inherit;
     outline: none;
-    vertical-align: middle
 }
 
 img {
@@ -155,8 +160,8 @@ input[type="submit"] {
 /* 布局 */
 .site-inline{font-size: 0;}
 .site-tree, .site-content{display: inline-block;  *display:inline; *zoom:1; vertical-align: top; font-size: 14px;}
-.site-tree{width: 220px; min-height: 900px; padding: 5px 0 20px;}
-.site-content{width: 899px; min-height: 600px; padding: 20px 0 10px 20px;}
+.site-tree{width: 220px; min-height:900px; padding: 5px 0 20px;}
+.site-content{ min-height: 600px; padding: 20px 0 10px 20px;}
 
 /* 目录 */
 .site-dir{display: none;}
@@ -175,7 +180,7 @@ body .layui-layer-dir .layui-layer-content{padding: 10px;}
 .site-tree .layui-tree li a cite{padding: 0 8px;}
 .site-tree .layui-tree .site-tree-noicon a cite{padding-left: 15px;}
 .site-tree .layui-tree li a em{font-size: 12px; color: #bbb; padding-right: 5px; font-style: normal;}
-.site-tree .layui-tree li h2{line-height: 36px; border-left: 5px solid #e6bb6c; margin: 15px 0 5px; padding: 0 10px; background-color: #f2f2f2;}
+.site-tree .layui-tree li h2{line-height: 36px; border-left: 5px solid #f7be57; margin: 15px 0 5px; padding: 0 10px; background-color: #f2f2f2;}
 .site-tree .layui-tree li ul{margin-left: 27px; line-height: 28px;}
 .site-tree .layui-tree li ul a,
 .site-tree .layui-tree li ul a i{color: #777;}
@@ -214,6 +219,9 @@ body .layui-layer-dir .layui-layer-content{padding: 10px;}
 .site-block .layui-form{margin-right: 200px;}
 
 /*自定义的tab*/
+.main-tab-item{
+    display: none;
+}
 .tab-item {
     display: none;
 }
@@ -225,6 +233,11 @@ body .layui-layer-dir .layui-layer-content{padding: 10px;}
     margin: 20px auto 10px;
 
 }
+.address-btn {
+    margin: 0 auto;
+    text-align: center ;
+
+}
 .description{
     padding: 9px 0!important;
     margin: 0 auto;
@@ -233,25 +246,59 @@ body .layui-layer-dir .layui-layer-content{padding: 10px;}
     color: #999!important;
     text-align: center ;
 }
+/*修改表单样式*/
 .site-block .layui-form {
     margin-right: 0;
 }
 .layui-form-item .input-width{
     width: 400px;
 }
+.pull-left{
+    float: left!important;
+}
+.layui-form-mid{
+    margin-left:8px;
+    padding: 18px 0 0 0!important;
+}
+@media screen and (min-width: 768px){
+    .site-content{
+        width: 520px;
+    }
+}
 @media screen and (min-width: 992px){
-    .frame-body{
-        width:970px;
+    .site-content{
+        width: 740px;
     }
     .layui-form-item .input-width{
         width: 400px;
     }
 }
-@media screen and (min-width: 1170px){
-    .frame-body{
-        width: 1170px;
+@media screen and (min-width: 1200px){
+    .site-content{
+        width: 940px;
     }
+}
+@media screen and (min-width: 1200px){
     .layui-form-item .input-width{
         width: 500px;
     }
+}
+/*覆盖bootstrap样式*/
+h2{
+    font-size: 21px;
+}
+legend{
+    border-bottom: none;
+    width:auto;
+}
+/*覆盖layui的样式*/
+.layui-form-label{
+    width:100px
+}
+/*自定义jqgrid的样式*/
+.ui-jqgrid{
+    border-bottom-width: 0;
+}
+.layui-laypage-btn:hover{
+    border-color: #009688!important;
 }
