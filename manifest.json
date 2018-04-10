@@ -18,21 +18,21 @@
         "storage",
         "unlimitedStorage",
         "hid",
-        "usb"
-        // {
-        //     "usbDevices": [
-        //         // // Excelsecu
-        //         // {
-        //         //   "vendorId": 7848,   // 0x1ea8
-        //         //   "productId": 53285  // 0xd025
-        //         // },
-        //         // Trezor
-        //          {
-        //             "vendorId": 21324,
-        //             "productId": 1
-        //         }
-        //     ]
-        // }
-    ],
-    "optional_permissions": [ {"usbDevices": [{"vendorId": 7848, "productId": 49189}]}]
+        "usb",
+         {
+             "usbDevices": [
+                  // Excelsecu
+                  {
+                    "vendorId": 7848,   // 0x1ea8
+                    "productId": 49153  // 0xc001
+                  }
+                 // Trezor
+//                  {
+//                     "vendorId": 21324,
+//                     "productId": 1
+//                 }
+             ]
+         }
+    ]
+//    "optional_permissions": [ {"usbDevices": [{"vendorId": 7848, "productId": 49153}]}]
 }

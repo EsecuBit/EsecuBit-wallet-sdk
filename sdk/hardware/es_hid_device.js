@@ -1,44 +1,52 @@
 
 var D = require('../def');
 
-var MY_HID_VENDOR_ID  = 7848;
-var MY_HID_PRODUCT_ID = 49189;
+var MY_HID_VENDOR_ID  = 7848; // 0x1EA8
+var MY_HID_PRODUCT_ID = 49153; // 0xC001
 
 var EsHidDevice = function() {
-    var _thisRef = this;
+    var that = this;
     this._deviceId = null;
     this._connectionHandle = null;
     this._listener = null;
 
+    function connect(device) {
+        chrome.usb.openDevice(device, function(connectionHandle) {
+            that._connectionHandle = connectionHandle;
+            console.log('Connected to the USB device!', connectionHandle);
+
+
+            chrome.usb.listInterfaces(connectionHandle, function(descriptors) {
+                for (var des in descriptors) {
+                    console.log('device interface info: ');
+                    console.dir(descriptors[des]);
+                }
+            });
+
+            setTimeout(function () {
+                chrome.usb.claimInterface(connectionHandle, 0, function() {
+                    if (chrome.runtime.lastError !== undefined) {
+                        console.warn('chrome.usb.claimInterface error: ' + chrome.runtime.lastError.message);
+                        if (that._listener !== null) {
+                            that._listener(D.ERROR_CONNECT_FAILED, true);
+                        }
+                        return;
+                    }
+                    console.log("Claimed");
+                    // send(hexToArrayBuffer('0204048033000004bd02000000000000'));
+                    if (that._listener !== null) {
+                        that._listener(D.ERROR_NO_ERROR, true);
+                    }
+                });
+            }, 500);
+        });
+    }
+
     chrome.usb.onDeviceAdded.addListener(function(device) {
         console.log('plug in vid=' + device.vendorId + ', pid=' + device.productId);
         if (device.productId === MY_HID_PRODUCT_ID && device.vendorId === MY_HID_VENDOR_ID) {
-            if (!_deviceId) {
-                _thisRef._deviceId = device.device;
-                function connect(device) {
-                    chrome.usb.openDevice(device, function(connectionHandle) {
-                        _thisRef._connectionHandle = connectionHandle;
-                        console.log('Connected to the USB device!', connectionHandle);
-                        chrome.usb.listInterfaces(connectionHandle, function(descriptors) {
-                            for (var des in descriptors) {
-                                console.log('device interface info' + des);
-                            }
-                        });
-
-                        chrome.usb.claimInterface(connectionHandle, 0, function() {
-                            if (chrome.runtime.lastError !== undefined) {
-                                console.warn('chrome.usb.bulkTransfer error: ' + chrome.runtime.lastError.message);
-                                callback(D.ERROR_CONNECT_FAILED, true);
-                                return;
-                            }
-                            console.log("Claimed");
-                            // send(hexToArrayBuffer('0204048033000004bd02000000000000'));
-                            if (_thisRef._listener !== null) {
-                                callback(D.ERROR_NO_ERROR, true);
-                            }
-                        });
-                    });
-                }
+            if (!that._deviceId) {
+                that._deviceId = device.device;
                 connect(device);
             }
         }
@@ -46,9 +54,27 @@ var EsHidDevice = function() {
 
     chrome.usb.onDeviceRemoved.addListener(function(device) {
         console.log('plug out vid=' + device.vendorId + ', pid=' + device.productId);
-        if (device.device === _thisRef._deviceId) {
-            if (_thisRef._listener !== null) {
-                callback(D.ERROR_NO_ERROR, false);
+        if (device.device === that._deviceId) {
+            that._deviceId = null;
+            if (that._listener !== null) {
+                if (that._listener !== null) {
+                    that._listener(D.ERROR_NO_ERROR, false);
+                }
+            }
+        }
+    });
+
+    chrome.usb.getDevices({}, function(foundDevices) {
+        if (chrome.runtime.lastError !== undefined) {
+            console.warn('chrome.usb.getDevices error: ' +
+                chrome.runtime.lastError.message);
+            return;
+        }
+
+        for (var device of foundDevices) {
+            console.log('found device: vid=' + device.vendorId + ', pid=' + device.productId);
+            if (device.productId === MY_HID_PRODUCT_ID && device.vendorId === MY_HID_VENDOR_ID) {
+                connect(device);
             }
         }
     });
@@ -56,7 +82,7 @@ var EsHidDevice = function() {
 module.exports = EsHidDevice;
 
 EsHidDevice.prototype.sendAndReceive = function (apdu, callback) {
-    var _connectionHandle = this._connectionHandle;
+    var that = this;
     if (!this.isPlugedIn) {
         callback(D.ERROR_NO_DEVICE);
         return;
@@ -73,13 +99,13 @@ EsHidDevice.prototype.sendAndReceive = function (apdu, callback) {
             index: 0,
             data: data
         };
-        chrome.usb.controlTransfer(_connectionHandle, transferInfo, function(info) {
+        chrome.usb.controlTransfer(that._connectionHandle, transferInfo, function(info) {
             if (chrome.runtime.lastError !== undefined) {
                 console.warn('send error: ' + chrome.runtime.lastError.message
                 + ' resultCode: ' + info? 'undefined' : info.resultCode);
                 return;
             }
-            console.log('Sent to the USB device!', _connectionHandle);
+            console.log('Sent to the USB device!', that._connectionHandle);
             if (!info) {
                 callback(D.ERROR_UNKNOWN);
                 return;
@@ -144,4 +170,8 @@ EsHidDevice.prototype.sendAndReceive = function (apdu, callback) {
 
 EsHidDevice.prototype.listenPlug = function(callback) {
     this._listener = callback;
+    if (this._deviceId !== null) {
+        callback(D.ERROR_NO_ERROR, true);
+        return;
+    }
 };
