@@ -1360,20 +1360,16 @@
 <XPD:OBJ name="Operations[7]" type="UMLOperation" guid="am34/2ArikSkoDYQMh/3tgAA">
 <XPD:ATTR name="Name" type="string">getWalletInfo</XPD:ATTR>
 <XPD:REF name="Owner">M141hHrmtEqvWnCPO1LrWwAA</XPD:REF>
-<XPD:ATTR name="#Parameters" type="integer">4</XPD:ATTR>
-<XPD:OBJ name="Parameters[0]" type="UMLParameter" guid="F/MaIfSu9U2yaJBSvPfDzQAA">
-<XPD:ATTR name="Name" type="string">callback{string cosVersion</XPD:ATTR>
+<XPD:ATTR name="#Parameters" type="integer">3</XPD:ATTR>
+<XPD:OBJ name="Parameters[0]" type="UMLParameter" guid="FoCAKLJLdEyAwt/m49yNaAAA">
+<XPD:ATTR name="Name" type="string">callback{[string componentName</XPD:ATTR>
 <XPD:REF name="BehavioralFeature">am34/2ArikSkoDYQMh/3tgAA</XPD:REF>
 </XPD:OBJ>
-<XPD:OBJ name="Parameters[1]" type="UMLParameter" guid="uYa764bLg0mobH0cEdNS2AAA">
-<XPD:ATTR name="Name" type="string">[{string appletName</XPD:ATTR>
-<XPD:REF name="BehavioralFeature">am34/2ArikSkoDYQMh/3tgAA</XPD:REF>
-</XPD:OBJ>
-<XPD:OBJ name="Parameters[2]" type="UMLParameter" guid="bJM0kjq09E2EqGvRy7GiDQAA">
+<XPD:OBJ name="Parameters[1]" type="UMLParameter" guid="ZC8PaextuEmlRIeQizeysAAA">
 <XPD:ATTR name="Name" type="string">string appletVersion}</XPD:ATTR>
 <XPD:REF name="BehavioralFeature">am34/2ArikSkoDYQMh/3tgAA</XPD:REF>
 </XPD:OBJ>
-<XPD:OBJ name="Parameters[3]" type="UMLParameter" guid="z3CfZ3dJUkaH6Vbog4bNAAAA">
+<XPD:OBJ name="Parameters[2]" type="UMLParameter" guid="m26yUHW4Q0Kyd+mRayQC6gAA">
 <XPD:ATTR name="Name" type="string">{...}]</XPD:ATTR>
 <XPD:REF name="BehavioralFeature">am34/2ArikSkoDYQMh/3tgAA</XPD:REF>
 </XPD:OBJ>
