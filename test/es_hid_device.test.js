@@ -11,12 +11,21 @@ device.listenPlug(function (error, isPlugIn) {
     if (isPlugIn) {
         var apdu = '803300000ABD080000000000000000';
         console.log('test send ' + apdu);
-        device.sendAndReceive(hexToArrayBuffer('803300000ABD080000000000000000'), function (error, receive) {
+        device.sendAndReceive(hexToArrayBuffer(apdu), function (error, receive) {
             if (error !== D.ERROR_NO_ERROR) {
                 return;
             }
             console.log('test receive ' + arrayBufferToHex(receive));
         });
+
+        // var apdu = '8033000007ba050000000000';
+        // console.log('test send ' + apdu);
+        // device.sendAndReceive(hexToArrayBuffer(apdu), function (error, receive) {
+        //     if (error !== D.ERROR_NO_ERROR) {
+        //         return;
+        //     }
+        //     console.log('test receive ' + arrayBufferToHex(receive));
+        // });
     }
 });
 

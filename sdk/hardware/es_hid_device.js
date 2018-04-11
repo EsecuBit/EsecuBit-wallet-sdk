@@ -15,29 +15,20 @@ var EsHidDevice = function() {
             that._connectionHandle = connectionHandle;
             console.log('Connected to the USB device!', connectionHandle);
 
-            // chrome.usb.listInterfaces(connectionHandle, function(descriptors) {
-            //     console.log(chrome.usb);
-            //     console.log(chrome.hid);
-            //     for (var des in descriptors) {
-            //         console.log('device interface info: ');
-            //         console.dir(descriptors[des]);
-            //     }
-            //
-            //     that.sendAndReceive(hexToArrayBuffer('803300000ABD080000000000000000'), function () {
-            //
-            //     });
-            //     if (that._listener !== null) {
-            //         that._listener(D.ERROR_NO_ERROR, true);
-            //     }
-            // });
-            //
+            chrome.usb.listInterfaces(connectionHandle, function(descriptors) {
+                for (var des in descriptors) {
+                    console.log('device interface info: ');
+                    console.dir(descriptors[des]);
+                }
+            });
+
             // chrome.usb.claimInterface(connectionHandle, 0, function() {
             //     if (chrome.runtime.lastError !== undefined) {
             //         console.warn('chrome.usb.claimInterface error: ' + chrome.runtime.lastError.message);
-            //         if (that._listener !== null) {
-            //             that._listener(D.ERROR_CONNECT_FAILED, true);
-            //         }
-            //         return;
+            //         // if (that._listener !== null) {
+            //         //     that._listener(D.ERROR_CONNECT_FAILED, true);
+            //         // }
+            //         // return;
             //     }
             //     console.log("Claimed");
             //     that.sendAndReceive(hexToArrayBuffer('803300000ABD080000000000000000'), function () {
@@ -83,7 +74,6 @@ var EsHidDevice = function() {
             return;
         }
 
-        console.log(foundDevices.length);
         for (var index in foundDevices) {
             if (!foundDevices.hasOwnProperty(index)) {
                 continue;
@@ -100,12 +90,11 @@ module.exports = EsHidDevice;
 
 EsHidDevice.prototype.sendAndReceive = function (apdu, callback) {
     var that = this;
-    // if (!this.isPlugedIn) {
-    //     callback(D.ERROR_NO_DEVICE);
-    //     return;
-    // }
+    if (this._deviceId === null || this._connectionHandle === null) {
+        callback(D.ERROR_NO_DEVICE);
+        return;
+    }
 
-    console.log(that._connectionHandle);
     var send = function(data, callback) {
         var transferInfo = {
             direction: 'out',
@@ -117,6 +106,7 @@ EsHidDevice.prototype.sendAndReceive = function (apdu, callback) {
             index: 0,
             data: data
         };
+        console.warn('1');
 
         chrome.usb.controlTransfer(that._connectionHandle, transferInfo, function(info) {
             if (chrome.runtime.lastError !== undefined) {
@@ -150,8 +140,9 @@ EsHidDevice.prototype.sendAndReceive = function (apdu, callback) {
             // it can only be 0x0302, otherwise "Transfer failed.", no usb command sent.
             value: 0x0302,
             index: 0,
-            length: 0x0010
+            length: 0x010
         };
+        console.warn('2');
         // var transferInfo = {
         //   "direction": "in",
         //   "recipient": "interface",
@@ -162,6 +153,7 @@ EsHidDevice.prototype.sendAndReceive = function (apdu, callback) {
         //     "length": 0x183
         // };
         chrome.usb.controlTransfer(that._connectionHandle, transferInfo, function(info) {
+            console.warn('3');
             if (chrome.runtime.lastError !== undefined) {
                 console.warn('receive error: ' + chrome.runtime.lastError.message
                     + ' resultCode: ' + info.resultCode);
