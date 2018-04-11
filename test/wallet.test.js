@@ -66,6 +66,11 @@ wallet.listenDevice(function (error, isPlugIn) {
                 console.log('getNewAddress: error ' + error);
                 console.dir(address);
             });
+
+            account.getTransactionInfos(0, 10, function (error, transactions) {
+                console.log('getTransactionInfo: error ' + error);
+                console.dir(transactions);
+            })
         });
 
         wallet.newAccount(deviceID, passPhraseID, coinType, function (error, account) {

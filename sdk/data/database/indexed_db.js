@@ -1,18 +1,17 @@
 
 var D = require('../../def');
-var Account = require('../../account');
 
 var IndexedDB = function() {
     this._db = null;
 
-    var _thisRef = this;
+    var that = this;
 
     if (!('indexedDB' in window)) {
         console.warn('no indexedDB implementation');
         return;
     }
 
-    var openRequest = indexedDB.open('wallet', 1);
+    var openRequest = indexedDB.open('wallet', 2);
     openRequest.onupgradeneeded = function(e) {
         console.log('indexedDB upgrading...');
 
@@ -33,7 +32,7 @@ var IndexedDB = function() {
 
     openRequest.onsuccess = function(e) {
         console.log('indexedDB open success!');
-        _thisRef._db = e.target.result;
+        that._db = e.target.result;
     };
 
     openRequest.onerror = function(e) {
@@ -90,7 +89,7 @@ IndexedDB.prototype.clearAccounts = function(deviceID, passPhraseID, callback) {
     request.onerror = function(e) { callback(D.ERROR_EXEC_DATABASE_FAILED); };
 };
 
-IndexedDB.prototype.saveTransactionInfo = function(transactionInfo) {
+IndexedDB.prototype.saveTransactionInfo = function(transactionInfo, callback) {
     if (this._db === null) {
         callback(D.ERROR_OPEN_DATABASE_FAILED);
         return;
@@ -110,17 +109,33 @@ IndexedDB.prototype.getTransactionInfos = function(accountID, startIndex, endInd
         return;
     }
 
-    var range = IDBKeyRange.bound(startIndex, endIndex);
-    var request = this._db.transaction(['transactionInfo'], 'readonly')
-        .objectStore('transactionInfo')
-        .index('accountID')
-        .openCursor(range);
+    var request;
+    if (accountID === null) {
+        request = this._db.transaction(['transactionInfo'], 'readonly')
+            .objectStore('transactionInfo')
+            .openCursor();
+    } else {
+        // var range = IDBKeyRange.bound(startIndex, endIndex);
+        request = this._db.transaction(['transactionInfo'], 'readonly')
+            .objectStore('transactionInfo')
+            .index('accountID')
+            .openCursor();
+        // TODO optimize
+        // .openCursor(range);
+    }
 
     var array = [];
+    var count = 0;
     request.onsuccess = function(e) {
         var cursor = e.target.result;
         if(cursor) {
-            array.add(cursor.value);
+            if (count++ >= startIndex) {
+                array.push(cursor.value);
+            }
+            if (count > endIndex) {
+                callback(D.ERROR_NO_ERROR, array);
+                return;
+            }
             cursor.continue();
         } else {
             callback(D.ERROR_NO_ERROR, array);

@@ -6,8 +6,7 @@ var CoreWallet = function() {
         // this._device = new EsHidDevice();
         this._device = new MockDevice();
 };
-CoreWallet.instance = new CoreWallet();
-module.exports = CoreWallet;
+module.exports = new CoreWallet();
 
 CoreWallet.prototype.hasInitialize = function(callback) {
     callback(D.ERROR_NOT_IMPLEMENTED);
@@ -54,7 +53,7 @@ CoreWallet.prototype.getWalletInfo = function(callback) {
                 return;
             }
             callback(D.ERROR_NO_ERROR, [
-                {name:'COS Version:', value: arrayBufferToHex(cosResponse)},
+                {name:'COS Version', value: arrayBufferToHex(cosResponse)},
                 {name:'Firmware Version', value: arrayBufferToHex(firmwareResponse)}]
             );
         });

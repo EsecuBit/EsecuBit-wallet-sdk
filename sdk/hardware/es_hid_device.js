@@ -76,9 +76,7 @@ var EsHidDevice = function() {
         }
     });
 
-    console.log('1');
     chrome.usb.getDevices({}, function(foundDevices) {
-        console.log('2');
         if (chrome.runtime.lastError !== undefined) {
             console.warn('chrome.usb.getDevices error: ' +
                 chrome.runtime.lastError.message);
@@ -86,7 +84,11 @@ var EsHidDevice = function() {
         }
 
         console.log(foundDevices.length);
-        for (var device of foundDevices) {
+        for (var index in foundDevices) {
+            if (!foundDevices.hasOwnProperty(index)) {
+                continue;
+            }
+            var device = foundDevices[index];
             console.log('found device: vid=' + device.vendorId + ', pid=' + device.productId);
             if (device.productId === MY_HID_PRODUCT_ID && device.vendorId === MY_HID_VENDOR_ID) {
                 connect(device);
