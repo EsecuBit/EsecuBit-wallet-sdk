@@ -119,7 +119,7 @@ IndexedDB.prototype.getTransactionInfos = function(accountID, startIndex, endInd
         request = this._db.transaction(['transactionInfo'], 'readonly')
             .objectStore('transactionInfo')
             .index('accountID')
-            .openCursor();
+            .openCursor(accountID);
         // TODO optimize
         // .openCursor(range);
     }
@@ -132,7 +132,7 @@ IndexedDB.prototype.getTransactionInfos = function(accountID, startIndex, endInd
             if (count++ >= startIndex) {
                 array.push(cursor.value);
             }
-            if (count > endIndex) {
+            if (count >= endIndex) {
                 callback(D.ERROR_NO_ERROR, array);
                 return;
             }
