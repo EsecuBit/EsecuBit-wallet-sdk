@@ -167,8 +167,15 @@ EsHidDevice.prototype.sendAndReceive = function (apdu, callback) {
                 return;
             }
 
-            console.log("receive got " + info.data.byteLength + " bytes:");
+            console.log('receive got ' + info.data.byteLength + " bytes:");
             console.log(arrayBufferToHex(info.data));
+
+            var data = new Uint8Array(info.data);
+            var intArray = new Uint8Array(new Array(2));
+            var paddingLength = data[1];
+            intArray[0] = data[data.byteLength - paddingLength - 2];
+            intArray[1] = data[data.byteLength - paddingLength - 1];
+            console.log('sw ' + arrayBufferToHex(intArray));
             callback(D.ERROR_NO_ERROR, info.data);
         });
     };

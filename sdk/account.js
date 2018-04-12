@@ -8,6 +8,8 @@ var Account = function(info) {
     this.deviceID = info.deviceID;
     this.passPhraseID = info.passPhraseID;
     this.coinType = info.coinType;
+    this.balance = info.hasOwnProperty('balance')? 0 : info.balance;
+
     this._device = require('./hardware/core_wallet');
     // TODO fix circle require
     this._coinData = require('./data/coin_data');
@@ -51,7 +53,16 @@ Account.prototype.sendBitCoin = function(transaction, callback) {
         padding--;
     }
     console.log(apdu);
-    this._device.sendHexApdu(apdu, callback);
+    this._device.sendHexApdu(apdu, function (error, result) {
+        var data = new Uint8Array(result);
+        var intArray = new Uint8Array(new Array(2));
+        var paddingLength = data[1];
+        intArray[0] = data[data.byteLength - paddingLength - 2];
+        intArray[1] = data[data.byteLength - paddingLength - 1];
+        console.log('sw ' + arrayBufferToHex(intArray));
+        var sw = arrayBufferToHex(intArray);
+        callback(sw === '9000'? D.ERROR_NO_ERROR : D.ERROR_USER_CANCEL);
+    });
 };
 
 

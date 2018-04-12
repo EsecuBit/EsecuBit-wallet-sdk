@@ -71,7 +71,9 @@ CoinData.prototype.newAccount = function(deviceID, passPhraseID, coinType, callb
                     label: "Account#" + index,
                     deviceID: deviceID,
                     passPhraseID: passPhraseID,
-                    coinType: coinType
+                    coinType: coinType,
+                    // TODO remove
+                    balance: 32000000
                 },
                 callback);
             return;
@@ -148,7 +150,7 @@ CoinData.prototype.initTransaction = function (accountID) {
             coinType: D.COIN_BIT_COIN,
             firstConfirmedTime: new Date().getTime(),
             direction: 'out',
-            count: 33000000
+            count: 34000000
         },
         function() {});
 };
