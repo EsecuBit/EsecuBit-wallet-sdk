@@ -1,4 +1,3 @@
-
 console.log('start es hid device test');
 var EsHidDevice = require('../sdk/hardware/es_hid_device');
 var D = require('../sdk/def');
@@ -9,7 +8,7 @@ device.listenPlug(function (error, isPlugIn) {
     console.log('error ' + error + ', isPlugIn: ' + isPlugIn);
 
     if (isPlugIn) {
-        var apdu = '803300000ABD080000000000000000';
+        var apdu = '030604803300000ABD080000000000000000000000000000';
         console.log('test send ' + apdu);
         device.sendAndReceive(hexToArrayBuffer(apdu), function (error, receive) {
             if (error !== D.ERROR_NO_ERROR) {
