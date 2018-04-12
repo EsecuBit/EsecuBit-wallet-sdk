@@ -212,7 +212,7 @@ EsHidDevice.prototype.sendAndReceive = function (apdu, callback) {
 
             console.log('receive got ' + info.data.byteLength + " bytes:");
             console.log(arrayBufferToHex(info.data));
-            callback(D.ERROR_NO_ERROR, info.data);
+            // callback(D.ERROR_NO_ERROR, info.data);
 
             var intData = new Uint8Array(info.data);
             if (intData[0] === 0x21 && intData[1] === 0xC3) {
