@@ -96,6 +96,16 @@ EsHidDevice.prototype.sendAndReceive = function (apdu, callback) {
     }
 
     var send = function(data, callback) {
+        var package = new Uint8Array(new Array(64));
+        var intData = new Uint8Array(data);
+
+        package[0] = 0x21;
+        package[1] = 0x00;
+        package[2] = data.byteLength;
+        for (var i = 0; i < data.byteLength; i++) {
+            package[i + 3] = intData[i];
+        }
+
         var transferInfo = {
             direction: 'out',
             requestType: 'class',
@@ -104,7 +114,7 @@ EsHidDevice.prototype.sendAndReceive = function (apdu, callback) {
             // a strange thing: if value=0x03XX, it will be 0x0302 in final usb command. if value!=0x03xx, "no define"
             value: 0x0302,
             index: 0,
-            data: data
+            data: package
         };
 
         chrome.usb.controlTransfer(that._connectionHandle, transferInfo, function(info) {
@@ -126,7 +136,40 @@ EsHidDevice.prototype.sendAndReceive = function (apdu, callback) {
 
             console.log("send got " + info.data.byteLength + " bytes:");
             console.log(arrayBufferToHex(info.data));
+
             receive(callback);
+            // for (i = 0; i < 64; i++) {
+            //     package[i] = 0;
+            // }
+            // package[0] = 0x21;
+            // package[1] = 0xC3;
+            // package[2] = 0x00;
+            // package[5] = 0x02;
+            // package[7] = 0x60;
+            // package[28] = 0xB0;
+            // package[29] = 0x04;
+            //
+            // chrome.usb.controlTransfer(that._connectionHandle, transferInfo, function(info) {
+            //     if (chrome.runtime.lastError !== undefined) {
+            //         console.warn('send error: ' + chrome.runtime.lastError.message
+            //         + ' resultCode: ' + info? 'undefined' : info.resultCode);
+            //         return;
+            //     }
+            //     console.log('Sent to the USB device!', that._connectionHandle);
+            //     if (!info) {
+            //         callback(D.ERROR_UNKNOWN);
+            //         return;
+            //     }
+            //     if (info.resultCode !== 0) {
+            //         console.warn("send apdu error ", info.resultCode);
+            //         callback(D.ERROR_COMM);
+            //         return;
+            //     }
+            //
+            //     console.log("send got " + info.data.byteLength + " bytes:");
+            //     console.log(arrayBufferToHex(info.data));
+            //     receive(callback);
+            // });
         });
     };
 
@@ -139,7 +182,7 @@ EsHidDevice.prototype.sendAndReceive = function (apdu, callback) {
             // it can only be 0x0302, otherwise "Transfer failed.", no usb command sent.
             value: 0x0302,
             index: 0,
-            length: 0x200
+            length: 0x40
         };
         // var transferInfo = {
         //   "direction": "in",
@@ -169,14 +212,12 @@ EsHidDevice.prototype.sendAndReceive = function (apdu, callback) {
 
             console.log('receive got ' + info.data.byteLength + " bytes:");
             console.log(arrayBufferToHex(info.data));
-
-            var data = new Uint8Array(info.data);
-            var intArray = new Uint8Array(new Array(2));
-            var paddingLength = data[1];
-            intArray[0] = data[data.byteLength - paddingLength - 2];
-            intArray[1] = data[data.byteLength - paddingLength - 1];
-            console.log('sw ' + arrayBufferToHex(intArray));
             callback(D.ERROR_NO_ERROR, info.data);
+
+            var intData = new Uint8Array(info.data);
+            if (intData[0] === 0x21 && intData[1] === 0xC3) {
+                receive(callback);
+            }
         });
     };
 

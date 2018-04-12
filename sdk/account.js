@@ -36,7 +36,7 @@ Account.prototype.sendBitCoin = function(transaction, callback) {
 
     var total = transaction.out + transaction.fee;
     var totalString = total / 100000000 + ' BTC';
-    var apdu = "0306048033000000";
+    var apdu = "00DD000000";
     console.log(apdu);
     apdu += totalString.length + arrayBufferToHex(enc.encode(totalString));
     console.log(apdu);
@@ -45,7 +45,7 @@ Account.prototype.sendBitCoin = function(transaction, callback) {
     var hexChars = '0123456789ABCDEF';
     apdu += hexChars[transaction.addresses[0].length >> 8] + hexChars[transaction.addresses[0].length % 0x10] + arrayBufferToHex(enc.encode(transaction.addresses[0]));
     console.log(apdu);
-    apdu[7] = 0x30 + (apdu.length - 8);
+    apdu[4] = 0x30 + (apdu.length - 5);
     console.log(apdu);
     var padding = apdu.length % 8;
     while (padding > 0) {
@@ -53,12 +53,14 @@ Account.prototype.sendBitCoin = function(transaction, callback) {
         padding--;
     }
     console.log(apdu);
-    this._device.sendHexApdu(apdu, function (error, result) {
+
+    var ok = "007800002E09302e303132204254430122314d6459433232476d6a7032656a5670437879596a66795762514359544768477138";
+    this._device.sendHexApdu(ok, function (error, result) {
         var data = new Uint8Array(result);
         var intArray = new Uint8Array(new Array(2));
         var paddingLength = data[1];
-        intArray[0] = data[data.byteLength - paddingLength - 2];
-        intArray[1] = data[data.byteLength - paddingLength - 1];
+        intArray[0] = data[3];
+        intArray[1] = data[4];
         console.log('sw ' + arrayBufferToHex(intArray));
         var sw = arrayBufferToHex(intArray);
         callback(sw === '9000'? D.ERROR_NO_ERROR : D.ERROR_USER_CANCEL);
