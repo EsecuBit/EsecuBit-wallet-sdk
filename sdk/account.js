@@ -29,15 +29,19 @@ Account.prototype.getAddress = function(addressParam, callback) {
 };
 
 Account.prototype.sendBitCoin = function(transaction, callback) {
+    var enc = new TextEncoder();
+    console.dir(enc);
+
     var total = transaction.out + transaction.fee;
     var totalString = total / 100000000 + ' BTC';
     var apdu = "0306048033000000";
     console.log(apdu);
-    apdu += totalString.length + totalString;
+    apdu += totalString.length + arrayBufferToHex(enc.encode(totalString));
     console.log(apdu);
-    apdu += 1;
+    apdu += "01";
     console.log(apdu);
-    apdu += transaction.addresses[0].length + transaction.addresses[0];
+    var hexChars = '0123456789ABCDEF';
+    apdu += hexChars[transaction.addresses[0].length >> 8] + hexChars[transaction.addresses[0].length % 0x10] + arrayBufferToHex(enc.encode(transaction.addresses[0]));
     console.log(apdu);
     apdu[7] = 0x30 + (apdu.length - 8);
     console.log(apdu);
@@ -49,3 +53,16 @@ Account.prototype.sendBitCoin = function(transaction, callback) {
     console.log(apdu);
     this._device.sendHexApdu(apdu, callback);
 };
+
+
+function arrayBufferToHex(array) {
+    var hexChars = '0123456789ABCDEF';
+    var hexString = new Array(array.byteLength * 2);
+    var intArray = new Uint8Array(array);
+
+    for (var i = 0; i < intArray.byteLength; i++) {
+        hexString[2 * i] = hexChars.charAt((intArray[i] >> 4) & 0x0f);
+        hexString[2 * i + 1] = hexChars.charAt(intArray[i] & 0x0f);
+    }
+    return hexString.join('');
+}
