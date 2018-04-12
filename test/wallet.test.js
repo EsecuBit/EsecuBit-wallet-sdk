@@ -67,8 +67,9 @@ wallet.listenDevice(function (error, isPlugIn) {
                 console.dir(address);
             });
 
-            account.getTransactionInfos(0, 10, function (error, transactions) {
+            account.getTransactionInfos(0, 10, function (error, total, transactions) {
                 console.log('getTransactionInfo: error ' + error);
+                console.dir(total);
                 console.dir(transactions);
             })
         });

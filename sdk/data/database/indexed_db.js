@@ -132,13 +132,9 @@ IndexedDB.prototype.getTransactionInfos = function(accountID, startIndex, endInd
             if (count++ >= startIndex) {
                 array.push(cursor.value);
             }
-            if (count >= endIndex) {
-                callback(D.ERROR_NO_ERROR, array);
-                return;
-            }
             cursor.continue();
         } else {
-            callback(D.ERROR_NO_ERROR, array);
+            callback(D.ERROR_NO_ERROR, count, array);
         }
     };
     request.onerror = function(e) { callback(D.ERROR_EXEC_DATABASE_FAILED); };
