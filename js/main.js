@@ -1,6 +1,16 @@
 /**
  * Created by lenovo on 2018/4/8.
  */
+
+
+
+var Wallet = require('../sdk/wallet');
+var D = require('../sdk/def');
+
+var deviceID = "default";
+var passPhraseID = "BA3253876AED6BC22D4A6FF53D8406C6AD864195ED144AB5C87621B6C233B548";
+var coinType = D.COIN_BIT_COIN;
+var wallet = new Wallet();
 //JavaScript代码区域
 
 //扩展二维码插件模块
@@ -22,8 +32,77 @@ layui.use(['jquery','form','jqGrid','localeEn','laypage','element','qrcode'], fu
     //创建自运行函数
     $(function(){
 
+        //获取信息
+        var accountInformation = [],
+            accountAddress = [];
+
+        wallet.listenDevice(function (error, isPlugIn) {
+            if (!isPlugIn) {
+                return;
+            }
+
+            wallet.getWalletInfo(function (error, info) {
+                //获取硬件信息
+                $.each(info,function (i,val) {
+                    $("#hardwareInformation").append('<tr><td>'+val.name +'</td><td>'+ val.value+'</td></tr>');
+                });
+                console.log(info);
+                if (error !== D.ERROR_NO_ERROR) {
+                    return;
+                }
+            });
+
+            wallet.getAccounts(deviceID, passPhraseID, function (error, accounts) {
+
+                //业务逻辑
+                accountInformation = accounts;
+                if (error !== D.ERROR_NO_ERROR) {
+                    return;
+                }
+                //业务逻辑代码
+                for(var i=0;i<accounts.length;i++){
+                    var account = accounts[i];
+                    account.getAddress({}, function (error, address){
+                        accountAddress.push(address);
+                    });
+                }
+
+                //渲染表单
+                $.each(accountInformation,function (i,val) {
+                    $("select[name='account']").append('<option value="'+ accountAddress[i].qrAddress+'">'+val.label+'</option>')
+                } );
+                form.render('select');
+                //生成二维码
+                $("#code").qrcode({
+                    render: "canvas",
+                    width: 200,
+                    height:200,
+                    text: accountAddress[0].qrAddress
+                });
+
+
+
+            });
+        });
+
+        //登录
+        $("#login").click(function () {
+            $('#u-disk').hide();
+            $('#loading').show();
+            $('#admin_app').removeClass('layui-layout-body');
+            $('.login-container').hide();
+            $('.main-admin').show();
+            gridList();
+        });
+        $("#logout").click(function () {
+            $('#admin_app').addClass('layui-layout-body');
+            $('.main-admin').hide();
+            $('.login-container').show();
+        });
+
         //菜单点击事件
         $(".menu-switch li a").click(function(){
+            $("#message").val($(this).text());
             var tabIndex =  $(this).parent().index();
             $(".main-tab-content .main-tab-item").removeClass("layui-show").eq(tabIndex).addClass("layui-show");
         });
@@ -60,12 +139,19 @@ layui.use(['jquery','form','jqGrid','localeEn','laypage','element','qrcode'], fu
                     money:"0.01"}
             ];
 
-        gridList();
-
         //生成表格函数
         function gridList(){
             //清空表格并且重载
             $("#table-content").empty().append('<table id="grid-table"></table><div id="grid-pager"></div>');
+
+            //设置响应式宽度布局
+            var grid_selector = "#grid-table",
+                parent_column = $(grid_selector).closest('[class*="layui-col-xs12"]');
+            //resize to fit page size
+            $(window).on('resize.jqGrid', function() {
+                $(grid_selector).jqGrid('setGridWidth', parent_column.width());
+            });
+
             $("#grid-table").jqGrid({
                 data: rows,
                 datatype: "local",
@@ -191,13 +277,8 @@ layui.use(['jquery','form','jqGrid','localeEn','laypage','element','qrcode'], fu
 
 
         //accept.html文件
-        //生成二维码
-        $("#code").qrcode({
-            render: "canvas",
-            width: 200,
-            height:200,
-            text: "no no no no no"
-        });
+
+
         $("#change_address").click(function(e){
             e.preventDefault();
         });
@@ -210,5 +291,11 @@ layui.use(['jquery','form','jqGrid','localeEn','laypage','element','qrcode'], fu
                 text: data.value
             });
         });
+        ////setting
+        form.on('select(lang)', function(data){
+
+
+        });
     });
 });
+

@@ -215,7 +215,7 @@ body .layui-layer-dir .layui-layer-content{padding: 10px;}
 .site-table td{padding: 6px 15px; min-height: 20px; line-height: 20px; border:1px solid #ddd; font-size: 14px; font-weight: 400;}
 .site-table tr:nth-child(even){background: #fbfbfb;}
 
-.site-block{padding: 20px; border: 1px solid #eee;}
+.site-block{padding: 20px; border: 1px solid #eee;height: 500px;overflow-y: scroll}
 .site-block .layui-form{margin-right: 200px;}
 
 /*自定义的tab*/
@@ -293,7 +293,10 @@ legend{
 }
 /*覆盖layui的样式*/
 .layui-form-label{
-    width:100px
+    width:150px
+}
+.layui-input-block {
+    margin-left: 150px;
 }
 /*自定义jqgrid的样式*/
 .ui-jqgrid{
