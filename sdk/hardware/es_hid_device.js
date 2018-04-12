@@ -72,15 +72,17 @@ var EsHidDevice = function() {
             return;
         }
 
-        for (var index in foundDevices) {
-            if (!foundDevices.hasOwnProperty(index)) {
-                continue;
+        if (!that._deviceId) {
+            for (var index in foundDevices) {
+                if (!foundDevices.hasOwnProperty(index)) {
+                    continue;
+                }
+                var device = foundDevices[index];
+                console.log('found device: vid=' + device.vendorId + ', pid=' + device.productId);
+                that._deviceId = device.device;
+                connect(device);
+                break;
             }
-            var device = foundDevices[index];
-            console.log('found device: vid=' + device.vendorId + ', pid=' + device.productId);
-            that._deviceId = device.device;
-            connect(device);
-            break;
         }
     });
 };
@@ -137,7 +139,7 @@ EsHidDevice.prototype.sendAndReceive = function (apdu, callback) {
             // it can only be 0x0302, otherwise "Transfer failed.", no usb command sent.
             value: 0x0302,
             index: 0,
-            length: 0xFFFF
+            length: 0x200
         };
         // var transferInfo = {
         //   "direction": "in",
