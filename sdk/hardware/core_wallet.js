@@ -91,11 +91,12 @@ CoreWallet.prototype.sendHexApdu = function(apdu, errorCallback, callback) {
 
 CoreWallet.prototype.sendHexApduTrue = function(apdu, errorCallback, callback) {
     this._deviceTrue.sendAndReceive(hexToArrayBuffer(apdu), function(error, response) {
+        console.log(arrayBufferToHex(response));
         if (error !== D.ERROR_NO_ERROR) {
             errorCallback(error);
             return;
         }
-        callback(response);
+        callback(error, response);
     });
 };
 

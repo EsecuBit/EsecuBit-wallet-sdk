@@ -215,9 +215,11 @@ EsHidDevice.prototype.sendAndReceive = function (apdu, callback) {
             // callback(D.ERROR_NO_ERROR, info.data);
 
             var intData = new Uint8Array(info.data);
-            if (intData[0] === 0x21 && intData[1] === 0xC3) {
+            if (intData[5] === 0x02 && intData[6] === 0x00 && intData[7] === 0x60) {
                 receive(callback);
+                return;
             }
+            callback(D.ERROR_NO_ERROR, info.data);
         });
     };
 
