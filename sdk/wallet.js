@@ -42,3 +42,19 @@ Wallet.prototype.newAccount = function (deviceID, passPhraseID, coinType, callba
 Wallet.prototype.getWalletInfo = function (callback) {
     this._device.getWalletInfo(callback);
 };
+
+Wallet.prototype.getFee = function(feeType) {
+    if (feeType === D.FEE_FAST) {
+        return 100000;
+    }
+    if (feeType === D.FEE_NORMAL) {
+        return 50000;
+    }
+    if (feeType === D.FEE_ECNOMIC) {
+        return 20000;
+    }
+};
+
+Wallet.prototype.getFloatCount = function(floatCount) {
+    return floatCount / 100000000;
+};

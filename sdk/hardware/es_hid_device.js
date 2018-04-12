@@ -1,9 +1,6 @@
 
 var D = require('../def');
 
-var MY_HID_VENDOR_ID  = 7848; // 0x1EA8
-var MY_HID_PRODUCT_ID = 49153; // 0xC001
-
 var EsHidDevice = function() {
     this._deviceId = null;
     this._connectionHandle = null;
@@ -15,43 +12,43 @@ var EsHidDevice = function() {
             that._connectionHandle = connectionHandle;
             console.log('Connected to the USB device!', connectionHandle);
 
-            chrome.usb.listInterfaces(connectionHandle, function(descriptors) {
-                for (var des in descriptors) {
-                    console.log('device interface info: ');
-                    console.dir(descriptors[des]);
-                }
-            });
+            setTimeout(function () {
+                chrome.usb.listInterfaces(connectionHandle, function(descriptors) {
+                    for (var des in descriptors) {
+                        console.log('device interface info: ');
+                        console.dir(descriptors[des]);
+                    }
+                });
 
-            // chrome.usb.claimInterface(connectionHandle, 0, function() {
-            //     if (chrome.runtime.lastError !== undefined) {
-            //         console.warn('chrome.usb.claimInterface error: ' + chrome.runtime.lastError.message);
-            //         // if (that._listener !== null) {
-            //         //     that._listener(D.ERROR_CONNECT_FAILED, true);
-            //         // }
-            //         // return;
-            //     }
-            //     console.log("Claimed");
-            //     that.sendAndReceive(hexToArrayBuffer('803300000ABD080000000000000000'), function () {
-            //
-            //     });
-            //     if (that._listener !== null) {
-            //         that._listener(D.ERROR_NO_ERROR, true);
-            //     }
-            // });
+                chrome.usb.claimInterface(connectionHandle, 0, function() {
+                    if (chrome.runtime.lastError !== undefined) {
+                        console.warn('chrome.usb.claimInterface error: ' + chrome.runtime.lastError.message);
+                        // if (that._listener !== null) {
+                        //     that._listener(D.ERROR_CONNECT_FAILED, true);
+                        // }
+                        // return;
+                    }
+                    console.log("Claimed");
+                    that.sendAndReceive(hexToArrayBuffer('803300000ABD080000000000000000'), function () {
 
-            if (that._listener !== null) {
-                that._listener(D.ERROR_NO_ERROR, true);
-            }
+                    });
+                    if (that._listener !== null) {
+                        that._listener(D.ERROR_NO_ERROR, true);
+                    }
+                });
+            }, 500);
+
+            // if (that._listener !== null) {
+            //     that._listener(D.ERROR_NO_ERROR, true);
+            // }
         });
     }
 
     chrome.usb.onDeviceAdded.addListener(function(device) {
         console.log('plug in vid=' + device.vendorId + ', pid=' + device.productId);
-        if (device.productId === MY_HID_PRODUCT_ID && device.vendorId === MY_HID_VENDOR_ID) {
-            if (!that._deviceId) {
-                that._deviceId = device.device;
-                connect(device);
-            }
+        if (!that._deviceId) {
+            that._deviceId = device.device;
+            connect(device);
         }
     });
 
@@ -80,9 +77,8 @@ var EsHidDevice = function() {
             }
             var device = foundDevices[index];
             console.log('found device: vid=' + device.vendorId + ', pid=' + device.productId);
-            if (device.productId === MY_HID_PRODUCT_ID && device.vendorId === MY_HID_VENDOR_ID) {
-                connect(device);
-            }
+            connect(device);
+            break;
         }
     });
 };
