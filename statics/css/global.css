@@ -23,7 +23,7 @@ audio, canvas, video, progress {
 pre{padding: 10px 15px; margin: 10px 0; font-size: 12px; border-left: 6px solid #009688;  background-color: #f8f8f8; font-family: Courier New; overflow: auto;}
 
 body {
-    color: #686868;
+    color: #333;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale
 }
@@ -298,9 +298,13 @@ legend{
 .layui-input-block {
     margin-left: 150px;
 }
+blockquote{
+    font-size: 14px;
+}
 /*自定义jqgrid的样式*/
 .ui-jqgrid{
     border-bottom-width: 0;
+    min-width: 715px;
 }
 .layui-laypage-btn:hover{
     border-color: #009688!important;

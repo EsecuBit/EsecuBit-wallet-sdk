@@ -55,7 +55,7 @@ Account.prototype.sendBitCoin = function(transaction, callback) {
     console.log(apdu);
 
     var ok = "007800002E09302e303132204254430122314d6459433232476d6a7032656a5670437879596a66795762514359544768477138";
-    this._device.sendHexApdu(ok, function (error, result) {
+    this._device.sendHexApduTrue(ok, function (error, result) {
         var data = new Uint8Array(result);
         var intArray = new Uint8Array(new Array(2));
         var paddingLength = data[1];

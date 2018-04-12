@@ -1,9 +1,10 @@
 
 var D = require('../def');
 var MockDevice = require('./mock_device');
+var EsHidDevice = require('./es_hid_device');
 
 var CoreWallet = function() {
-        // this._device = new EsHidDevice();
+        this._deviceTrue = new EsHidDevice();
         this._device = new MockDevice();
 };
 module.exports = new CoreWallet();
@@ -13,7 +14,7 @@ CoreWallet.prototype.hasInitialize = function(callback) {
 };
 
 CoreWallet.prototype.listenPlug = function(callback) {
-    this._device.listenPlug(callback);
+    this._deviceTrue.listenPlug(callback);
 };
 
 CoreWallet.prototype.init = function(callback) {
@@ -80,6 +81,16 @@ CoreWallet.prototype.getAddress = function(addressParams, callback) {
 
 CoreWallet.prototype.sendHexApdu = function(apdu, errorCallback, callback) {
     this._device.sendAndReceive(hexToArrayBuffer(apdu), function(error, response) {
+        if (error !== D.ERROR_NO_ERROR) {
+            errorCallback(error);
+            return;
+        }
+        callback(response);
+    });
+};
+
+CoreWallet.prototype.sendHexApduTrue = function(apdu, errorCallback, callback) {
+    this._deviceTrue.sendAndReceive(hexToArrayBuffer(apdu), function(error, response) {
         if (error !== D.ERROR_NO_ERROR) {
             errorCallback(error);
             return;
