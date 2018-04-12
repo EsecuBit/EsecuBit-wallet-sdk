@@ -1,12 +1,9 @@
 
-
-var CoreWallet = require('./hardware/core_wallet');
-var CoinData = require('./data/coin_data');
 var D = require('./def');
 
 var Wallet = function () {
-    this._device = CoreWallet.instance;
-    this._coinData = CoinData.instance;
+    this._device = require('./hardware/core_wallet');
+    this._coinData = require('./data/coin_data');
 };
 module.exports = Wallet;
 

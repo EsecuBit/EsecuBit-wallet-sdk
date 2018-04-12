@@ -7,8 +7,7 @@ var CoinData = function() {
     this._db = new IndexedDB();
     this._blockHeight = -1;
 };
-CoinData.instance = new CoinData();
-module.exports = CoinData;
+module.exports = new CoinData();
 
 CoinData.prototype.loadAccounts = function(deviceID, passPhraseID, callback) {
     var that = this;
@@ -21,15 +20,16 @@ CoinData.prototype.loadAccounts = function(deviceID, passPhraseID, callback) {
         if (accounts.length === 0) {
             console.log('no accounts, init the first account');
             // initialize first account
-            var firstAccount = new Account({
+            var firstAccount = {
                 accountID: makeID(),
                 label: "Account#1",
                 deviceID: deviceID,
                 passPhraseID: passPhraseID,
-                coinType: D.COIN_BIT_COIN});
-            console.dir(firstAccount);
+                coinType: D.COIN_BIT_COIN
+            };
             that._db.saveAccount(firstAccount, function(error, account) {
-                console.log(error + ' ' + account);
+                // TODO remove
+                that.initTransaction(firstAccount.accountID);
                 callback(error, [new Account(account)]);
             });
             return;
@@ -56,6 +56,9 @@ CoinData.prototype.newAccount = function(deviceID, passPhraseID, coinType, callb
         // check whether the last spec coinType account has transaction
         var lastAccountInfo = null;
         for (var index in accounts) {
+            if (!accounts.hasOwnProperty(index)) {
+                continue;
+            }
             if (accounts[index].coinType === coinType) {
                 lastAccountInfo = accounts[index];
             }
@@ -78,20 +81,20 @@ CoinData.prototype.newAccount = function(deviceID, passPhraseID, coinType, callb
             lastAccountInfo.accountID, 0, 1,
             function (error, transactions) {
 
-            if (transactions.length === 0) {
-                callback(D.ERROR_LAST_WALLET_NO_TRANSACTION);
-                return;
-            }
-            var index = accounts.length + 1;
-            that._db.saveAccount(
-                {
-                    accountID: makeID(),
-                    label: "Account#" + index,
-                    deviceID: deviceID,
-                    passPhraseID: passPhraseID,
-                    coinType: coinType
-                },
-                callback);
+                if (transactions.length === 0) {
+                    callback(D.ERROR_LAST_WALLET_NO_TRANSACTION);
+                    return;
+                }
+                var index = accounts.length + 1;
+                that._db.saveAccount(
+                    {
+                        accountID: makeID(),
+                        label: "Account#" + index,
+                        deviceID: deviceID,
+                        passPhraseID: passPhraseID,
+                        coinType: coinType
+                    },
+                    callback);
          });
     });
 };
@@ -113,6 +116,41 @@ CoinData.prototype.getBlockHeight = function() {
         return [D.ERROR_NETWORK_NOT_INITIALIZED];
     }
     return [D.ERROR_NO_ERROR, this._blockHeight];
+};
+
+// TODO remove
+CoinData.prototype.initTransaction = function (accountID) {
+    console.log('initTransaction');
+    this._db.saveTransactionInfo(
+        {
+        accountID: accountID,
+        coinType: D.COIN_BIT_COIN,
+        firstConfirmedTime: new Date().getTime(),
+        direction: 'in',
+        count: 84000000
+        },
+        function() {});
+
+    this._db.saveTransactionInfo(
+        {
+        accountID: accountID,
+        coinType: D.COIN_BIT_COIN,
+        firstConfirmedTime: new Date().getTime(),
+        direction: 'out',
+        count: 18000000
+        },
+        function() {});
+
+    this._db.saveTransactionInfo(
+        {
+
+            accountID: accountID,
+            coinType: D.COIN_BIT_COIN,
+            firstConfirmedTime: new Date().getTime(),
+            direction: 'out',
+            count: 33000000
+        },
+        function() {});
 };
 
 function makeID() {

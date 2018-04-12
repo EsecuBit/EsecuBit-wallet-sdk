@@ -13,6 +13,6 @@ var D = {
     ERROR_NOT_IMPLEMENTED: 98,
     ERROR_UNKNOWN: 99,
 
-    COIN_BIT_COIN: 1
+    COIN_BIT_COIN: 'bitcoin'
 };
 module.exports = D;

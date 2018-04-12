@@ -172,6 +172,8 @@ chrome.usb.getDevices({}, function(foundDevices) {
     return;
   }
 
+  console.log('found device ');
+  console.dir(foundDevices);
   for (var device of foundDevices) {
       console.log('found device: vid=' + device.vendorId + ', pid=' + device.productId);
     if (device.productId == MY_HID_PRODUCT_ID && device.vendorId == MY_HID_VENDOR_ID) {
