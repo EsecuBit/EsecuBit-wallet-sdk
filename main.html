@@ -13,248 +13,295 @@
     <link href="./statics/css/iconfont.css" rel="stylesheet">
     <link href="./statics/css/global.css" rel="stylesheet">
     <link href="./statics/css/index.css" rel="stylesheet">
+    <link href="./statics/css/login.css" rel="stylesheet">
 </head>
-<body>
-<<<<<<< HEAD
-<div class="fly-header bg-black">
-    <div class="layui-container">
-        <a class="logo" href="#"> <img src="./logo.png" alt="Wallet Bitcion"></a>
-        <!-- 头部区域（可配合layui已有的水平导航） -->
-        <ul class="layui-nav fly-nav layui-hide-xs menu-switch">
-            <li class="layui-nav-item layui-this"><a href="#" data-url="./html/account.html"><i class="icon iconfont icon-zhanghu1"></i>账户</a></li>
-            <li class="layui-nav-item"><a href="#" data-url="./html/send.html"><i class="icon iconfont icon-msnui-cloud-upload bigger"></i>发送</a></li>
-            <li class="layui-nav-item"><a href="#" data-url="./html/accept.html"><i class="icon iconfont icon-msnui-cloud-download bigger"></i>接收</a></li>
-            <li class="layui-nav-item"><a href="#" data-url="./html/settings.html"><i class="icon iconfont icon-shezhi2"></i>设置</a></li>
-            <span class="layui-nav-bar" style="left: 0; top: 55px; width: 0; opacity: 0;"></span>
-        </ul>
-        <ul class="layui-nav fly-nav-user">
-            <li class="layui-nav-item"><a href="#" data-pjax="">退出</a></li>
-            <span class="layui-nav-bar" style="left: 0; top: 55px; width: 0;opacity: 0;"></span>
-        </ul>
+<body >
+<div class="layui-layout-body" id="admin_app" v-cloak>
+    <div class="login-container">
+        <div class="layadmin-user-login" >
+            <div class="layadmin-user-login-main">
+                <div class="layadmin-user-login-box layadmin-user-login-header">
+                    <div>
+                        <img src="./icon48.png"  height="80" >
+                    </div>
+                    <h2>Wallet Bitcion</h2>
+                    <p>A secure offline management tool</p>
+                </div>
+            </div>
+        </div>
+        <div class="layadmin-center">
+            <div class="layadmin-user-login-box layadmin-user-login-header" style="padding-top: 40px">
+                <div id="Div" style="position: relative;height: 50px">
+                    <h2 id="firstDiv"><i class="icon iconfont icon-thumbDrive" id="u-disk" style="font-size: 50px"></i> <i class="layui-icon layui-anim layui-anim-rotate layui-anim-loop" id="loading" style="font-size: 36px;display: none"></i>   </h2>
+                </div>
+                <h3 id="warnMsg">Please insert your key on your computer and unlock your wallet</h3>
+                <div>
+                    <div id="secondDiv">
+                        <input id="login" type="button" value="登录" class="btnStyle" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="contact-us">
+            <a href="#">If you need help, please contact us.</a>
+        </div>
     </div>
-</div>
-<div class="fly-panel fly-column">
-    <div class="layui-container">
-        <p>
-        <span class="layui-breadcrumb" style="visibility: visible;">
-          <a href="#">首页</a><span lay-separator="">&gt;</span>
-          <a href="#">账户</a>
-        </span>
-        </p>
-    </div>
-</div>
-<div class="layui-container page-content ">
-    <div class="main-tab-content">
-        <div class="main-tab-item layui-show">
-            <div class="site-tree">
-                <ul class="layui-tree">
-                    <li><h2>bitcoin</h2></li>
-                    <li class="site-tree-noicon tab-title-1 layui-this">
-                        <a href="#">
-                            <cite>账户一</cite>
-                            <em>account 1</em>
-                        </a>
-                    </li>
-                    <li class="site-tree-noicon tab-title-1">
-                        <a href="#">
-                            <cite>账户二</cite>
-                            <em>account 2</em>
-                        </a>
-                    </li>
-                    <li class="site-tree-noicon tab-title-1">
-                        <a href="#">
-                            <cite>账户三</cite>
-                            <em>account 3</em>
-                        </a>
-                    </li>
+
+
+
+    <div class="main-admin" style="display: none">
+        <div class="fly-header bg-black">
+            <div class="layui-container">
+                <a class="logo" href="#"> <img src="./logo.png" alt="Wallet Bitcion"></a>
+                <!-- 头部区域（可配合layui已有的水平导航） -->
+                <ul class="layui-nav fly-nav layui-hide-xs menu-switch">
+                    <li class="layui-nav-item layui-this"><a href="#" ><i class="icon iconfont icon-zhanghu1"></i>Accounts</a></li>
+                    <li class="layui-nav-item"><a href="#" ><i class="icon iconfont icon-msnui-cloud-upload bigger"></i>Send</a></li>
+                    <li class="layui-nav-item"><a href="#" ><i class="icon iconfont icon-msnui-cloud-download bigger"></i>Accept</a></li>
+                    <li class="layui-nav-item"><a href="#" ><i class="icon iconfont icon-shezhi2"></i>Setting</a></li>
+                    <span class="layui-nav-bar" style="left: 0; top: 55px; width: 0; opacity: 0;"></span>
                 </ul>
-                <ul class="layui-tree">
-                    <li><h2>litecoin</h2></li>
-                    <li class="site-tree-noicon tab-title-1">
-                        <a href="#">
-                            <cite>账户一</cite>
-                            <em>account 1</em>
-                        </a>
-                    </li>
-                    <li class="site-tree-noicon tab-title-1">
-                        <a href="#">
-                            <cite>账户二</cite>
-                            <em>account 2</em>
-                        </a>
-                    </li>
-                    <li class="site-tree-noicon tab-title-1">
-                        <a href="#">
-                            <cite>账户三</cite>
-                            <em>account 3</em>
-                        </a>
-                    </li>
+                <ul class="layui-nav fly-nav-user">
+                    <li class="layui-nav-item"><a href="#" data-pjax="" id="logout">Logout</a></li>
+                    <span class="layui-nav-bar" style="left: 0; top: 55px; width: 0;opacity: 0;"></span>
                 </ul>
             </div>
-            <div class="site-content">
-                <div class="tab-content-1">
-                    <div class="tab-item layui-show">
-                        <div class="site-title">
-                            <fieldset><legend><a name="default">最近的操作</a></legend></fieldset>
+        </div>
+        <div class="fly-panel fly-column">
+            <div class="layui-container">
+                <p>
+        <span class="layui-breadcrumb" style="visibility: visible;">
+          <a href="#">Home</a><span lay-separator="">&gt;</span>
+          <a href="#" id="message">Accounts</a>
+        </span>
+                </p>
+            </div>
+        </div>
+        <div class="layui-container page-content ">
+            <div class="main-tab-content">
+                <div class="main-tab-item layui-show">
+                    <div class="site-tree">
+                        <ul class="layui-tree">
+                            <li><h2>BTC</h2></li>
+                            <li class="site-tree-noicon tab-title-1 layui-this">
+                                <a href="#">
+                                    <cite>Account 1</cite>
+                                    <em>account 1</em>
+                                </a>
+                            </li>
+                            <li class="site-tree-noicon tab-title-1">
+                                <a href="#">
+                                    <cite>Account 2</cite>
+                                    <em>account 2</em>
+                                </a>
+                            </li>
+                            <li class="site-tree-noicon tab-title-1">
+                                <a href="#">
+                                    <cite>Account 3</cite>
+                                    <em>account 3</em>
+                                </a>
+                            </li>
+                        </ul>
+                        <ul class="layui-tree">
+                            <li><h2>LTC</h2></li>
+                            <li class="site-tree-noicon tab-title-1">
+                                <a href="#">
+                                    <cite>Account 1</cite>
+                                    <em>account 1</em>
+                                </a>
+                            </li>
+                            <li class="site-tree-noicon tab-title-1">
+                                <a href="#">
+                                    <cite>Account 2</cite>
+                                    <em>account 2</em>
+                                </a>
+                            </li>
+                            <li class="site-tree-noicon tab-title-1">
+                                <a href="#">
+                                    <cite>Account 3</cite>
+                                    <em>account 3</em>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="site-content">
+                        <div class="tab-content-1">
+                            <div class="tab-item layui-show">
+                                <div class="site-title">
+                                    <fieldset><legend><a name="default">Recent Operations</a></legend></fieldset>
+                                </div>
+                                <div class="layui-row">
+                                    <div class="layui-col-xs12 ">
+                                        <div id="table-content"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="tab-item">内容2</div>
+                            <div class="tab-item">内容3</div>
+                            <div class="tab-item">litecoin1</div>
+
+                            <div class="tab-item">litecoin2</div>
+                            <div class="tab-item">litecoin3</div>
+
                         </div>
-                        <div class="layui-row">
-                            <div class="layui-col-xs12 ">
-                                <div id="table-content"></div>
+                    </div>
+                </div>
+                <div class="main-tab-item">
+                    <blockquote class="site-text layui-elem-quote" style="margin-top: 30px">
+                        <i class="layui-icon">&#xe645;</i>   Make sure you have the correct beneficiary address
+                    </blockquote>
+                    <div class="site-title" style="margin-top: 20px">
+                        <fieldset><legend><a name="use">Send Bitcoins</a></legend></fieldset>
+                    </div>
+                    <div class="site-text site-block">
+                        <form class="layui-form" action="">
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">Amount</label>
+                                <div class="layui-input-inline input-width">
+                                    <input type="text" name="money" lay-verify="required|money" placeholder="最大200" onkeyup="value=value.replace(/[^\-?\d.]/g,'')" onblur="value=value.replace(/[^\-?\d.]/g,'')"
+                                           autocomplete="off" class="layui-input">
+                                </div><button class="layui-btn layui-btn-radius layui-btn-primary pull-left" id="max">MAX</button><div class="layui-form-mid layui-word-aux">200usd</div>
+                            </div>
+                            <div class="money-address">
+                                <div class="layui-form-item">
+                                    <label class="layui-form-label">Bitcoin Address</label>
+                                    <div class="layui-input-inline input-width">
+                                        <input type="text" name="address"  lay-verify="required"  placeholder="比特币地址" autocomplete="off" class="layui-input">
+                                    </div><button class="layui-btn layui-btn-radius layui-btn-primary" id="addAddress">Add</button>
+                                </div>
+
+                            </div>
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">Choose an Account"</label>
+                                <div class="layui-input-inline input-width">
+                                    <select name="account" lay-verify="required">
+                                        <option value="0">账户一</option>
+                                        <option value="1">账户二</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">Transaction Fees</label>
+                                <div class="layui-input-inline input-width">
+                                    <select name="fee" lay-verify="required">
+                                        <option value="0">高（快速确认）</option>
+                                        <option value="1">标准（正常确认）</option>
+                                        <option value="2">低（慢确认）</option>
+                                        <option value="3">custome fees</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">Total Fees</label>
+                                <div class="layui-input-inline input-width">
+                                    <textarea disabled style="color: #999;" required lay-verify="required" placeholder="请输入内容" class="layui-textarea" name="desc">BTC 0(含BTC 0 的交易费用) &#13;USD 0.00(含USD 0.00 的交易费用)</textarea>
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <div class="layui-input-block">
+                                    <button class="layui-btn" lay-submit lay-filter="formDemo">Submit</button>
+                                    <button type="reset" class="layui-btn layui-btn-primary">Reset</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="main-tab-item">
+                    <blockquote class="site-text layui-elem-quote" style="margin-top: 30px">
+                        <i class="layui-icon">&#xe645;</i>   Select an account to generate QR code
+                    </blockquote>
+                    <div class="site-title" style="margin-top: 20px">
+                        <fieldset><legend><a name="use">Receive Bitcoins</a></legend></fieldset>
+                    </div>
+                    <div class="site-text site-block">
+                        <form class="layui-form" action="">
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">Choose an Account</label>
+                                <div class="layui-input-block">
+                                    <select name="account" lay-verify="required" lay-filter="account">
+
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <div id="code" class="qrcode"></div>
+                            </div>
+                            <div class="layui-form-item">
+                                <div class="address-btn">
+                                    <button class="layui-btn" id="change_address">&nbsp;换&nbsp;地&nbsp;址&nbsp;</button>
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <div class="description">Please use the mobile phone to scan the QR code in the picture</div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="main-tab-item">
+                    <div class="site-tree">
+                        <ul class="layui-tree ">
+                            <li><h2>Setting</h2></li>
+                            <li class="tab-title-2 layui-this">
+                                <a href="#">
+                                    <i class="layui-icon" style="top: 3px;">&#xe632;</i>
+                                    <cite>display</cite>
+                                    <em>display</em>
+                                </a>
+                            </li>
+                            <li class="tab-title-2">
+                                <a href="#">
+                                    <i class="layui-icon" style="top: 3px;">&#xe628;</i>
+                                    <cite>hardware information</cite>
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="site-content">
+                        <div class="tab-content-2">
+                            <div class="tab-item layui-show">
+                                <div class="site-text site-block">
+                                    <form class="layui-form" action="">
+                                        <div class="layui-form-item">
+                                            <label class="layui-form-label" style="font-size: 13px">Interface Language</label>
+                                            <div class="layui-input-inline input-width">
+                                                <select name="lang" lay-filter="lang">
+                                                    <option value="en">English</option>
+                                                    <option value="zh-CN">简体中文</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                    </form>
+                                </div>
+                            </div>
+                            <!--硬件信息-->
+                            <div class="tab-item">
+                                <table class="layui-table" lay-skin="line">
+                                    <colgroup>
+                                        <col width="150">
+                                        <col width="200">
+                                    </colgroup>
+                                    <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Information</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="hardwareInformation">
+
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
-                    <div class="tab-item">内容2</div>
-                    <div class="tab-item">内容3</div>
-                    <div class="tab-item">litecoin1</div>
-
-                    <div class="tab-item">litecoin2</div>
-                    <div class="tab-item">litecoin3</div>
-
-                </div>
-            </div>
-        </div>
-        <div class="main-tab-item">
-            <blockquote class="site-text layui-elem-quote" style="margin-top: 30px">
-                <i class="layui-icon">&#xe645;</i>   Make sure you have the correct beneficiary address！
-            </blockquote>
-            <div class="site-title" style="margin-top: 20px">
-                <fieldset><legend><a name="use">发送比特币</a></legend></fieldset>
-            </div>
-            <div class="site-text site-block">
-                <form class="layui-form" action="">
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">金额</label>
-                        <div class="layui-input-inline input-width">
-                            <input type="text" name="money" lay-verify="required|money" placeholder="最大200" onkeyup="value=value.replace(/[^\-?\d.]/g,'')" onblur="value=value.replace(/[^\-?\d.]/g,'')"
-                                   autocomplete="off" class="layui-input">
-                        </div><button class="layui-btn layui-btn-radius layui-btn-primary pull-left" id="max">MAX</button><div class="layui-form-mid layui-word-aux">200usd</div>
-                    </div>
-                    <div class="money-address">
-                        <div class="layui-form-item">
-                            <label class="layui-form-label">收件人地址</label>
-                            <div class="layui-input-inline input-width">
-                                <input type="text" name="address"  lay-verify="required"  placeholder="比特币地址" autocomplete="off" class="layui-input">
-                            </div><button class="layui-btn layui-btn-radius layui-btn-primary" id="addAddress">添加</button>
-                        </div>
-
-                    </div>
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">选择账户</label>
-                        <div class="layui-input-inline input-width">
-                            <select name="account" lay-verify="required">
-                                <option value="0">账户一</option>
-                                <option value="1">账户二</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">交易费用</label>
-                        <div class="layui-input-inline input-width">
-                            <select name="fee" lay-verify="required">
-                                <option value="0">高（快速确认）</option>
-                                <option value="1">标准（正常确认）</option>
-                                <option value="2">低（慢确认）</option>
-                                <option value="3">custome fees</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">总花费</label>
-                        <div class="layui-input-inline input-width">
-                            <textarea disabled style="color: #999;" required lay-verify="required" placeholder="请输入内容" class="layui-textarea" name="desc">BTC 0(含BTC 0 的交易费用) &#13;USD 0.00(含USD 0.00 的交易费用)</textarea>
-                        </div>
-                    </div>
-                    <div class="layui-form-item">
-                        <div class="layui-input-block">
-                            <button class="layui-btn" lay-submit lay-filter="formDemo">立即提交</button>
-                            <button type="reset" class="layui-btn layui-btn-primary">重置</button>
-                        </div>
-                    </div>
-                </form>
-            </div>
-        </div>
-        <div class="main-tab-item">
-            <blockquote class="site-text layui-elem-quote" style="margin-top: 30px">
-                <i class="layui-icon">&#xe645;</i>   Make sure your account！
-            </blockquote>
-            <div class="site-title" style="margin-top: 20px">
-                <fieldset><legend><a name="use">接受比特币</a></legend></fieldset>
-            </div>
-            <div class="site-text site-block">
-                <form class="layui-form" action="">
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">选择账户</label>
-                        <div class="layui-input-block">
-                            <select name="account" lay-verify="required" lay-filter="account">
-                                <option value="this is the first account">账户一</option>
-                                <option value="this is the second account">账户二</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="layui-form-item">
-                        <div id="code" class="qrcode"></div>
-                    </div>
-                    <div class="layui-form-item">
-                        <div class="address-btn">
-                            <button class="layui-btn" id="change_address">&nbsp;换&nbsp;地&nbsp;址&nbsp;</button>
-                        </div>
-                    </div>
-                    <div class="layui-form-item">
-                        <div class="description">Please use the mobile phone to scan the QR code in the picture</div>
-                    </div>
-                </form>
-            </div>
-        </div>
-        <div class="main-tab-item">
-            <div class="site-tree">
-                <ul class="layui-tree ">
-                    <li><h2>设置</h2></li>
-                    <li class="tab-title-2 layui-this">
-                        <a href="#">
-                            <i class="layui-icon" style="top: 3px;">&#xe61b;</i>
-                            <cite>皮肤</cite>
-                            <em>skin</em>
-                        </a>
-                    </li>
-                    <li class="tab-title-2">
-                        <a href="#">
-                            <i class="layui-icon" style="top: 3px;">&#xe632;</i>
-                            <cite>显示</cite>
-                            <em>display</em>
-                        </a>
-                    </li>
-                    <li class="tab-title-2">
-                        <a href="#">
-                            <i class="layui-icon" style="top: 3px;">&#xe628;</i>
-                            <cite>硬件信息</cite>
-                            <em>hardware information</em>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-            <div class="site-content">
-                <div class="tab-content-2">
-                    <div class="tab-item layui-show">
-                        <div class="site-title">
-                            <fieldset><legend><a name="default">最近的操作</a></legend></fieldset>
-                        </div>
-                    </div>
-                    <div class="tab-item">内容2</div>
-                    <div class="tab-item">内容3</div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-<script src="./statics/js/spin.js"></script>
+<script src="./statics/js/vue.js"></script>
+<script src="./statics/js/vue-i18n.js"></script>
 <script src="./statics/js/layui/layui.js"></script>
-<script src="./js/main.js"></script>
-=======
-  <p id="text">Hello World!</p>
-  <p id="status">unpluged</p>
-  <button id="button">devices</button>
-  <button id="button2">permission</button>
-  <!--<script src="device.js"></script>-->
-  <script type="module" src="test/wallet.bundle.test.js"></script>
->>>>>>> bbf00cd5a4e60e2ba475d8b72f4ada1dad2f5a73
+<script src="./js/bundle.js"></script>
 </body>
 </html>

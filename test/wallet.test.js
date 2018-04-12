@@ -20,6 +20,7 @@ wallet.listenDevice(function (error, isPlugIn) {
     wallet.getWalletInfo(function (error, info) {
         console.log('getWalletInfo: error ' + error);
         console.dir(info);
+        console.log(12321332);
         if (error !== D.ERROR_NO_ERROR) {
             return;
         }
