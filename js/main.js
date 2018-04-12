@@ -348,7 +348,20 @@ layui.use(['jquery','form','jqGrid','localeEn','laypage','element','qrcode'], fu
                 }
             }
         });
-        console.log( );
+        $("#money").keyup(function () {
+            var c=$(this);
+            if(/[^\d]/.test(c.val())){//替换非数字字符
+                var temp_amount=c.val().replace(/[^\-?\d.]/g,'');
+                $(this).val(temp_amount);
+            }
+        });
+        $("#money").blur(function () {
+            var c=$(this);
+            if(/[^\d]/.test(c.val())){//替换非数字字符
+                var temp_amount=c.val().replace(/[^\-?\d.]/g,'');
+                $(this).val(temp_amount);
+            }
+        });
         var fastFee= wallet.getFloatCount(wallet.getFee("fast")),
             normalFee= wallet.getFloatCount(wallet.getFee("normal")),
             economyFee= wallet.getFloatCount(wallet.getFee("economy"));
