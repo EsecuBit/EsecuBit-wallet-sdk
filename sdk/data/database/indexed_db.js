@@ -55,7 +55,7 @@ IndexedDB.prototype.saveAccount = function(account, callback) {
     request.onerror = function(e) { callback(D.ERROR_EXEC_DATABASE_FAILED, account); };
 };
 
-IndexedDB.prototype.loadAccounts = function(deviceID, passPhraseID, callback) {
+IndexedDB.prototype.getAccounts = function(deviceID, passPhraseID, callback) {
     if (this._db === null) {
         callback(D.ERROR_OPEN_DATABASE_FAILED);
         return;
@@ -72,6 +72,7 @@ IndexedDB.prototype.loadAccounts = function(deviceID, passPhraseID, callback) {
     request.onerror = function(e) { callback(D.ERROR_EXEC_DATABASE_FAILED); };
 };
 
+// won't use
 IndexedDB.prototype.clearAccounts = function(deviceID, passPhraseID, callback) {
     if (this._db === null) {
         callback(D.ERROR_OPEN_DATABASE_FAILED);

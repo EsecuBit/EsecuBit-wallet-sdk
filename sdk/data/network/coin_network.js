@@ -4,12 +4,17 @@ var D = require('../../def');
 var TYPE_ADDRESS = 'address';
 var TYPE_TRANSACTION_INFO = 'transaction_info';
 
-var ADDRESS_REQUEST_PERIOD = 5;
-var TRANSACTION_REQUEST_PERIOD = 30;
+// var ADDRESS_REQUEST_PERIOD = 60; // seconds per request
+// var TRANSACTION_REQUEST_PERIOD = 30; // seconds per request
+// test
+var ADDRESS_REQUEST_PERIOD = 5; // seconds per request
+var TRANSACTION_REQUEST_PERIOD = 10; // seconds per request
+
+var BTC_MAX_CONFIRMATIONS = 6;
 
 var CoinNetwork = function() {
     this.coinType = 'undefined';
-    this._requestRate = 1; // requests per second
+    this._requestRate = 2; // seconds per request
     this._requestList = [];
 
     var that = this;
@@ -26,10 +31,10 @@ var CoinNetwork = function() {
                 break;
             }
         }
-        setTimeout(that._queue, 1 / that._requestRate * 1000);
+        setTimeout(that._queue, that._requestRate * 1000);
     };
     // not using setInterval because _requestRate is changable
-    setTimeout(this._queue, 1 / this._requestRate * 1000);
+    setTimeout(this._queue, this._requestRate * 1000);
 };
 module.exports = CoinNetwork;
 
@@ -72,10 +77,6 @@ CoinNetwork.prototype.get = function (url, errorCallback, callback) {
     xmlhttp.send();
 };
 
-CoinNetwork.prototype.listenTransactionInfoStatus = function (callback) {
-    callback(D.ERROR_NOT_IMPLEMENTED);
-};
-
 CoinNetwork.prototype.registerListenedTransactionId = function (transactionId, callback) {
     var that = this;
     this._requestList.push({
@@ -90,6 +91,10 @@ CoinNetwork.prototype.registerListenedTransactionId = function (transactionId, c
                     return;
                 }
                 callback(error, response);
+                if (response.confirmations >= BTC_MAX_CONFIRMATIONS) {
+                    console.info('confirmations enough, remove', thatRequest);
+                    remove(that._requestList, indexOf(that._requestList, thatRequest));
+                }
             });
             thatRequest.nextTime += new Date().getTime() + TRANSACTION_REQUEST_PERIOD;
         }
@@ -157,3 +162,19 @@ CoinNetwork.prototype.getSuggestedFee = function (feeType, callback) {
 CoinNetwork.prototype.sendTrnasaction = function (fee) {
     callback(D.ERROR_NOT_IMPLEMENTED);
 };
+
+function indexOf(arr, val) {
+    for(var i = 0; i < arr.length; i++) {
+        if(arr[i] === val) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+function remove(arr, val) {
+    var index = indexOf(val);
+    if(index > -1) {
+        arr.splice(index,1);
+    }
+}

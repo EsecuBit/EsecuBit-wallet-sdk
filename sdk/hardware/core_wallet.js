@@ -17,18 +17,6 @@ CoreWallet.prototype.listenPlug = function(callback) {
     this._deviceTrue.listenPlug(callback);
 };
 
-CoreWallet.prototype.init = function(callback) {
-    callback(D.ERROR_NOT_IMPLEMENTED);
-};
-
-CoreWallet.prototype.recover = function(callback) {
-    callback(D.ERROR_NOT_IMPLEMENTED);
-};
-
-CoreWallet.prototype.reset = function(callback) {
-    callback(D.ERROR_NOT_IMPLEMENTED);
-};
-
 CoreWallet.prototype.getFirmwareVersion = function(callback) {
     this.sendHexApdu('0003000000', callback, function (response) {
         callback(D.ERROR_NO_ERROR, response);

@@ -36,7 +36,7 @@ Account.prototype.sendBitCoin = function(transaction, callback) {
     console.dir(enc);
 
     var total = transaction.out + transaction.fee;
-    var totalString = total / 100000000 + ' BTC';
+    var totalString = this._coinData.getFloatFee(total) + ' BTC';
     var apdu = "";
     var hexChars = '0123456789ABCDEF';
     apdu += hexChars[totalString.length >> 4] + hexChars[totalString.length % 0x10] + arrayBufferToHex(enc.encode(totalString));

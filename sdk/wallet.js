@@ -8,15 +8,21 @@ var Wallet = function () {
 module.exports = Wallet;
 
 Wallet.prototype.initWallet = function (callback) {
-    this._device.init(callback);
-};
-
-Wallet.prototype.recoverWallet = function (callback) {
-    this._device.recover(callback);
-};
-
-Wallet.prototype.resetWallet = function (callback) {
-    this._device.reset(callback);
+    var status = 0;
+    this._device.init(function (error) {
+        if (error !== D.ERROR_NO_ERROR) {
+            callback(error);
+            return;
+        }
+        status++;
+    });
+    this._coinData.initNetwork(function (error) {
+        if (error !== D.ERROR_NO_ERROR) {
+            callback(error);
+            return;
+        }
+        status++;
+    });
 };
 
 Wallet.prototype.listenDevice = function (callback) {
@@ -24,15 +30,11 @@ Wallet.prototype.listenDevice = function (callback) {
 };
 
 Wallet.prototype.listenTransactionInfo = function (callback) {
-    callback(D.ERROR_NOT_IMPLEMENTED);
-};
-
-Wallet.prototype.requestLogin = function (callback) {
-    callback(D.ERROR_NOT_IMPLEMENTED);
+    this._coinData.listenTransactionInfo(callback);
 };
 
 Wallet.prototype.getAccounts = function (deviceID, passPhraseID, callback) {
-    this._coinData.loadAccounts(deviceID, passPhraseID, callback);
+    this._coinData.getAccounts(deviceID, passPhraseID, callback);
 };
 
 Wallet.prototype.newAccount = function (deviceID, passPhraseID, coinType, callback) {
