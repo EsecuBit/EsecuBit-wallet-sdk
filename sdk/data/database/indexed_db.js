@@ -26,6 +26,7 @@ var IndexedDB = function() {
         if(!db.objectStoreNames.contains('transactionInfo')) {
             var transactionInfo = db.createObjectStore('transactionInfo', {autoIncrement: true});
             transactionInfo.createIndex('accountID', 'accountID', {unique: false});
+            transactionInfo.createIndex('address', 'address', {unique: false});
             transactionInfo.createIndex('firstConfirmedTime', 'firstConfirmedTime', {unique: false});
         }
     };
@@ -104,29 +105,35 @@ IndexedDB.prototype.saveTransactionInfo = function(transactionInfo, callback) {
     request.onerror = function(e) { callback(D.ERROR_EXEC_DATABASE_FAILED, transactionInfo); };
 };
 
-IndexedDB.prototype.getTransactionInfos = function(accountID, startIndex, endIndex, callback) {
+IndexedDB.prototype.getTransactionInfos = function(filter, callback) {
     if (this._db === null) {
         callback(D.ERROR_OPEN_DATABASE_FAILED);
         return;
     }
 
     var request;
-    if (accountID === null) {
-        request = this._db.transaction(['transactionInfo'], 'readonly')
-            .objectStore('transactionInfo')
-            .openCursor();
-    } else {
+    if (filter.accountID !== null) {
         // var range = IDBKeyRange.bound(startIndex, endIndex);
         request = this._db.transaction(['transactionInfo'], 'readonly')
             .objectStore('transactionInfo')
             .index('accountID')
-            .openCursor(accountID);
+            .openCursor(filter.accountID);
         // TODO optimize
         // .openCursor(range);
+    } else if (filter.address !== null) {
+        request = this._db.transaction(['transactionInfo'], 'readonly')
+            .objectStore('transactionInfo')
+            .index('address')
+            .openCursor(filter.address);
+    } else {
+        request = this._db.transaction(['transactionInfo'], 'readonly')
+            .objectStore('transactionInfo')
+            .openCursor();
     }
 
     var array = [];
     var count = 0;
+    var startIndex = filter.hasOwnProperty('startIndex')? filter.startIndex : 0;
     request.onsuccess = function(e) {
         var cursor = e.target.result;
         if(cursor) {

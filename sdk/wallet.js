@@ -45,16 +45,11 @@ Wallet.prototype.getWalletInfo = function (callback) {
     this._device.getWalletInfo(callback);
 };
 
-Wallet.prototype.getFee = function(feeType) {
-    if (feeType === D.FEE_FAST) {
-        return 100000;
-    }
-    if (feeType === D.FEE_NORMAL) {
-        return 50000;
-    }
-    if (feeType === D.FEE_ECNOMIC) {
-        return 20000;
-    }
+Wallet.prototype.getFee = function(feeType, callback) {
+    // var transactionSize = 180 * ins + 34 * outs + 10
+    this._coinData.getSuggestedFee(feeType, function(error, fee) {
+        callback();
+    });
 };
 
 Wallet.prototype.getFloatCount = function(floatCount) {

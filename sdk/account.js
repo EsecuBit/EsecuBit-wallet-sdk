@@ -17,7 +17,11 @@ var Account = function(info) {
 module.exports = Account;
 
 Account.prototype.getTransactionInfos = function(startIndex, endIndex, callback) {
-    this._coinData.getTransactionInfos(this.accountID, startIndex, endIndex, callback);
+    this._coinData.getTransactionInfos({
+        accountID: this.accountID,
+        startIndex: startIndex,
+        endIndex: endIndex
+    }, callback);
 };
 
 Account.prototype.getAddress = function(addressParam, callback) {

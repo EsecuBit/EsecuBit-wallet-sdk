@@ -73,11 +73,39 @@ CoinNetwork.prototype.get = function (url, errorCallback, callback) {
         }
     };
     xmlhttp.open('GET', url, true);
+    // TODO json?
     xmlhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
     xmlhttp.send();
 };
 
-CoinNetwork.prototype.registerListenedTransactionId = function (transactionId, callback) {
+CoinNetwork.prototype.post = function (url, args, errorCallback, callback) {
+    var xmlhttp = new XMLHttpRequest();
+    xmlhttp.onreadystatechange = function() {
+        if (xmlhttp.readyState === 4) {
+            if (xmlhttp.status === 200) {
+                try {
+                    var coinInfo = JSON.parse(xmlhttp.responseText);
+                    callback(coinInfo);
+                } catch (e) {
+                    console.warn(e);
+                    errorCallback(D.ERROR_NETWORK_PROVIDER_ERROR);
+                }
+            } else if (xmlhttp.status === 500) {
+                console.warn(url, xmlhttp.status);
+                errorCallback(D.ERROR_NETWORK_PROVIDER_ERROR);
+            } else {
+                console.warn(url, xmlhttp.status);
+                errorCallback(D.ERROR_NETWORK_UNVAILABLE);
+            }
+        }
+    };
+    xmlhttp.open('POST', url, true);
+    // TODO json?
+    xmlhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+    xmlhttp.send(args);
+};
+
+CoinNetwork.prototype.listenTransaction = function (transactionId, callback) {
     var that = this;
     this._requestList.push({
         type: TYPE_TRANSACTION_INFO,
@@ -101,12 +129,12 @@ CoinNetwork.prototype.registerListenedTransactionId = function (transactionId, c
     });
 };
 
-CoinNetwork.prototype.registerListenedAddress = function (address, listenedTxId, callback) {
+CoinNetwork.prototype.listenAddress = function (address, listenedTxIds, callback) {
     var that = this;
     this._requestList.push({
         type: TYPE_ADDRESS,
         address: address,
-        listenedTxId: listenedTxId,
+        listenedTxIds: listenedTxIds,
         nextTime: new Date().getTime(),
         request: function() {
             var thatRequest = this;
@@ -121,8 +149,8 @@ CoinNetwork.prototype.registerListenedAddress = function (address, listenedTxId,
                     if (!totalTxs.hasOwnProperty(index)) {
                         continue;
                     }
-                    if (!isInArray(thatRequest.listenedTxId, totalTxs[index].txId)) {
-                        listenedTxId.push(totalTxs[index]);
+                    if (!isInArray(thatRequest.listenedTxIds, totalTxs[index].txId)) {
+                        thatRequest.listenedTxIds.push(totalTxs[index]);
                         response.txs.push(totalTxs[index]);
                     }
                 }
@@ -159,7 +187,7 @@ CoinNetwork.prototype.getSuggestedFee = function (feeType, callback) {
     callback(D.ERROR_NOT_IMPLEMENTED);
 };
 
-CoinNetwork.prototype.sendTrnasaction = function (fee) {
+CoinNetwork.prototype.sendTrnasaction = function (rawTransaction, callback) {
     callback(D.ERROR_NOT_IMPLEMENTED);
 };
 

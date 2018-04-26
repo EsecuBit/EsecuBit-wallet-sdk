@@ -4,11 +4,14 @@ var IndexedDB = require('./database/indexed_db');
 var ChainSo = require('./network/chainso');
 var Account = require('../account');
 
-
 var CoinData = function() {
     this._db = new IndexedDB();
-    this._network = new ChainSo();
+    this._networkProvider = ChainSo;
+    this._network = {};
+    this._network[COIN_BIT_COIN] = new this._networkProvider();
+    this._network[COIN_BIT_COIN_TEST] = new this._networkProvider();
 };
+// TODO class:, instance:
 module.exports = new CoinData();
 
 CoinData.prototype.getAccounts = function(deviceID, passPhraseID, callback) {
@@ -82,7 +85,11 @@ CoinData.prototype.newAccount = function(deviceID, passPhraseID, coinType, callb
         }
 
         that.getTransactionInfos(
-            lastAccountInfo.accountID, 0, 1,
+            {
+                accountID: lastAccountInfo.accountID,
+                startIndex: 0,
+                endIndex: 1
+            },
             function (error, transactions) {
 
                 if (transactions.length === 0) {
@@ -103,37 +110,56 @@ CoinData.prototype.newAccount = function(deviceID, passPhraseID, coinType, callb
     });
 };
 
-CoinData.prototype.getTransactionInfos = function(accountID, startIndex, endIndex, callback) {
-    this._db.getTransactionInfos(accountID, startIndex, endIndex, callback);
+CoinData.prototype.getTransactionInfos = function(filter, callback) {
+    this._db.getTransactionInfos(filter, callback);
 };
 
 CoinData.prototype.getFloatFee = function(coinType, fee) {
-    // TODO get coinType
-    return this._network.getFloatFee(fee);
+    return this._network[coinType].getFloatFee(fee);
 };
 
 CoinData.prototype.initNetwork = function(callback) {
-    this._network.initNetwork(D.COIN_BIT_COIN, function(error, response) {
-        console.log('init network', D.COIN_BIT_COIN, error, response);
-        callback(error);
+    var initTotal = this._network.length;
+    var initCount = 0;
+    var failed = false;
+    for (var coinType in this._network) {
+        if (!this._network.hasOwnProperty(coinType)) {
+            continue;
+        }
+        this._network[coinType].initNetwork(coinType, function(error, response) {
+            console.log('init network error: ', error, 'response: ', response);
+            initCount++;
+            if (error !== D.ERROR_NO_ERROR) {
+                failed = true;
+                callback(error);
+            }
+            if (!failed && initCount === initTotal) {
+                callback(error);
+            }
+        });
+    }
+};
+
+CoinData.prototype.listenTransaction = function (coinType, transactionId, callback) {
+    this._network[coinType].listenTransaction(transactionId, callback);
+};
+
+CoinData.prototype.listenAddress = function (coinType, address, callback) {
+    this._db.getTransactionInfos({address: address}, function (error, response) {
+        if (error !== D.ERROR_NO_ERROR) {
+            callback(error);
+            return;
+        }
+
+        var listenedTxIds = [];
+        for (var i in response) {
+            if (!response.hasOwnProperty(i)) {
+                continue;
+            }
+            listenedTxIds.push(response.txId);
+        }
+        this._network[coinType].listenAddress(address, listenedTxIds, callback);
     });
-};
-
-CoinData.prototype.registerListenedTransactionId = function (transactionId, callback) {
-    this._network.registerListenedTransactionId(transactionId, callback);
-};
-
-CoinData.prototype.registerListenedAddress = function (address, callback) {
-    // TODO add listened tx id
-    this._network.registerListenedAddress(address, [], callback);
-};
-
-CoinData.prototype.listenNewTransactionInfo = function(callback) {
-    callback(D.ERROR_NOT_IMPLEMENTED);
-};
-
-CoinData.prototype.listenNewTransactionInfo = function(callback) {
-    callback(D.ERROR_NOT_IMPLEMENTED);
 };
 
 // TODO remove test data
@@ -141,12 +167,14 @@ CoinData.prototype.initTransaction = function (accountID) {
     console.log('initTransaction');
     this._db.saveTransactionInfo(
         {
-        accountID: accountID,
-        coinType: D.COIN_BIT_COIN,
-        txId: '574e073f66897c203a172e7bf65df39e99b11eec4a2b722312d6175a1f8d00c3',
-        firstConfirmedTime: new Date().getTime(),
-        direction: 'in',
-        count: 84000000
+            accountID: accountID,
+            coinType: D.COIN_BIT_COIN,
+            txId: '574e073f66897c203a172e7bf65df39e99b11eec4a2b722312d6175a1f8d00c3',
+            address: '1Lhyvw28ERxYJRjAYgntWazfmZmyfFkgqw',
+            firstConfirmedTime: new Date().getTime(),
+            direction: 'in',
+            script: '76a91499bc78ba577a95a11f1a344d4d2ae55f2f857b9888ac',
+            count: 84000000
         },
         function() {});
 
@@ -155,6 +183,7 @@ CoinData.prototype.initTransaction = function (accountID) {
             accountID: accountID,
             coinType: D.COIN_BIT_COIN,
             txId: '574e073f66897c203a172e7bf65df39e99b11eec4a2b722312d6175a1f8d00c4',
+            address: '3PfcrxHzT6WuNo7tcqmAdLKn6EvgXCCSiQ',
             firstConfirmedTime: 1524138384000,
             direction: 'out',
             count: 18000000
@@ -167,6 +196,7 @@ CoinData.prototype.initTransaction = function (accountID) {
             accountID: accountID,
             coinType: D.COIN_BIT_COIN,
             txId: '574e073f66897c203a172e7bf65df39e99b11eec4a2b722312d6175a1f8d00c5',
+            address: '14F7iCA4FsPEYj67Jpme2puVmwAT6VoVEU',
             firstConfirmedTime: new Date().getTime(),
             direction: 'out',
             count: 34000000

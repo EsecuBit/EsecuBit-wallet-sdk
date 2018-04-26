@@ -60,3 +60,11 @@ ChainSo.prototype.queryTransaction = function (txId, callback) {
         callback(D.ERROR_NO_ERROR, response);
     });
 };
+
+ChainSo.prototype.sendTransaction = function (rawTransaction, callback) {
+    this.post([this._apiUrl, 'send_tx', this._coinTypeStr].join('/'),
+        {tx_hex: rawTransaction},
+        callback, function (response) {
+        callback(D.ERROR_NO_ERROR, response);
+    });
+};
