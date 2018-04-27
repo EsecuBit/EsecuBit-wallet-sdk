@@ -41,7 +41,6 @@ module.exports = {class: CoinNetwork};
 CoinNetwork.prototype.provider = 'undefined';
 CoinNetwork.prototype.website = 'undefined';
 
-
 CoinNetwork.prototype.getFloatFee = function (fee) {
     switch (this.coinType) {
         case D.COIN_BIT_COIN:
@@ -105,15 +104,15 @@ CoinNetwork.prototype.post = function (url, args, errorCallback, callback) {
     xmlhttp.send(args);
 };
 
-CoinNetwork.prototype.listenTransaction = function (transactionId, callback) {
+CoinNetwork.prototype.listenTransaction = function (txId, callback) {
     var that = this;
     this._requestList.push({
         type: TYPE_TRANSACTION_INFO,
-        txId: transactionId,
+        txId: txId,
         nextTime: new Date().getTime(),
         request: function() {
             var thatRequest = this;
-            that.queryTransaction(transactionId, function(error, response) {
+            that.queryTransaction(txId, function(error, response) {
                 if (error !== D.ERROR_NO_ERROR) {
                     callback(error);
                     return;
@@ -161,17 +160,18 @@ CoinNetwork.prototype.listenAddress = function (address, listenedTxIds, callback
                 }
                 thatRequest.nextTime = new Date().getTime() + ADDRESS_REQUEST_PERIOD * 1000;
             });
-            function isInArray(arr,value){
-                for(var i = 0; i < arr.length; i++){
-                    if(value === arr[i]){
-                        return true;
-                    }
-                }
-                return false;
-            }
         }
     });
 };
+
+function isInArray(arr,value){
+    for(var i = 0; i < arr.length; i++){
+        if(value === arr[i]){
+            return true;
+        }
+    }
+    return false;
+}
 
 CoinNetwork.prototype.initNetwork = function (coinType, callback) {
     callback(D.ERROR_NOT_IMPLEMENTED);

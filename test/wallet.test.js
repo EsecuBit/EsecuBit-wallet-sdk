@@ -20,9 +20,6 @@ wallet.listenDevice(function (error, isPlugIn) {
     wallet.getWalletInfo(function (error, info) {
         console.log('getWalletInfo: error ' + error);
         console.dir(info);
-        if (error !== D.ERROR_NO_ERROR) {
-            return;
-        }
     });
 
     wallet.getAccounts(deviceID, passPhraseID, function (error, accounts) {

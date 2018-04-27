@@ -10,8 +10,47 @@ var CoinData = function() {
     this._network = {};
     this._network[D.COIN_BIT_COIN] = new this._networkProvider();
     this._network[D.COIN_BIT_COIN_TEST] = new this._networkProvider();
+
+    this._listeners = [];
 };
 module.exports = {instance: new CoinData()};
+
+CoinData.prototype.init = function(callback) {
+    var initTotal = this._network.length;
+    var initCount = 0;
+    var failed = false;
+    var that = this;
+    for (var coinType in this._network) {
+        if (!this._network.hasOwnProperty(coinType)) {
+            continue;
+        }
+        (function(coinType) {
+            that._network[coinType].initNetwork(coinType, function(error, response) {
+                console.log('init network error: ', error, 'response: ', response);
+                initCount++;
+                if (error !== D.ERROR_NO_ERROR) {
+                    failed = true;
+                    callback(error);
+                }
+                if (!failed && initCount === initTotal) {
+                    callback(D.ERROR_NO_ERROR);
+                }
+
+                that._db.getAddressInfos(coinType, function (error, response) {
+                    if (error !== D.ERROR_NO_ERROR) {
+                        console.warn('getAddressInfos', error);
+                    }
+                    for (var i in response) {
+                        if (!response.hasOwnProperty(i)) {
+                            continue;
+                        }
+                        that._listenAddress(coinType, response[i].address);
+                    }
+                });
+            });
+        })(coinType);
+    }
+};
 
 CoinData.prototype.getAccounts = function(deviceID, passPhraseID, callback) {
     var that = this;
@@ -117,33 +156,12 @@ CoinData.prototype.getFloatFee = function(coinType, fee) {
     return this._network[coinType].getFloatFee(fee);
 };
 
-CoinData.prototype.initNetwork = function(callback) {
-    var initTotal = this._network.length;
-    var initCount = 0;
-    var failed = false;
-    for (var coinType in this._network) {
-        if (!this._network.hasOwnProperty(coinType)) {
-            continue;
-        }
-        this._network[coinType].initNetwork(coinType, function(error, response) {
-            console.log('init network error: ', error, 'response: ', response);
-            initCount++;
-            if (error !== D.ERROR_NO_ERROR) {
-                failed = true;
-                callback(error);
-            }
-            if (!failed && initCount === initTotal) {
-                callback(error);
-            }
-        });
-    }
+// won't use
+CoinData.prototype._listenTransaction = function (coinType, txId, callback) {
+    this._network[coinType].listenTransaction(txId, callback);
 };
 
-CoinData.prototype.listenTransaction = function (coinType, transactionId, callback) {
-    this._network[coinType].listenTransaction(transactionId, callback);
-};
-
-CoinData.prototype.listenAddress = function (coinType, address, callback) {
+CoinData.prototype._listenAddress = function (coinType, address, callback) {
     this._db.getTransactionInfos({address: address}, function (error, response) {
         if (error !== D.ERROR_NO_ERROR) {
             callback(error);
@@ -159,6 +177,19 @@ CoinData.prototype.listenAddress = function (coinType, address, callback) {
         }
         this._network[coinType].listenAddress(address, listenedTxIds, callback);
     });
+};
+
+CoinData.prototype.addTransactionListener = function (callback) {
+    for (var i in this._listeners) {
+        if (!this._listeners.hasOwnProperty(i)) {
+            continue;
+        }
+        if (this._listeners[i] === callback) {
+            console.log('addTransactionListener already has this listener', callback);
+            return;
+        }
+    }
+    this._listeners.push(callback);
 };
 
 // TODO remove test data

@@ -19,6 +19,22 @@ Database.prototype.saveTransactionInfo = function(transactionInfo, callback) {
     callback(D.ERROR_NOT_IMPLEMENTED);
 };
 
+/**
+ *
+ * @param filter {accountId}
+ */
 Database.prototype.getTransactionInfos = function(filter, callback) {
+    callback(D.ERROR_NOT_IMPLEMENTED);
+};
+
+Database.prototype.saveOrUpdateAddressInfo = function(addressInfo, callback) {
+    callback(D.ERROR_NOT_IMPLEMENTED);
+};
+
+/**
+ *
+ * @param filter {coinType}
+ */
+Database.prototype.getAddressInfos = function(filter, callback) {
     callback(D.ERROR_NOT_IMPLEMENTED);
 };

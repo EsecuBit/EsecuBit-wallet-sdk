@@ -12,7 +12,7 @@ var IndexedDB = function() {
         return;
     }
 
-    var openRequest = indexedDB.open('wallet', 2);
+    var openRequest = indexedDB.open('wallet', 3);
     openRequest.onupgradeneeded = function(e) {
         console.log('indexedDB upgrading...');
 
@@ -46,16 +46,18 @@ var IndexedDB = function() {
          * {
          *      address: string,
          *      accountId: string,
+         *      coinType: string,
          *      path: string,
          *      type: 'receive' / 'change'
          *      txCount: int,
          *      balance: long (santoshi)
          * }
          */
-        if(!db.objectStoreNames.contains('address')) {
-            var address = db.createObjectStore('address', {autoIncrement: true});
+        if(!db.objectStoreNames.contains('addressInfo')) {
+            var address = db.createObjectStore('address');
             transactionInfo.createIndex('accountId', 'accountId', {unique: false});
-            transactionInfo.createIndex('accountId', 'type', ['accountId', 'type'], {unique: false});
+            transactionInfo.createIndex('coinType', 'coinType', {unique: false});
+            transactionInfo.createIndex('accountId, type', ['accountId', 'type'], {unique: false});
         }
     };
 
@@ -149,11 +151,6 @@ IndexedDB.prototype.getTransactionInfos = function(filter, callback) {
             .openCursor(filter.accountId);
         // TODO optimize
         // .openCursor(range);
-    } else if (filter.address !== null) {
-        request = this._db.transaction(['transactionInfo'], 'readonly')
-            .objectStore('transactionInfo')
-            .index('address')
-            .openCursor(filter.address);
     } else {
         request = this._db.transaction(['transactionInfo'], 'readonly')
             .objectStore('transactionInfo')
@@ -173,6 +170,52 @@ IndexedDB.prototype.getTransactionInfos = function(filter, callback) {
         } else {
             callback(D.ERROR_NO_ERROR, count, array);
         }
+    };
+    request.onerror = function(e) { callback(D.ERROR_EXEC_DATABASE_FAILED); };
+};
+
+IndexedDB.prototype.saveOrUpdateAddressInfo = function(addressInfo, callback) {
+    if (this._db === null) {
+        callback(D.ERROR_OPEN_DATABASE_FAILED);
+        return;
+    }
+
+    var request = this._db.transaction(['addressInfo'], 'readwrite')
+        .objectStore('addressInfo')
+        .add(addressInfo, addressInfo.address);
+
+    request.onsuccess = function(e) { callback(D.ERROR_NO_ERROR, addressInfo); };
+    request.onerror = function(e) { callback(D.ERROR_EXEC_DATABASE_FAILED, addressInfo); };
+};
+
+IndexedDB.prototype.getAddressInfos = function(filter, callback) {
+    if (this._db === null) {
+        callback(D.ERROR_OPEN_DATABASE_FAILED);
+        return;
+    }
+
+
+    var request;
+    if (filter.coinType !== null) {
+        request = this._db.transaction(['addressInfo'], 'readonly')
+            .objectStore('addressInfo')
+            .index('coinType')
+            .openCursor(filter.coinType);
+    } else {
+        request = this._db.transaction(['addressInfo'], 'readonly')
+            .objectStore('addressInfo')
+            .openCursor();
+    }
+
+    var array = [];
+    request.onsuccess = function(e) {
+        var cursor = e.target.result;
+        if(!cursor) {
+            callback(D.ERROR_NO_ERROR, array);
+        }
+
+        array.push(cursor.value);
+        cursor.continue();
     };
     request.onerror = function(e) { callback(D.ERROR_EXEC_DATABASE_FAILED); };
 };

@@ -16,7 +16,7 @@ Wallet.prototype.initWallet = function (callback) {
         }
         status++;
     });
-    this._coinData.initNetwork(function (error) {
+    this._coinData.init(function (error) {
         if (error !== D.ERROR_NO_ERROR) {
             callback(error);
             return;
