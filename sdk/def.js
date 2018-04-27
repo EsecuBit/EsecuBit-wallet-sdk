@@ -26,4 +26,4 @@ var D = {
     FEE_NORMAL: 'normal',
     FEE_ECNOMIC: 'economy'
 };
-module.exports = D;
+module.exports = {class: D};

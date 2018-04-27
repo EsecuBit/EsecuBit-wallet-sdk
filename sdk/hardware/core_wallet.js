@@ -7,7 +7,7 @@ var CoreWallet = function() {
         this._deviceTrue = new EsHidDevice();
         this._device = new MockDevice();
 };
-module.exports = new CoreWallet();
+module.exports = {instance: new CoreWallet()};
 
 CoreWallet.prototype.hasInitialize = function(callback) {
     callback(D.ERROR_NOT_IMPLEMENTED);

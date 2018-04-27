@@ -1,5 +1,5 @@
 
-var D = require('../def');
+var D = require('../def').class;
 
 var Device = function() {
     this.isPlugedIn = false;
@@ -12,3 +12,5 @@ Device.prototype.listenPlug = function(callback) {
 Device.prototype.sendAndReceive = function(apdu, callback) {
     callback(D.ERROR_NOT_IMPLEMENTED);
 };
+
+module.exports = {class: Device};

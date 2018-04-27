@@ -109,7 +109,7 @@ layui.use(['jquery','form','jqGrid','localeEn','laypage','element','qrcode'], fu
                 console.log(accounts);
                 //业务逻辑代码
                 for(var i=0;i<accounts.length;i++){
-                    setGlobalAccount[accounts[i].accountID] = accounts[i];
+                    setGlobalAccount[accounts[i].accountId] = accounts[i];
                     var account = accounts[i];
                     account.getAddress({}, function (error, address){
                         accountAddress.push(address);
@@ -151,7 +151,7 @@ layui.use(['jquery','form','jqGrid','localeEn','laypage','element','qrcode'], fu
 
 
                     $("select[name='receiveAccount']").append('<option value="'+ accountAddress[i].qrAddress+'">'+val.label+'</option>');
-                    $("select[name='account']").append('<option value="'+ val.accountID+'">'+val.label+'</option>');
+                    $("select[name='account']").append('<option value="'+ val.accountId+'">'+val.label+'</option>');
                 } );
                 form.render('select', 'form2');
                 form.render('select', 'form1');
@@ -232,8 +232,8 @@ layui.use(['jquery','form','jqGrid','localeEn','laypage','element','qrcode'], fu
                     height: "100%",
                     colNames: ['ID', 'coinType','count', 'Date','Direction'],
                     colModel: [{
-                        name: 'accountID',
-                        index: 'accountID',
+                        name: 'accountId',
+                        index: 'accountId',
                         width: 160
                     }, {
                         name: 'coinType',
@@ -249,8 +249,8 @@ layui.use(['jquery','form','jqGrid','localeEn','laypage','element','qrcode'], fu
                             return value/100000000+'   ' + '<em>BTC</em>'
                         }
                     }, {
-                        name: 'firstConfirmedTime',
-                        index: 'firstConfirmedTime',
+                        name: 'createTime',
+                        index: 'createTime',
                         sortable:false,
                         width: 180,
                         formatter:function (value) {

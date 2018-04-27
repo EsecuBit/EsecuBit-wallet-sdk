@@ -1,6 +1,6 @@
 
-var IndexedDB = require('../sdk/data/database/indexed_db.js';);
-var assert = require('../node_modules/chai/register-assert.js';);
+var IndexedDB = require('../sdk/data/database/indexed_db.js').class;
+var assert = require('../node_modules/chai/register-assert.js').class;
 
 let indexedDB = new IndexedDB();
 describe('expect', function() {

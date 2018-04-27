@@ -1,5 +1,6 @@
 
-var D = require('../../def');
+var D = require('../../def').class;
+var Database = require('./database').class;
 
 var IndexedDB = function() {
     this._db = null;
@@ -23,11 +24,38 @@ var IndexedDB = function() {
             account.createIndex('coinType', 'coinType', {unique: false});
         }
 
+        /**
+         * {
+         *    accountId: string,
+         *    coinType: string,
+         *    txId: string,
+         *    createTime: long,
+         *    confirmedTime: long,
+         *    direction: 'in' / 'out',
+         *    count: long (santoshi)
+         * }
+         */
         if(!db.objectStoreNames.contains('transactionInfo')) {
             var transactionInfo = db.createObjectStore('transactionInfo', {autoIncrement: true});
-            transactionInfo.createIndex('accountID', 'accountID', {unique: false});
-            transactionInfo.createIndex('address', 'address', {unique: false});
-            transactionInfo.createIndex('firstConfirmedTime', 'firstConfirmedTime', {unique: false});
+            transactionInfo.createIndex('accountId', 'accountId', {unique: false});
+            transactionInfo.createIndex('txId', 'txId', {unique: false});
+            transactionInfo.createIndex('createTime', 'createTime', {unique: false});
+        }
+
+        /**
+         * {
+         *      address: string,
+         *      accountId: string,
+         *      path: string,
+         *      type: 'receive' / 'change'
+         *      txCount: int,
+         *      balance: long (santoshi)
+         * }
+         */
+        if(!db.objectStoreNames.contains('address')) {
+            var address = db.createObjectStore('address', {autoIncrement: true});
+            transactionInfo.createIndex('accountId', 'accountId', {unique: false});
+            transactionInfo.createIndex('accountId', 'type', ['accountId', 'type'], {unique: false});
         }
     };
 
@@ -41,8 +69,9 @@ var IndexedDB = function() {
         console.dir(e);
     };
 };
-module.exports = IndexedDB;
+module.exports = {class: IndexedDB};
 
+IndexedDB.prototype = new Database();
 IndexedDB.prototype.saveAccount = function(account, callback) {
     if (this._db === null) {
         callback(D.ERROR_OPEN_DATABASE_FAILED);
@@ -112,12 +141,12 @@ IndexedDB.prototype.getTransactionInfos = function(filter, callback) {
     }
 
     var request;
-    if (filter.accountID !== null) {
+    if (filter.accountId !== null) {
         // var range = IDBKeyRange.bound(startIndex, endIndex);
         request = this._db.transaction(['transactionInfo'], 'readonly')
             .objectStore('transactionInfo')
-            .index('accountID')
-            .openCursor(filter.accountID);
+            .index('accountId')
+            .openCursor(filter.accountId);
         // TODO optimize
         // .openCursor(range);
     } else if (filter.address !== null) {

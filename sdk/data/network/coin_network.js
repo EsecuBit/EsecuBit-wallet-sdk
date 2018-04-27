@@ -1,5 +1,5 @@
 
-var D = require('../../def');
+var D = require('../../def').class;
 
 var TYPE_ADDRESS = 'address';
 var TYPE_TRANSACTION_INFO = 'transaction_info';
@@ -36,7 +36,7 @@ var CoinNetwork = function() {
     // not using setInterval because _requestRate is changable
     setTimeout(this._queue, this._requestRate * 1000);
 };
-module.exports = CoinNetwork;
+module.exports = {class: CoinNetwork};
 
 CoinNetwork.prototype.provider = 'undefined';
 CoinNetwork.prototype.website = 'undefined';
@@ -124,7 +124,7 @@ CoinNetwork.prototype.listenTransaction = function (transactionId, callback) {
                     remove(that._requestList, indexOf(that._requestList, thatRequest));
                 }
             });
-            thatRequest.nextTime += new Date().getTime() + TRANSACTION_REQUEST_PERIOD;
+            thatRequest.nextTime = new Date().getTime() + TRANSACTION_REQUEST_PERIOD * 1000;
         }
     });
 };
@@ -149,15 +149,17 @@ CoinNetwork.prototype.listenAddress = function (address, listenedTxIds, callback
                     if (!totalTxs.hasOwnProperty(index)) {
                         continue;
                     }
-                    if (!isInArray(thatRequest.listenedTxIds, totalTxs[index].txId)) {
-                        thatRequest.listenedTxIds.push(totalTxs[index]);
+                    // TODO wrap response as the same
+                    var txId = totalTxs[index].txid;
+                    if (!isInArray(thatRequest.listenedTxIds, txId)) {
+                        thatRequest.listenedTxIds.push(txId);
                         response.txs.push(totalTxs[index]);
                     }
                 }
                 if (response.txs.length !== 0) {
                     callback(error, response);
                 }
-                thatRequest.nextTime += new Date().getTime() + ADDRESS_REQUEST_PERIOD;
+                thatRequest.nextTime = new Date().getTime() + ADDRESS_REQUEST_PERIOD * 1000;
             });
             function isInArray(arr,value){
                 for(var i = 0; i < arr.length; i++){

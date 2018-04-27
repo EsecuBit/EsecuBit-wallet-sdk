@@ -1,6 +1,6 @@
 
-var D = require('../sdk/def');
-var ChainSo = require('../sdk/data/network/chainso');
+var D = require('../sdk/def').class;
+var ChainSo = require('../sdk/data/network/chainso').class;
 
 var chainSo = new ChainSo();
 
@@ -15,7 +15,7 @@ chainSo.initNetwork(D.COIN_BIT_COIN, function (error, response) {
     //     console.log('queryTransaction error', error, '\nresponse', response);
     // });
 
-    chainSo.registerListenedAddress('1PX3W54f2uEfvLJFi3ncqkhg27QG787VhZ', [], function(error, response) {
+    chainSo.listenAddress('1PX3W54f2uEfvLJFi3ncqkhg27QG787VhZ', [], function(error, response) {
        console.log('registerListenedAddress error', error, '\nresponse', response);
     });
 });

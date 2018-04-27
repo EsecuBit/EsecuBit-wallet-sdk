@@ -1,9 +1,9 @@
 
-var D = require('./def');
+var D = require('./def').class;
 
 var Account = function(info) {
     this.info = info;
-    this.accountID = info.accountID;
+    this.accountId = info.accountId;
     this.label = info.label;
     this.deviceID = info.deviceID;
     this.passPhraseID = info.passPhraseID;
@@ -12,13 +12,13 @@ var Account = function(info) {
 
     this._device = require('./hardware/core_wallet');
     // TODO fix circle require
-    this._coinData = require('./data/coin_data');
+    this._coinData = require('./data/coin_data').instance;
 };
-module.exports = Account;
+module.exports = {class: Account};
 
 Account.prototype.getTransactionInfos = function(startIndex, endIndex, callback) {
     this._coinData.getTransactionInfos({
-        accountID: this.accountID,
+        accountId: this.accountId,
         startIndex: startIndex,
         endIndex: endIndex
     }, callback);

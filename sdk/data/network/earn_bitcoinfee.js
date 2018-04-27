@@ -1,5 +1,5 @@
 
-var D = require('../../def');
+var D = require('../../def').class;
 
 var EarnBitCoinFee = function () {
     var defaultFee = {}; // santonshi / b
@@ -21,7 +21,7 @@ var EarnBitCoinFee = function () {
         defaultFee[D.FEE_ECNOMIC] = response.hourFee;
     })
 };
-module.exports = new EarnBitCoinFee();
+module.exports = {instance: new EarnBitCoinFee()};
 
 function get(url, errorCallback, callback) {
     var xmlhttp = new XMLHttpRequest();

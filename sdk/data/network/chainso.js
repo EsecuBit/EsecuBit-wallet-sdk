@@ -1,15 +1,58 @@
 
 // LIMITS: 5 requests/second, get 429 http error returned when exceed
 
-var CoinNetwork = require('./coin_network');
-var D = require('../../def');
+/**
+ *
+ * request: address
+ * response:
+ * {
+ * "status" : "success",
+ * "data" : {
+ *     "network" : "BTC",
+ *     "address" : "1F1tAaz5x1HUXrCNLbtMDqcw6o5GNn4xqX",
+ *     "balance" : "18.27406441",
+ *     "received_value" : "29677.07906441",
+ *      "pending_value" : "0.00000000",
+ *      "total_txs" : 1255,
+ *      "txs" : [
+ *      {
+ *          "txid" : "134fadd9bd1031afd8b67e6ab5c82bc03499b5505235c49a43181a98cc975974",
+ *          "block_no" : 519886,
+ *          "confirmations" : 101,
+ *          "time" : 1524672174,
+ *          "incoming" : {
+ *              "output_no" : 4,
+ *              "value" : "0.00011300",
+ *              "spent" : null,
+ *              "inputs" : [
+ *                  {
+ *                      "input_no" : 0,
+ *                      "address" : "1Lhyvw28ERxYJRjAYgntWazfmZmyfFkgqw",
+ *                      "received_from" : {
+ *                          "txid" : "f76486ee6bd8a8c3084119353a368152d8904a5e3cb82aad7d14fbd0df0912d5",
+ *                          "output_no" : 35
+ *                      }
+ *                  }
+ *              ],
+ *              "req_sigs" : 1,
+ *              "script_asm" : "OP_DUP OP_HASH160 99bc78ba577a95a11f1a344d4d2ae55f2f857b98 OP_EQUALVERIFY OP_CHECKSIG",
+ *              "script_hex" : "76a91499bc78ba577a95a11f1a344d4d2ae55f2f857b9888ac"
+ *          }
+ *      },
+ *      ...]
+ * }
+ * }
+**/
+
+var CoinNetwork = require('./coin_network').class;
+var D = require('../../def').class;
 
 var ChainSo = function() {
     this.coinType = 'undefined';
     this._coinTypeStr = 'undefined';
     this.coinInfo = null;
 };
-module.exports = ChainSo;
+module.exports = {class: ChainSo};
 
 ChainSo.prototype = new CoinNetwork();
 var superClass = ChainSo.prototype;

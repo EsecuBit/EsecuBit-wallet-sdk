@@ -1,18 +1,17 @@
 
-var D = require('../def');
-var IndexedDB = require('./database/indexed_db');
-var ChainSo = require('./network/chainso');
-var Account = require('../account');
+var D = require('../def').class;
+var IndexedDB = require('./database/indexed_db').class;
+var ChainSo = require('./network/chainso').class;
+var Account = require('../account').class;
 
 var CoinData = function() {
     this._db = new IndexedDB();
     this._networkProvider = ChainSo;
     this._network = {};
-    this._network[COIN_BIT_COIN] = new this._networkProvider();
-    this._network[COIN_BIT_COIN_TEST] = new this._networkProvider();
+    this._network[D.COIN_BIT_COIN] = new this._networkProvider();
+    this._network[D.COIN_BIT_COIN_TEST] = new this._networkProvider();
 };
-// TODO class:, instance:
-module.exports = new CoinData();
+module.exports = {instance: new CoinData()};
 
 CoinData.prototype.getAccounts = function(deviceID, passPhraseID, callback) {
     var that = this;
@@ -26,7 +25,7 @@ CoinData.prototype.getAccounts = function(deviceID, passPhraseID, callback) {
             console.log('no accounts, init the first account');
             // initialize first account
             var firstAccount = {
-                accountID: makeID(),
+                accountId: makeID(),
                 label: "Account#1",
                 deviceID: deviceID,
                 passPhraseID: passPhraseID,
@@ -34,7 +33,7 @@ CoinData.prototype.getAccounts = function(deviceID, passPhraseID, callback) {
             };
             that._db.saveAccount(firstAccount, function(error, account) {
                 // TODO remove
-                that.initTransaction(firstAccount.accountID);
+                that.initTransaction(firstAccount.accountId);
                 callback(error, [new Account(account)]);
             });
             return;
@@ -72,7 +71,7 @@ CoinData.prototype.newAccount = function(deviceID, passPhraseID, coinType, callb
         if (lastAccountInfo === null) {
             that._db.saveAccount(
                 {
-                    accountID: makeID(),
+                    accountId: makeID(),
                     label: "Account#" + index,
                     deviceID: deviceID,
                     passPhraseID: passPhraseID,
@@ -86,7 +85,7 @@ CoinData.prototype.newAccount = function(deviceID, passPhraseID, coinType, callb
 
         that.getTransactionInfos(
             {
-                accountID: lastAccountInfo.accountID,
+                accountId: lastAccountInfo.accountId,
                 startIndex: 0,
                 endIndex: 1
             },
@@ -99,7 +98,7 @@ CoinData.prototype.newAccount = function(deviceID, passPhraseID, coinType, callb
                 var index = accounts.length + 1;
                 that._db.saveAccount(
                     {
-                        accountID: makeID(),
+                        accountId: makeID(),
                         label: "Account#" + index,
                         deviceID: deviceID,
                         passPhraseID: passPhraseID,
@@ -163,16 +162,18 @@ CoinData.prototype.listenAddress = function (coinType, address, callback) {
 };
 
 // TODO remove test data
-CoinData.prototype.initTransaction = function (accountID) {
+CoinData.prototype.initTransaction = function (accountId) {
     console.log('initTransaction');
     this._db.saveTransactionInfo(
         {
-            accountID: accountID,
+            accountId: accountId,
             coinType: D.COIN_BIT_COIN,
             txId: '574e073f66897c203a172e7bf65df39e99b11eec4a2b722312d6175a1f8d00c3',
-            address: '1Lhyvw28ERxYJRjAYgntWazfmZmyfFkgqw',
-            firstConfirmedTime: new Date().getTime(),
             direction: 'in',
+            address: '1Lhyvw28ERxYJRjAYgntWazfmZmyfFkgqw',
+            createTime: new Date().getTime(),
+            confirmedTime: new Date().getTime(),
+            outIndex: 0,
             script: '76a91499bc78ba577a95a11f1a344d4d2ae55f2f857b9888ac',
             count: 84000000
         },
@@ -180,24 +181,25 @@ CoinData.prototype.initTransaction = function (accountID) {
 
     this._db.saveTransactionInfo(
         {
-            accountID: accountID,
+            accountId: accountId,
             coinType: D.COIN_BIT_COIN,
             txId: '574e073f66897c203a172e7bf65df39e99b11eec4a2b722312d6175a1f8d00c4',
-            address: '3PfcrxHzT6WuNo7tcqmAdLKn6EvgXCCSiQ',
-            firstConfirmedTime: 1524138384000,
             direction: 'out',
+            address: '3PfcrxHzT6WuNo7tcqmAdLKn6EvgXCCSiQ',
+            createTime: 1524138384000,
+            confirmedTime: 1524138384000,
             count: 18000000
         },
         function() {});
 
     this._db.saveTransactionInfo(
         {
-
-            accountID: accountID,
+            accountId: accountId,
             coinType: D.COIN_BIT_COIN,
             txId: '574e073f66897c203a172e7bf65df39e99b11eec4a2b722312d6175a1f8d00c5',
             address: '14F7iCA4FsPEYj67Jpme2puVmwAT6VoVEU',
-            firstConfirmedTime: new Date().getTime(),
+            createTime: new Date().getTime(),
+            confirmedTime: new Date().getTime(),
             direction: 'out',
             count: 34000000
         },

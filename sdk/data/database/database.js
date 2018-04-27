@@ -1,24 +1,24 @@
 
-var DataBase = function() {
+var Database = function() {
 };
-module.exports = DataBase;
+module.exports = {class: Database};
 
-DataBase.prototype.saveAccount = function(account, callback) {
+Database.prototype.saveAccount = function(account, callback) {
     callback(D.ERROR_NOT_IMPLEMENTED);
 };
 
-DataBase.prototype.loadAccounts = function(deviceID, passPhraseID, callback) {
+Database.prototype.getAccounts = function(deviceID, passPhraseID, callback) {
     callback(D.ERROR_NOT_IMPLEMENTED);
 };
 
-DataBase.prototype.clearAccounts = function(deviceID, passPhraseID, callback) {
+Database.prototype.clearAccounts = function(deviceID, passPhraseID, callback) {
     callback(D.ERROR_NOT_IMPLEMENTED);
 };
 
-DataBase.prototype.saveTransactionInfo = function(transactionInfo) {
+Database.prototype.saveTransactionInfo = function(transactionInfo, callback) {
     callback(D.ERROR_NOT_IMPLEMENTED);
 };
 
-DataBase.prototype.getTransactionInfo = function(accountID, startIndex, endIndex, callback) {
+Database.prototype.getTransactionInfos = function(filter, callback) {
     callback(D.ERROR_NOT_IMPLEMENTED);
 };

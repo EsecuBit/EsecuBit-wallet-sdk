@@ -1,6 +1,6 @@
 
-var Wallet = require('../sdk/wallet');
-var D = require('../sdk/def');
+var Wallet = require('../sdk/wallet').class;
+var D = require('../sdk/def').class;
 
 var deviceID = "default";
 var passPhraseID = "BA3253876AED6BC22D4A6FF53D8406C6AD864195ED144AB5C87621B6C233B548";

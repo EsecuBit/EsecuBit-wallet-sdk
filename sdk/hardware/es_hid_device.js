@@ -1,5 +1,6 @@
 
-var D = require('../def');
+var D = require('../def').class;
+var Device = require('../def').class;
 
 var EsHidDevice = function() {
     this._deviceId = null;
@@ -86,7 +87,8 @@ var EsHidDevice = function() {
         }
     });
 };
-module.exports = EsHidDevice;
+module.exports = {class: EsHidDevice};
+EsHidDevice.prototype = new Device();
 
 EsHidDevice.prototype.sendAndReceive = function (apdu, callback) {
     var that = this;
@@ -225,6 +227,7 @@ EsHidDevice.prototype.sendAndReceive = function (apdu, callback) {
 
     send(apdu, callback);
 };
+EsHidDevice.prototype =
 
 EsHidDevice.prototype.listenPlug = function(callback) {
     this._listener = callback;

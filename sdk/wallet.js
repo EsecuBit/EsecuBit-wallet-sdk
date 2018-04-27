@@ -1,11 +1,11 @@
 
-var D = require('./def');
+var D = require('./def').class;
 
 var Wallet = function () {
-    this._device = require('./hardware/core_wallet');
-    this._coinData = require('./data/coin_data');
+    this._device = require('./hardware/core_wallet').instance;
+    this._coinData = require('./data/coin_data').instance;
 };
-module.exports = Wallet;
+module.exports = {class: Wallet};
 
 Wallet.prototype.initWallet = function (callback) {
     var status = 0;
