@@ -1,11 +1,11 @@
 
 var D = require('../../def').class;
 
-var EarnBitCoinFee = function () {
+var EarnBitCoinFee = function (fee) {
     var defaultFee = {}; // santonshi / b
-    defaultFee[D.FEE_FAST] = 100;
-    defaultFee[D.FEE_NORMAL] = 80;
-    defaultFee[D.FEE_ECNOMIC] = 20;
+    defaultFee[D.FEE_FAST] = fee.hasOwnProperty(D.FEE_FAST)? fee[D.FEE_FAST] : 100;
+    defaultFee[D.FEE_NORMAL] = fee.hasOwnProperty(D.FEE_NORMAL)? fee[D.FEE_NORMAL] : 80;
+    defaultFee[D.FEE_ECNOMIC] = fee.hasOwnProperty(D.FEE_ECNOMIC)? fee[D.FEE_ECNOMIC] : 20;
 
     /**
      * @param response.fastestFee   Suggested fee to confirmed in 1 block.
