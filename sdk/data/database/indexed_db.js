@@ -76,7 +76,7 @@ module.exports = {class: IndexedDB};
 IndexedDB.prototype = new Database();
 IndexedDB.prototype.saveAccount = function(account, callback) {
     if (this._db === null) {
-        callback(D.ERROR_OPEN_DATABASE_FAILED);
+        callback(D.ERROR_DATABASE_OPEN_FAILED);
         return;
     }
     var request = this._db.transaction(['account'], 'readwrite')
@@ -84,12 +84,12 @@ IndexedDB.prototype.saveAccount = function(account, callback) {
         .add(account);
 
     request.onsuccess = function(e) { callback(D.ERROR_NO_ERROR, account); };
-    request.onerror = function(e) { callback(D.ERROR_EXEC_DATABASE_FAILED, account); };
+    request.onerror = function(e) { callback(D.ERROR_DATABASE_EXEC_FAILED, account); };
 };
 
 IndexedDB.prototype.getAccounts = function(deviceID, passPhraseID, callback) {
     if (this._db === null) {
-        callback(D.ERROR_OPEN_DATABASE_FAILED);
+        callback(D.ERROR_DATABASE_OPEN_FAILED);
         return;
     }
 
@@ -101,13 +101,13 @@ IndexedDB.prototype.getAccounts = function(deviceID, passPhraseID, callback) {
     request.onsuccess = function(e) {
         callback(D.ERROR_NO_ERROR, e.target.result);
     };
-    request.onerror = function(e) { callback(D.ERROR_EXEC_DATABASE_FAILED); };
+    request.onerror = function(e) { callback(D.ERROR_DATABASE_EXEC_FAILED); };
 };
 
 // won't use
 IndexedDB.prototype.clearAccounts = function(deviceID, passPhraseID, callback) {
     if (this._db === null) {
-        callback(D.ERROR_OPEN_DATABASE_FAILED);
+        callback(D.ERROR_DATABASE_OPEN_FAILED);
         return;
     }
 
@@ -119,12 +119,12 @@ IndexedDB.prototype.clearAccounts = function(deviceID, passPhraseID, callback) {
     request.onsuccess = function(e) {
         callback(D.ERROR_NO_ERROR);
     };
-    request.onerror = function(e) { callback(D.ERROR_EXEC_DATABASE_FAILED); };
+    request.onerror = function(e) { callback(D.ERROR_DATABASE_EXEC_FAILED); };
 };
 
 IndexedDB.prototype.saveTransactionInfo = function(transactionInfo, callback) {
     if (this._db === null) {
-        callback(D.ERROR_OPEN_DATABASE_FAILED);
+        callback(D.ERROR_DATABASE_OPEN_FAILED);
         return;
     }
 
@@ -133,12 +133,12 @@ IndexedDB.prototype.saveTransactionInfo = function(transactionInfo, callback) {
         .add(transactionInfo);
 
     request.onsuccess = function(e) { callback(D.ERROR_NO_ERROR, transactionInfo); };
-    request.onerror = function(e) { callback(D.ERROR_EXEC_DATABASE_FAILED, transactionInfo); };
+    request.onerror = function(e) { callback(D.ERROR_DATABASE_EXEC_FAILED, transactionInfo); };
 };
 
 IndexedDB.prototype.getTransactionInfos = function(filter, callback) {
     if (this._db === null) {
-        callback(D.ERROR_OPEN_DATABASE_FAILED);
+        callback(D.ERROR_DATABASE_OPEN_FAILED);
         return;
     }
 
@@ -171,12 +171,12 @@ IndexedDB.prototype.getTransactionInfos = function(filter, callback) {
             callback(D.ERROR_NO_ERROR, count, array);
         }
     };
-    request.onerror = function(e) { callback(D.ERROR_EXEC_DATABASE_FAILED); };
+    request.onerror = function(e) { callback(D.ERROR_DATABASE_EXEC_FAILED); };
 };
 
 IndexedDB.prototype.saveOrUpdateAddressInfo = function(addressInfo, callback) {
     if (this._db === null) {
-        callback(D.ERROR_OPEN_DATABASE_FAILED);
+        callback(D.ERROR_DATABASE_OPEN_FAILED);
         return;
     }
 
@@ -185,12 +185,12 @@ IndexedDB.prototype.saveOrUpdateAddressInfo = function(addressInfo, callback) {
         .add(addressInfo, addressInfo.address);
 
     request.onsuccess = function(e) { callback(D.ERROR_NO_ERROR, addressInfo); };
-    request.onerror = function(e) { callback(D.ERROR_EXEC_DATABASE_FAILED, addressInfo); };
+    request.onerror = function(e) { callback(D.ERROR_DATABASE_EXEC_FAILED, addressInfo); };
 };
 
 IndexedDB.prototype.getAddressInfos = function(filter, callback) {
     if (this._db === null) {
-        callback(D.ERROR_OPEN_DATABASE_FAILED);
+        callback(D.ERROR_DATABASE_OPEN_FAILED);
         return;
     }
 
@@ -217,5 +217,5 @@ IndexedDB.prototype.getAddressInfos = function(filter, callback) {
         array.push(cursor.value);
         cursor.continue();
     };
-    request.onerror = function(e) { callback(D.ERROR_EXEC_DATABASE_FAILED); };
+    request.onerror = function(e) { callback(D.ERROR_DATABASE_EXEC_FAILED); };
 };

@@ -42,7 +42,7 @@ MockDevice.prototype.sendAndReceive = function(apdu, callback) {
         callback(D.ERROR_NO_ERROR, hexToArrayBuffer(ADDRESSES[++this.currentAddressIndex % ADDRESSES.length]));
         return;
     }
-    callback(D.ERROR_COMM);
+    callback(D.ERROR_DEVICE_COMM);
 };
 
 function arrayBufferToHex(array) {

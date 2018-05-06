@@ -25,7 +25,7 @@ var EsHidDevice = function() {
             //         if (chrome.runtime.lastError !== undefined) {
             //             console.warn('chrome.usb.claimInterface error: ' + chrome.runtime.lastError.message);
             //             // if (that._listener !== null) {
-            //             //     that._listener(D.ERROR_CONNECT_FAILED, true);
+            //             //     that._listener(D.ERROR_DEVICE_CONNECT_FAILED, true);
             //             // }
             //             // return;
             //         }
@@ -132,7 +132,7 @@ EsHidDevice.prototype.sendAndReceive = function (apdu, callback) {
             }
             if (info.resultCode !== 0) {
                 console.warn("send apdu error ", info.resultCode);
-                callback(D.ERROR_COMM);
+                callback(D.ERROR_DEVICE_COMM);
                 return;
             }
 
@@ -164,7 +164,7 @@ EsHidDevice.prototype.sendAndReceive = function (apdu, callback) {
             //     }
             //     if (info.resultCode !== 0) {
             //         console.warn("send apdu error ", info.resultCode);
-            //         callback(D.ERROR_COMM);
+            //         callback(D.ERROR_DEVICE_COMM);
             //         return;
             //     }
             //
@@ -208,7 +208,7 @@ EsHidDevice.prototype.sendAndReceive = function (apdu, callback) {
             }
             if (info.resultCode !== 0) {
                 console.warn("receive apdu error ", info.resultCode);
-                callback(D.ERROR_COMM);
+                callback(D.ERROR_DEVICE_COMM);
                 return;
             }
 

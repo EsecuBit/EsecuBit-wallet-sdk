@@ -1,27 +1,36 @@
 
-var D = require('../../def').class;
+var D = require('../../../def').class;
 
-var EarnBitCoinFee = function (fee) {
-    var defaultFee = {}; // santonshi / b
-    defaultFee[D.FEE_FAST] = fee.hasOwnProperty(D.FEE_FAST)? fee[D.FEE_FAST] : 100;
-    defaultFee[D.FEE_NORMAL] = fee.hasOwnProperty(D.FEE_NORMAL)? fee[D.FEE_NORMAL] : 80;
-    defaultFee[D.FEE_ECNOMIC] = fee.hasOwnProperty(D.FEE_ECNOMIC)? fee[D.FEE_ECNOMIC] : 20;
+var BitCoinFeeEarn = function (fee) {
+    fee = fee || {};
+    this.fee = {}; // santonshi / b
+    this.fee[D.FEE_FAST] = fee.hasOwnProperty(D.FEE_FAST)? fee[D.FEE_FAST] : 100;
+    this.fee[D.FEE_NORMAL] = fee.hasOwnProperty(D.FEE_NORMAL)? fee[D.FEE_NORMAL] : 80;
+    this.fee[D.FEE_ECNOMIC] = fee.hasOwnProperty(D.FEE_ECNOMIC)? fee[D.FEE_ECNOMIC] : 20;
 
     /**
      * @param response.fastestFee   Suggested fee to confirmed in 1 block.
      * @param response.halfHourFee  Suggested fee to confirmed in 3 blocks.
      * @param response.hourFee      Suggested fee to confirmed in 6 blocks.
      */
-    var url = 'https://bitcoinfees.earn.com/api/v1/fees/recommended';
+};
+module.exports = {class: BitCoinFeeEarn};
+
+var url = 'https://bitcoinfees.earn.com/api/v1/fees/recommended';
+BitCoinFeeEarn.prototype.updateFee = function (callback) {
+    var that = this;
     get(url, function (error) {
         console.warn('request fee failed', url, error);
+        callback(D.ERROR_NETWORK_UNVAILABLE);
     }, function (response) {
-        defaultFee[D.FEE_FAST] = response.fastestFee;
-        defaultFee[D.FEE_NORMAL] = response.halfHourFee;
-        defaultFee[D.FEE_ECNOMIC] = response.hourFee;
+        console.info('update fee succeed', 'old fee', that.fee);
+        that.fee[D.FEE_FAST] = response.fastestFee;
+        that.fee[D.FEE_NORMAL] = response.halfHourFee;
+        that.fee[D.FEE_ECNOMIC] = response.hourFee;
+        console.info('new fee', that.fee);
+        callback(D.ERROR_NO_ERROR, that.fee);
     })
 };
-module.exports = {instance: new EarnBitCoinFee()};
 
 function get(url, errorCallback, callback) {
     var xmlhttp = new XMLHttpRequest();
