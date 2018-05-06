@@ -16,7 +16,7 @@ var BitCoinFeeEarn = function (fee) {
 };
 module.exports = {class: BitCoinFeeEarn};
 
-var url = 'http://bitcoinfees.earn.com/api/v1/fees/recommended';
+var url = 'https://bitcoinfees.earn.com/api/v1/fees/recommended';
 BitCoinFeeEarn.prototype.updateFee = function (callback) {
     var that = this;
     get(url, function (error) {
@@ -36,7 +36,6 @@ function get(url, errorCallback, callback) {
     var xmlhttp = new XMLHttpRequest();
     xmlhttp.onreadystatechange = function() {
         if (xmlhttp.readyState === 4) {
-            console.log('a', xmlhttp.status, xmlhttp.responseText);
             if (xmlhttp.status === 200) {
                 try {
                     var coinInfo = JSON.parse(xmlhttp.responseText);

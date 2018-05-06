@@ -14,17 +14,17 @@ describe('simple test', function () {
 var D = require('../../../../sdk/def').class;
 var BitCoinEarn = require('../../../../sdk/data/network/fee/bitcoin_earn').class;
 
-describe('expect', function() {
-    it('empty bitCoinEarn', function() {
+describe('BitCoinEarn', function() {
+    it('empty BitCoinEarn', function() {
         var bitCoinEarn = new BitCoinEarn({});
-        bitCoinEarn.fee.should.deep.equal({'fast': 100, 'normal':80, 'economy': 20});
+        bitCoinEarn.fee.should.deep.equal({'fast': 100, 'normal':50, 'economy': 20});
     });
-    it('init bitCoinEarn', function() {
+    it('init BitCoinEarn', function() {
         var initFee = {'fast': 101, 'normal':65, 'economy': 33};
         var bitCoinEarn = new BitCoinEarn(initFee);
         bitCoinEarn.fee.should.deep.equal(initFee);
     });
-    it('update bitCoinEarn', function(done) {
+    it('update BitCoinEarn', function(done) {
         var initFee = {'fast': 0, 'normal':0, 'economy': 0};
         var bitCoinEarn = new BitCoinEarn(initFee);
         bitCoinEarn.updateFee(function (error, response) {

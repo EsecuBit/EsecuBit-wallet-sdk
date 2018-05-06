@@ -1,20 +1,30 @@
 
-var chai = require('chai');
-var should = chai.should();
+function get(url, errorCallback, callback) {
+    var xmlhttp = new XMLHttpRequest();
+    xmlhttp.onreadystatechange = function() {
+        if (xmlhttp.readyState === 4) {
+            if (xmlhttp.status === 200) {
+                try {
+                    var coinInfo = JSON.parse(xmlhttp.responseText);
+                    callback(coinInfo);
+                } catch (e) {
+                    console.warn(e);
+                }
+            } else if (xmlhttp.status === 500) {
+                console.warn('http get error', url, xmlhttp.status);
+            } else {
+                console.warn('http get error', url, xmlhttp.status);
+            }
+        }
+    };
+    xmlhttp.open('GET', url, true);
+    xmlhttp.setRequestHeader('Content-type', 'application/json');
+    xmlhttp.send();
+}
 
-var fibonacci = function (n) {
-    if (n === 0) {
-        return 0;
-    }
-    if (n === 1) {
-        return 1;
-    }
-    return fibonacci(n-1) + fibonacci(n-2);
-};
-
-describe('simple test', function () {
-    it('1 == 1', function () {
-        var i = 1;
-        i.should.equal(1);
-    });
+var url = 'https://bitcoinfees.earn.com/api/v1/fees/recommended';
+get(url, function (error) {
+    console.warn('request fee failed', url, error);
+}, function (response) {
+    console.info('new fee', response);
 });

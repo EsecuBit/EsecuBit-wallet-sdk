@@ -13,7 +13,7 @@
     "mocha-phantomjs": "^4.1.0"
   },
   "scripts": {
-    "test": "mocha-phantomjs test/index.html"
+    "test": "mocha-phantomjs --web-security=false --ssl-protocol=tlsv1 --ignore-ssl-errors=true --ssl-protocol=any test/index.html"
   },
   "repository": {
     "type": "git",
