@@ -5,18 +5,18 @@ var BitCoinFeeEarn = function (fee) {
     fee = fee || {};
     this.fee = {}; // santonshi / b
     this.fee[D.FEE_FAST] = fee.hasOwnProperty(D.FEE_FAST)? fee[D.FEE_FAST] : 100;
-    this.fee[D.FEE_NORMAL] = fee.hasOwnProperty(D.FEE_NORMAL)? fee[D.FEE_NORMAL] : 80;
+    this.fee[D.FEE_NORMAL] = fee.hasOwnProperty(D.FEE_NORMAL)? fee[D.FEE_NORMAL] : 50;
     this.fee[D.FEE_ECNOMIC] = fee.hasOwnProperty(D.FEE_ECNOMIC)? fee[D.FEE_ECNOMIC] : 20;
 
     /**
-     * @param response.fastestFee   Suggested fee to confirmed in 1 block.
-     * @param response.halfHourFee  Suggested fee to confirmed in 3 blocks.
-     * @param response.hourFee      Suggested fee to confirmed in 6 blocks.
+     * @param response.fastestFee   Suggested fee(santonshi per b) to confirmed in 1 block.
+     * @param response.halfHourFee  Suggested fee(santonshi per b) to confirmed in 3 blocks.
+     * @param response.hourFee      Suggested fee(santonshi per b) to confirmed in 6 blocks.
      */
 };
 module.exports = {class: BitCoinFeeEarn};
 
-var url = 'https://bitcoinfees.earn.com/api/v1/fees/recommended';
+var url = 'http://bitcoinfees.earn.com/api/v1/fees/recommended';
 BitCoinFeeEarn.prototype.updateFee = function (callback) {
     var that = this;
     get(url, function (error) {
@@ -36,6 +36,7 @@ function get(url, errorCallback, callback) {
     var xmlhttp = new XMLHttpRequest();
     xmlhttp.onreadystatechange = function() {
         if (xmlhttp.readyState === 4) {
+            console.log('a', xmlhttp.status, xmlhttp.responseText);
             if (xmlhttp.status === 200) {
                 try {
                     var coinInfo = JSON.parse(xmlhttp.responseText);
@@ -45,16 +46,15 @@ function get(url, errorCallback, callback) {
                     errorCallback(D.ERROR_NETWORK_PROVIDER_ERROR);
                 }
             } else if (xmlhttp.status === 500) {
-                console.warn(url, xmlhttp.status);
+                console.warn('http get error', url, xmlhttp.status);
                 errorCallback(D.ERROR_NETWORK_PROVIDER_ERROR);
             } else {
-                console.warn(url, xmlhttp.status);
+                console.warn('http get error', url, xmlhttp.status);
                 errorCallback(D.ERROR_NETWORK_UNVAILABLE);
             }
         }
     };
     xmlhttp.open('GET', url, true);
-    // TODO application/json?
-    xmlhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+    xmlhttp.setRequestHeader('Content-type', 'application/json');
     xmlhttp.send();
 }
