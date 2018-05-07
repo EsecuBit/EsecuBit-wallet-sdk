@@ -57,11 +57,12 @@ CoinNetwork.prototype.get = function (url, errorCallback, callback) {
             if (xmlhttp.status === 200) {
                 try {
                     var coinInfo = JSON.parse(xmlhttp.responseText);
-                    callback(coinInfo);
                 } catch (e) {
                     console.warn(e);
                     errorCallback(D.ERROR_NETWORK_PROVIDER_ERROR);
+                    return;
                 }
+                callback(coinInfo);
             } else if (xmlhttp.status === 500) {
                 console.warn(url, xmlhttp.status);
                 errorCallback(D.ERROR_NETWORK_PROVIDER_ERROR);
@@ -84,11 +85,12 @@ CoinNetwork.prototype.post = function (url, args, errorCallback, callback) {
             if (xmlhttp.status === 200) {
                 try {
                     var coinInfo = JSON.parse(xmlhttp.responseText);
-                    callback(coinInfo);
                 } catch (e) {
                     console.warn(e);
                     errorCallback(D.ERROR_NETWORK_PROVIDER_ERROR);
+                    return;
                 }
+                callback(coinInfo);
             } else if (xmlhttp.status === 500) {
                 console.warn(url, xmlhttp.status);
                 errorCallback(D.ERROR_NETWORK_PROVIDER_ERROR);

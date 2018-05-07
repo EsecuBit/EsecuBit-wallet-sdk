@@ -8,21 +8,22 @@ var BitCoinFeeEarn = function (fee) {
     this.fee[D.FEE_NORMAL] = fee.hasOwnProperty(D.FEE_NORMAL)? fee[D.FEE_NORMAL] : 50;
     this.fee[D.FEE_ECNOMIC] = fee.hasOwnProperty(D.FEE_ECNOMIC)? fee[D.FEE_ECNOMIC] : 20;
 
-    /**
-     * @param response.fastestFee   Suggested fee(santonshi per b) to confirmed in 1 block.
-     * @param response.halfHourFee  Suggested fee(santonshi per b) to confirmed in 3 blocks.
-     * @param response.hourFee      Suggested fee(santonshi per b) to confirmed in 6 blocks.
-     */
 };
 module.exports = {class: BitCoinFeeEarn};
 
 var url = 'https://bitcoinfees.earn.com/api/v1/fees/recommended';
+
 BitCoinFeeEarn.prototype.updateFee = function (callback) {
     var that = this;
     get(url, function (error) {
         console.warn('request fee failed', url, error);
         callback(D.ERROR_NETWORK_UNVAILABLE);
     }, function (response) {
+        /**
+         * @param response.fastestFee   Suggested fee(santonshi per b) to confirmed in 1 block.
+         * @param response.halfHourFee  Suggested fee(santonshi per b) to confirmed in 3 blocks.
+         * @param response.hourFee      Suggested fee(santonshi per b) to confirmed in 6 blocks.
+         */
         console.info('update fee succeed', 'old fee', that.fee);
         that.fee[D.FEE_FAST] = response.fastestFee;
         that.fee[D.FEE_NORMAL] = response.halfHourFee;
@@ -39,11 +40,12 @@ function get(url, errorCallback, callback) {
             if (xmlhttp.status === 200) {
                 try {
                     var coinInfo = JSON.parse(xmlhttp.responseText);
-                    callback(coinInfo);
                 } catch (e) {
                     console.warn(e);
                     errorCallback(D.ERROR_NETWORK_PROVIDER_ERROR);
+                    return;
                 }
+                callback(coinInfo);
             } else if (xmlhttp.status === 500) {
                 console.warn('http get error', url, xmlhttp.status);
                 errorCallback(D.ERROR_NETWORK_PROVIDER_ERROR);

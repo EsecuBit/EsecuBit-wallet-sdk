@@ -1,10 +1,8 @@
 
 
-var chai = require('chai');
-var should = chai.should();
-var assert = require('assert');
+var should = require('chai').should();
 
-describe('simple test', function () {
+describe('Simple Test', function () {
     it('1 == 1', function () {
         var i = 1;
         i.should.equal(1);
@@ -28,16 +26,21 @@ describe('BitCoinEarn', function() {
         var initFee = {'fast': 0, 'normal':0, 'economy': 0};
         var bitCoinEarn = new BitCoinEarn(initFee);
         bitCoinEarn.updateFee(function (error, response) {
-            if (error !== D.ERROR_NO_ERROR) {
-                done(error);
-                return;
+            try {
+                error.should.equal(D.ERROR_NO_ERROR);
+                bitCoinEarn.fee.should.deep.equal(response);
+                bitCoinEarn.fee[D.FEE_FAST].should.not.equal(0);
+                bitCoinEarn.fee[D.FEE_NORMAL].should.not.equal(0);
+                bitCoinEarn.fee[D.FEE_ECNOMIC].should.not.equal(0);
+                bitCoinEarn.fee[D.FEE_FAST].should.at.least(bitCoinEarn.fee[D.FEE_NORMAL]);
+                bitCoinEarn.fee[D.FEE_NORMAL].should.at.least(bitCoinEarn.fee[D.FEE_ECNOMIC]);
+            } catch (e) {
+                done(e);
             }
-            bitCoinEarn.fee.should.deep.equal(response);
-            bitCoinEarn.fee[D.FEE_FAST].should.not.equal(0);
-            bitCoinEarn.fee[D.FEE_NORMAL].should.not.equal(0);
-            bitCoinEarn.fee[D.FEE_ECNOMIC].should.not.equal(0);
-            bitCoinEarn.fee[D.FEE_FAST].should.at.least(0);
-            done();
         });
+    });
+    it('#async test', async() => {
+        var i = 1;
+        i.should.equal(1);
     });
 });
