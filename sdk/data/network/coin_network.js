@@ -3,12 +3,13 @@ var D = require('../../def').class;
 
 var TYPE_ADDRESS = 'address';
 var TYPE_TRANSACTION_INFO = 'transaction_info';
+var ADDRESS_REQUEST_PERIOD = 60; // seconds per request
+var TRANSACTION_REQUEST_PERIOD = 30; // seconds per request
 
-// var ADDRESS_REQUEST_PERIOD = 60; // seconds per request
-// var TRANSACTION_REQUEST_PERIOD = 30; // seconds per request
-// test
-var ADDRESS_REQUEST_PERIOD = 5; // seconds per request
-var TRANSACTION_REQUEST_PERIOD = 10; // seconds per request
+if (D.TEST_MODE) {
+    ADDRESS_REQUEST_PERIOD = 5; // seconds per request
+    TRANSACTION_REQUEST_PERIOD = 10; // seconds per request
+}
 
 var BTC_MAX_CONFIRMATIONS = 6;
 

@@ -1,5 +1,7 @@
 
 var D = {
+    TEST_MODE: true,
+
     ERROR_NO_ERROR: 0,
     ERROR_USER_CANCEL: 1,
 

@@ -5,6 +5,7 @@ var ChainSo = require('./network/chainso').class;
 var Account = require('../account').class;
 
 var CoinData = function() {
+    this._initialized = false;
     this._db = new IndexedDB();
     this._networkProvider = ChainSo;
     this._network = {};
@@ -16,6 +17,13 @@ var CoinData = function() {
 module.exports = {instance: new CoinData()};
 
 CoinData.prototype.init = function(callback) {
+    if (this._initialized) {
+        setTimeout(function () {
+            callback(D.ERROR_NO_ERROR);
+        }, 0);
+        return;
+    }
+
     var initTotal = this._network.length;
     var initCount = 0;
     var failed = false;
@@ -25,20 +33,22 @@ CoinData.prototype.init = function(callback) {
             continue;
         }
         (function(coinType) {
+            // TODO slow down the request speed
             that._network[coinType].initNetwork(coinType, function(error, response) {
-                console.log('init network error: ', error, 'response: ', response);
+                console.log('init network error ', error, ', response: ', response);
                 initCount++;
                 if (error !== D.ERROR_NO_ERROR) {
                     failed = true;
                     callback(error);
                 }
                 if (!failed && initCount === initTotal) {
+                    that._initialized = true;
                     callback(D.ERROR_NO_ERROR);
                 }
 
                 that._db.getAddressInfos(coinType, function (error, response) {
                     if (error !== D.ERROR_NO_ERROR) {
-                        console.warn('getAddressInfos', error);
+                        console.warn('getAddressInfos failed, error', error);
                     }
                     for (var i in response) {
                         if (!response.hasOwnProperty(i)) {
@@ -71,8 +81,9 @@ CoinData.prototype.getAccounts = function(deviceID, passPhraseID, callback) {
                 coinType: D.COIN_BIT_COIN
             };
             that._db.saveAccount(firstAccount, function(error, account) {
-                // TODO remove
-                that.initTransaction(firstAccount.accountId);
+                if (D.TEST_MODE) {
+                    that.initTransaction(firstAccount.accountId);
+                }
                 callback(error, [new Account(account)]);
             });
             return;
@@ -108,17 +119,19 @@ CoinData.prototype.newAccount = function(deviceID, passPhraseID, coinType, callb
         }
 
         if (lastAccountInfo === null) {
-            that._db.saveAccount(
-                {
-                    accountId: makeID(),
-                    label: "Account#" + index,
-                    deviceID: deviceID,
-                    passPhraseID: passPhraseID,
-                    coinType: coinType,
-                    // TODO remove
-                    balance: 32000000
-                },
-                callback);
+            var newAccount =
+                    {
+                        accountId: makeID(),
+                        label: "Account#" + index,
+                        deviceID: deviceID,
+                        passPhraseID: passPhraseID,
+                        coinType: coinType,
+                        balance: 0
+                    };
+            if (D.TEST_MODE) {
+                newAccount.balance = 32000000;
+            }
+            that._db.saveAccount(newAccount, callback);
             return;
         }
 
@@ -192,7 +205,6 @@ CoinData.prototype.addTransactionListener = function (callback) {
     this._listeners.push(callback);
 };
 
-// TODO remove test data
 CoinData.prototype.initTransaction = function (accountId) {
     console.log('initTransaction');
     this._db.saveTransactionInfo(

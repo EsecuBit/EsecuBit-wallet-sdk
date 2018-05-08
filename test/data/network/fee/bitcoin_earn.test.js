@@ -39,8 +39,4 @@ describe('BitCoinEarn', function() {
             }
         });
     });
-    it('#async test', async() => {
-        var i = 1;
-        i.should.equal(1);
-    });
 });

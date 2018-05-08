@@ -54,10 +54,10 @@ var IndexedDB = function() {
          * }
          */
         if(!db.objectStoreNames.contains('addressInfo')) {
-            var address = db.createObjectStore('address');
-            transactionInfo.createIndex('accountId', 'accountId', {unique: false});
-            transactionInfo.createIndex('coinType', 'coinType', {unique: false});
-            transactionInfo.createIndex('accountId, type', ['accountId', 'type'], {unique: false});
+            var addressInfo = db.createObjectStore('addressInfo');
+            addressInfo.createIndex('accountId', 'accountId', {unique: false});
+            addressInfo.createIndex('coinType', 'coinType', {unique: false});
+            addressInfo.createIndex('accountId, type', ['accountId', 'type'], {unique: false});
         }
     };
 
@@ -104,7 +104,6 @@ IndexedDB.prototype.getAccounts = function(deviceID, passPhraseID, callback) {
     request.onerror = function(e) { callback(D.ERROR_DATABASE_EXEC_FAILED); };
 };
 
-// won't use
 IndexedDB.prototype.clearAccounts = function(deviceID, passPhraseID, callback) {
     if (this._db === null) {
         callback(D.ERROR_DATABASE_OPEN_FAILED);
@@ -193,7 +192,6 @@ IndexedDB.prototype.getAddressInfos = function(filter, callback) {
         callback(D.ERROR_DATABASE_OPEN_FAILED);
         return;
     }
-
 
     var request;
     if (filter.coinType !== null) {

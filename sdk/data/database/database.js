@@ -11,6 +11,7 @@ Database.prototype.getAccounts = function(deviceID, passPhraseID, callback) {
     callback(D.ERROR_NOT_IMPLEMENTED);
 };
 
+// only used in test
 Database.prototype.clearAccounts = function(deviceID, passPhraseID, callback) {
     callback(D.ERROR_NOT_IMPLEMENTED);
 };

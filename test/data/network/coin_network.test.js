@@ -1,25 +1,38 @@
 
 var D = require('../../../sdk/def').class;
 var ChainSo = require('../../../sdk/data/network/chainso').class;
+var should = require('chai').should();
 
 var chainSo = new ChainSo();
 
+// TODO complete test
 describe('Network ChainSo Bitcoin', function() {
+    this.timeout(5000);
     it('init network', function (done) {
         chainSo.initNetwork(D.COIN_BIT_COIN, function (error, response) {
-            console.log('initNetwork error', error, '\nresponse', response);
-
-            // chainSo.queryAddress('1PX3W54f2uEfvLJFi3ncqkhg27QG787VhZ', function (error, response) {
-            //    console.log('queryAddress error', error, '\nresponse', response);
-            // });
-            //
-            // chainSo.queryTransaction('2d05f0c9c3e1c226e63b5fac240137687544cf631cd616fd34fd188fc9020866 ', function (error, response) {
-            //     console.log('queryTransaction error', error, '\nresponse', response);
-            // });
-
-            chainSo.listenAddress('1PX3W54f2uEfvLJFi3ncqkhg27QG787VhZ', [], function(error, response) {
-                console.log('registerListenedAddress error', error, '\nresponse', response);
-            });
+            try {
+                error.should.equal(D.ERROR_NO_ERROR);
+                response.network.should.equal('BTC');
+                done();
+            } catch (e) {
+                done(e);
+            }
         });
+    });
+
+    it('query address', function (done) {
+        setTimeout(function () {
+            chainSo.queryAddress('1AjAF7bZvimjdTuPnWLNN3F4WCbzLbuyG7', function(error, response) {
+               try {
+                   error.should.equal(D.ERROR_NO_ERROR);
+                   response.address.should.equal('1AjAF7bZvimjdTuPnWLNN3F4WCbzLbuyG7');
+                   response.total_txs.should.equal(1);
+                   response.txs[0].txid.should.equal('20a42ecd34af95dc5fd5197f8971f7d9d690f7e456abb8c1f6a6ef6a25b56616');
+                   done();
+               } catch (e) {
+                   done(e);
+               }
+            });
+        }, 1000);
     });
 });
