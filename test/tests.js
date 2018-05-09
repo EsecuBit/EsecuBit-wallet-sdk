@@ -42,7 +42,9 @@ if (typeof web3 !== 'undefined') {
     web3 = new Web3(web3.currentProvider);
 } else {
     // set the provider you want from Web3.providers
-    web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:7545"));
+    // web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:7545"));
+    console.warn('no web3 instance');
+    return;
 }
 
 console.log(web3.version);
@@ -65,6 +67,7 @@ web3.eth.getTransactionCount(account.address).then(console.log);
 web3.eth.net.getId().then(console.log);
 
 account.signTransaction({
+    nonce: '1000',
     gasPrice: "20000000000",
     gas: "21000",
     to: '0x3535353535353535353535353535353535353535',
