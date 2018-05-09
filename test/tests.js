@@ -1,8 +1,8 @@
 
-require("babel-core/register");
-require("babel-polyfill");
-
-var should = require('chai').should();
+// require("babel-core/register");
+// require("babel-polyfill");
+//
+// var should = require('chai').should();
 
 // (async function() {
 //     // await解决回调问题，创建一个phantom实例
@@ -24,14 +24,52 @@ var should = require('chai').should();
 //     await instance.exit();
 // }());
 
-describe('Simple Test', function () {
-    it('1 == 1', function () {
-        var i = 1;
-        i.should.equal(1);
-    });
+// describe('Simple Test', function () {
+//     it('1 == 1', function () {
+//         var i = 1;
+//         i.should.equal(1);
+//     });
+//
+//     it('#async test', async function abc() {
+//         var i = 1;
+//         i.should.equal(1);
+//     });
+// });
 
-    it('#async test', async function abc() {
-        var i = 1;
-        i.should.equal(1);
-    });
+var Web3 = require('web3');
+if (typeof web3 !== 'undefined') {
+    console.log('already has web3');
+    web3 = new Web3(web3.currentProvider);
+} else {
+    // set the provider you want from Web3.providers
+    web3 = new Web3(new Web3.providers.HttpProvider("http://localhost:7545"));
+}
+
+console.log(web3.version);
+
+// messageHash:"0x7dbc5644b83abd32d014d170ba9bdc855c126328c0cb41af0ed6422bef0bb32e"
+// r:"0x2580390416fe8c951e8e0b12b349ce9a530f67f2cabb88ab70378789a83bbd4b"
+// rawTransaction:"0xf86c808504a817c800825208943535353535353535353535353535353535353535880de0b6b3a76400008026a02580390416fe8c951e8e0b12b349ce9a530f67f2cabb88ab70378789a83bbd4ba05d897576a89e995d4f28fca55e63ca587b827a852bf5fe1ed75dbd2af1d1761e"
+// s:"0x5d897576a89e995d4f28fca55e63ca587b827a852bf5fe1ed75dbd2af1d1761e"
+// v:"0x26"
+//
+//
+// address:"0x87De4942d53eD16F4523e50BBDf4622345C63A55"
+// privateKey:"0x3a797ee4983149f4b74ff9ea97ae1813afe687477f11bf7b10bca788c17d68c7"
+// nonce:"1"
+// chainId:"0"
+
+var account = web3.eth.accounts.create();
+console.log(account);
+web3.eth.getTransactionCount(account.address).then(console.log);
+web3.eth.net.getId().then(console.log);
+
+account.signTransaction({
+    gasPrice: "20000000000",
+    gas: "21000",
+    to: '0x3535353535353535353535353535353535353535',
+    value: "1000000000000000000",
+    data: ""
+}, function (error, response) {
+    console.log('error:', error, 'response:', response);
 });

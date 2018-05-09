@@ -35,7 +35,7 @@ CoinData.prototype.init = function(callback) {
         (function(coinType) {
             // TODO slow down the request speed
             that._network[coinType].initNetwork(coinType, function(error, response) {
-                console.log('init network error ', error, ', response: ', response);
+                console.log('init network', coinType, 'error:', error, ', response:', response);
                 initCount++;
                 if (error !== D.ERROR_NO_ERROR) {
                     failed = true;

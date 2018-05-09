@@ -42,7 +42,7 @@
  *      ...]
  * }
  * }
-**/
+ */
 
 var CoinNetwork = require('./coin_network').class;
 var D = require('../../def').class;
@@ -87,9 +87,13 @@ ChainSo.prototype.initNetwork = function (coinType, callback) {
     }
 
     var that = this;
-    this.get([this._apiUrl, "get_info", this._coinTypeStr].join('/'), callback, function (response) {
-        callback(D.ERROR_NO_ERROR, response);
-    });
+    // TODO request limit, recover
+    // this.get([this._apiUrl, "get_info", this._coinTypeStr].join('/'), callback, function (response) {
+    //     callback(D.ERROR_NO_ERROR, response);
+    // });
+    setTimeout(function () {
+        callback(D.ERROR_NO_ERROR, {});
+    }, 0);
 };
 
 ChainSo.prototype.queryAddress = function (address, callback) {

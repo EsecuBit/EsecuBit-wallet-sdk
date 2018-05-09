@@ -12,64 +12,76 @@ var IndexedDB = function() {
         return;
     }
 
-    var openRequest = indexedDB.open('wallet', 3);
-    openRequest.onupgradeneeded = function(e) {
-        console.log('indexedDB upgrading...');
+    if (D.TEST_MODE) {
+        var deleteRequest = indexedDB.deleteDatabase('wallet');
+        deleteRequest.onsuccess = function (ev) {
+            console.log('TEST_MODE indexedDB delete succeed');
+            open();
+        };
+    } else {
+        open();
+    }
 
-        var db = e.target.result;
+    function open() {
+        var openRequest = indexedDB.open('wallet', 3);
+        openRequest.onupgradeneeded = function(e) {
+            console.log('indexedDB upgrading...');
 
-        if(!db.objectStoreNames.contains('account')) {
-            var account = db.createObjectStore('account', {autoIncrement: true});
-            account.createIndex('deviceID, passPhraseID', ['deviceID', 'passPhraseID'], {unique: false});
-            account.createIndex('coinType', 'coinType', {unique: false});
-        }
+            var db = e.target.result;
 
-        /**
-         * {
-         *    accountId: string,
-         *    coinType: string,
-         *    txId: string,
-         *    createTime: long,
-         *    confirmedTime: long,
-         *    direction: 'in' / 'out',
-         *    count: long (santoshi)
-         * }
-         */
-        if(!db.objectStoreNames.contains('transactionInfo')) {
-            var transactionInfo = db.createObjectStore('transactionInfo', {autoIncrement: true});
-            transactionInfo.createIndex('accountId', 'accountId', {unique: false});
-            transactionInfo.createIndex('txId', 'txId', {unique: false});
-            transactionInfo.createIndex('createTime', 'createTime', {unique: false});
-        }
+            if(!db.objectStoreNames.contains('account')) {
+                var account = db.createObjectStore('account', {autoIncrement: true});
+                account.createIndex('deviceID, passPhraseID', ['deviceID', 'passPhraseID'], {unique: false});
+                account.createIndex('coinType', 'coinType', {unique: false});
+            }
 
-        /**
-         * {
-         *      address: string,
-         *      accountId: string,
-         *      coinType: string,
-         *      path: string,
-         *      type: 'receive' / 'change'
-         *      txCount: int,
-         *      balance: long (santoshi)
-         * }
-         */
-        if(!db.objectStoreNames.contains('addressInfo')) {
-            var addressInfo = db.createObjectStore('addressInfo');
-            addressInfo.createIndex('accountId', 'accountId', {unique: false});
-            addressInfo.createIndex('coinType', 'coinType', {unique: false});
-            addressInfo.createIndex('accountId, type', ['accountId', 'type'], {unique: false});
-        }
-    };
+            /**
+             * {
+             *    accountId: string,
+             *    coinType: string,
+             *    txId: string,
+             *    createTime: long,
+             *    confirmedTime: long,
+             *    direction: 'in' / 'out',
+             *    count: long (santoshi)
+             * }
+             */
+            if(!db.objectStoreNames.contains('transactionInfo')) {
+                var transactionInfo = db.createObjectStore('transactionInfo', {autoIncrement: true});
+                transactionInfo.createIndex('accountId', 'accountId', {unique: false});
+                transactionInfo.createIndex('txId', 'txId', {unique: false});
+                transactionInfo.createIndex('createTime', 'createTime', {unique: false});
+            }
 
-    openRequest.onsuccess = function(e) {
-        console.log('indexedDB open success!');
-        that._db = e.target.result;
-    };
+            /**
+             * {
+             *      address: string,
+             *      accountId: string,
+             *      coinType: string,
+             *      path: string,
+             *      type: 'receive' / 'change'
+             *      txCount: int,
+             *      balance: long (santoshi)
+             * }
+             */
+            if(!db.objectStoreNames.contains('addressInfo')) {
+                var addressInfo = db.createObjectStore('addressInfo');
+                addressInfo.createIndex('accountId', 'accountId', {unique: false});
+                addressInfo.createIndex('coinType', 'coinType', {unique: false});
+                addressInfo.createIndex('accountId, type', ['accountId', 'type'], {unique: false});
+            }
+        };
 
-    openRequest.onerror = function(e) {
-        console.log('indexedDB open error');
-        console.dir(e);
-    };
+        openRequest.onsuccess = function(e) {
+            console.log('indexedDB open success!');
+            that._db = e.target.result;
+        };
+
+        openRequest.onerror = function(e) {
+            console.log('indexedDB open error');
+            console.dir(e);
+        };
+    }
 };
 module.exports = {class: IndexedDB};
 
