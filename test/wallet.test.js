@@ -2,8 +2,8 @@
 var Wallet = require('../sdk/wallet').class;
 var D = require('../sdk/def').class;
 
-var deviceID = "default";
-var passPhraseID = "BA3253876AED6BC22D4A6FF53D8406C6AD864195ED144AB5C87621B6C233B548";
+var deviceId = "default";
+var passPhraseId = "BA3253876AED6BC22D4A6FF53D8406C6AD864195ED144AB5C87621B6C233B548";
 var coinType = D.COIN_BIT_COIN;
 var wallet = new Wallet();
 
@@ -22,7 +22,7 @@ wallet.listenDevice(function (error, isPlugIn) {
         console.dir(info);
     });
 
-    wallet.getAccounts(deviceID, passPhraseID, function (error, accounts) {
+    wallet.getAccounts(deviceId, passPhraseId, function (error, accounts) {
         console.log('getAccounts: error: ' + error);
         console.dir(accounts);
         if (error !== D.ERROR_NO_ERROR) {
@@ -71,13 +71,13 @@ wallet.listenDevice(function (error, isPlugIn) {
             })
         });
 
-        wallet.newAccount(deviceID, passPhraseID, coinType, function (error, account) {
+        wallet.newAccount(deviceId, passPhraseId, coinType, function (error, account) {
             console.log('newAccount: error: ' + error);
             console.dir(account);
             if (error !== D.ERROR_NO_ERROR) {
                 return;
             }
-            wallet.getAccounts(deviceID, passPhraseID, function (error, accounts) {
+            wallet.getAccounts(deviceId, passPhraseId, function (error, accounts) {
                 console.log('getAccounts2: error: ' + error);
                 console.dir(accounts);
             });
