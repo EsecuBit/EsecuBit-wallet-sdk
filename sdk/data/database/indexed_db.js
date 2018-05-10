@@ -4,11 +4,18 @@ var Database = require('./database').class;
 
 var IndexedDB = function() {
     this._db = null;
+};
+module.exports = {class: IndexedDB};
 
+IndexedDB.prototype = new Database();
+
+// TODO judge is new app, whether need recover wallet
+IndexedDB.prototype.init = function (callback) {
     var that = this;
 
     if (!('indexedDB' in window)) {
         console.warn('no indexedDB implementation');
+        callback(D.ERROR_DATABASE_OPEN_FAILED);
         return;
     }
 
@@ -29,6 +36,16 @@ var IndexedDB = function() {
 
             var db = e.target.result;
 
+            /**
+             * account:
+             * {
+             *     accountId: string,
+             *     label: string,
+             *     deviceID: string,
+             *     passPhraseID: string,
+             *     coinType: string
+             * }
+             */
             if(!db.objectStoreNames.contains('account')) {
                 var account = db.createObjectStore('account', {autoIncrement: true});
                 account.createIndex('deviceID, passPhraseID', ['deviceID', 'passPhraseID'], {unique: false});
@@ -36,14 +53,15 @@ var IndexedDB = function() {
             }
 
             /**
+             * transactionInfo:
              * {
-             *    accountId: string,
-             *    coinType: string,
-             *    txId: string,
-             *    createTime: long,
-             *    confirmedTime: long,
-             *    direction: 'in' / 'out',
-             *    count: long (santoshi)
+             *     accountId: string,
+             *     coinType: string,
+             *     txId: string,
+             *     createTime: long,
+             *     confirmedTime: long,
+             *     direction: 'in' / 'out',
+             *     count: long (santoshi)
              * }
              */
             if(!db.objectStoreNames.contains('transactionInfo')) {
@@ -54,6 +72,7 @@ var IndexedDB = function() {
             }
 
             /**
+             * addressInfo:
              * {
              *      address: string,
              *      accountId: string,
@@ -75,17 +94,16 @@ var IndexedDB = function() {
         openRequest.onsuccess = function(e) {
             console.log('indexedDB open success!');
             that._db = e.target.result;
+            callback(D.ERROR_NO_ERROR);
         };
 
         openRequest.onerror = function(e) {
-            console.log('indexedDB open error');
-            console.dir(e);
+            console.log('indexedDB open error', e);
+            callback(D.ERROR_DATABASE_OPEN_FAILED);
         };
     }
 };
-module.exports = {class: IndexedDB};
 
-IndexedDB.prototype = new Database();
 IndexedDB.prototype.saveAccount = function(account, callback) {
     if (this._db === null) {
         callback(D.ERROR_DATABASE_OPEN_FAILED);
@@ -173,14 +191,14 @@ IndexedDB.prototype.getTransactionInfos = function(filter, callback) {
     var startIndex = filter.hasOwnProperty('startIndex')? filter.startIndex : 0;
     request.onsuccess = function(e) {
         var cursor = e.target.result;
-        if(cursor) {
-            if (count++ >= startIndex) {
-                array.push(cursor.value);
-            }
-            cursor.continue();
-        } else {
+        if(!cursor) {
             callback(D.ERROR_NO_ERROR, count, array);
+            return;
         }
+        if (count++ >= startIndex) {
+            array.push(cursor.value);
+        }
+        cursor.continue();
     };
     request.onerror = function(e) { callback(D.ERROR_DATABASE_EXEC_FAILED); };
 };
@@ -222,6 +240,7 @@ IndexedDB.prototype.getAddressInfos = function(filter, callback) {
         var cursor = e.target.result;
         if(!cursor) {
             callback(D.ERROR_NO_ERROR, array);
+            return;
         }
 
         array.push(cursor.value);

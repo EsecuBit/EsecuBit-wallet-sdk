@@ -24,41 +24,55 @@ CoinData.prototype.init = function(callback) {
         return;
     }
 
-    var initTotal = this._network.length;
-    var initCount = 0;
-    var failed = false;
     var that = this;
-    for (var coinType in this._network) {
-        if (!this._network.hasOwnProperty(coinType)) {
-            continue;
+    this._db.init(function (error) {
+        if (error !== D.ERROR_NO_ERROR) {
+            callback(error);
+            return;
         }
-        (function(coinType) {
-            // TODO slow down the request speed
-            that._network[coinType].initNetwork(coinType, function(error, response) {
-                console.log('init network', coinType, 'error:', error, ', response:', response);
-                initCount++;
-                if (error !== D.ERROR_NO_ERROR) {
+        initNetwork();
+    });
+
+    function initNetwork () {
+        var initTotal = Object.keys(that._network).length;
+        var initCount = 0;
+        var failed = false;
+        for (var coinType in that._network) {
+            function initFinish(error) {
+                if (error !== D.ERROR_NO_ERROR && !failed) {
                     failed = true;
                     callback(error);
                 }
+                initCount++;
                 if (!failed && initCount === initTotal) {
                     that._initialized = true;
                     callback(D.ERROR_NO_ERROR);
                 }
+            }
 
-                that._db.getAddressInfos(coinType, function (error, response) {
-                    if (error !== D.ERROR_NO_ERROR) {
-                        console.warn('getAddressInfos failed, error', error);
-                    }
-                    for (var i in response) {
-                        if (!response.hasOwnProperty(i)) {
-                            continue;
+            if (!that._network.hasOwnProperty(coinType)) {
+                continue;
+            }
+            (function(coinType) {
+                // TODO slow down the request speed
+                that._network[coinType].initNetwork(coinType, function(error, response) {
+                    console.log('init network', coinType, 'error:', error, ', response:', response);
+                    initFinish(error);
+
+                    that._db.getAddressInfos(coinType, function (error, response) {
+                        if (error !== D.ERROR_NO_ERROR) {
+                            console.warn('getAddressInfos failed, error', error);
                         }
-                        that._listenAddress(coinType, response[i].address);
-                    }
+                        for (var i in response) {
+                            if (!response.hasOwnProperty(i)) {
+                                continue;
+                            }
+                            that._listenAddress(coinType, response[i].address);
+                        }
+                    });
                 });
-            });
-        })(coinType);
+            })(coinType);
+        }
     }
 };
 
@@ -82,6 +96,7 @@ CoinData.prototype.getAccounts = function(deviceID, passPhraseID, callback) {
             };
             that._db.saveAccount(firstAccount, function(error, account) {
                 if (D.TEST_MODE) {
+                    console.log('TEST_MODE add test transactionInfo');
                     that.initTransaction(firstAccount.accountId);
                 }
                 callback(error, [new Account(account)]);

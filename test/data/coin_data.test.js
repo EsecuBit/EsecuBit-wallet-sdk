@@ -14,35 +14,35 @@ describe('Coin Data', function () {
             }
         });
     });
-    // it('init again', function (done) {
-    //     coinData.init(function (error) {
-    //         try {
-    //             error.should.equal(D.ERROR_NO_ERROR);
-    //             done();
-    //         } catch (e) {
-    //             done(e)
-    //         }
-    //     });
-    // });
-    // it('init again again', function (done) {
-    //     coinData.init(function (error) {
-    //         try {
-    //             error.should.equal(D.ERROR_NO_ERROR);
-    //             done();
-    //         } catch (e) {
-    //             done(e)
-    //         }
-    //     });
-    // });
+    it('init again', function (done) {
+        coinData.init(function (error) {
+            try {
+                error.should.equal(D.ERROR_NO_ERROR);
+                done();
+            } catch (e) {
+                done(e)
+            }
+        });
+    });
+    it('init again again', function (done) {
+        coinData.init(function (error) {
+            try {
+                error.should.equal(D.ERROR_NO_ERROR);
+                done();
+            } catch (e) {
+                done(e);
+            }
+        });
+    });
 
-    // it('getAccounts', function (done) {
-    //     coinData.init(function (error) {
-    //         try {
-    //             error.should.equal(D.ERROR_NO_ERROR);
-    //             done();
-    //         } catch (e) {
-    //             done(e)
-    //         }
-    //     });
-    // });
+    it('getAccounts', function (done) {
+        coinData.getAccounts(function (error) {
+            try {
+                error.should.equal(D.ERROR_NO_ERROR);
+                done();
+            } catch (e) {
+                done(e)
+            }
+        });
+    });
 });

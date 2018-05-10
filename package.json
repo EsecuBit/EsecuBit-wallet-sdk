@@ -15,7 +15,8 @@
     "babelify": "^8.0.0",
     "chai": "^4.1.2",
     "mocha": "^5.1.1",
-    "mocha-phantomjs": "^4.1.0"
+    "mocha-phantomjs": "^4.1.0",
+    "web3": "^1.0.0-beta.34"
   },
   "scripts": {
     "test": "mocha-phantomjs --web-security=false --ssl-protocol=tlsv1 --ignore-ssl-errors=true --ssl-protocol=any test/index.html"
@@ -28,7 +29,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "npm": "^6.0.0",
-    "web3": "^1.0.0-beta.34"
+    "npm": "^6.0.1"
   }
 }
