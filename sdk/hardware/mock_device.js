@@ -1,6 +1,6 @@
 
 var D = require('../def').class;
-var Device = require('../def').class;
+var Device = require('./device').class;
 
 var ADDRESSES = [
     "3141317A5031655035514765666932444D505466544C35534C6D7637446976664E61",

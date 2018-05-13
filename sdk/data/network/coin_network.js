@@ -45,6 +45,7 @@ CoinNetwork.prototype.website = 'undefined';
 CoinNetwork.prototype.getFloatFee = function (fee) {
     switch (this.coinType) {
         case D.COIN_BIT_COIN:
+        case D.COIN_BIT_COIN_TEST:
             return Number(fee / 100000000);
         default:
             return -1;

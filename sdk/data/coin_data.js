@@ -76,9 +76,9 @@ CoinData.prototype.init = function(callback) {
     }
 };
 
-CoinData.prototype.getAccounts = function(deviceID, passPhraseID, callback) {
+CoinData.prototype.getAccounts = function(deviceId, passPhraseId, callback) {
     var that = this;
-    that._db.getAccounts(deviceID, passPhraseID, function(error, accounts) {
+    that._db.getAccounts(deviceId, passPhraseId, function(error, accounts) {
         if (error !== D.ERROR_NO_ERROR) {
             callback(error);
             return;
@@ -88,15 +88,20 @@ CoinData.prototype.getAccounts = function(deviceID, passPhraseID, callback) {
             console.log('no accounts, init the first account');
             // initialize first account
             var firstAccount = {
-                accountId: makeID(),
+                accountId: makeId(),
                 label: "Account#1",
-                deviceID: deviceID,
-                passPhraseID: passPhraseID,
-                coinType: D.COIN_BIT_COIN
+                deviceId: deviceId,
+                passPhraseId: passPhraseId,
+                coinType: D.COIN_BIT_COIN,
+                balance: 0
             };
+            if (D.TEST_MODE) {
+                firstAccount.balance = 32000000;
+            }
             that._db.saveAccount(firstAccount, function(error, account) {
                 if (D.TEST_MODE) {
                     console.log('TEST_MODE add test transactionInfo');
+
                     that.initTransaction(firstAccount.accountId);
                 }
                 callback(error, [new Account(account)]);
@@ -114,9 +119,9 @@ CoinData.prototype.getAccounts = function(deviceID, passPhraseID, callback) {
     });
 };
 
-CoinData.prototype.newAccount = function(deviceID, passPhraseID, coinType, callback) {
+CoinData.prototype.newAccount = function(deviceId, passPhraseId, coinType, callback) {
     var that = this;
-    that._db.loadAccounts(deviceID, passPhraseID, function (error, accounts) {
+    that._db.getAccounts(deviceId, passPhraseId, function (error, accounts) {
         if (error !== D.ERROR_NO_ERROR) {
             callback(error);
             return;
@@ -136,10 +141,10 @@ CoinData.prototype.newAccount = function(deviceID, passPhraseID, coinType, callb
         if (lastAccountInfo === null) {
             var newAccount =
                     {
-                        accountId: makeID(),
+                        accountId: makeId(),
                         label: "Account#" + index,
-                        deviceID: deviceID,
-                        passPhraseID: passPhraseID,
+                        deviceId: deviceId,
+                        passPhraseId: passPhraseId,
                         coinType: coinType,
                         balance: 0
                     };
@@ -156,20 +161,20 @@ CoinData.prototype.newAccount = function(deviceID, passPhraseID, coinType, callb
                 startIndex: 0,
                 endIndex: 1
             },
-            function (error, transactions) {
-
-                if (transactions.length === 0) {
-                    callback(D.ERROR_LAST_WALLET_NO_TRANSACTION);
+            function (error, total) {
+                if (total === 0) {
+                    callback(D.ERROR_LAST_ACCOUNT_NO_TRANSACTION);
                     return;
                 }
                 var index = accounts.length + 1;
                 that._db.saveAccount(
                     {
-                        accountId: makeID(),
+                        accountId: makeId(),
                         label: "Account#" + index,
-                        deviceID: deviceID,
-                        passPhraseID: passPhraseID,
-                        coinType: coinType
+                        deviceId: deviceId,
+                        passPhraseId: passPhraseId,
+                        coinType: coinType,
+                        balance: 0
                     },
                     callback);
          });
@@ -181,6 +186,9 @@ CoinData.prototype.getTransactionInfos = function(filter, callback) {
 };
 
 CoinData.prototype.getFloatFee = function(coinType, fee) {
+    if (!this._network[coinType]) {
+        return -1;
+    }
     return this._network[coinType].getFloatFee(fee);
 };
 
@@ -220,6 +228,9 @@ CoinData.prototype.addTransactionListener = function (callback) {
     this._listeners.push(callback);
 };
 
+/*
+ * Test data in TEST_MODE
+ */
 CoinData.prototype.initTransaction = function (accountId) {
     console.log('initTransaction');
     this._db.saveTransactionInfo(
@@ -227,13 +238,13 @@ CoinData.prototype.initTransaction = function (accountId) {
             accountId: accountId,
             coinType: D.COIN_BIT_COIN,
             txId: '574e073f66897c203a172e7bf65df39e99b11eec4a2b722312d6175a1f8d00c3',
-            direction: 'in',
             address: '1Lhyvw28ERxYJRjAYgntWazfmZmyfFkgqw',
-            createTime: new Date().getTime(),
-            confirmedTime: new Date().getTime(),
+            direction: 'in',
+            createTime: 1524138384000,
+            confirmedTime: 1524138384000,
             outIndex: 0,
             script: '76a91499bc78ba577a95a11f1a344d4d2ae55f2f857b9888ac',
-            count: 84000000
+            value: 84000000
         },
         function() {});
 
@@ -242,11 +253,11 @@ CoinData.prototype.initTransaction = function (accountId) {
             accountId: accountId,
             coinType: D.COIN_BIT_COIN,
             txId: '574e073f66897c203a172e7bf65df39e99b11eec4a2b722312d6175a1f8d00c4',
-            direction: 'out',
             address: '3PfcrxHzT6WuNo7tcqmAdLKn6EvgXCCSiQ',
+            direction: 'out',
             createTime: 1524138384000,
             confirmedTime: 1524138384000,
-            count: 18000000
+            value: 18000000
         },
         function() {});
 
@@ -256,15 +267,15 @@ CoinData.prototype.initTransaction = function (accountId) {
             coinType: D.COIN_BIT_COIN,
             txId: '574e073f66897c203a172e7bf65df39e99b11eec4a2b722312d6175a1f8d00c5',
             address: '14F7iCA4FsPEYj67Jpme2puVmwAT6VoVEU',
-            createTime: new Date().getTime(),
-            confirmedTime: new Date().getTime(),
             direction: 'out',
-            count: 34000000
+            createTime: 1524138384000,
+            confirmedTime: 1524138384000,
+            value: 34000000
         },
         function() {});
 };
 
-function makeID() {
+function makeId() {
     var text = "";
     var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     for(var i = 0; i < 32; i++) {

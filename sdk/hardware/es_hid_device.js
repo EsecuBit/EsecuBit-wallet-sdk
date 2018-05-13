@@ -1,11 +1,16 @@
 
 var D = require('../def').class;
-var Device = require('../def').class;
+var Device = require('./device').class;
 
 var EsHidDevice = function() {
     this._deviceId = null;
     this._connectionHandle = null;
     this._listener = null;
+
+    if (chrome === undefined || chrome.usb === undefined) {
+        console.warn('EsHidDevice not in chrome app env, exit');
+        return;
+    }
 
     var that = this;
     function connect(device) {

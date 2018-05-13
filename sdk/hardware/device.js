@@ -2,7 +2,6 @@
 var D = require('../def').class;
 
 var Device = function() {
-    this.isPlugedIn = false;
 };
 
 Device.prototype.listenPlug = function(callback) {

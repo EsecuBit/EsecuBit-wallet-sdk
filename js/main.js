@@ -6,9 +6,8 @@
 
 var Wallet = require('../sdk/wallet');
 var D = require('../sdk/def');
-var Account = require('../sdk/account');
-var deviceID = "default";
-var passPhraseID = "BA3253876AED6BC22D4A6FF53D8406C6AD864195ED144AB5C87621B6C233B548";
+var deviceId = "default";
+var passPhraseId = "BA3253876AED6BC22D4A6FF53D8406C6AD864195ED144AB5C87621B6C233B548";
 var coinType = D.COIN_BIT_COIN;
 var wallet = new Wallet();
 //JavaScript代码区域
@@ -99,7 +98,7 @@ layui.use(['jquery','form','jqGrid','localeEn','laypage','element','qrcode'], fu
                 }
             });
 
-            wallet.getAccounts(deviceID, passPhraseID, function (error, accounts) {
+            wallet.getAccounts(deviceId, passPhraseId, function (error, accounts) {
 
                 //业务逻辑
                 accountInformation = accounts;
@@ -230,7 +229,7 @@ layui.use(['jquery','form','jqGrid','localeEn','laypage','element','qrcode'], fu
                     data:transactions,
                     datatype: "local",
                     height: "100%",
-                    colNames: ['ID', 'coinType','count', 'Date','Direction'],
+                    colNames: ['Id', 'coinType','count', 'Date','Direction'],
                     colModel: [{
                         name: 'accountId',
                         index: 'accountId',

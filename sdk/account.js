@@ -1,22 +1,22 @@
 
 var D = require('./def').class;
 
-var Account = function(info) {
+var EsAccount = function(info) {
     this.info = info;
     this.accountId = info.accountId;
     this.label = info.label;
-    this.deviceID = info.deviceID;
-    this.passPhraseID = info.passPhraseID;
+    this.deviceId = info.deviceId;
+    this.passPhraseId = info.passPhraseId;
     this.coinType = info.coinType;
-    this.balance = info.hasOwnProperty('balance')? 0 : info.balance;
+    this.balance = info.balance;
 
-    this._device = require('./hardware/core_wallet');
+    this._device = require('./hardware/core_wallet').instance;
     // TODO fix circle require
     this._coinData = require('./data/coin_data').instance;
 };
-module.exports = {class: Account};
+module.exports = {class: EsAccount};
 
-Account.prototype.getTransactionInfos = function(startIndex, endIndex, callback) {
+EsAccount.prototype.getTransactionInfos = function(startIndex, endIndex, callback) {
     this._coinData.getTransactionInfos({
         accountId: this.accountId,
         startIndex: startIndex,
@@ -24,7 +24,7 @@ Account.prototype.getTransactionInfos = function(startIndex, endIndex, callback)
     }, callback);
 };
 
-Account.prototype.getAddress = function(addressParam, callback) {
+EsAccount.prototype.getAddress = function(addressParam, callback) {
     this._device.getAddress(addressParam, function (error, address) {
         if (error !== D.ERROR_NO_ERROR) {
             callback(error);
@@ -34,7 +34,7 @@ Account.prototype.getAddress = function(addressParam, callback) {
     });
 };
 
-Account.prototype.sendBitCoin = function(transaction, callback) {
+EsAccount.prototype.sendBitCoin = function(transaction, callback) {
     var that = this;
     var enc = new TextEncoder();
     console.dir(enc);

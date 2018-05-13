@@ -19,17 +19,7 @@ IndexedDB.prototype.init = function (callback) {
         return;
     }
 
-    if (D.TEST_MODE) {
-        var deleteRequest = indexedDB.deleteDatabase('wallet');
-        deleteRequest.onsuccess = function (ev) {
-            console.log('TEST_MODE indexedDB delete succeed');
-            open();
-        };
-    } else {
-        open();
-    }
-
-    function open() {
+    (function open() {
         var openRequest = indexedDB.open('wallet', 3);
         openRequest.onupgradeneeded = function(e) {
             console.log('indexedDB upgrading...');
@@ -48,7 +38,7 @@ IndexedDB.prototype.init = function (callback) {
              */
             if(!db.objectStoreNames.contains('account')) {
                 var account = db.createObjectStore('account', {autoIncrement: true});
-                account.createIndex('deviceID, passPhraseID', ['deviceID', 'passPhraseID'], {unique: false});
+                account.createIndex('deviceId, passPhraseId', ['deviceId', 'passPhraseId'], {unique: false});
                 account.createIndex('coinType', 'coinType', {unique: false});
             }
 
@@ -61,7 +51,7 @@ IndexedDB.prototype.init = function (callback) {
              *     createTime: long,
              *     confirmedTime: long,
              *     direction: 'in' / 'out',
-             *     count: long (santoshi)
+             *     value: long (santoshi)
              * }
              */
             if(!db.objectStoreNames.contains('transactionInfo')) {
@@ -101,7 +91,7 @@ IndexedDB.prototype.init = function (callback) {
             console.log('indexedDB open error', e);
             callback(D.ERROR_DATABASE_OPEN_FAILED);
         };
-    }
+    })();
 };
 
 IndexedDB.prototype.saveAccount = function(account, callback) {
@@ -109,15 +99,21 @@ IndexedDB.prototype.saveAccount = function(account, callback) {
         callback(D.ERROR_DATABASE_OPEN_FAILED);
         return;
     }
+
     var request = this._db.transaction(['account'], 'readwrite')
         .objectStore('account')
         .add(account);
 
-    request.onsuccess = function(e) { callback(D.ERROR_NO_ERROR, account); };
-    request.onerror = function(e) { callback(D.ERROR_DATABASE_EXEC_FAILED, account); };
+    request.onsuccess = function() {
+        callback(D.ERROR_NO_ERROR, account);
+    };
+    request.onerror = function(e) {
+        console.log('saveAccount', e);
+        callback(D.ERROR_DATABASE_EXEC_FAILED, account);
+    };
 };
 
-IndexedDB.prototype.getAccounts = function(deviceID, passPhraseID, callback) {
+IndexedDB.prototype.getAccounts = function(deviceId, passPhraseId, callback) {
     if (this._db === null) {
         callback(D.ERROR_DATABASE_OPEN_FAILED);
         return;
@@ -125,16 +121,19 @@ IndexedDB.prototype.getAccounts = function(deviceID, passPhraseID, callback) {
 
     var request = this._db.transaction(['account'], 'readonly')
         .objectStore('account')
-        .index('deviceID, passPhraseID')
-        .getAll([deviceID, passPhraseID]);
+        // .index('deviceId, passPhraseId')
+        .getAll();
 
     request.onsuccess = function(e) {
         callback(D.ERROR_NO_ERROR, e.target.result);
     };
-    request.onerror = function(e) { callback(D.ERROR_DATABASE_EXEC_FAILED); };
+    request.onerror = function(e) {
+        console.log('getAccounts', e);
+        callback(D.ERROR_DATABASE_EXEC_FAILED);
+    };
 };
 
-IndexedDB.prototype.clearAccounts = function(deviceID, passPhraseID, callback) {
+IndexedDB.prototype.clearAccounts = function(deviceId, passPhraseId, callback) {
     if (this._db === null) {
         callback(D.ERROR_DATABASE_OPEN_FAILED);
         return;
@@ -142,13 +141,16 @@ IndexedDB.prototype.clearAccounts = function(deviceID, passPhraseID, callback) {
 
     var request = this._db.transaction(['account'], 'readonly')
         .objectStore('account')
-        .index('deviceID, passPhraseID')
-        .delete(deviceID, passPhraseID);
+        .index('deviceId, passPhraseId')
+        .delete(deviceId, passPhraseId);
 
-    request.onsuccess = function(e) {
+    request.onsuccess = function() {
         callback(D.ERROR_NO_ERROR);
     };
-    request.onerror = function(e) { callback(D.ERROR_DATABASE_EXEC_FAILED); };
+    request.onerror = function(e) {
+        console.log('clearAccounts', e);
+        callback(D.ERROR_DATABASE_EXEC_FAILED);
+    };
 };
 
 IndexedDB.prototype.saveTransactionInfo = function(transactionInfo, callback) {
@@ -161,8 +163,10 @@ IndexedDB.prototype.saveTransactionInfo = function(transactionInfo, callback) {
         .objectStore('transactionInfo')
         .add(transactionInfo);
 
-    request.onsuccess = function(e) { callback(D.ERROR_NO_ERROR, transactionInfo); };
-    request.onerror = function(e) { callback(D.ERROR_DATABASE_EXEC_FAILED, transactionInfo); };
+    request.onsuccess = function() { callback(D.ERROR_NO_ERROR, transactionInfo); };
+    request.onerror = function(e) {
+        console.log('saveTransactionInfo', e);
+        callback(D.ERROR_DATABASE_EXEC_FAILED, transactionInfo); };
 };
 
 IndexedDB.prototype.getTransactionInfos = function(filter, callback) {
@@ -187,20 +191,23 @@ IndexedDB.prototype.getTransactionInfos = function(filter, callback) {
     }
 
     var array = [];
-    var count = 0;
+    var total = 0;
     var startIndex = filter.hasOwnProperty('startIndex')? filter.startIndex : 0;
     request.onsuccess = function(e) {
         var cursor = e.target.result;
         if(!cursor) {
-            callback(D.ERROR_NO_ERROR, count, array);
+            callback(D.ERROR_NO_ERROR, total, array);
             return;
         }
-        if (count++ >= startIndex) {
+        if (total++ >= startIndex) {
             array.push(cursor.value);
         }
         cursor.continue();
     };
-    request.onerror = function(e) { callback(D.ERROR_DATABASE_EXEC_FAILED); };
+    request.onerror = function(e) {
+        console.log('getTransactionInfos', e);
+        callback(D.ERROR_DATABASE_EXEC_FAILED);
+    };
 };
 
 IndexedDB.prototype.saveOrUpdateAddressInfo = function(addressInfo, callback) {
@@ -214,7 +221,10 @@ IndexedDB.prototype.saveOrUpdateAddressInfo = function(addressInfo, callback) {
         .add(addressInfo, addressInfo.address);
 
     request.onsuccess = function(e) { callback(D.ERROR_NO_ERROR, addressInfo); };
-    request.onerror = function(e) { callback(D.ERROR_DATABASE_EXEC_FAILED, addressInfo); };
+    request.onerror = function(e) {
+        console.log('saveOrUpdateAddressInfo', e);
+        callback(D.ERROR_DATABASE_EXEC_FAILED, addressInfo);
+    };
 };
 
 IndexedDB.prototype.getAddressInfos = function(filter, callback) {
@@ -246,5 +256,8 @@ IndexedDB.prototype.getAddressInfos = function(filter, callback) {
         array.push(cursor.value);
         cursor.continue();
     };
-    request.onerror = function(e) { callback(D.ERROR_DATABASE_EXEC_FAILED); };
+    request.onerror = function(e) {
+        console.warn('getAddressInfos', e);
+        callback(D.ERROR_DATABASE_EXEC_FAILED);
+    };
 };

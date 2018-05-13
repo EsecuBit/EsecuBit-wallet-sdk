@@ -1,11 +1,11 @@
 
-var D = require('../def');
-var MockDevice = require('./mock_device');
-var EsHidDevice = require('./es_hid_device');
+var D = require('../def').class;
+var MockDevice = require('./mock_device').class;
+var EsHidDevice = require('./es_hid_device').class;
 
 var CoreWallet = function() {
-        this._deviceTrue = new EsHidDevice();
-        this._device = new MockDevice();
+    this._deviceTrue = new EsHidDevice();
+    this._device = new MockDevice();
 };
 module.exports = {instance: new CoreWallet()};
 
