@@ -12,7 +12,33 @@ var CoinData = function() {
     this._network[D.COIN_BIT_COIN] = new this._networkProvider();
     this._network[D.COIN_BIT_COIN_TEST] = new this._networkProvider();
 
-    this._listeners = [];
+    var that = this;
+    this._registeredListeners = [];
+    this._transactionListener = function (error, transactionInfo) {
+        if (error !== D.ERROR_NO_ERROR) {
+            return;
+        }
+        that._db.saveOrUpdateTransactionInfo(transactionInfo, function (error) {
+            if (error !== D.ERROR_NO_ERROR) {
+                notify();
+            }
+        });
+    };
+    this._addressListener = function (error, response) {
+        if (error !== D.ERROR_NO_ERROR) {
+            return;
+        }
+        notify();
+    };
+
+    function notify() {
+        for (var i in that._registeredListeners) {
+            if (!that._registeredListeners.hasOwnProperty(i)) {
+                continue;
+            }
+            that._registeredListeners[i](response);
+        }
+    }
 };
 module.exports = {instance: new CoinData()};
 
@@ -30,7 +56,13 @@ CoinData.prototype.init = function(callback) {
             callback(error);
             return;
         }
-        initNetwork();
+        that._db.getAddressInfos({type: 'external'}, function (error, response) {
+            if (error !== D.ERROR_NO_ERROR) {
+                callback(error);
+                return;
+            }
+            initNetwork();
+        });
     });
 
     function initNetwork () {
@@ -102,7 +134,7 @@ CoinData.prototype.getAccounts = function(deviceId, passPhraseId, callback) {
                 if (D.TEST_MODE) {
                     console.log('TEST_MODE add test transactionInfo');
 
-                    that.initTransaction(firstAccount.accountId);
+                    that.initTestDbData(firstAccount.accountId);
                 }
                 callback(error, [new Account(account)]);
             });
@@ -192,7 +224,6 @@ CoinData.prototype.getFloatFee = function(coinType, fee) {
     return this._network[coinType].getFloatFee(fee);
 };
 
-// won't use
 CoinData.prototype._listenTransaction = function (coinType, txId, callback) {
     this._network[coinType].listenTransaction(txId, callback);
 };
@@ -215,62 +246,76 @@ CoinData.prototype._listenAddress = function (coinType, address, callback) {
     });
 };
 
-CoinData.prototype.addTransactionListener = function (callback) {
+CoinData.prototype.addListener = function (callback) {
     for (var i in this._listeners) {
-        if (!this._listeners.hasOwnProperty(i)) {
+        if (!this._registeredListeners.hasOwnProperty(i)) {
             continue;
         }
-        if (this._listeners[i] === callback) {
+        if (this._registeredListeners[i] === callback) {
             console.log('addTransactionListener already has this listener', callback);
             return;
         }
     }
-    this._listeners.push(callback);
+    this._registeredListeners.push(callback);
+};
+
+CoinData.prototype.clearListener = function (callback) {
+    this._registeredListeners = [];
 };
 
 /*
  * Test data in TEST_MODE
  */
-CoinData.prototype.initTransaction = function (accountId) {
-    console.log('initTransaction');
-    this._db.saveTransactionInfo(
+CoinData.prototype.initTestDbData = function (accountId) {
+    console.log('initTestDbData');
+    this._db.saveOrUpdateTransactionInfo(
         {
             accountId: accountId,
             coinType: D.COIN_BIT_COIN,
             txId: '574e073f66897c203a172e7bf65df39e99b11eec4a2b722312d6175a1f8d00c3',
             address: '1Lhyvw28ERxYJRjAYgntWazfmZmyfFkgqw',
-            direction: 'in',
-            createTime: 1524138384000,
-            confirmedTime: 1524138384000,
+            direction: D.TRANSACTION_DIRECTION_IN,
+            time: 1524138384000,
             outIndex: 0,
             script: '76a91499bc78ba577a95a11f1a344d4d2ae55f2f857b9888ac',
             value: 84000000
         },
         function() {});
 
-    this._db.saveTransactionInfo(
+    this._db.saveOrUpdateTransactionInfo(
         {
             accountId: accountId,
             coinType: D.COIN_BIT_COIN,
             txId: '574e073f66897c203a172e7bf65df39e99b11eec4a2b722312d6175a1f8d00c4',
             address: '3PfcrxHzT6WuNo7tcqmAdLKn6EvgXCCSiQ',
-            direction: 'out',
-            createTime: 1524138384000,
-            confirmedTime: 1524138384000,
+            direction: D.TRANSACTION_DIRECTION_OUT,
+            time: 1524138384000,
             value: 18000000
         },
         function() {});
 
-    this._db.saveTransactionInfo(
+    this._db.saveOrUpdateTransactionInfo(
         {
             accountId: accountId,
             coinType: D.COIN_BIT_COIN,
             txId: '574e073f66897c203a172e7bf65df39e99b11eec4a2b722312d6175a1f8d00c5',
             address: '14F7iCA4FsPEYj67Jpme2puVmwAT6VoVEU',
-            direction: 'out',
-            createTime: 1524138384000,
-            confirmedTime: 1524138384000,
+            direction: D.TRANSACTION_DIRECTION_OUT,
+            time: 1524138384000,
             value: 34000000
+        },
+        function() {});
+
+    this._db.saveOrUpdateAddressInfo(
+        {
+            address: '',
+            accountId: accountId,
+            coinType: D.COIN_BIT_COIN,
+            path: [0x80000000, 0x8000002C, 0x80000000, 0x00000000, 0x00000000],
+            type: D.ADDRESS_EXTERNAL,
+            txCount: 0,
+            balance: 0,
+            txIds: []
         },
         function() {});
 };

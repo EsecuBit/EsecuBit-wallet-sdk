@@ -1,5 +1,5 @@
 
-// LIMITS: 5 requests/second, get 429 http error returned when exceed
+// LIMITS: Accounced 5 requests/second, actually < 0.5 requets/second when keep running. Get 429 http error returned when exceed
 
 /**
  *

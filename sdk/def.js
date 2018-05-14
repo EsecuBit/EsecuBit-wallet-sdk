@@ -25,6 +25,14 @@ var D = {
     COIN_BIT_COIN: 'bitcoin',
     COIN_BIT_COIN_TEST: 'bitcoin_test',
 
+    // BIP44
+    ADDRESS_EXTERNAL: 0,
+    ADDRESS_CHANGE: 1,
+
+    TRANSACTION_DIRECTION_IN: 'in',
+    TRANSACTION_DIRECTION_OUT: 'out',
+    TRANSACTION_BTC_MATURE_CONFIRMATIONS: 6,
+
     FEE_FAST: 'fast',
     FEE_NORMAL: 'normal',
     FEE_ECNOMIC: 'economy'

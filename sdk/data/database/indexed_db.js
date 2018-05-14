@@ -48,17 +48,18 @@ IndexedDB.prototype.init = function (callback) {
              *     accountId: string,
              *     coinType: string,
              *     txId: string,
-             *     createTime: long,
-             *     confirmedTime: long,
-             *     direction: 'in' / 'out',
+             *     confirmations: int, (0 ~ D.TRANSACTION_BTC_MATURE_CONFIRMATIONS)
+             *     time: long,
+             *     direction: D.TRANSACTION_DIRECTION_IN / D.TRANSACTION_DIRECTION_OUT,
              *     value: long (santoshi)
              * }
              */
+            // TODO createIndex when upgrade?
             if(!db.objectStoreNames.contains('transactionInfo')) {
                 var transactionInfo = db.createObjectStore('transactionInfo', {autoIncrement: true});
                 transactionInfo.createIndex('accountId', 'accountId', {unique: false});
                 transactionInfo.createIndex('txId', 'txId', {unique: false});
-                transactionInfo.createIndex('createTime', 'createTime', {unique: false});
+                transactionInfo.createIndex('time', 'time', {unique: false});
             }
 
             /**
@@ -67,16 +68,18 @@ IndexedDB.prototype.init = function (callback) {
              *      address: string,
              *      accountId: string,
              *      coinType: string,
-             *      path: string,
-             *      type: 'receive' / 'change'
+             *      path: int array,
+             *      type: D.ADDRESS_EXTERNAL / D.ADDRESS_CHANGE,
              *      txCount: int,
-             *      balance: long (santoshi)
+             *      balance: long (santoshi),
+             *      txIds: string array
              * }
              */
             if(!db.objectStoreNames.contains('addressInfo')) {
                 var addressInfo = db.createObjectStore('addressInfo');
                 addressInfo.createIndex('accountId', 'accountId', {unique: false});
                 addressInfo.createIndex('coinType', 'coinType', {unique: false});
+                addressInfo.createIndex('type', 'type', {unique: false});
                 addressInfo.createIndex('accountId, type', ['accountId', 'type'], {unique: false});
             }
         };
@@ -153,7 +156,7 @@ IndexedDB.prototype.clearAccounts = function(deviceId, passPhraseId, callback) {
     };
 };
 
-IndexedDB.prototype.saveTransactionInfo = function(transactionInfo, callback) {
+IndexedDB.prototype.saveOrUpdateTransactionInfo = function(transactionInfo, callback) {
     if (this._db === null) {
         callback(D.ERROR_DATABASE_OPEN_FAILED);
         return;
@@ -165,7 +168,7 @@ IndexedDB.prototype.saveTransactionInfo = function(transactionInfo, callback) {
 
     request.onsuccess = function() { callback(D.ERROR_NO_ERROR, transactionInfo); };
     request.onerror = function(e) {
-        console.log('saveTransactionInfo', e);
+        console.log('saveOrUpdateTransactionInfo', e);
         callback(D.ERROR_DATABASE_EXEC_FAILED, transactionInfo); };
 };
 

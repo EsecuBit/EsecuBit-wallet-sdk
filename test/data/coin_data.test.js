@@ -183,4 +183,11 @@ describe('Coin Data', function () {
         coinData.getFloatFee(D.COIN_BIT_COIN_TEST, 283750234).should.equal(2.83750234);
         coinData.getFloatFee('other coin', 1000).should.equal(-1);
     });
+
+    it('addTransactionListener', function(done) {
+        coinData.addTransactionListener(function (error, response) {
+            console.log('on new transaction', error, response);
+            done();
+        })
+    });
 });
