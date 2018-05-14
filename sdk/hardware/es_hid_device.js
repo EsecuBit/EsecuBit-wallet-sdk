@@ -232,7 +232,7 @@ EsHidDevice.prototype.sendAndReceive = function (apdu, callback) {
 
     send(apdu, callback);
 };
-EsHidDevice.prototype =
+EsHidDevice.prototype = new Device();
 
 EsHidDevice.prototype.listenPlug = function(callback) {
     this._listener = callback;

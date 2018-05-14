@@ -7,7 +7,7 @@ var EsWallet = function () {
 };
 module.exports = {class: EsWallet};
 
-EsWallet.prototype.initWallet = function (callback) {
+EsWallet.prototype._init = function (callback) {
     var status = 0;
     this._device.init(function (error) {
         if (error !== D.ERROR_NO_ERROR) {
@@ -25,8 +25,25 @@ EsWallet.prototype.initWallet = function (callback) {
     });
 };
 
+EsWallet.prototype._release = function () {
+    this._coinData.release();
+};
+
 EsWallet.prototype.listenDevice = function (callback) {
-    this._device.listenPlug(callback);
+    var that = this;
+    this._device.listenPlug(function (error, isPluged) {
+        if (error !== D.ERROR_NO_ERROR) {
+            callback(error, isPluged);
+            return;
+        }
+        if (isPluged) {
+            that._init(function (error) {
+                callback(error, isPluged);
+            });
+        } else {
+            that._release();
+        }
+    });
 };
 
 EsWallet.prototype.listenTransactionInfo = function (callback) {
@@ -45,13 +62,11 @@ EsWallet.prototype.getWalletInfo = function (callback) {
     this._device.getWalletInfo(callback);
 };
 
-EsWallet.prototype.getFee = function(feeType, callback) {
+EsWallet.prototype.getSuggestedFee = function(transaction, coinType, feeType, callback) {
+    // TODO move to account
     // var transactionSize = 180 * ins + 34 * outs + 10
-    this._coinData.getSuggestedFee(feeType, function(error, fee) {
-        callback();
-    });
 };
 
-EsWallet.prototype.getFloatCount = function(floatCount) {
-    return floatCount / 100000000;
+EsWallet.prototype.getFloatFee = function(coinType, fee) {
+    return this._coinData.getFloatFee(coinType, fee);
 };

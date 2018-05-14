@@ -51,6 +51,8 @@ IndexedDB.prototype.init = function (callback) {
              *     confirmations: int, (0 ~ D.TRANSACTION_BTC_MATURE_CONFIRMATIONS)
              *     time: long,
              *     direction: D.TRANSACTION_DIRECTION_IN / D.TRANSACTION_DIRECTION_OUT,
+             *     inputs: string array [{address, value}]
+             *     outputs: string array [{address, value}]
              *     value: long (santoshi)
              * }
              */
@@ -81,6 +83,7 @@ IndexedDB.prototype.init = function (callback) {
                 addressInfo.createIndex('coinType', 'coinType', {unique: false});
                 addressInfo.createIndex('type', 'type', {unique: false});
                 addressInfo.createIndex('accountId, type', ['accountId', 'type'], {unique: false});
+                addressInfo.createIndex('coinType, type', ['coinType', 'type'], {unique: false});
             }
         };
 

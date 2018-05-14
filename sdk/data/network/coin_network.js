@@ -13,6 +13,7 @@ if (D.TEST_MODE) {
 }
 
 var CoinNetwork = function() {
+    this.startQueue = false;
     this.coinType = 'undefined';
     this._requestRate = 2; // seconds per request
     this._requestList = [];
@@ -31,10 +32,10 @@ var CoinNetwork = function() {
                 break;
             }
         }
-        setTimeout(that._queue, that._requestRate * 1000);
+        if (that.startQueue) {
+            setTimeout(that._queue, that._requestRate * 1000);
+        }
     };
-    // not using setInterval because _requestRate is changable
-    setTimeout(this._queue, this._requestRate * 1000);
 };
 module.exports = {class: CoinNetwork};
 
@@ -177,6 +178,10 @@ CoinNetwork.prototype.listenAddress = function (addressInfo, callback) {
     });
 };
 
+CoinNetwork.prototype.clearListener = function () {
+    this._requestList = [];
+};
+
 // TODO recovery transaction
 
 function isInArray(arr,value){
@@ -188,8 +193,17 @@ function isInArray(arr,value){
     return false;
 }
 
-CoinNetwork.prototype.initNetwork = function (coinType, callback) {
-    callback(D.ERROR_NOT_IMPLEMENTED);
+CoinNetwork.prototype.init = function (coinType, callback) {
+    this.startQueue = true;
+    // start the request loop
+    setTimeout(this._queue, this._requestRate * 1000);
+    setTimeout(function () {
+        callback(D.ERROR_NO_ERROR);
+    }, 0);
+};
+
+CoinNetwork.prototype.release = function () {
+    this.startQueue = false;
 };
 
 CoinNetwork.prototype.queryAddress = function (address, callback) {

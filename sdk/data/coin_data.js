@@ -7,6 +7,7 @@ var Account = require('../account').class;
 var CoinData = function() {
     this._initialized = false;
     this._db = new IndexedDB();
+    // TODO read provider from settings
     this._networkProvider = ChainSo;
     this._network = {};
     this._network[D.COIN_BIT_COIN] = new this._networkProvider();
@@ -56,55 +57,68 @@ CoinData.prototype.init = function(callback) {
             callback(error);
             return;
         }
-        that._db.getAddressInfos({type: 'external'}, function (error, response) {
-            if (error !== D.ERROR_NO_ERROR) {
-                callback(error);
-                return;
-            }
-            initNetwork();
-        });
+        initNetwork();
     });
 
     function initNetwork () {
         var initTotal = Object.keys(that._network).length;
         var initCount = 0;
         var failed = false;
-        for (var coinType in that._network) {
-            function initFinish(error) {
-                if (error !== D.ERROR_NO_ERROR && !failed) {
-                    failed = true;
-                    callback(error);
-                }
-                initCount++;
-                if (!failed && initCount === initTotal) {
-                    that._initialized = true;
-                    callback(D.ERROR_NO_ERROR);
-                }
-            }
 
+        function initFinish(error) {
+            if (error !== D.ERROR_NO_ERROR && !failed) {
+                failed = true;
+                callback(error);
+            }
+            initCount++;
+            if (!failed && initCount === initTotal) {
+                that._initialized = true;
+                sync();
+            }
+        }
+
+        for (var coinType in that._network) {
             if (!that._network.hasOwnProperty(coinType)) {
                 continue;
             }
             (function(coinType) {
-                // TODO slow down the request speed
-                that._network[coinType].initNetwork(coinType, function(error, response) {
-                    console.log('init network', coinType, 'error:', error, ', response:', response);
+                that._network[coinType].init(coinType, function(error, response) {
+                    console.log('init network', coinType, ', error:', error, ', response:', response);
                     initFinish(error);
-
-                    that._db.getAddressInfos(coinType, function (error, response) {
-                        if (error !== D.ERROR_NO_ERROR) {
-                            console.warn('getAddressInfos failed, error', error);
-                        }
-                        for (var i in response) {
-                            if (!response.hasOwnProperty(i)) {
-                                continue;
-                            }
-                            that._listenAddress(coinType, response[i].address);
-                        }
-                    });
                 });
             })(coinType);
         }
+    }
+
+    function sync() {
+        // TODO read device to sync old transaction before listen new transaction
+        for (var coinType in that._network) {
+            (function(coinType) {
+                that._db.getAddressInfos({coinType: coinType, type: D.ADDRESS_EXTERNAL}, function (error, response) {
+                    if (error !== D.ERROR_NO_ERROR) {
+                        console.warn('getAddressInfos failed, error', error);
+                        return;
+                    }
+                    for (var i in response) {
+                        if (!response.hasOwnProperty(i)) {
+                            continue;
+                        }
+                        that._listenAddress(response[i], that._addressListener);
+                    }
+                });
+            })(coinType);
+        }
+        callback(D.ERROR_NO_ERROR);
+    }
+};
+
+CoinData.prototype.release = function() {
+    this._listeners = [];
+    for (var i in this._network) {
+        if (!this._network.hasOwnProperty(i)) {
+            continue;
+        }
+        this._network[i].release();
     }
 };
 
@@ -224,26 +238,13 @@ CoinData.prototype.getFloatFee = function(coinType, fee) {
     return this._network[coinType].getFloatFee(fee);
 };
 
-CoinData.prototype._listenTransaction = function (coinType, txId, callback) {
-    this._network[coinType].listenTransaction(txId, callback);
+// TODO listen transaction after boardcast a transaction successfully
+CoinData.prototype._listenTransaction = function (transactionInfo, callback) {
+    this._network[transactionInfo.coinType].listenTransaction(transactionInfo, callback);
 };
 
-CoinData.prototype._listenAddress = function (coinType, address, callback) {
-    this._db.getTransactionInfos({address: address}, function (error, response) {
-        if (error !== D.ERROR_NO_ERROR) {
-            callback(error);
-            return;
-        }
-
-        var listenedTxIds = [];
-        for (var i in response) {
-            if (!response.hasOwnProperty(i)) {
-                continue;
-            }
-            listenedTxIds.push(response.txId);
-        }
-        this._network[coinType].listenAddress(address, listenedTxIds, callback);
-    });
+CoinData.prototype._listenAddress = function (addressInfo, callback) {
+    this._network[addressInfo.coinType].listenAddress(addressInfo, callback);
 };
 
 CoinData.prototype.addListener = function (callback) {
@@ -257,10 +258,6 @@ CoinData.prototype.addListener = function (callback) {
         }
     }
     this._registeredListeners.push(callback);
-};
-
-CoinData.prototype.clearListener = function (callback) {
-    this._registeredListeners = [];
 };
 
 /*

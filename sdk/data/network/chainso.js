@@ -72,7 +72,7 @@ ChainSo.prototype.get = function(url, errorCallback, callback) {
     });
 };
 
-ChainSo.prototype.initNetwork = function (coinType, callback) {
+ChainSo.prototype.init = function (coinType, callback) {
     this.coinType = coinType;
     switch (coinType) {
         case D.COIN_BIT_COIN:
@@ -87,7 +87,7 @@ ChainSo.prototype.initNetwork = function (coinType, callback) {
     }
 
     var that = this;
-    // TODO request limit, recover
+    // TODO slow down the request speed
     // this.get([this._apiUrl, "get_info", this._coinTypeStr].join('/'), callback, function (response) {
     //     callback(D.ERROR_NO_ERROR, response);
     // });
