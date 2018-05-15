@@ -1,6 +1,6 @@
 
 var D = require('../../../sdk/def').class;
-var ChainSo = require('../../../sdk/data/network/chainso').class;
+var ChainSo = require('../../../sdk/data/network/chain_so').class;
 var should = require('chai').should();
 
 var chainSo = new ChainSo();

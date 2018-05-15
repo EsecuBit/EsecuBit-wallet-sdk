@@ -1,7 +1,7 @@
 
 var D = require('../def').class;
 var IndexedDB = require('./database/indexed_db').class;
-var ChainSo = require('./network/chainso').class;
+var ChainSo = require('./network/chain_so').class;
 var Account = require('../account').class;
 
 var CoinData = function() {
