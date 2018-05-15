@@ -48,12 +48,13 @@ IndexedDB.prototype.init = function (callback) {
              *     accountId: string,
              *     coinType: string,
              *     txId: string,
-             *     confirmations: int, (0 ~ D.TRANSACTION_BTC_MATURE_CONFIRMATIONS)
+             *     blockNumber: 0,
+             *     confirmations: int, // just for showing the status. won't active update after confirmations >= D.TRANSACTION_##COIN_TYPE##_MATURE_CONFIRMATIONS
              *     time: long,
              *     direction: D.TRANSACTION_DIRECTION_IN / D.TRANSACTION_DIRECTION_OUT,
-             *     inputs: string array [{address, value}]
-             *     outputs: string array [{address, value}]
-             *     value: long (santoshi)
+             *     inputs: string array [{address, isMine, value}]
+             *     outputs: string array [{address, isMine, value}]
+             *     value: long (bitcoin -> santoshi) // value that shows the account balance changes, calculated by inputs and outputs
              * }
              */
             // TODO createIndex when upgrade?
@@ -74,7 +75,7 @@ IndexedDB.prototype.init = function (callback) {
              *      type: D.ADDRESS_EXTERNAL / D.ADDRESS_CHANGE,
              *      txCount: int,
              *      balance: long (santoshi),
-             *      txIds: string array
+             *      utxo: [{txId, index, script}]
              * }
              */
             if(!db.objectStoreNames.contains('addressInfo')) {

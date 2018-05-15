@@ -56,6 +56,6 @@ function get(url, errorCallback, callback) {
         }
     };
     xmlhttp.open('GET', url, true);
-    xmlhttp.setRequestHeader('Content-type', 'application/json');
+    xmlhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
     xmlhttp.send();
 }

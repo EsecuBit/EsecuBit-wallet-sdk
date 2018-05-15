@@ -15,6 +15,7 @@ if (D.TEST_MODE) {
 var CoinNetwork = function() {
     this.startQueue = false;
     this.coinType = 'undefined';
+    this._blockHeight = -1;
     this._requestRate = 2; // seconds per request
     this._requestList = [];
 
@@ -42,16 +43,6 @@ module.exports = {class: CoinNetwork};
 CoinNetwork.prototype.provider = 'undefined';
 CoinNetwork.prototype.website = 'undefined';
 
-CoinNetwork.prototype.getFloatFee = function (fee) {
-    switch (this.coinType) {
-        case D.COIN_BIT_COIN:
-        case D.COIN_BIT_COIN_TEST:
-            return Number(fee / 100000000);
-        default:
-            return -1;
-    }
-};
-
 CoinNetwork.prototype.get = function (url, errorCallback, callback) {
     var xmlhttp = new XMLHttpRequest();
     xmlhttp.onreadystatechange = function() {
@@ -75,7 +66,6 @@ CoinNetwork.prototype.get = function (url, errorCallback, callback) {
         }
     };
     xmlhttp.open('GET', url, true);
-    // TODO json?
     xmlhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
     xmlhttp.send();
 };
@@ -103,7 +93,6 @@ CoinNetwork.prototype.post = function (url, args, errorCallback, callback) {
         }
     };
     xmlhttp.open('POST', url, true);
-    // TODO json?
     xmlhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
     xmlhttp.send(args);
 };
@@ -206,10 +195,39 @@ CoinNetwork.prototype.release = function () {
     this.startQueue = false;
 };
 
+/**
+ * callback(error, response)
+ * response:
+ * {
+ *      address: string,
+ *      balance: 0,
+ *      txCount: int,
+ *      txs: tx array
+ * }
+ *
+ * tx: see queryTransaction
+ *
+ */
 CoinNetwork.prototype.queryAddress = function (address, callback) {
     callback(D.ERROR_NOT_IMPLEMENTED);
 };
 
+/**
+ *
+ * tx:
+ * {
+ *      txId: string,
+ *      version: int,
+ *      blockNumber: int,
+ *      confirmations: int,
+ *      lockTime: long
+ *      time: long,
+ *      hasDetails: bool,   // for queryAddress only, whether the tx has inputs and outputs. e.g. blockchain.info -> true, chain.so -> false
+ *      intputs: [{address, value(bitcoin -> santoshi)}],
+ *      outputs: [{address, value(bitcoin -> santoshi)}, index, script]
+ * }
+ *
+ */
 CoinNetwork.prototype.queryTransaction = function (txId, callback) {
     callback(D.ERROR_NOT_IMPLEMENTED);
 };

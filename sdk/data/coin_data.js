@@ -25,7 +25,7 @@ var CoinData = function() {
             }
         });
     };
-    this._addressListener = function (error, response) {
+    this._addressListener = function (error, addressInfo, transactionInfo) {
         if (error !== D.ERROR_NO_ERROR) {
             return;
         }
@@ -92,6 +92,7 @@ CoinData.prototype.init = function(callback) {
 
     function sync() {
         // TODO read device to sync old transaction before listen new transaction
+        // TODO continue update transaction confirmations if confirmations < D.TRANSACTION_##COIN_TYPE##_MATURE_CONFIRMATIONS
         for (var coinType in that._network) {
             (function(coinType) {
                 that._db.getAddressInfos({coinType: coinType, type: D.ADDRESS_EXTERNAL}, function (error, response) {
@@ -232,10 +233,7 @@ CoinData.prototype.getTransactionInfos = function(filter, callback) {
 };
 
 CoinData.prototype.getFloatFee = function(coinType, fee) {
-    if (!this._network[coinType]) {
-        return -1;
-    }
-    return this._network[coinType].getFloatFee(fee);
+    return D.getFloatFee(coinType, fee);
 };
 
 // TODO listen transaction after boardcast a transaction successfully

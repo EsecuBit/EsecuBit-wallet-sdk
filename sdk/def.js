@@ -35,6 +35,16 @@ var D = {
 
     FEE_FAST: 'fast',
     FEE_NORMAL: 'normal',
-    FEE_ECNOMIC: 'economy'
+    FEE_ECNOMIC: 'economy',
+
+    getFloatFee: function (coinType, fee) {
+        switch (coinType) {
+            case D.COIN_BIT_COIN:
+            case D.COIN_BIT_COIN_TEST:
+                return Number(fee / 100000000);
+            default:
+                return -1;
+        }
+    }
 };
 module.exports = {class: D};

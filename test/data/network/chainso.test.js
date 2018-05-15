@@ -9,10 +9,9 @@ var chainSo = new ChainSo();
 describe('Network ChainSo Bitcoin', function() {
     this.timeout(5000);
     it('init network', function (done) {
-        chainSo.initNetwork(D.COIN_BIT_COIN, function (error, response) {
+        chainSo.initk(D.COIN_BIT_COIN, function (error, response) {
             try {
                 error.should.equal(D.ERROR_NO_ERROR);
-                response.network.should.equal('BTC');
                 done();
             } catch (e) {
                 done(e);

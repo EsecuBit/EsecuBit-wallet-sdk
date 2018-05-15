@@ -48,71 +48,42 @@ var CoinNetwork = require('./coin_network').class;
 var D = require('../../def').class;
 
 // TODO test
-var ChainSo = function() {
+var BlockchainInfo = function() {
     this.coinType = 'undefined';
-    this._coinTypeStr = 'undefined';
-    this.coinInfo = null;
+    this._blockHeight = -1;
 };
-module.exports = {class: ChainSo};
+module.exports = {class: BlockchainInfo};
 
-ChainSo.prototype = new CoinNetwork();
-var superClass = ChainSo.prototype;
-ChainSo.prototype.type = 'chainso';
-ChainSo.prototype.website = 'chain.so';
-ChainSo.prototype._apiUrl = 'https://chain.so/api/v2';
+BlockchainInfo.prototype = new CoinNetwork();
+BlockchainInfo.prototype.website = 'blockchain.info';
+BlockchainInfo.prototype._apiUrl = 'https://blockchain.info';
 
-var superGet = superClass.get;
-ChainSo.prototype.get = function(url, errorCallback, callback) {
-    superGet(url, errorCallback, function(response) {
-        if (response.status !== 'success') {
-            console.warn('chainso request failed', url, response);
-            errorCallback(D.ERROR_NETWORK_PROVIDER_ERROR);
-            return;
-        }
-        callback(response.data);
-    });
-};
-
-ChainSo.prototype.init = function (coinType, callback) {
+BlockchainInfo.prototype.init = function (coinType, callback) {
     this.coinType = coinType;
-    switch (coinType) {
-        case D.COIN_BIT_COIN:
-            this._coinTypeStr = 'BTC';
-            break;
-        case D.COIN_BIT_COIN_TEST:
-            this._coinTypeStr = 'BTCTEST';
-            break;
-        default:
-            callback(D.ERROR_NETWORK_COINTYPE_NOT_SUPPORTED);
-            return;
-    }
 
-    var that = this;
-    // TODO slow down the request speed
-    // this.get([this._apiUrl, 'get_info', this._coinTypeStr].join('/'), callback, function (response) {
-    //     callback(D.ERROR_NO_ERROR, response);
-    // });
-    setTimeout(function () {
-        callback(D.ERROR_NO_ERROR, {});
-    }, 0);
-};
-
-ChainSo.prototype.queryAddress = function (address, callback) {
-    this.get([this._apiUrl, 'address', this._coinTypeStr, address].join('/'), callback, function (response) {
-        callback(D.ERROR_NO_ERROR, response);
+    this.get([this._apiUrl, 'q', 'getblockcount?cors=true'].join('/'), callback, function (response) {
+        this._blockHeight = parseInt(response);
+        callback(D.ERROR_NO_ERROR, {blockHeight: this._blockHeight});
     });
 };
 
-ChainSo.prototype.queryTransaction = function (txId, callback) {
+BlockchainInfo.prototype.queryAddress = function (address, callback) {
+    // TODO test
+    this.get(this._apiUrl + '/multiaddr?cors=true&active=' + address, callback, function (response) {
+        callback(D.ERROR_NO_ERROR, response[0]);
+    });
+};
+
+BlockchainInfo.prototype.queryTransaction = function (txId, callback) {
     var that = this;
     this.get([this._apiUrl, 'get_tx', this._coinTypeStr, txId].join('/'), callback, function (response) {
         var transactionInfo =  {
-            txId: response.txid,
-            version: response.version,
-            blockNumber: response.block_no,
-            confirmations: response.confirmations,
-            locktime: response.locktime,
-            time: response.time,
+            txId: response.data.txid,
+            version: response.data.version,
+            blockNumber: response.data.block_no,
+            confirmations: response.data.confirmations,
+            locktime: response.data.locktime,
+            time: response.data.time,
             hasDetails: true
         };
         transactionInfo.inputs = [];
@@ -143,7 +114,7 @@ ChainSo.prototype.queryTransaction = function (txId, callback) {
     });
 };
 
-ChainSo.prototype.sendTransaction = function (rawTransaction, callback) {
+BlockchainInfo.prototype.sendTransaction = function (rawTransaction, callback) {
     this.post([this._apiUrl, 'send_tx', this._coinTypeStr].join('/'),
         {tx_hex: rawTransaction},
         callback, function (response) {
