@@ -34,7 +34,7 @@ describe('Network Blockchain Bitcoin', function() {
     //     });
     // });
     it('test', function (done) {
-        blockchainInfo.get('https://blockchain.info/multiaddr?active=1AjAF7bZvimjdTuPnWLNN3F4WCbzLbuyG7&cors=true',
+        blockchainInfo.get('https://blockchain.info/multiaddr?active=1AjAF7bZvimjdTuPnWLNN3F4WCbzLbuyG7|1j1UHnGwDdJhNf2h3mcFmzGDe2DzoEMuc&cors=true',
             function (error) {
             error.should.equal(D.ERROR_NO_ERROR);
             done('no');
@@ -42,5 +42,15 @@ describe('Network Blockchain Bitcoin', function() {
             console.log(response);
             done();
         });
+    });
+    it('test2', function (done) {
+        blockchainInfo.get('https://blockchain.info/rawtx/b6f6991d03df0e2e04dafffcd6bc418aac66049e2cd74b80f14ac86db1e3f0da?cors=true',
+            function (error) {
+                error.should.equal(D.ERROR_NO_ERROR);
+                done('no');
+            }, function (response) {
+                console.log(response);
+                done();
+            });
     });
 });
