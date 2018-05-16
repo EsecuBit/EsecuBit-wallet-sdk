@@ -14,6 +14,15 @@ module.exports = {
 					presets: ['env']
 				}
 			},
+            {
+                test: /\.js$/,
+                loader: 'eslint-loader',
+                enforce: "pre",
+                include: [path.resolve(__dirname, 'src')],
+                options: {
+                    formatter: require('eslint-friendly-formatter')
+                }
+            },
 			{
 				test: /\.css$/,
 
