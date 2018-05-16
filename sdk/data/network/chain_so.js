@@ -74,7 +74,6 @@ ChainSo.prototype.get = function(url, errorCallback, callback) {
 };
 
 ChainSo.prototype.init = function (coinType, callback) {
-    this.coinType = coinType;
     switch (coinType) {
         case D.COIN_BIT_COIN:
             this._coinTypeStr = 'BTC';
@@ -86,6 +85,7 @@ ChainSo.prototype.init = function (coinType, callback) {
             callback(D.ERROR_NETWORK_COINTYPE_NOT_SUPPORTED);
             return;
     }
+    this.coinType = coinType;
 
     var that = this;
     // TODO slow down the request speed

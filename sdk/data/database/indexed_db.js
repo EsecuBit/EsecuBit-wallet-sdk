@@ -75,7 +75,7 @@ IndexedDB.prototype.init = function (callback) {
              *      type: D.ADDRESS_EXTERNAL / D.ADDRESS_CHANGE,
              *      txCount: int,
              *      balance: long (santoshi),
-             *      utxo: [{txId, index, script}]
+             *      txs: [{txId, direction, hasSpent, index, script}]
              * }
              */
             if(!db.objectStoreNames.contains('addressInfo')) {

@@ -100,12 +100,7 @@ CoinData.prototype.init = function(callback) {
                         console.warn('getAddressInfos failed, error', error);
                         return;
                     }
-                    for (var i in response) {
-                        if (!response.hasOwnProperty(i)) {
-                            continue;
-                        }
-                        that._listenAddress(response[i], that._addressListener);
-                    }
+                    that._listenAddress(coinType, response, that._addressListener);
                 });
             })(coinType);
         }
@@ -186,6 +181,7 @@ CoinData.prototype.newAccount = function(deviceId, passPhraseId, coinType, callb
         }
 
         if (lastAccountInfo === null) {
+            // TODO get account public key from device, and generate first 20 address
             var newAccount =
                     {
                         accountId: makeId(),
@@ -241,8 +237,8 @@ CoinData.prototype._listenTransaction = function (transactionInfo, callback) {
     this._network[transactionInfo.coinType].listenTransaction(transactionInfo, callback);
 };
 
-CoinData.prototype._listenAddress = function (addressInfo, callback) {
-    this._network[addressInfo.coinType].listenAddress(addressInfo, callback);
+CoinData.prototype._listenAddresses = function (coinType, addressInfos, callback) {
+    this._network[coinType].listenAddress(addressInfos, callback);
 };
 
 CoinData.prototype.addListener = function (callback) {

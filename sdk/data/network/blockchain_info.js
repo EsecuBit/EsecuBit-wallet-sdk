@@ -3,6 +3,9 @@
 var CoinNetwork = require('./coin_network').class;
 var D = require('../../def').class;
 
+var TEST_URL = 'https://testnet.blockchain.info';
+var MAIN_URL = 'https://blockchain.info';
+
 var BlockchainInfo = function() {
     this.coinType = 'undefined';
     this._blockHeight = -1;
@@ -11,9 +14,20 @@ module.exports = {class: BlockchainInfo};
 
 BlockchainInfo.prototype = new CoinNetwork();
 BlockchainInfo.prototype.website = 'blockchain.info';
-BlockchainInfo.prototype._apiUrl = 'https://blockchain.info';
+BlockchainInfo.prototype._apiUrl = 'undefined';
 
 BlockchainInfo.prototype.init = function (coinType, callback) {
+    switch (coinType) {
+        case D.COIN_BIT_COIN:
+            this._apiUrl = MAIN_URL;
+            break;
+        case D.COIN_BIT_COIN_TEST:
+            this._apiUrl = TEST_URL;
+            break;
+        default:
+            callback(D.ERROR_NETWORK_COINTYPE_NOT_SUPPORTED);
+            return;
+    }
     this.coinType = coinType;
 
     this.get([this._apiUrl, 'q', 'getblockcount?cors=true'].join('/'), callback, function (response) {
@@ -22,10 +36,10 @@ BlockchainInfo.prototype.init = function (coinType, callback) {
     });
 };
 
-BlockchainInfo.prototype.queryAddress = function (address, callback) {
-    // TODO test
-    this.get(this._apiUrl + '/multiaddr?cors=true&active=' + address, callback, function (response) {
-        callback(D.ERROR_NO_ERROR, response[0]);
+BlockchainInfo.prototype.queryAddresses = function (addresses, callback) {
+    this.get(this._apiUrl + '/multiaddr?cors=true&active=' + addresses.join('|'), callback, function (response) {
+        // TODO warp response
+        callback(D.ERROR_NO_ERROR, response);
     });
 };
 

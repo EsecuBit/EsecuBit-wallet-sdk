@@ -9,13 +9,14 @@ var TRANSACTION_REQUEST_PERIOD = 600; // seconds per request
 
 if (D.TEST_MODE) {
     ADDRESS_REQUEST_PERIOD = 5; // seconds per request
-    TRANSACTION_REQUEST_PERIOD = 10; // seconds per request
+    TRANSACTION_REQUEST_PERIOD = 5; // seconds per request
 }
 
 var CoinNetwork = function() {
     this.startQueue = false;
     this.coinType = 'undefined';
     this._blockHeight = -1;
+    this._supportMultiAddresses = false;
     this._requestRate = 2; // seconds per request
     this._requestList = [];
 
@@ -128,59 +129,126 @@ CoinNetwork.prototype.listenTransaction = function (transactionInfo, callback) {
 /**
  * listen new transaction from specific address
  */
-CoinNetwork.prototype.listenAddress = function (addressInfo, callback) {
+CoinNetwork.prototype.listenAddresses = function (addressInfos, callback) {
     var that = this;
-    this._requestList.push({
-        type: TYPE_ADDRESS,
-        addressInfo: addressInfo,
-        nextTime: new Date().getTime(),
-        request: function() {
-            var thatRequest = this;
-            that.queryAddress(thatRequest.addressInfo.address, function(error, response) {
-                if (error !== D.ERROR_NO_ERROR) {
-                    callback(error);
-                    return;
-                }
-                for (var index in response.txs) {
-                    if (!response.txs.hasOwnProperty(index)) {
+    var i;
+    var addressInfo;
+    if (this._supportMultiAddresses) {
+        var addressMap = {};
+        for (i in addressInfos) {
+            if (!addressInfos.hasOwnProperty(i)) {
+                continue;
+            }
+            addressInfo = addressInfos[i];
+            addressMap[addressInfo.address] = addressInfo;
+        }
+        this._requestList.push({
+            type: TYPE_ADDRESS,
+            addressMap: addressMap,
+            nextTime: new Date().getTime(),
+            request: function() {
+                var thatRequest = this;
+                var addresses = [];
+                for (var address in addressMap) {
+                    if (!addressMap.hasOwnProperty(address)) {
                         continue;
                     }
-                    // TODO wrap response as the same
-                    var txId = response.txs[index].txId;
-                    if (!isInArray(thatRequest.addressInfo.listenedTxIds, txId)) {
-                        thatRequest.listenedTxIds.push(tx.txId);
-                        var transactionInfo = {
-                            accountId: thatRequest.addressInfo.accountId,
-                            coinType: thatRequest.addressInfo.coinType,
-                            txId: tx.txId,
-                            confirmations: response.txs[index].confirmations,
-                            time: tx.time,
-                            direction: D.TRANSACTION_DIRECTION_IN,
-                            value: long (santoshi)
-                        };
-                        callback(D.ERROR_NO_ERROR, addressInfo, transactionInfo);
-                    }
+                    addresses.push(address);
                 }
-                thatRequest.nextTime = new Date().getTime() + ADDRESS_REQUEST_PERIOD * 1000;
+                that.queryAddresses(addresses, function(error, multiResponses) {
+                    if (error !== D.ERROR_NO_ERROR) {
+                        callback(error);
+                        return;
+                    }
+                    for (var j in multiResponses) {
+                        if (!multiResponses.hasOwnProperty(j)) {
+                            continue;
+                        }
+                        var response = multiResponses[j];
+                        var addressInfo = addressMap[thatRequest.address];
+                        checkNewTx(response, addressInfo);
+                    }
+                    thatRequest.nextTime = new Date().getTime() + ADDRESS_REQUEST_PERIOD * 1000;
+                });
+            }
+        });
+    } else {
+        for (i in addressInfos) {
+            if (!addressInfos.hasOwnProperty(i)) {
+                continue;
+            }
+            addressInfo = addressInfos[i];
+            this._requestList.push({
+                type: TYPE_ADDRESS,
+                addressInfo: addressInfo,
+                nextTime: new Date().getTime(),
+                request: function() {
+                    var thatRequest = this;
+                    that.queryAddress(thatRequest.addressInfo.address, function(error, response) {
+                        if (error !== D.ERROR_NO_ERROR) {
+                            callback(error);
+                            return;
+                        }
+                        checkNewTx(response, thatRequest.addressInfo);
+                        thatRequest.nextTime = new Date().getTime() + ADDRESS_REQUEST_PERIOD * 1000;
+                    });
+                }
             });
         }
-    });
+    }
+
+    function checkNewTx(response, addressInfo) {
+        for (var i in response) {
+            if (!response.hasOwnProperty(i)) {
+                continue;
+            }
+            var tx = response.txs[i];
+            if (!hasTxId(addressInfo.txs, tx.txId)) {
+                if (tx.hasDetails) {
+                    that._network[addressInfo.coinType].queryTransaction(tx.txId, function (error, response) {
+                        if (error !== D.ERROR_NO_ERROR) {
+                            callback(e);
+                            return;
+                        }
+                        newTransaction(addressInfo, response);
+                    });
+                } else {
+                    newTransaction(addressInfo, tx);
+                }
+            }
+        }
+
+        function hasTxId(txs, txId) {
+            for (var i in txs) {
+                if (!txs.hasOwnProperty(i)) {
+                    continue;
+                }
+                if (txs[i].txId === txId) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        
+        function newTransaction(addressInfo, tx) {
+            addressInfo.txs.push(tx.txId);
+            var transactionInfo = {
+                accountId: thatRequest.addressInfo.accountId,
+                coinType: thatRequest.addressInfo.coinType,
+                txId: tx.txId,
+                confirmations: response.txs[i].confirmations,
+                time: tx.time,
+                direction: D.TRANSACTION_DIRECTION_IN,
+                value: long (santoshi)
+            };
+            callback(D.ERROR_NO_ERROR, addressInfo, transactionInfo);
+        }
+    }
 };
 
 CoinNetwork.prototype.clearListener = function () {
     this._requestList = [];
 };
-
-// TODO recovery transaction
-
-function isInArray(arr,value){
-    for(var i = 0; i < arr.length; i++){
-        if(value === arr[i]){
-            return true;
-        }
-    }
-    return false;
-}
 
 CoinNetwork.prototype.init = function (coinType, callback) {
     this.startQueue = true;
@@ -197,10 +265,18 @@ CoinNetwork.prototype.release = function () {
 
 /**
  * callback(error, response)
+ *
+ *
+ */
+CoinNetwork.prototype.queryAddresses = function (addresses, callback) {
+    callback(D.ERROR_NOT_IMPLEMENTED);
+};
+/**
+ * callback(error, addressInfo)
  * response:
  * {
  *      address: string,
- *      balance: 0,
+ *      balance: int,
  *      txCount: int,
  *      txs: tx array
  * }
