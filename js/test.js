@@ -182,7 +182,7 @@ layui.define(['jquery', 'form', 'layer', 'element'], function(exports) {
                 //console.log("<0");
                 element.tabAdd('wenav_tab', {
                     title: title,
-                    content: '<iframe tab-id="' + id + '" frameborder="0" src="' + url + '" scrolling="yes" class="weIframe"></iframe>',
+                    content: '<iframe tab-id="' + id + '" frameborder="0" sdk="' + url + '" scrolling="yes" class="weIframe"></iframe>',
                     id: id
                 });
                 //当前窗口内容
