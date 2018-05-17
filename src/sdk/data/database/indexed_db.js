@@ -192,7 +192,7 @@ IndexedDB.prototype.getTransactionInfos = function (filter) {
     request.onsuccess = function (e) {
       let cursor = e.target.result
       if (!cursor) {
-        resolve(total, array)
+        resolve([total, array])
         return
       }
       if (total++ >= startIndex) {
