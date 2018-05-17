@@ -15,12 +15,12 @@ module.exports = {
 				}
 			},
             {
-                test: /\.js$/,
+                test: /\.(js|vue)$/,
                 loader: 'eslint-loader',
-                enforce: "pre",
-                include: [path.resolve(__dirname, 'src')],
+                enforce: 'pre',
+                include: [path.resolve(__dirname, 'test'), path.resolve(__dirname, 'test')],
                 options: {
-                    formatter: require('eslint-friendly-formatter')
+                    formatter: require('eslint-friendly-formatter'),
                 }
             },
 			{
@@ -39,9 +39,16 @@ module.exports = {
 					}
 
 				]
-			}
+			},
 		]
 	},
+
+    devtool:"eval-source-map",
+    devServer: {
+        contentBase: "./test/",//本地服务器所加载的页面所在的目录
+        historyApiFallback: true,//不跳转
+        inline: true//实时刷新
+    },
 
 	plugins: [
 		new UglifyJSPlugin(),
@@ -51,7 +58,7 @@ module.exports = {
 
 	output: {
 		filename: 'bundle.js',
-		path: path.resolve(__dirname, 'dist')
+		path: path.resolve(__dirname, 'test')
 	},
 
 	mode: 'production'
