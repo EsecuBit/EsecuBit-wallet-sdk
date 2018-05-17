@@ -44,36 +44,31 @@
  * }
  */
 
-var CoinNetwork = require('./coin_network').class
-var D = require('../../def').class
+const CoinNetwork = require('./coin_network').class
+const D = require('../../def').class
 
 // TODO test
-var ChainSo = function() {
+const ChainSo = function() {
   this.coinType = 'undefined'
   this._coinTypeStr = 'undefined'
-  this.coinInfo = null
 }
 module.exports = {class: ChainSo}
 
 ChainSo.prototype = new CoinNetwork()
-var superClass = ChainSo.prototype
 ChainSo.prototype.type = 'chainso'
 ChainSo.prototype.website = 'chain.so'
 ChainSo.prototype._apiUrl = 'https://chain.so/api/v2'
 
-var superGet = superClass.get
-ChainSo.prototype.get = function(url, errorCallback, callback) {
-  superGet(url, errorCallback, function(response) {
-    if (response.status !== 'success') {
-      console.warn('chainso request failed', url, response)
-      errorCallback(D.ERROR_NETWORK_PROVIDER_ERROR)
-      return
-    }
-    callback(response.data)
-  })
+ChainSo.prototype.get = async (url) => {
+  let response = await CoinNetwork.prototype.get(url)
+  if (response.status !== 'success') {
+    console.warn('chainso request failed', url, response)
+    throw D.ERROR_NETWORK_PROVIDER_ERROR
+  }
+  return response.data
 }
 
-ChainSo.prototype.init = function (coinType, callback) {
+ChainSo.prototype.init = function (coinType) {
   switch (coinType) {
     case D.COIN_BIT_COIN:
       this._coinTypeStr = 'BTC'
@@ -82,71 +77,59 @@ ChainSo.prototype.init = function (coinType, callback) {
       this._coinTypeStr = 'BTCTEST'
       break
     default:
-      callback(D.ERROR_NETWORK_COINTYPE_NOT_SUPPORTED)
-      return
+      throw D.ERROR_COIN_NOT_SUPPORTED
   }
   this.coinType = coinType
 
-  var that = this
   // TODO slow down the request speed
-  // this.get2([this._apiUrl, 'get_info', this._coinTypeStr].join('/'), callback, function (response) {
+  // this.get([this._apiUrl, 'get_info', this._coinTypeStr].join('/'), callback, function (response) {
   //   callback(D.ERROR_NO_ERROR, response)
   // })
-  setTimeout(function () {
-    callback(D.ERROR_NO_ERROR, {})
-  }, 0)
-}
-
-ChainSo.prototype.queryAddress = function (address, callback) {
-  this.get([this._apiUrl, 'address', this._coinTypeStr, address].join('/'), callback, function (response) {
-    callback(D.ERROR_NO_ERROR, response)
+  return new Promise((resolve) => {
+    setTimeout(function () {
+      resolve({})
+    }, 0)
   })
 }
 
-ChainSo.prototype.queryTransaction = function (txId, callback) {
-  var that = this
-  this.get([this._apiUrl, 'get_tx', this._coinTypeStr, txId].join('/'), callback, function (response) {
-    var transactionInfo =  {
-      txId: response.txid,
-      version: response.version,
-      blockNumber: response.block_no,
-      confirmations: response.confirmations,
-      locktime: response.locktime,
-      time: response.time,
-      hasDetails: true
-    }
-    transactionInfo.inputs = []
-    for (var i in response.inputs) {
-      if (!response.inputs.hasOwnProperty(i)) {
-        continue
-      }
-      var input = response.inputs[i]
-      transactionInfo.inputs.push({
-        address: input.address,
-        value: D.getFloatFee(that.coinType, input.value)
-      })
-    }
-    transactionInfo.outputs = []
-    for (i in response.outputs) {
-      if (!response.outputs.hasOwnProperty(i)) {
-        continue
-      }
-      var output = response.outputs[i]
-      transactionInfo.outputs.push({
-        address: output.address,
-        value: D.getFloatFee(that.coinType, output.value),
-        index: output.output_no,
-        script: output.script_hex
-      })
-    }
-    callback(D.ERROR_NO_ERROR, transactionInfo)
-  })
+ChainSo.prototype.queryAddress = async function (address) {
+  let response = await this.get([this._apiUrl, 'address', this._coinTypeStr, address].join('/'))
+  // TODO wrap
+  return response
 }
 
-ChainSo.prototype.sendTransaction = function (rawTransaction, callback) {
-  this.post([this._apiUrl, 'send_tx', this._coinTypeStr].join('/'),
-    {tx_hex: rawTransaction},
-    callback, function (response) {
-    callback(D.ERROR_NO_ERROR, response)
-  })
+ChainSo.prototype.queryTransaction = async function (txId, callback) {
+  let response = await this.get([this._apiUrl, 'get_tx', this._coinTypeStr, txId].join('/'))
+  let transactionInfo = {
+    txId: response.txid,
+    version: response.version,
+    blockNumber: response.block_no,
+    confirmations: response.confirmations,
+    locktime: response.locktime,
+    time: response.time,
+    hasDetails: true
+  }
+  transactionInfo.inputs = []
+  for (let input of response.inputs) {
+    transactionInfo.inputs.push({
+      address: input.address,
+      value: D.getFloatFee(this.coinType, input.value)
+    })
+  }
+  transactionInfo.outputs = []
+  for (let output of response.outputs) {
+    transactionInfo.outputs.push({
+      address: output.address,
+      value: D.getFloatFee(this.coinType, output.value),
+      index: output.output_no,
+      script: output.script_hex
+    })
+  }
+  return transactionInfo
+}
+
+ChainSo.prototype.sendTransaction = async function (rawTransaction) {
+  let response = await this.post([this._apiUrl, 'send_tx', this._coinTypeStr].join('/'), {tx_hex: rawTransaction})
+  // TODO wrap
+  return response
 }

@@ -760,7 +760,7 @@ var prototypeAccessors = { child: { configurable: true } };
 
 // DEPRECATED: alias for componentInstance for backwards compat.
 /* istanbul ignore next */
-prototypeAccessors.child.get2 = function () {
+prototypeAccessors.child.get = function () {
   return this.componentInstance
 };
 
@@ -1807,7 +1807,7 @@ if (typeof Promise !== 'undefined' && isNative(Promise)) {
   microTimerFunc = function () {
     p.then(flushCallbacks);
     // in problematic UIWebViews, Promise.then doesn't completely break, but
-    // it can get2 stuck in a weird state where callbacks are pushed into the
+    // it can get stuck in a weird state where callbacks are pushed into the
     // microtask queue but the queue isn't being flushed, until the browser
     // needs to do some other work, e.g. handle a timer. Therefore we can
     // "force" the microtask queue to be flushed by adding an empty timer.
@@ -3982,7 +3982,7 @@ function FunctionalRenderContext (
     contextVm._original = parent;
   } else {
     // the context vm passed in is a functional context as well.
-    // in this case we want to make sure we are able to get2 a hold to the
+    // in this case we want to make sure we are able to get a hold to the
     // real context instance.
     contextVm = parent;
     // $flow-disable-line
@@ -4414,7 +4414,7 @@ function _createElement (
       vnode = createComponent(Ctor, data, context, children, tag);
     } else {
       // unknown or unlisted namespaced elements
-      // check at runtime because it may get2 assigned a namespace when its
+      // check at runtime because it may get assigned a namespace when its
       // parent normalizes children
       vnode = new VNode(
         tag, data, children,
@@ -4477,7 +4477,7 @@ function initRender (vm) {
   vm.$slots = resolveSlots(options._renderChildren, renderContext);
   vm.$scopedSlots = emptyObject;
   // bind the createElement fn to this instance
-  // so that we get2 proper render context inside it.
+  // so that we get proper render context inside it.
   // args order: tag, data, children, normalizationType, alwaysNormalize
   // internal version is used by render functions compiled from templates
   vm._c = function (a, b, c, d) { return createElement(vm, a, b, c, d, false); };
@@ -4983,7 +4983,7 @@ var KeepAlive = {
       var cache = ref$1.cache;
       var keys = ref$1.keys;
       var key = vnode.key == null
-        // same constructor may get2 registered as different local components
+        // same constructor may get registered as different local components
         // so cid alone is not enough (#3269)
         ? componentOptions.Ctor.cid + (componentOptions.tag ? ("::" + (componentOptions.tag)) : '')
         : vnode.key;
@@ -5707,7 +5707,7 @@ function createPatchFunction (backend) {
         ancestor = ancestor.parent;
       }
     }
-    // for slot content they should also get2 the scopeId from the host instance.
+    // for slot content they should also get the scopeId from the host instance.
     if (isDef(i = activeInstance) &&
       i !== vnode.context &&
       i !== vnode.fnContext &&
@@ -6665,7 +6665,7 @@ function getBindingAttr (
 }
 
 // note: this only removes the attr from the Array (attrsList) so that it
-// doesn't get2 processed by processAttrs.
+// doesn't get processed by processAttrs.
 // By default it does NOT remove it from the map (attrsMap) because the map is
 // needed during codegen.
 function getAndRemoveAttr (
@@ -10048,7 +10048,7 @@ function genHandler (
     if (keys.length) {
       code += genKeyFilter(keys);
     }
-    // Make sure modifiers like prevent and stop get2 executed after key filtering
+    // Make sure modifiers like prevent and stop get executed after key filtering
     if (genModifierCode) {
       code += genModifierCode;
     }

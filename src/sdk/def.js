@@ -1,8 +1,7 @@
 
-var D = {
+const D = {
   TEST_MODE: true,
 
-  ERROR_NO_ERROR: 0,
   ERROR_USER_CANCEL: 1,
 
   ERROR_NO_DEVICE: 101,
@@ -17,10 +16,10 @@ var D = {
   ERROR_NETWORK_UNVAILABLE: 401,
   ERROR_NETWORK_NOT_INITIALIZED: 402,
   ERROR_NETWORK_PROVIDER_ERROR: 403,
-  ERROR_NETWORK_COINTYPE_NOT_SUPPORTED: 404,
 
   ERROR_NOT_IMPLEMENTED: 10000,
   ERROR_UNKNOWN: 10001,
+  ERROR_COIN_NOT_SUPPORTED: 10002,
 
   COIN_BIT_COIN: 'bitcoin',
   COIN_BIT_COIN_TEST: 'bitcoin_test',
@@ -43,8 +42,12 @@ var D = {
       case D.COIN_BIT_COIN_TEST:
         return Number(fee / 100000000)
       default:
-        return -1
+        throw D.ERROR_COIN_NOT_SUPPORTED
     }
+  },
+
+  wait: (timeMill) => {
+    return new Promise(resolve => setTimeout(resolve, timeMill))
   }
 }
 module.exports = {class: D}

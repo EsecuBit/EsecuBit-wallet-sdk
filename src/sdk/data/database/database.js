@@ -1,43 +1,50 @@
 
-var Database = function() {
+const D = require('../../def').class
+
+const Database = function () {
 }
 module.exports = {class: Database}
 
-Database.prototype.saveAccount = function(account, callback) {
-  callback(D.ERROR_NOT_IMPLEMENTED)
+// noinspection JSUnusedLocalSymbols
+Database.prototype.saveAccount = async function (account) {
+  await D.wait(0)
+  throw D.ERROR_NOT_IMPLEMENTED
 }
 
-Database.prototype.getAccounts = function(deviceID, passPhraseID, callback) {
-  callback(D.ERROR_NOT_IMPLEMENTED)
+// noinspection JSUnusedLocalSymbols
+Database.prototype.getAccounts = async function (deviceID, passPhraseID) {
+  await D.wait(0)
+  throw D.ERROR_NOT_IMPLEMENTED
 }
 
-// only used in test
-Database.prototype.clearAccounts = function(deviceID, passPhraseID, callback) {
-  callback(D.ERROR_NOT_IMPLEMENTED)
+// noinspection JSUnusedLocalSymbols
+Database.prototype.saveTransactionInfo = async function (transactionInfo) {
+  await D.wait(0)
+  throw D.ERROR_NOT_IMPLEMENTED
 }
 
-Database.prototype.saveTransactionInfo = function(transactionInfo, callback) {
-  callback(D.ERROR_NOT_IMPLEMENTED)
-}
-
+// noinspection JSUnusedLocalSymbols
 /**
  *
  * @param filter {accountId}
- * @param callback
  */
-Database.prototype.getTransactionInfos = function(filter, callback) {
-  callback(D.ERROR_NOT_IMPLEMENTED)
+Database.prototype.getTransactionInfos = async function (filter) {
+  await D.wait(0)
+  throw D.ERROR_NOT_IMPLEMENTED
 }
 
-Database.prototype.saveOrUpdateAddressInfo = function(addressInfo, callback) {
-  callback(D.ERROR_NOT_IMPLEMENTED)
+// noinspection JSUnusedLocalSymbols
+Database.prototype.saveOrUpdateAddressInfo = async function (addressInfo) {
+  await D.wait(0)
+  throw D.ERROR_NOT_IMPLEMENTED
 }
 
+// noinspection JSUnusedLocalSymbols
 /**
  *
  * @param filter {coinType}
- * @param callback
  */
-Database.prototype.getAddressInfos = function(filter, callback) {
-  callback(D.ERROR_NOT_IMPLEMENTED)
+Database.prototype.getAddressInfos = async function (filter) {
+  await D.wait(0)
+  throw D.ERROR_NOT_IMPLEMENTED
 }

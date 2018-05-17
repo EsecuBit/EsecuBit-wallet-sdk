@@ -1,27 +1,28 @@
 
-var D = require('../def').class
-var IndexedDB = require('./database/indexed_db').class
-var ChainSo = require('./network/chain_so').class
-var Account = require('../account').class
+const D = require('../def').class
+const IndexedDB = require('./database/indexed_db').class
+const BlockChainInfo = require('./network/blockchain_info').class
+const Account = require('../account').class
 
-var CoinData = function() {
+const CoinData = function () {
   this._initialized = false
   this._db = new IndexedDB()
   // TODO read provider from settings
-  this._networkProvider = ChainSo
+  this._networkProvider = BlockChainInfo
   this._network = {}
   this._network[D.COIN_BIT_COIN] = new this._networkProvider()
   this._network[D.COIN_BIT_COIN_TEST] = new this._networkProvider()
 
-  var that = this
   this._registeredListeners = []
-  this._transactionListener = function (error, transactionInfo) {
+  this._transactionListener = (error, transactionInfo) => {
     if (error !== D.ERROR_NO_ERROR) {
       return
     }
-    that._db.saveOrUpdateTransactionInfo(transactionInfo, function (error) {
+    this._db.saveOrUpdateTransactionInfo(transactionInfo, (error) => {
       if (error !== D.ERROR_NO_ERROR) {
-        notify()
+        for (let listener of this._registeredListeners) {
+          listener(transactionInfo)
+        }
       }
     })
   }
@@ -29,21 +30,14 @@ var CoinData = function() {
     if (error !== D.ERROR_NO_ERROR) {
       return
     }
-    notify()
-  }
-
-  function notify() {
-    for (var i in that._registeredListeners) {
-      if (!that._registeredListeners.hasOwnProperty(i)) {
-        continue
-      }
-      that._registeredListeners[i](response)
+    for (let listener of this._registeredListeners) {
+      listener(addressInfo, transactionInfo)
     }
   }
 }
 module.exports = {instance: new CoinData()}
 
-CoinData.prototype.init = function(callback) {
+CoinData.prototype.init = function (callback) {
   if (this._initialized) {
     setTimeout(function () {
       callback(D.ERROR_NO_ERROR)
@@ -51,7 +45,52 @@ CoinData.prototype.init = function(callback) {
     return
   }
 
-  var that = this
+  let initNetwork = () => {
+    const initTotal = Object.keys(this._network).length
+    let initCount = 0
+    let failed = false
+
+    let initFinish = (error) => {
+      if (error !== D.ERROR_NO_ERROR && !failed) {
+        failed = true
+        callback(error)
+      }
+      initCount++
+      if (!failed && initCount === initTotal) {
+        this._initialized = true
+        sync()
+      }
+    }
+
+    for (let coinType of this._network) {
+      if (!this._network.hasOwnProperty(coinType)) {
+        continue
+      }
+      // TODO coinType change?
+      this._network[coinType].init(coinType, function (error, response) {
+        console.log('init network', coinType, ', error:', error, ', response:', response)
+        initFinish(error)
+      })
+    }
+  }
+
+  let sync = () => {
+    // TODO read device to sync old transaction before listen new transaction
+    // TODO continue update transaction confirmations if confirmations < D.TRANSACTION_##COIN_TYPE##_MATURE_CONFIRMATIONS
+    for (let coinType of this._network) {
+      ((coinType) => {
+        this._db.getAddressInfos({coinType: coinType, type: D.ADDRESS_EXTERNAL}, function (error, response) {
+          if (error !== D.ERROR_NO_ERROR) {
+            console.warn('getAddressInfos failed, error', error)
+            return
+          }
+          this._listenAddress(coinType, response, this._addressListener)
+        })
+      })(coinType)
+    }
+    callback(D.ERROR_NO_ERROR)
+  }
+
   this._db.init(function (error) {
     if (error !== D.ERROR_NO_ERROR) {
       callback(error)
@@ -59,62 +98,12 @@ CoinData.prototype.init = function(callback) {
     }
     initNetwork()
   })
-
-  function initNetwork () {
-    var initTotal = Object.keys(that._network).length
-    var initCount = 0
-    var failed = false
-
-    function initFinish(error) {
-      if (error !== D.ERROR_NO_ERROR && !failed) {
-        failed = true
-        callback(error)
-      }
-      initCount++
-      if (!failed && initCount === initTotal) {
-        that._initialized = true
-        sync()
-      }
-    }
-
-    for (var coinType in that._network) {
-      if (!that._network.hasOwnProperty(coinType)) {
-        continue
-      }
-      (function(coinType) {
-        that._network[coinType].init(coinType, function(error, response) {
-          console.log('init network', coinType, ', error:', error, ', response:', response)
-          initFinish(error)
-        })
-      })(coinType)
-    }
-  }
-
-  function sync() {
-    // TODO read device to sync old transaction before listen new transaction
-    // TODO continue update transaction confirmations if confirmations < D.TRANSACTION_##COIN_TYPE##_MATURE_CONFIRMATIONS
-    for (var coinType in that._network) {
-      (function(coinType) {
-        that._db.getAddressInfos({coinType: coinType, type: D.ADDRESS_EXTERNAL}, function (error, response) {
-          if (error !== D.ERROR_NO_ERROR) {
-            console.warn('getAddressInfos failed, error', error)
-            return
-          }
-          that._listenAddress(coinType, response, that._addressListener)
-        })
-      })(coinType)
-    }
-    callback(D.ERROR_NO_ERROR)
-  }
 }
 
-CoinData.prototype.release = function() {
+CoinData.prototype.release = function () {
   this._listeners = []
-  for (var i in this._network) {
-    if (!this._network.hasOwnProperty(i)) {
-      continue
-    }
-    this._network[i].release()
+  for (let network of this._network) {
+    network.release()
   }
 }
 
@@ -181,7 +170,7 @@ CoinData.prototype.newAccount = function(deviceId, passPhraseId, coinType, callb
     }
 
     if (lastAccountInfo === null) {
-      // TODO get2 account public key from device, and generate first 20 address
+      // TODO get account public key from device, and generate first 20 address
       var newAccount =
           {
             accountId: makeId(),

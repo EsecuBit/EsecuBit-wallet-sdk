@@ -39,41 +39,14 @@ module.exports = {class: CoinNetwork}
 CoinNetwork.prototype.provider = 'undefined'
 CoinNetwork.prototype.website = 'undefined'
 
-CoinNetwork.prototype.get2 = function (url, errorCallback, callback) {
-  let xmlhttp = new XMLHttpRequest()
-  xmlhttp.onreadystatechange = () => {
-    if (xmlhttp.readyState === 4) {
-      if (xmlhttp.status === 200) {
-        try {
-          const coinInfo = JSON.parse(xmlhttp.responseText)
-          callback(coinInfo)
-        } catch (e) {
-          console.warn(e)
-          errorCallback(D.ERROR_NETWORK_PROVIDER_ERROR)
-        }
-      } else if (xmlhttp.status === 500) {
-        console.warn(url, xmlhttp.status)
-        errorCallback(D.ERROR_NETWORK_PROVIDER_ERROR)
-      } else {
-        console.warn(url, xmlhttp.status)
-        errorCallback(D.ERROR_NETWORK_UNVAILABLE)
-      }
-    }
-  }
-  xmlhttp.open('GET', url, true)
-  xmlhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded')
-  xmlhttp.send()
-}
-
-CoinNetwork.prototype.get = (url) => {
+CoinNetwork.prototype.get = function (url) {
   return new Promise((resolve, reject) => {
     let xmlhttp = new XMLHttpRequest()
     xmlhttp.onreadystatechange = () => {
       if (xmlhttp.readyState === 4) {
         if (xmlhttp.status === 200) {
           try {
-            const coinInfo = JSON.parse(xmlhttp.responseText)
-            resolve(coinInfo)
+            resolve(JSON.parse(xmlhttp.responseText))
           } catch (e) {
             console.warn(e)
             reject(D.ERROR_NETWORK_PROVIDER_ERROR)
@@ -93,30 +66,31 @@ CoinNetwork.prototype.get = (url) => {
   })
 }
 
-CoinNetwork.prototype.post = function (url, args, errorCallback, callback) {
-  const xmlhttp = new XMLHttpRequest()
-  xmlhttp.onreadystatechange = () => {
-    if (xmlhttp.readyState === 4) {
-      if (xmlhttp.status === 200) {
-        try {
-          const coinInfo = JSON.parse(xmlhttp.responseText)
-          callback(coinInfo)
-        } catch (e) {
-          console.warn(e)
-          errorCallback(D.ERROR_NETWORK_PROVIDER_ERROR)
+CoinNetwork.prototype.post = function (url, args) {
+  return new Promise((resolve, reject) => {
+    const xmlhttp = new XMLHttpRequest()
+    xmlhttp.onreadystatechange = () => {
+      if (xmlhttp.readyState === 4) {
+        if (xmlhttp.status === 200) {
+          try {
+            resolve(JSON.parse(xmlhttp.responseText))
+          } catch (e) {
+            console.warn(e)
+            reject(D.ERROR_NETWORK_PROVIDER_ERROR)
+          }
+        } else if (xmlhttp.status === 500) {
+          console.warn(url, xmlhttp.status)
+          reject(D.ERROR_NETWORK_PROVIDER_ERROR)
+        } else {
+          console.warn(url, xmlhttp.status)
+          reject(D.ERROR_NETWORK_UNVAILABLE)
         }
-      } else if (xmlhttp.status === 500) {
-        console.warn(url, xmlhttp.status)
-        errorCallback(D.ERROR_NETWORK_PROVIDER_ERROR)
-      } else {
-        console.warn(url, xmlhttp.status)
-        errorCallback(D.ERROR_NETWORK_UNVAILABLE)
       }
     }
-  }
-  xmlhttp.open('POST', url, true)
-  xmlhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded')
-  xmlhttp.send(args)
+    xmlhttp.open('POST', url, true)
+    xmlhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded')
+    xmlhttp.send(args)
+  })
 }
 
 /**
@@ -244,34 +218,29 @@ CoinNetwork.prototype.listenAddresses = function (addressInfos, callback) {
   }
 }
 
-CoinNetwork.prototype.clearListener = function () {
-  this._requestList = []
-}
-
-CoinNetwork.prototype.init = function (coinType, callback) {
+CoinNetwork.prototype.init = async function (coinType) {
   this.startQueue = true
   // start the request loop
   setTimeout(this._queue, this._requestRate * 1000)
-  setTimeout(function () {
-    callback(D.ERROR_NO_ERROR)
-  }, 0)
+  await D.wait(0)
+  return {}
 }
 
 CoinNetwork.prototype.release = function () {
   this.startQueue = false
+  this._requestList = []
 }
 
 /**
- * callback(error, response)
- *
- *
+ * @return addressInfo array
+ * @see addressInfo
  */
-CoinNetwork.prototype.queryAddresses = function (addresses, callback) {
-  callback(D.ERROR_NOT_IMPLEMENTED)
+CoinNetwork.prototype.queryAddresses = async function (addresses) {
+  await D.wait(0)
+  throw D.ERROR_NOT_IMPLEMENTED
 }
 /**
- * callback(error, addressInfo)
- * response:
+ * @return addressInfo:
  * {
  *    address: string,
  *    balance: int,
@@ -279,16 +248,17 @@ CoinNetwork.prototype.queryAddresses = function (addresses, callback) {
  *    txs: tx array
  * }
  *
- * tx: see queryTransaction
+ * @see queryTransaction
  *
  */
-CoinNetwork.prototype.queryAddress = function (address, callback) {
-  callback(D.ERROR_NOT_IMPLEMENTED)
+CoinNetwork.prototype.queryAddress = async function (address) {
+  await D.wait(0)
+  throw D.ERROR_NOT_IMPLEMENTED
 }
 
 /**
  *
- * tx:
+ * @return tx:
  * {
  *    txId: string,
  *    version: int,
@@ -302,14 +272,12 @@ CoinNetwork.prototype.queryAddress = function (address, callback) {
  * }
  *
  */
-CoinNetwork.prototype.queryTransaction = function (txId, callback) {
-  callback(D.ERROR_NOT_IMPLEMENTED)
+CoinNetwork.prototype.queryTransaction = async function (txId) {
+  await D.wait(0)
+  throw D.ERROR_NOT_IMPLEMENTED
 }
 
-CoinNetwork.prototype.getSuggestedFee = function (feeType, callback) {
-  callback(D.ERROR_NOT_IMPLEMENTED)
-}
-
-CoinNetwork.prototype.sendTrnasaction = function (rawTransaction, callback) {
-  callback(D.ERROR_NOT_IMPLEMENTED)
+CoinNetwork.prototype.sendTrnasaction = async function (rawTransaction) {
+  await D.wait(0)
+  throw D.ERROR_NOT_IMPLEMENTED
 }
