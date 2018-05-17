@@ -89,7 +89,7 @@ ChainSo.prototype.init = function (coinType, callback) {
 
   var that = this
   // TODO slow down the request speed
-  // this.get([this._apiUrl, 'get_info', this._coinTypeStr].join('/'), callback, function (response) {
+  // this.get2([this._apiUrl, 'get_info', this._coinTypeStr].join('/'), callback, function (response) {
   //   callback(D.ERROR_NO_ERROR, response)
   // })
   setTimeout(function () {

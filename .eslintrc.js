@@ -1,3 +1,8 @@
 module.exports = {
-    "extends": "standard"
+  'extends': 'standard',
+  'env': {
+    'browser': true,
+    'commonjs': true,
+    'mocha': true
+  }
 };

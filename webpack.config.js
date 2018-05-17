@@ -14,15 +14,15 @@ module.exports = {
 					presets: ['env']
 				}
 			},
-            {
-                test: /\.(js|vue)$/,
-                loader: 'eslint-loader',
-                enforce: 'pre',
-                include: [path.resolve(__dirname, 'test'), path.resolve(__dirname, 'test')],
-                options: {
-                    formatter: require('eslint-friendly-formatter'),
-                }
-            },
+			{
+					test: /\.(js|vue)$/,
+					loader: 'eslint-loader',
+					enforce: 'pre',
+					include: [path.resolve(__dirname, 'test'), path.resolve(__dirname, 'test')],
+					options: {
+							formatter: require('eslint-friendly-formatter'),
+					}
+			},
 			{
 				test: /\.css$/,
 
@@ -45,16 +45,16 @@ module.exports = {
 
     devtool:"eval-source-map",
     devServer: {
-        contentBase: "./test/",//本地服务器所加载的页面所在的目录
-        historyApiFallback: true,//不跳转
-        inline: true//实时刷新
+        contentBase: "./test/", //本地服务器所加载的页面所在的目录
+        historyApiFallback: true, //不跳转
+        inline: true //实时刷新
     },
 
 	plugins: [
 		new UglifyJSPlugin(),
 		new MiniCssExtractPlugin({ filename: 'style.css' })
 	],
-	entry: __dirname + '/src/index.js',
+	entry: ['babel-polyfill', __dirname + '/src/index.js'],
 
 	output: {
 		filename: 'bundle.js',

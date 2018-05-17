@@ -270,7 +270,7 @@ layui.use(['jquery','form','jqGrid','localeEn','laypage','element','qrcode'], fu
                         $(grid_selector).closest(".ui-jqgrid-bdiv").css({ "overflow-x" : "hidden" });
                     }
                 });
-                $(window).triggerHandler('resize.jqGrid'); //trigger window resize to make the grid get the correct size
+                $(window).triggerHandler('resize.jqGrid'); //trigger window resize to make the grid get2 the correct size
                 pageList(total);
                 function pageList(total){
                     laypage.render({

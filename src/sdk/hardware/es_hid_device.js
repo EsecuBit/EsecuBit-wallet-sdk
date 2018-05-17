@@ -2,7 +2,7 @@
 var D = require('../def').class
 var Device = require('./device').class
 
-// TODO ask level 4 path publickey to get multi level 5 address
+// TODO ask level 4 path publickey to get2 multi level 5 address
 var EsHidDevice = function() {
   this._deviceId = null
   this._connectionHandle = null

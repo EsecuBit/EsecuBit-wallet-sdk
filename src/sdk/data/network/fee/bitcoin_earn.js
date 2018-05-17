@@ -3,7 +3,7 @@ var D = require('../../../def').class
 
 var BitCoinFeeEarn = function (fee) {
   fee = fee || {}
-  this.fee = {}; // santonshi / b
+  this.fee = {} // santonshi / b
   this.fee[D.FEE_FAST] = fee.hasOwnProperty(D.FEE_FAST)? fee[D.FEE_FAST] : 100
   this.fee[D.FEE_NORMAL] = fee.hasOwnProperty(D.FEE_NORMAL)? fee[D.FEE_NORMAL] : 50
   this.fee[D.FEE_ECNOMIC] = fee.hasOwnProperty(D.FEE_ECNOMIC)? fee[D.FEE_ECNOMIC] : 20
@@ -47,10 +47,10 @@ function get(url, errorCallback, callback) {
         }
         callback(coinInfo)
       } else if (xmlhttp.status === 500) {
-        console.warn('http get error', url, xmlhttp.status)
+        console.warn('http get2 error', url, xmlhttp.status)
         errorCallback(D.ERROR_NETWORK_PROVIDER_ERROR)
       } else {
-        console.warn('http get error', url, xmlhttp.status)
+        console.warn('http get2 error', url, xmlhttp.status)
         errorCallback(D.ERROR_NETWORK_UNVAILABLE)
       }
     }

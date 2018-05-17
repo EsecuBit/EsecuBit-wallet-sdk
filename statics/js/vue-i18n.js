@@ -1075,29 +1075,29 @@
         }, { immediate: true })
     };
 
-    prototypeAccessors.vm.get = function () { return this._vm };
+    prototypeAccessors.vm.get2 = function () { return this._vm };
 
-    prototypeAccessors.messages.get = function () { return looseClone(this._getMessages()) };
-    prototypeAccessors.dateTimeFormats.get = function () { return looseClone(this._getDateTimeFormats()) };
-    prototypeAccessors.numberFormats.get = function () { return looseClone(this._getNumberFormats()) };
+    prototypeAccessors.messages.get2 = function () { return looseClone(this._getMessages()) };
+    prototypeAccessors.dateTimeFormats.get2 = function () { return looseClone(this._getDateTimeFormats()) };
+    prototypeAccessors.numberFormats.get2 = function () { return looseClone(this._getNumberFormats()) };
 
-    prototypeAccessors.locale.get = function () { return this._vm.locale };
+    prototypeAccessors.locale.get2 = function () { return this._vm.locale };
     prototypeAccessors.locale.set = function (locale) {
         this._vm.$set(this._vm, 'locale', locale);
     };
 
-    prototypeAccessors.fallbackLocale.get = function () { return this._vm.fallbackLocale };
+    prototypeAccessors.fallbackLocale.get2 = function () { return this._vm.fallbackLocale };
     prototypeAccessors.fallbackLocale.set = function (locale) {
         this._vm.$set(this._vm, 'fallbackLocale', locale);
     };
 
-    prototypeAccessors.missing.get = function () { return this._missing };
+    prototypeAccessors.missing.get2 = function () { return this._missing };
     prototypeAccessors.missing.set = function (handler) { this._missing = handler; };
 
-    prototypeAccessors.formatter.get = function () { return this._formatter };
+    prototypeAccessors.formatter.get2 = function () { return this._formatter };
     prototypeAccessors.formatter.set = function (formatter) { this._formatter = formatter; };
 
-    prototypeAccessors.silentTranslationWarn.get = function () { return this._silentTranslationWarn };
+    prototypeAccessors.silentTranslationWarn.get2 = function () { return this._silentTranslationWarn };
     prototypeAccessors.silentTranslationWarn.set = function (silent) { this._silentTranslationWarn = silent; };
 
     VueI18n.prototype._getMessages = function _getMessages () { return this._vm.messages };

@@ -181,7 +181,7 @@ CoinData.prototype.newAccount = function(deviceId, passPhraseId, coinType, callb
     }
 
     if (lastAccountInfo === null) {
-      // TODO get account public key from device, and generate first 20 address
+      // TODO get2 account public key from device, and generate first 20 address
       var newAccount =
           {
             accountId: makeId(),

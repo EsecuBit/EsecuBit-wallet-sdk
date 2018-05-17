@@ -1,23 +1,17 @@
 
-var D = require('../../../sdk/def').class
-var BlockchainInfo = require('../../../sdk/data/network/blockchain_info').class
-var should = require('chai').should()
+const D = require('../../../sdk/def').class
+const BlockchainInfo = require('../../../sdk/data/network/blockchain_info').class
+require('chai').should()
 
-var blockchainInfo = new BlockchainInfo()
+const blockchainInfo = new BlockchainInfo()
 
 // TODO complete test
 describe('Network Blockchain Bitcoin', function() {
   this.timeout(5000)
-  it('init network', function (done) {
-    blockchainInfo.init(D.COIN_BIT_COIN, function (error, response) {
-      try {
-        error.should.equal(D.ERROR_NO_ERROR)
-        console.log(response)
-        done()
-      } catch (e) {
-        done(e)
-      }
-    })
+  it('init network', async () => {
+    console.log('2')
+    let response = await blockchainInfo.init(D.COIN_BIT_COIN)
+    response.should.not.equal(undefined)
   })
 
   // it('query address', function (done) {
@@ -33,24 +27,24 @@ describe('Network Blockchain Bitcoin', function() {
   //     }
   //   })
   // })
-  it('test', function (done) {
-    blockchainInfo.get('https://blockchain.info/multiaddr?active=1AjAF7bZvimjdTuPnWLNN3F4WCbzLbuyG7|1j1UHnGwDdJhNf2h3mcFmzGDe2DzoEMuc&cors=true',
-      function (error) {
-      error.should.equal(D.ERROR_NO_ERROR)
-      done('no')
-    }, function (response) {
-      console.log(response)
-      done()
-    })
-  })
-  it('test2', function (done) {
-    blockchainInfo.get('https://blockchain.info/rawtx/b6f6991d03df0e2e04dafffcd6bc418aac66049e2cd74b80f14ac86db1e3f0da?cors=true',
-      function (error) {
-        error.should.equal(D.ERROR_NO_ERROR)
-        done('no')
-      }, function (response) {
-        console.log(response)
-        done()
-      })
-  })
+  // it('test', function (done) {
+  //   blockchainInfo.get('https://blockchain.info/multiaddr?active=1AjAF7bZvimjdTuPnWLNN3F4WCbzLbuyG7|1j1UHnGwDdJhNf2h3mcFmzGDe2DzoEMuc&cors=true',
+  //     function (error) {
+  //       error.should.equal(D.ERROR_NO_ERROR)
+  //       done('no')
+  //     }, function (response) {
+  //       console.log(response)
+  //       done()
+  //     })
+  // })
+  // it('test2', function (done) {
+  //   blockchainInfo.get('https://blockchain.info/rawtx/b6f6991d03df0e2e04dafffcd6bc418aac66049e2cd74b80f14ac86db1e3f0da?cors=true',
+  //     function (error) {
+  //       error.should.equal(D.ERROR_NO_ERROR)
+  //       done('no')
+  //     }, function (response) {
+  //       console.log(response)
+  //       done()
+  //     })
+  // })
 })
