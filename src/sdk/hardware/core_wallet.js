@@ -1,113 +1,59 @@
 
-var D = require('../def').class
-var MockDevice = require('./mock_device').class
-var EsHidDevice = require('./es_hid_device').class
+const D = require('../def').class
+const MockDevice = require('./mock_device').class
+const EsHidDevice = require('./es_hid_device').class
 
-var CoreWallet = function() {
+const CoreWallet = function () {
   this._deviceTrue = new EsHidDevice()
   this._device = new MockDevice()
 }
 module.exports = {instance: new CoreWallet()}
 
-CoreWallet.prototype.hasInitialize = function(callback) {
-  callback(D.ERROR_NOT_IMPLEMENTED)
+CoreWallet.prototype.init = function () {
+  D.wait(0)
 }
 
-CoreWallet.prototype.listenPlug = function(callback) {
+CoreWallet.prototype.listenPlug = function (callback) {
   this._deviceTrue.listenPlug(callback)
 }
 
-CoreWallet.prototype.getFirmwareVersion = function(callback) {
-  this.sendHexApdu('0003000000', callback, function (response) {
-    callback(D.ERROR_NO_ERROR, response)
-  })
+CoreWallet.prototype.getWalletInfo = async function () {
+  let cosVersion = await this._getCosVersion()
+  let firmwareVersion = await this._getFirmwareVersion()
+  return [
+    {name: 'COS Version', value: D.arrayBufferToHex(cosVersion)},
+    {name: 'Firmware Version', value: D.arrayBufferToHex(firmwareVersion)}]
 }
 
-CoreWallet.prototype.getCosVersion = function(callback) {
-  this.sendHexApdu('00FF000000', callback, function (response) {
-    callback(D.ERROR_NO_ERROR, response)
-  })
+CoreWallet.prototype._getFirmwareVersion = function () {
+  return this.sendHexApdu('0003000000')
 }
 
-CoreWallet.prototype.getWalletInfo = function(callback) {
-  var that = this
-  this.getCosVersion(function (error, cosResponse) {
-    if (error !== D.ERROR_NO_ERROR) {
-      callback(error)
-      return
-    }
-    that.getFirmwareVersion(function (error, firmwareResponse) {
-      if (error !== D.ERROR_NO_ERROR) {
-        callback(error)
-        return
-      }
-      callback(D.ERROR_NO_ERROR, [
-        {name:'COS Version', value: arrayBufferToHex(cosResponse)},
-        {name:'Firmware Version', value: arrayBufferToHex(firmwareResponse)}]
-      )
-    })
-  })
+CoreWallet.prototype._getCosVersion = function () {
+  return this.sendHexApdu('00FF000000')
 }
 
-CoreWallet.prototype.verifyPin = function(callback) {
-  callback(D.ERROR_NO_ERROR)
+CoreWallet.prototype.verifyPin = async function () {
+  await D.wait(0)
+  throw D.ERROR_DEVICE_COMM
 }
 
-CoreWallet.prototype.getAddress = function(addressParams, callback) {
+CoreWallet.prototype.getAddress = async function (addressParams) {
   // TODO fix
-  var apdu
+  let apdu
   if (addressParams.force === true) {
-    apdu = "0023010000"
+    apdu = '0023010000'
   } else {
-    apdu = "0023000000"
+    apdu = '0023000000'
   }
-  this.sendHexApdu(apdu, callback, function (response) {
-    var address = String.fromCharCode.apply(null, new Uint8Array(response))
-    callback(D.ERROR_NO_ERROR, address)
-  })
+  let response = await this.sendHexApdu(apdu)
+  return String.fromCharCode.apply(null, new Uint8Array(response))
 }
 
-CoreWallet.prototype.sendHexApdu = function(apdu, errorCallback, callback) {
-  this._device.sendAndReceive(hexToArrayBuffer(apdu), function(error, response) {
-    if (error !== D.ERROR_NO_ERROR) {
-      errorCallback(error)
-      return
-    }
-    callback(response)
-  })
+CoreWallet.prototype.sendHexApdu = function (apdu) {
+  return this._device.sendAndReceive(D.hexToArrayBuffer(apdu))
 }
 
-CoreWallet.prototype.sendHexApduTrue = function(apdu, errorCallback, callback) {
-  this._deviceTrue.sendAndReceive(hexToArrayBuffer(apdu), function(error, response) {
-    console.log(arrayBufferToHex(response))
-    if (error !== D.ERROR_NO_ERROR) {
-      errorCallback(error)
-      return
-    }
-    callback(error, response)
-  })
-}
-
-
-function arrayBufferToHex(array) {
-  var hexChars = '0123456789ABCDEF'
-  var hexString = new Array(array.byteLength * 2)
-  var intArray = new Uint8Array(array)
-
-  for (var i = 0; i < intArray.byteLength; i++) {
-    hexString[2 * i] = hexChars.charAt((intArray[i] >> 4) & 0x0f)
-    hexString[2 * i + 1] = hexChars.charAt(intArray[i] & 0x0f)
-  }
-  return hexString.join('')
-}
-
-function hexToArrayBuffer(hex) {
-  var result = new ArrayBuffer(hex.length / 2)
-  var hexChars = '0123456789ABCDEFabcdef'
-  var res = new Uint8Array(result)
-  for (var i = 0; i < hex.length; i += 2) {
-    if (hexChars.indexOf(hex.substring(i, i + 1)) === -1) break
-    res[i / 2] = parseInt(hex.substring(i, i + 2), 16)
-  }
-  return result
+CoreWallet.prototype.sendHexApduTrue = function (apdu) {
+  return this._deviceTrue.sendAndReceive(D.hexToArrayBuffer(apdu))
 }

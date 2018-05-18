@@ -48,6 +48,29 @@ const D = {
 
   wait: (timeMill) => {
     return new Promise(resolve => setTimeout(resolve, timeMill))
+  },
+
+  arrayBufferToHex: (array) => {
+    const hexChars = '0123456789ABCDEF'
+    let hexString = new Array(array.byteLength * 2)
+    let intArray = new Uint8Array(array)
+
+    for (let i = 0; i < intArray.byteLength; i++) {
+      hexString[2 * i] = hexChars.charAt((intArray[i] >> 4) & 0x0f)
+      hexString[2 * i + 1] = hexChars.charAt(intArray[i] & 0x0f)
+    }
+    return hexString.join('')
+  },
+
+  hexToArrayBuffer: (hex) => {
+    const hexChars = '0123456789ABCDEFabcdef'
+    let result = new ArrayBuffer(hex.length / 2)
+    let res = new Uint8Array(result)
+    for (let i = 0; i < hex.length; i += 2) {
+      if (hexChars.indexOf(hex.substring(i, i + 1)) === -1) break
+      res[i / 2] = parseInt(hex.substring(i, i + 2), 16)
+    }
+    return result
   }
 }
 module.exports = {class: D}

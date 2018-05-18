@@ -1,9 +1,18 @@
 
-var D = require('../def').class
-var Device = require('./device').class
+/** @namespace chrome */
+/** @namespace chrome.usb */
+/** @namespace chrome.usb.openDevice */
+/** @namespace chrome.usb.onDeviceAdded */
+/** @namespace chrome.usb.onDeviceRemoved */
+/** @namespace chrome.usb.getDevices */
+/** @namespace chrome.runtime.lastError */
+/** @namespace chrome.usb.controlTransfer */
 
-// TODO ask level 4 path publickey to get multi level 5 address
-var EsHidDevice = function() {
+const D = require('../def').class
+const Device = require('./device').class
+
+// TODO ask level 3 path publickey to get multi level 5 address
+const EsHidDevice = function() {
   this._deviceId = null
   this._connectionHandle = null
   this._listener = null
@@ -13,10 +22,9 @@ var EsHidDevice = function() {
     return
   }
 
-  var that = this
-  function connect(device) {
-    chrome.usb.openDevice(device, function(connectionHandle) {
-      that._connectionHandle = connectionHandle
+  let connect = (device) => {
+    chrome.usb.openDevice(device, (connectionHandle) => {
+      this._connectionHandle = connectionHandle
       console.log('Connected to the USB device!', connectionHandle)
 
       // setTimeout(function () {
@@ -35,7 +43,7 @@ var EsHidDevice = function() {
       //       // }
       //       // return
       //     }
-      //     console.log("Claimed")
+      //     console.log('Claimed')
       //     that.sendAndReceive(hexToArrayBuffer('030604803300000ABD080000000000000000000000000000'), function () {
       //
       //     })
@@ -45,222 +53,190 @@ var EsHidDevice = function() {
       //   })
       // }, 500)
 
-      if (that._listener !== null) {
-        that._listener(D.ERROR_NO_ERROR, true)
+      if (this._listener !== null) {
+        this._listener(D.ERROR_NO_ERROR, true)
       }
     })
   }
 
-  chrome.usb.onDeviceAdded.addListener(function(device) {
+  chrome.usb.onDeviceAdded.addListener((device) => {
     console.log('plug in vid=' + device.vendorId + ', pid=' + device.productId)
-    if (!that._deviceId) {
-      that._deviceId = device.device
+    if (!this._deviceId) {
+      this._deviceId = device.device
       connect(device)
     }
   })
 
-  chrome.usb.onDeviceRemoved.addListener(function(device) {
+  chrome.usb.onDeviceRemoved.addListener((device) => {
     console.log('plug out vid=' + device.vendorId + ', pid=' + device.productId)
-    if (device.device === that._deviceId) {
-      that._deviceId = null
-      that._connectionHandle = null
-      if (that._listener !== null) {
-        if (that._listener !== null) {
-          that._listener(D.ERROR_NO_ERROR, false)
+    if (device.device === this._deviceId) {
+      this._deviceId = null
+      this._connectionHandle = null
+      if (this._listener !== null) {
+        if (this._listener !== null) {
+          this._listener(D.ERROR_NO_ERROR, false)
         }
       }
     }
   })
 
-  chrome.usb.getDevices({}, function(foundDevices) {
+  chrome.usb.getDevices({}, (foundDevices) => {
     if (chrome.runtime.lastError !== undefined) {
-      console.warn('chrome.usb.getDevices error: ' +
-        chrome.runtime.lastError.message)
+      console.warn('chrome.usb.getDevices error: ' + chrome.runtime.lastError.message)
       return
     }
 
-    if (!that._deviceId) {
-      for (var index in foundDevices) {
-        if (!foundDevices.hasOwnProperty(index)) {
-          continue
-        }
-        var device = foundDevices[index]
-        console.log('found device: vid=' + device.vendorId + ', pid=' + device.productId)
-        that._deviceId = device.device
-        connect(device)
-        break
-      }
+    if (this._deviceId) {
+      return
     }
+    if (foundDevices.length === 0) {
+      return
+    }
+    let device = foundDevices[0]
+    console.log('found device: vid=' + device.vendorId + ', pid=' + device.productId)
+    this._deviceId = device.device
+    connect(device)
   })
 }
 module.exports = {class: EsHidDevice}
+
 EsHidDevice.prototype = new Device()
 
-EsHidDevice.prototype.sendAndReceive = function (apdu, callback) {
-  var that = this
+EsHidDevice.prototype.sendAndReceive = async function (apdu) {
   if (this._deviceId === null || this._connectionHandle === null) {
-    callback(D.ERROR_NO_DEVICE)
-    return
+    D.wait(0)
+    throw D.ERROR_NO_DEVICE
   }
 
-  var send = function(data, callback) {
-    var package = new Uint8Array(new Array(64))
-    var intData = new Uint8Array(data)
+  let send = (data) => {
+    let packageData = new Uint8Array(new Array(64))
+    let intData = new Uint8Array(data)
 
-    package[0] = 0x21
-    package[1] = 0x00
-    package[2] = data.byteLength
-    for (var i = 0; i < data.byteLength; i++) {
-      package[i + 3] = intData[i]
+    packageData[0] = 0x21
+    packageData[1] = 0x00
+    packageData[2] = intData.byteLength
+    for (let i = 0; i < intData.byteLength; i++) {
+      packageData[i + 3] = intData[i]
     }
 
-    var transferInfo = {
+    let transferInfo = {
       direction: 'out',
       requestType: 'class',
       recipient: 'interface',
       request: 0x09,
-      // a strange thing: if value=0x03XX, it will be 0x0302 in final usb command. if value!=0x03xx, "no define"
+      // a strange thing: if value=0x03XX, it will be 0x0302 in final usb command. if value!=0x03xx, 'no define'
       value: 0x0302,
       index: 0,
-      data: package
+      data: packageData
     }
+    return new Promise((resolve, reject) => {
+      chrome.usb.controlTransfer(this._connectionHandle, transferInfo, (info) => {
+        if (chrome.runtime.lastError !== undefined) {
+          console.warn('send error: ' + chrome.runtime.lastError.message + ' resultCode: ' + info ? 'undefined' : info.resultCode)
+          reject(D.ERROR_DEVICE_COMM)
+        }
+        console.log('Sent to the USB device!', this._connectionHandle)
+        if (info.resultCode !== 0) {
+          console.warn('send apdu error ', info.resultCode)
+          reject(D.ERROR_DEVICE_COMM)
+        }
 
-    chrome.usb.controlTransfer(that._connectionHandle, transferInfo, function(info) {
-      if (chrome.runtime.lastError !== undefined) {
-        console.warn('send error: ' + chrome.runtime.lastError.message
-        + ' resultCode: ' + info? 'undefined' : info.resultCode)
-        return
-      }
-      console.log('Sent to the USB device!', that._connectionHandle)
-      if (!info) {
-        callback(D.ERROR_UNKNOWN)
-        return
-      }
-      if (info.resultCode !== 0) {
-        console.warn("send apdu error ", info.resultCode)
-        callback(D.ERROR_DEVICE_COMM)
-        return
-      }
-
-      console.log("send got " + info.data.byteLength + " bytes:")
-      console.log(arrayBufferToHex(info.data))
-
-      receive(callback)
-      // for (i = 0; i < 64; i++) {
-      //   package[i] = 0
-      // }
-      // package[0] = 0x21
-      // package[1] = 0xC3
-      // package[2] = 0x00
-      // package[5] = 0x02
-      // package[7] = 0x60
-      // package[28] = 0xB0
-      // package[29] = 0x04
-      //
-      // chrome.usb.controlTransfer(that._connectionHandle, transferInfo, function(info) {
-      //   if (chrome.runtime.lastError !== undefined) {
-      //     console.warn('send error: ' + chrome.runtime.lastError.message
-      //     + ' resultCode: ' + info? 'undefined' : info.resultCode)
-      //     return
-      //   }
-      //   console.log('Sent to the USB device!', that._connectionHandle)
-      //   if (!info) {
-      //     callback(D.ERROR_UNKNOWN)
-      //     return
-      //   }
-      //   if (info.resultCode !== 0) {
-      //     console.warn("send apdu error ", info.resultCode)
-      //     callback(D.ERROR_DEVICE_COMM)
-      //     return
-      //   }
-      //
-      //   console.log("send got " + info.data.byteLength + " bytes:")
-      //   console.log(arrayBufferToHex(info.data))
-      //   receive(callback)
-      // })
+        console.log('send got ' + info.data.byteLength + ' bytes:')
+        console.log(D.arrayBufferToHex(info.data))
+        resolve()
+        // for (i = 0; i < 64; i++) {
+        //   package[i] = 0
+        // }
+        // package[0] = 0x21
+        // package[1] = 0xC3
+        // package[2] = 0x00
+        // package[5] = 0x02
+        // package[7] = 0x60
+        // package[28] = 0xB0
+        // package[29] = 0x04
+        //
+        // chrome.usb.controlTransfer(that._connectionHandle, transferInfo, function(info) {
+        //   if (chrome.runtime.lastError !== undefined) {
+        //     console.warn('send error: ' + chrome.runtime.lastError.message
+        //     + ' resultCode: ' + info? 'undefined' : info.resultCode)
+        //     return
+        //   }
+        //   console.log('Sent to the USB device!', that._connectionHandle)
+        //   if (!info) {
+        //     callback(D.ERROR_UNKNOWN)
+        //     return
+        //   }
+        //   if (info.resultCode !== 0) {
+        //     console.warn('send apdu error ', info.resultCode)
+        //     callback(D.ERROR_DEVICE_COMM)
+        //     return
+        //   }
+        //
+        //   console.log('send got ' + info.data.byteLength + ' bytes:')
+        //   console.log(arrayBufferToHex(info.data))
+        //   receive(callback)
+        // })
+      })
     })
   }
 
-  var receive = function(callback) {
-    var transferInfo = {
+  // TODO test long apdu and long response
+  let receive = async () => {
+    let transferInfo = {
       direction: 'in',
       requestType: 'class',
       recipient: 'interface',
       request: 0x01,
-      // it can only be 0x0302, otherwise "Transfer failed.", no usb command sent.
+      // it can only be 0x0302, otherwise 'Transfer failed.', no usb command sent.
       value: 0x0302,
       index: 0,
       length: 0x40
     }
     // var transferInfo = {
-    //   "direction": "in",
-    //   "recipient": "interface",
-    //   "requestType": "standard",
-    //   "request": 0x06,
-    //   "value": 0x2200,
-    //   "index": 0,
-    //   "length": 0x183
+    //   'direction': 'in',
+    //   'recipient': 'interface',
+    //   'requestType': 'standard',
+    //   'request': 0x06,
+    //   'value': 0x2200,
+    //   'index': 0,
+    //   'length': 0x183
     // }
-    chrome.usb.controlTransfer(that._connectionHandle, transferInfo, function(info) {
-      if (chrome.runtime.lastError !== undefined) {
-        console.warn('receive error: ' + chrome.runtime.lastError.message
-          + ' resultCode: ' + info.resultCode)
-        return
-      }
-      console.log('receive from the USB device!', that._connectionHandle)
-      if (!info) {
-        callback(D.ERROR_UNKNOWN)
-        return
-      }
-      if (info.resultCode !== 0) {
-        console.warn("receive apdu error ", info.resultCode)
-        callback(D.ERROR_DEVICE_COMM)
-        return
-      }
+    let transfer = new Promise((resolve, reject) => {
+      chrome.usb.controlTransfer(this._connectionHandle, transferInfo, (info) => {
+        if (chrome.runtime.lastError !== undefined) {
+          console.warn('receive error: ' + chrome.runtime.lastError.message + ' resultCode: ' + info.resultCode)
+          reject(D.ERROR_DEVICE_COMM)
+        }
+        console.log('receive from the USB device!', this._connectionHandle)
+        if (info.resultCode !== 0) {
+          console.warn('receive apdu error ', info.resultCode)
+          reject(D.ERROR_DEVICE_COMM)
+        }
 
-      console.log('receive got ' + info.data.byteLength + " bytes:")
-      console.log(arrayBufferToHex(info.data))
-      // callback(D.ERROR_NO_ERROR, info.data)
-
-      var intData = new Uint8Array(info.data)
-      if (intData[5] === 0x02 && intData[6] === 0x00 && intData[7] === 0x60) {
-        receive(callback)
-        return
-      }
-      callback(D.ERROR_NO_ERROR, info.data)
+        console.log('receive got ' + info.data.byteLength + ' bytes:')
+        console.log(D.arrayBufferToHex(info.data))
+        resolve(info.data)
+      })
     })
+    while (true) {
+      let data = await transfer
+      let intData = new Uint8Array(data)
+      if (intData[5] === 0x02 && intData[6] === 0x00 && intData[7] === 0x60) {
+        // busy, keep receiving
+        continue
+      }
+      // TODO receive multi package data
+      return data
+    }
   }
 
-  send(apdu, callback)
+  await send(apdu)
+  return receive()
 }
-EsHidDevice.prototype = new Device()
 
-EsHidDevice.prototype.listenPlug = function(callback) {
+EsHidDevice.prototype.listenPlug = function (callback) {
   this._listener = callback
   if (this._deviceId !== null && this._connectionHandle !== null) {
     callback(D.ERROR_NO_ERROR, true)
   }
-}
-
-function arrayBufferToHex(array) {
-  var hexChars = '0123456789ABCDEF'
-  var hexString = new Array(array.byteLength * 2)
-  var intArray = new Uint8Array(array)
-
-  for (var i = 0; i < intArray.byteLength; i++) {
-    hexString[2 * i] = hexChars.charAt((intArray[i] >> 4) & 0x0f)
-    hexString[2 * i + 1] = hexChars.charAt(intArray[i] & 0x0f)
-  }
-  return hexString.join('')
-}
-
-function hexToArrayBuffer(hex) {
-  var result = new ArrayBuffer(hex.length / 2)
-  var hexChars = '0123456789ABCDEFabcdef'
-  var res = new Uint8Array(result)
-  for (var i = 0; i < hex.length; i += 2) {
-    if (hexChars.indexOf(hex.substring(i, i + 1)) === -1) break
-    res[i / 2] = parseInt(hex.substring(i, i + 2), 16)
-  }
-  return result
 }

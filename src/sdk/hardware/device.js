@@ -1,15 +1,15 @@
 
-var D = require('../def').class
+const D = require('../def').class
 
-var Device = function() {
+const Device = function () {
 }
-
-Device.prototype.listenPlug = function(callback) {
-  callback(D.ERROR_NOT_IMPLEMENTED)
-}
-
-Device.prototype.sendAndReceive = function(apdu, callback) {
-  callback(D.ERROR_NOT_IMPLEMENTED)
-}
-
 module.exports = {class: Device}
+
+Device.prototype.listenPlug = function (callback) {
+  setTimeout(() => callback(D.ERROR_NOT_IMPLEMENTED), 0)
+}
+
+Device.prototype.sendAndReceive = async function (apdu) {
+  await D.wait(0)
+  throw D.ERROR_NOT_IMPLEMENTED
+}

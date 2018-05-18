@@ -95,7 +95,7 @@ CoinData.prototype.getAccounts = async function (deviceId, passPhraseId, callbac
     accounts.push(account)
     if (D.TEST_MODE) {
       console.log('TEST_MODE add test transactionInfo')
-      this.initTestDbData(firstAccount.accountId)
+      await this.initTestDbData(firstAccount.accountId)
     }
     return accounts
   }
@@ -151,28 +151,18 @@ CoinData.prototype.newAccount = async function (deviceId, passPhraseId, coinType
     })
 }
 
-CoinData.prototype.getTransactionInfos = function(filter, callback) {
+CoinData.prototype.getTransactionInfos = function (filter, callback) {
   this._db.getTransactionInfos(filter, callback)
 }
 
-CoinData.prototype.getFloatFee = function(coinType, fee) {
+CoinData.prototype.getFloatFee = function (coinType, fee) {
   return D.getFloatFee(coinType, fee)
 }
 
-// TODO listen transaction after boardcast a transaction successfully
-CoinData.prototype._listenTransaction = function (transactionInfo, callback) {
-  this._network[transactionInfo.coinType].listenTransaction(transactionInfo, callback)
-}
-
 CoinData.prototype.addListener = function (callback) {
-  for (var i in this._listeners) {
-    if (!this._registeredListeners.hasOwnProperty(i)) {
-      continue
-    }
-    if (this._registeredListeners[i] === callback) {
-      console.log('addTransactionListener already has this listener', callback)
-      return
-    }
+  if (this._listeners.reduce((exists, listener) => exists || listener === callback)) {
+    console.log('addTransactionListener already has this listener', callback)
+    return
   }
   this._registeredListeners.push(callback)
 }
@@ -180,9 +170,9 @@ CoinData.prototype.addListener = function (callback) {
 /*
  * Test data in TEST_MODE
  */
-CoinData.prototype.initTestDbData = function (accountId) {
+CoinData.prototype.initTestDbData = async function (accountId) {
   console.log('initTestDbData')
-  this._db.saveOrUpdateTransactionInfo(
+  await this._db.saveOrUpdateTransactionInfo(
     {
       accountId: accountId,
       coinType: D.COIN_BIT_COIN,
@@ -193,10 +183,9 @@ CoinData.prototype.initTestDbData = function (accountId) {
       outIndex: 0,
       script: '76a91499bc78ba577a95a11f1a344d4d2ae55f2f857b9888ac',
       value: 84000000
-    },
-    function() {})
+    })
 
-  this._db.saveOrUpdateTransactionInfo(
+  await this._db.saveOrUpdateTransactionInfo(
     {
       accountId: accountId,
       coinType: D.COIN_BIT_COIN,
@@ -205,10 +194,9 @@ CoinData.prototype.initTestDbData = function (accountId) {
       direction: D.TRANSACTION_DIRECTION_OUT,
       time: 1524138384000,
       value: 18000000
-    },
-    function() {})
+    })
 
-  this._db.saveOrUpdateTransactionInfo(
+  await this._db.saveOrUpdateTransactionInfo(
     {
       accountId: accountId,
       coinType: D.COIN_BIT_COIN,
@@ -217,10 +205,9 @@ CoinData.prototype.initTestDbData = function (accountId) {
       direction: D.TRANSACTION_DIRECTION_OUT,
       time: 1524138384000,
       value: 34000000
-    },
-    function() {})
+    })
 
-  this._db.saveOrUpdateAddressInfo(
+  await this._db.saveOrUpdateAddressInfo(
     {
       address: '',
       accountId: accountId,
@@ -230,14 +217,13 @@ CoinData.prototype.initTestDbData = function (accountId) {
       txCount: 0,
       balance: 0,
       txIds: []
-    },
-    function() {})
+    })
 }
 
-function makeId() {
-  var text = ""
-  var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
-  for(var i = 0; i < 32; i++) {
+function makeId () {
+  let text = ''
+  const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+  for (let i = 0; i < 32; i++) {
     text += possible.charAt(Math.floor(Math.random() * possible.length))
   }
   return text

@@ -4,5 +4,8 @@ module.exports = {
     'browser': true,
     'commonjs': true,
     'mocha': true
+  },
+  'globals': {
+    'chrome': true,
   }
 };
