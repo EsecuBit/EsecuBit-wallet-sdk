@@ -1,6 +1,6 @@
 
-var Wallet = require('../sdk/wallet').class
-var D = require('../sdk/def').class
+var Wallet = require('../sdk/EsWallet').class
+var D = require('../sdk/D').class
 
 var deviceId = "default"
 var passPhraseId = "BA3253876AED6BC22D4A6FF53D8406C6AD864195ED144AB5C87621B6C233B548"

@@ -1,8 +1,8 @@
 
 console.log('start es hid device test')
 
-var EsHidDevice = require('../../sdk/hardware/es_hid_device').class
-var D = require('../../sdk/def')
+var EsHidDevice = require('../../sdk/hardware/EsHidDevice').class
+var D = require('../../sdk/D')
 
 var device = new EsHidDevice()
 

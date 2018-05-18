@@ -1,6 +1,6 @@
 
-const D = require('../../../sdk/def').class
-const BlockchainInfo = require('../../../sdk/data/network/blockchain_info').class
+const D = require('../../../sdk/D').class
+const BlockchainInfo = require('../../../sdk/data/network/BlockChainInfo').class
 require('chai').should()
 
 const blockchainInfo = new BlockchainInfo()

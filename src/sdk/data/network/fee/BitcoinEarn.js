@@ -1,5 +1,5 @@
 
-const D = require('../../../def').class
+const D = require('../../../D').class
 
 const BitCoinFeeEarn = function (fee) {
   fee = fee || {}

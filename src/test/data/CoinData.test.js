@@ -1,6 +1,6 @@
 
-var D = require('../../sdk/def').class
-var coinData = require('../../sdk/data/coin_data').instance
+var D = require('../../sdk/D').class
+var coinData = require('../../sdk/data/CoinData').instance
 require('chai').should()
 
 var deviceId = "default"

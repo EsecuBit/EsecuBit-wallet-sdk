@@ -1,8 +1,8 @@
 
-const D = require('../def').class
+const D = require('../D').class
 const IndexedDB = require('./database/indexed_db').class
-const BlockChainInfo = require('./network/blockchain_info').class
-const Account = require('../account').class
+const BlockChainInfo = require('./network/BlockChainInfo').class
+const Account = require('../EsAccount').class
 
 const CoinData = function () {
   this._initialized = false

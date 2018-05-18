@@ -1,6 +1,6 @@
 
-const D = require('../../../sdk/def').class
-const ChainSo = require('../../../sdk/data/network/chain_so').class
+const D = require('../../../sdk/D').class
+const ChainSo = require('../../../sdk/data/network/ChainSo').class
 require('chai').should()
 
 const chainSo = new ChainSo()

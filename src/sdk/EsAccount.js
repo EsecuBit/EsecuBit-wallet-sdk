@@ -1,5 +1,5 @@
 
-const D = require('./def').class
+const D = require('./D').class
 
 // TODO listen transaction after boardcast a transaction successfully
 const EsAccount = function (info) {
@@ -11,9 +11,9 @@ const EsAccount = function (info) {
   this.coinType = info.coinType
   this.balance = info.balance
 
-  this._device = require('./hardware/core_wallet').instance
+  this._device = require('./hardware/CoreWallet').instance
   // TODO fix circle require
-  this._coinData = require('./data/coin_data').instance
+  this._coinData = require('./data/CoinData').instance
 }
 module.exports = {class: EsAccount}
 

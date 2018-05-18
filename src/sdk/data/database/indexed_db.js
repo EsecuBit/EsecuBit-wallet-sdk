@@ -1,5 +1,5 @@
 
-const D = require('../../def').class
+const D = require('../../D').class
 const Database = require('./database').class
 
 const DB_VERSION = 3

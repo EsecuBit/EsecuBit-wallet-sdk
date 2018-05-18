@@ -44,8 +44,8 @@
  * }
  */
 
-const CoinNetwork = require('./coin_network').class
-const D = require('../../def').class
+const CoinNetwork = require('./CoinNetwork').class
+const D = require('../../D').class
 
 // TODO test
 const ChainSo = function() {

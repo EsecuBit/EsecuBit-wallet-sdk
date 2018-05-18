@@ -8,8 +8,8 @@
 /** @namespace chrome.runtime.lastError */
 /** @namespace chrome.usb.controlTransfer */
 
-const D = require('../def').class
-const Device = require('./device').class
+const D = require('../D').class
+const Device = require('./EsDevice').class
 
 // TODO ask level 3 path publickey to get multi level 5 address
 const EsHidDevice = function() {

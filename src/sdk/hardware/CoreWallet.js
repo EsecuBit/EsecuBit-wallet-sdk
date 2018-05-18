@@ -1,7 +1,7 @@
 
-const D = require('../def').class
-const MockDevice = require('./mock_device').class
-const EsHidDevice = require('./es_hid_device').class
+const D = require('../D').class
+const MockDevice = require('./MockDevice').class
+const EsHidDevice = require('./EsHidDevice').class
 
 const CoreWallet = function () {
   this._deviceTrue = new EsHidDevice()

@@ -1,6 +1,6 @@
 
-const CoinNetwork = require('./coin_network').class
-const D = require('../../def').class
+const CoinNetwork = require('./CoinNetwork').class
+const D = require('../../D').class
 
 const TEST_URL = 'https://testnet.blockchain.info'
 const MAIN_URL = 'https://blockchain.info'

@@ -1,6 +1,6 @@
 
-const D = require('../../../../sdk/def').class
-const BitCoinEarn = require('../../../../sdk/data/network/fee/bitcoin_earn').class
+const D = require('../../../../sdk/D').class
+const BitCoinEarn = require('../../../../sdk/data/network/fee/BitcoinEarn').class
 require('chai').should()
 
 describe('Simple Test', function () {
