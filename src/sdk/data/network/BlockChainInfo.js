@@ -67,7 +67,13 @@ BlockchainInfo.prototype.queryAddresses = async function (addresses) {
     let info = {}
     info.address = rAddress.address
     info.txCount = rAddress.n_tx
-    info.txs = response.txs.map(rTx => wrapTx(rTx))
+    let exist = (io) => {
+      let address = io.addr || io.prev_out.addr
+      return address === rAddress.address
+    }
+    info.txs = response.txs
+      .filter(rTx => rTx.inputs.some(exist) || rTx.out.some(exist))
+      .map(rTx => wrapTx(rTx))
     addressInfos.push(info)
   }
   return addressInfos
@@ -101,7 +107,7 @@ function wrapTx (rTx) {
 }
 
 BlockchainInfo.prototype.queryTransaction = async function (txId) {
-  let response = await this.get([this._apiUrl, 'get_tx', this._coinTypeStr, txId].join('/'))
+  let response = await this.get([this._apiUrl, 'rawtx', txId].join('/') + '?cors=true')
   return wrapTx(response)
 }
 

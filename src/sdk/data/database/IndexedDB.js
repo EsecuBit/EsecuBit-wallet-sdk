@@ -44,17 +44,19 @@ IndexedDB.prototype.init = function () {
       /**
        * transactionInfo:
        * {
-     *   accountId: string,
-     *   coinType: string,
-     *   txId: string,
-     *   blockNumber: 0,
-     *   confirmations: int, // just for showing the status. won't active update after confirmations >= D.TRANSACTION_##COIN_TYPE##_MATURE_CONFIRMATIONS
-     *   time: long,
-     *   direction: D.TRANSACTION_DIRECTION_IN / D.TRANSACTION_DIRECTION_OUT,
-     *   inputs: in array [{prevAddress, isMine, value}]
-     *   outputs: out array [{address, isMine, value}]
-     *   value: long (bitcoin -> santoshi) // value that shows the account balance changes, calculated by inputs and outputs
-     * }
+       *   accountId: string,
+       *   coinType: string,
+       *   txId: string,
+       *   version: int,
+       *   blockNumber: int,
+       *   confirmations: int, // just for showing the status. won't active update after confirmations >= D.TRANSACTION_##COIN_TYPE##_MATURE_CONFIRMATIONS
+       *   lockTime: long,
+       *   time: long,
+       *   direction: D.TRANSACTION_DIRECTION_IN / D.TRANSACTION_DIRECTION_OUT,
+       *   inputs: in array [{prevAddress, isMine, value}]
+       *   outputs: out array [{address, isMine, value}]
+       *   value: long (bitcoin -> santoshi) // value that shows the account balance changes, calculated by inputs and outputs
+       * }
        */
       // TODO createIndex when upgrade?
       if (!db.objectStoreNames.contains('transactionInfo')) {
@@ -67,15 +69,15 @@ IndexedDB.prototype.init = function () {
       /**
        * addressInfo:
        * {
-     *    address: string,
-     *    accountId: string,
-     *    coinType: string,
-     *    path: int array,
-     *    type: D.ADDRESS_EXTERNAL / D.ADDRESS_CHANGE,
-     *    txCount: int,
-     *    balance: long (santoshi),
-     *    txs: [{txId, direction, hasSpent, index, script}]
-     * }
+       *   address: string,
+       *   accountId: string,
+       *   coinType: string,
+       *   path: int array,
+       *   type: D.ADDRESS_EXTERNAL / D.ADDRESS_CHANGE,
+       *   txCount: int,
+       *   balance: long (santoshi),
+       *   txs: [{txId, direction, hasSpent, index, script}]
+       * }
        */
       if (!db.objectStoreNames.contains('addressInfo')) {
         let addressInfo = db.createObjectStore('addressInfo')

@@ -43,29 +43,23 @@ CoinData.prototype.init = async function () {
     return
   }
 
-  // TODO test!
+  let initNetwork = async () => {
+    await Promise.all(Object.entries(this._network).map(([coinType, network]) => network.init(coinType)))
+  }
+
   let sync = async () => {
     // TODO read device to sync old transaction before listen new transaction
     // TODO continue update transaction confirmations if confirmations < D.TRANSACTION_##COIN_TYPE##_MATURE_CONFIRMATIONS
-    await Promise.all(this._network.map(([coinType, network]) => {
-      return async () => {
-        let addressInfos = await this._db.getAddressInfos({coinType: coinType, type: D.ADDRESS_EXTERNAL})
-        network.listenAddresses(addressInfos)
-      }
-    }))()
-  }
-
-  let initNetwork = async () => {
-    await Promise.all(this._network.map(([coinType, network]) => {
-      return async () => {
-        network.init(coinType)
-      }
-    }))()
+    await Promise.all(Object.entries(this._network).map(([coinType, network]) => async () => {
+      let addressInfos = await this._db.getAddressInfos({coinType: coinType, type: D.ADDRESS_EXTERNAL})
+      await network.listenAddresses(addressInfos)
+    }))
   }
 
   await this._db.init()
   await initNetwork()
   await sync()
+  this._initialized = true
 }
 
 CoinData.prototype.release = function () {
@@ -75,7 +69,7 @@ CoinData.prototype.release = function () {
   }
 }
 
-CoinData.prototype.getAccounts = async function (deviceId, passPhraseId, callback) {
+CoinData.prototype.getAccounts = async function (deviceId, passPhraseId) {
   let accounts = await this._db.getAccounts(deviceId, passPhraseId)
   if (accounts.length === 0) {
     console.log('no accounts, init the first account')
@@ -97,10 +91,9 @@ CoinData.prototype.getAccounts = async function (deviceId, passPhraseId, callbac
       console.log('TEST_MODE add test transactionInfo')
       await this.initTestDbData(firstAccount.accountId)
     }
-    return accounts
   }
 
-  return accounts.map((account) => new Account(account))
+  return accounts.map(account => new Account(account))
 }
 
 CoinData.prototype.newAccount = async function (deviceId, passPhraseId, coinType) {
