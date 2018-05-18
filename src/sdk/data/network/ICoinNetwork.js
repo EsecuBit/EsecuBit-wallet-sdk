@@ -12,7 +12,7 @@ if (D.TEST_MODE) {
   TRANSACTION_REQUEST_PERIOD = 5 // seconds per request
 }
 
-const CoinNetwork = function () {
+const ICoinNetwork = function () {
   this.startQueue = false
   this.coinType = 'undefined'
   this._blockHeight = -1
@@ -34,12 +34,12 @@ const CoinNetwork = function () {
     }
   }
 }
-module.exports = {class: CoinNetwork}
+module.exports = {class: ICoinNetwork}
 
-CoinNetwork.prototype.provider = 'undefined'
-CoinNetwork.prototype.website = 'undefined'
+ICoinNetwork.prototype.provider = 'undefined'
+ICoinNetwork.prototype.website = 'undefined'
 
-CoinNetwork.prototype.get = function (url) {
+ICoinNetwork.prototype.get = function (url) {
   return new Promise((resolve, reject) => {
     let xmlhttp = new XMLHttpRequest()
     xmlhttp.onreadystatechange = () => {
@@ -66,7 +66,7 @@ CoinNetwork.prototype.get = function (url) {
   })
 }
 
-CoinNetwork.prototype.post = function (url, args) {
+ICoinNetwork.prototype.post = function (url, args) {
   return new Promise((resolve, reject) => {
     const xmlhttp = new XMLHttpRequest()
     xmlhttp.onreadystatechange = () => {
@@ -96,7 +96,7 @@ CoinNetwork.prototype.post = function (url, args) {
 /**
  * listen transaction confirm status
  */
-CoinNetwork.prototype.listenTransaction = function (transactionInfo, callback) {
+ICoinNetwork.prototype.listenTransaction = function (transactionInfo, callback) {
   const that = this
   this._requestList.push({
     type: TYPE_TRANSACTION_INFO,
@@ -130,7 +130,7 @@ CoinNetwork.prototype.listenTransaction = function (transactionInfo, callback) {
 /**
  * listen new transaction from specific address
  */
-CoinNetwork.prototype.listenAddresses = function (addressInfos, callback) {
+ICoinNetwork.prototype.listenAddresses = function (addressInfos, callback) {
   const that = this
   if (this._supportMultiAddresses) {
     let addressMap = {}
@@ -218,7 +218,7 @@ CoinNetwork.prototype.listenAddresses = function (addressInfos, callback) {
   }
 }
 
-CoinNetwork.prototype.init = async function (coinType) {
+ICoinNetwork.prototype.init = async function (coinType) {
   this.startQueue = true
   // start the request loop
   setTimeout(this._queue, this._requestRate * 1000)
@@ -226,7 +226,7 @@ CoinNetwork.prototype.init = async function (coinType) {
   return {}
 }
 
-CoinNetwork.prototype.release = function () {
+ICoinNetwork.prototype.release = function () {
   this.startQueue = false
   this._requestList = []
 }
@@ -235,15 +235,15 @@ CoinNetwork.prototype.release = function () {
  * @return addressInfo array
  * @see addressInfo
  */
-CoinNetwork.prototype.queryAddresses = async function (addresses) {
+ICoinNetwork.prototype.queryAddresses = async function (addresses) {
   await D.wait(0)
   throw D.ERROR_NOT_IMPLEMENTED
 }
+
 /**
  * @return addressInfo:
  * {
  *    address: string,
- *    balance: int,
  *    txCount: int,
  *    txs: tx array
  * }
@@ -251,7 +251,7 @@ CoinNetwork.prototype.queryAddresses = async function (addresses) {
  * @see queryTransaction
  *
  */
-CoinNetwork.prototype.queryAddress = async function (address) {
+ICoinNetwork.prototype.queryAddress = async function (address) {
   await D.wait(0)
   throw D.ERROR_NOT_IMPLEMENTED
 }
@@ -272,12 +272,12 @@ CoinNetwork.prototype.queryAddress = async function (address) {
  * }
  *
  */
-CoinNetwork.prototype.queryTransaction = async function (txId) {
+ICoinNetwork.prototype.queryTransaction = async function (txId) {
   await D.wait(0)
   throw D.ERROR_NOT_IMPLEMENTED
 }
 
-CoinNetwork.prototype.sendTrnasaction = async function (rawTransaction) {
+ICoinNetwork.prototype.sendTrnasaction = async function (rawTransaction) {
   await D.wait(0)
   throw D.ERROR_NOT_IMPLEMENTED
 }

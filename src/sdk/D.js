@@ -36,11 +36,21 @@ const D = {
   FEE_NORMAL: 'normal',
   FEE_ECNOMIC: 'economy',
 
-  getFloatFee: function (coinType, fee) {
+  getFloatFee: function (coinType, intFee) {
     switch (coinType) {
       case D.COIN_BIT_COIN:
       case D.COIN_BIT_COIN_TEST:
-        return Number(fee / 100000000)
+        return Number(intFee / 100000000)
+      default:
+        throw D.ERROR_COIN_NOT_SUPPORTED
+    }
+  },
+
+  getIntFee: function (coinType, floatFee) {
+    switch (coinType) {
+      case D.COIN_BIT_COIN:
+      case D.COIN_BIT_COIN_TEST:
+        return Number(floatFee * 100000000)
       default:
         throw D.ERROR_COIN_NOT_SUPPORTED
     }

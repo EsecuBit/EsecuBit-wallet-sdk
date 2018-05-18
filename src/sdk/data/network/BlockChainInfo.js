@@ -1,5 +1,5 @@
 
-const CoinNetwork = require('./CoinNetwork').class
+const CoinNetwork = require('./ICoinNetwork').class
 const D = require('../../D').class
 
 const TEST_URL = 'https://testnet.blockchain.info'
@@ -33,45 +33,80 @@ BlockchainInfo.prototype.init = async function (coinType) {
   return {blockHeight: this._blockHeight}
 }
 
-BlockchainInfo.prototype.queryAddresses = function (addresses, callback) {
-  this.get(this._apiUrl + '/multiaddr?cors=true&active=' + addresses.join('|'), callback, function (response) {
-    // TODO warp response
-    callback(D.ERROR_NO_ERROR, response)
-  })
+/**
+ * @return addressInfo:
+ * {
+ *    address: string,
+ *    txCount: int,
+ *    txs: tx array
+ * }
+ *
+ * @see queryTransaction
+ *
+ */
+/**
+ *
+ * @return tx:
+ * {
+ *    txId: string,
+ *    version: int,
+ *    blockNumber: int,
+ *    confirmations: int,
+ *    lockTime: long
+ *    time: long,
+ *    hasDetails: bool,   // for queryAddress only, whether the tx has inputs and outputs. e.g. blockchain.info -> true, chain.so -> false
+ *    intputs: [{prevAddress, value(bitcoin -> santoshi)}],
+ *    outputs: [{address, value(bitcoin -> santoshi)}, index, script]
+ * }
+ *
+ */
+BlockchainInfo.prototype.queryAddresses = async function (addresses) {
+  let response = await this.get(this._apiUrl + '/multiaddr?cors=true&active=' + addresses.join('|'))
+  let addressInfos = []
+  for (let rAddress of response.addresses) {
+    let info = {}
+    info.address = rAddress.address
+    info.txCount = rAddress.n_tx
+    info.txs = response.txs.map(rTx => wrapTx(rTx))
+    addressInfos.push(info)
+  }
+  return addressInfos
 }
 
-BlockchainInfo.prototype.queryTransaction = async function (txId, callback) {
-  let response = await this.get([this._apiUrl, 'get_tx', this._coinTypeStr, txId].join('/'))
-  let transactionInfo = {
-    txId: response.data.txid,
-    version: response.data.version,
-    blockNumber: response.data.block_no,
-    confirmations: response.data.confirmations,
-    locktime: response.data.locktime,
-    time: response.data.time,
+function wrapTx (rTx) {
+  let tx = {
+    txId: rTx.hash,
+    version: rTx.ver,
+    blockNumber: rTx.block_height,
+    confirmations: rTx.weight,
+    lockTime: rTx.lock_time,
+    time: rTx.time,
     hasDetails: true
   }
-  transactionInfo.inputs = []
-  for (let input of response.inputs) {
-    transactionInfo.inputs.push({
-      address: input.address,
-      value: D.getFloatFee(this.coinType, input.value)
-    })
-  }
-  transactionInfo.outputs = []
-  for (let output of response.outputs) {
-    transactionInfo.outputs.push({
-      address: output.address,
-      value: D.getFloatFee(this.coinType, output.value),
-      index: output.output_no,
-      script: output.script_hex
-    })
-  }
-  callback(D.ERROR_NO_ERROR, transactionInfo)
+  tx.inputs = rTx.inputs.map(input => {
+    return {
+      prevAddress: input.prev_out.addr,
+      value: input.prev_out.value
+    }
+  })
+  tx.outputs = rTx.out.map(output => {
+    return {
+      address: output.addr,
+      value: output.value,
+      index: output.n,
+      script: output.script
+    }
+  })
+  return tx
+}
+
+BlockchainInfo.prototype.queryTransaction = async function (txId) {
+  let response = await this.get([this._apiUrl, 'get_tx', this._coinTypeStr, txId].join('/'))
+  return wrapTx(response)
 }
 
 BlockchainInfo.prototype.sendTransaction = async (rawTransaction) => {
-  let response = await this.post([this._apiUrl, 'send_tx', this._coinTypeStr].join('/'), {tx_hex: rawTransaction});
+  let response = await this.post([this._apiUrl, 'send_tx', this._coinTypeStr].join('/'), {tx_hex: rawTransaction})
   // TODO wrap
   return response
 }

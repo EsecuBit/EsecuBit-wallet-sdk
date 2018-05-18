@@ -40,6 +40,7 @@ EsAccount.prototype.getAddress = async function (addressParam) {
   return { address: address, qrAddress: prefix + address }
 }
 
+// TODO judge lockTime, judge confirmations?
 EsAccount.prototype.sendBitCoin = async function (transaction, callback) {
   let enc = new TextEncoder()
   console.dir(enc)

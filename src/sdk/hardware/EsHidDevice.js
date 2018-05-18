@@ -9,7 +9,7 @@
 /** @namespace chrome.usb.controlTransfer */
 
 const D = require('../D').class
-const Device = require('./EsDevice').class
+const Device = require('./IEsDevice').class
 
 // TODO ask level 3 path publickey to get multi level 5 address
 const EsHidDevice = function() {
@@ -201,25 +201,27 @@ EsHidDevice.prototype.sendAndReceive = async function (apdu) {
     //   'index': 0,
     //   'length': 0x183
     // }
-    let transfer = new Promise((resolve, reject) => {
-      chrome.usb.controlTransfer(this._connectionHandle, transferInfo, (info) => {
-        if (chrome.runtime.lastError !== undefined) {
-          console.warn('receive error: ' + chrome.runtime.lastError.message + ' resultCode: ' + info.resultCode)
-          reject(D.ERROR_DEVICE_COMM)
-        }
-        console.log('receive from the USB device!', this._connectionHandle)
-        if (info.resultCode !== 0) {
-          console.warn('receive apdu error ', info.resultCode)
-          reject(D.ERROR_DEVICE_COMM)
-        }
+    let transfer = () => {
+      return new Promise((resolve, reject) => {
+        chrome.usb.controlTransfer(this._connectionHandle, transferInfo, (info) => {
+          if (chrome.runtime.lastError !== undefined) {
+            console.warn('receive error: ' + chrome.runtime.lastError.message + ' resultCode: ' + info.resultCode)
+            reject(D.ERROR_DEVICE_COMM)
+          }
+          console.log('receive from the USB device!', this._connectionHandle)
+          if (info.resultCode !== 0) {
+            console.warn('receive apdu error ', info.resultCode)
+            reject(D.ERROR_DEVICE_COMM)
+          }
 
-        console.log('receive got ' + info.data.byteLength + ' bytes:')
-        console.log(D.arrayBufferToHex(info.data))
-        resolve(info.data)
+          console.log('receive got ' + info.data.byteLength + ' bytes:')
+          console.log(D.arrayBufferToHex(info.data))
+          resolve(info.data)
+        })
       })
-    })
+    }
     while (true) {
-      let data = await transfer
+      let data = await transfer()
       let intData = new Uint8Array(data)
       if (intData[5] === 0x02 && intData[6] === 0x00 && intData[7] === 0x60) {
         // busy, keep receiving

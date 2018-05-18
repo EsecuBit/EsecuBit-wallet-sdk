@@ -44,7 +44,7 @@
  * }
  */
 
-const CoinNetwork = require('./CoinNetwork').class
+const CoinNetwork = require('./ICoinNetwork').class
 const D = require('../../D').class
 
 // TODO test
@@ -113,14 +113,14 @@ ChainSo.prototype.queryTransaction = async function (txId, callback) {
   for (let input of response.inputs) {
     transactionInfo.inputs.push({
       address: input.address,
-      value: D.getFloatFee(this.coinType, input.value)
+      value: D.getIntFee(this.coinType, input.value)
     })
   }
   transactionInfo.outputs = []
   for (let output of response.outputs) {
     transactionInfo.outputs.push({
       address: output.address,
-      value: D.getFloatFee(this.coinType, output.value),
+      value: D.getIntFee(this.coinType, output.value),
       index: output.output_no,
       script: output.script_hex
     })

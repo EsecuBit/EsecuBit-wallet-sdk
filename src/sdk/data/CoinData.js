@@ -1,6 +1,6 @@
 
 const D = require('../D').class
-const IndexedDB = require('./database/indexed_db').class
+const IndexedDB = require('./database/IndexedDB').class
 const BlockChainInfo = require('./network/BlockChainInfo').class
 const Account = require('../EsAccount').class
 
@@ -182,7 +182,8 @@ CoinData.prototype.initTestDbData = async function (accountId) {
       time: 1524138384000,
       outIndex: 0,
       script: '76a91499bc78ba577a95a11f1a344d4d2ae55f2f857b9888ac',
-      value: 84000000
+      value: 84000000,
+      hasDetails: false
     })
 
   await this._db.saveOrUpdateTransactionInfo(
@@ -193,7 +194,8 @@ CoinData.prototype.initTestDbData = async function (accountId) {
       address: '3PfcrxHzT6WuNo7tcqmAdLKn6EvgXCCSiQ',
       direction: D.TRANSACTION_DIRECTION_OUT,
       time: 1524138384000,
-      value: 18000000
+      value: 18000000,
+      hasDetails: false
     })
 
   await this._db.saveOrUpdateTransactionInfo(
@@ -204,7 +206,8 @@ CoinData.prototype.initTestDbData = async function (accountId) {
       address: '14F7iCA4FsPEYj67Jpme2puVmwAT6VoVEU',
       direction: D.TRANSACTION_DIRECTION_OUT,
       time: 1524138384000,
-      value: 34000000
+      value: 34000000,
+      hasDetails: false
     })
 
   await this._db.saveOrUpdateAddressInfo(

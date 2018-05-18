@@ -1,6 +1,6 @@
 
 const D = require('../../D').class
-const Database = require('./database').class
+const Database = require('./IDatabase').class
 
 const DB_VERSION = 3
 
@@ -28,12 +28,12 @@ IndexedDB.prototype.init = function () {
       /**
        * account:
        * {
-     *   accountId: string,
-     *   label: string,
-     *   deviceID: string,
-     *   passPhraseID: string,
-     *   coinType: string
-     * }
+       *   accountId: string,
+       *   label: string,
+       *   deviceID: string,
+       *   passPhraseID: string,
+       *   coinType: string
+       * }
        */
       if (!db.objectStoreNames.contains('account')) {
         let account = db.createObjectStore('account', {autoIncrement: true})
@@ -51,8 +51,8 @@ IndexedDB.prototype.init = function () {
      *   confirmations: int, // just for showing the status. won't active update after confirmations >= D.TRANSACTION_##COIN_TYPE##_MATURE_CONFIRMATIONS
      *   time: long,
      *   direction: D.TRANSACTION_DIRECTION_IN / D.TRANSACTION_DIRECTION_OUT,
-     *   inputs: string array [{address, isMine, value}]
-     *   outputs: string array [{address, isMine, value}]
+     *   inputs: in array [{prevAddress, isMine, value}]
+     *   outputs: out array [{address, isMine, value}]
      *   value: long (bitcoin -> santoshi) // value that shows the account balance changes, calculated by inputs and outputs
      * }
        */

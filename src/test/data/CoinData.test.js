@@ -132,7 +132,8 @@ describe('Coin Data', function () {
             confirmedTime: 1524138384000,
             outIndex: 0,
             script: '76a91499bc78ba577a95a11f1a344d4d2ae55f2f857b9888ac',
-            value: 84000000
+            value: 84000000,
+            hasDetails: false
           })
           transactions[1].should.deep.equal({
             accountId: accountId,
@@ -142,7 +143,8 @@ describe('Coin Data', function () {
             address: '3PfcrxHzT6WuNo7tcqmAdLKn6EvgXCCSiQ',
             createTime: 1524138384000,
             confirmedTime: 1524138384000,
-            value: 18000000
+            value: 18000000,
+            hasDetails: false
           })
           transactions[2].should.deep.equal({
             accountId: accountId,
@@ -152,7 +154,8 @@ describe('Coin Data', function () {
             createTime: 1524138384000,
             confirmedTime: 1524138384000,
             direction: 'out',
-            value: 34000000
+            value: 34000000,
+            hasDetails: false
           })
         } else {
           total.should.equal(0)

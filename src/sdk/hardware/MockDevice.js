@@ -1,6 +1,6 @@
 
 const D = require('../D').class
-const Device = require('./EsDevice').class
+const Device = require('./IEsDevice').class
 
 const ADDRESSES = [
   '3141317A5031655035514765666932444D505466544C35534C6D7637446976664E61',
