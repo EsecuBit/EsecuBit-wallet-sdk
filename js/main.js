@@ -210,7 +210,7 @@ layui.use(['jquery','form','jqGrid','localeEn','laypage','element','qrcode'], fu
             //分页参数
             var startItem = limit*(page-1),
                 endItem = limit*(page-1)+limit-1;
-            val.getTransactionInfos(startItem, endItem, function (error, total, transactions) {
+            val.getTxInfos(startItem, endItem, function (error, total, transactions) {
                 console.log(total);
                 console.log(transactions);
                 //清空表格并且重载

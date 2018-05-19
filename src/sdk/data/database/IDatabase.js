@@ -18,7 +18,7 @@ IDatabase.prototype.getAccounts = async function (deviceID, passPhraseID) {
 }
 
 // noinspection JSUnusedLocalSymbols
-IDatabase.prototype.saveTransactionInfo = async function (transactionInfo) {
+IDatabase.prototype.saveTxInfo = async function (txInfo) {
   await D.wait(0)
   throw D.ERROR_NOT_IMPLEMENTED
 }
@@ -28,7 +28,7 @@ IDatabase.prototype.saveTransactionInfo = async function (transactionInfo) {
  *
  * @param filter {accountId}
  */
-IDatabase.prototype.getTransactionInfos = async function (filter) {
+IDatabase.prototype.getTxInfos = async function (filter) {
   await D.wait(0)
   throw D.ERROR_NOT_IMPLEMENTED
 }

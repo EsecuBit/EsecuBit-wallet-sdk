@@ -1,12 +1,13 @@
 
-var Wallet = require('../sdk/EsWallet').class
-var D = require('../sdk/D').class
+const Wallet = require('../sdk/EsWallet').class
+const D = require('../sdk/D').class
 
-var deviceId = "default"
-var passPhraseId = "BA3253876AED6BC22D4A6FF53D8406C6AD864195ED144AB5C87621B6C233B548"
-var coinType = D.COIN_BIT_COIN
-var wallet = new Wallet()
+const deviceId = 'default'
+const passPhraseId = 'BA3253876AED6BC22D4A6FF53D8406C6AD864195ED144AB5C87621B6C233B548'
+const coinType = D.COIN_BIT_COIN
+const wallet = new Wallet()
 
+// TODO test
 wallet.listenDevice(function (error, isPlugIn) {
   console.log('listenDevice: error ' + error + ', isPlugIn ' + isPlugIn)
 
@@ -29,7 +30,7 @@ wallet.listenDevice(function (error, isPlugIn) {
       return
     }
 
-    var account = accounts[0]
+    const account = accounts[0]
     account.getAddress({}, function (error, address) {
       console.log('getAddress: error ' + error)
       console.dir(address)
@@ -64,8 +65,8 @@ wallet.listenDevice(function (error, isPlugIn) {
         console.dir(address)
       })
 
-      account.getTransactionInfos(0, 10, function (error, total, transactions) {
-        console.log('getTransactionInfo: error ' + error)
+      account.getTxInfos(0, 10, function (error, total, transactions) {
+        console.log('getTxInfo: error ' + error)
         console.dir(total)
         console.dir(transactions)
       })

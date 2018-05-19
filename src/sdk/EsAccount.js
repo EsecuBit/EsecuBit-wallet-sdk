@@ -17,8 +17,8 @@ const EsAccount = function (info) {
 }
 module.exports = {class: EsAccount}
 
-EsAccount.prototype.getTransactionInfos = async function (startIndex, endIndex) {
-  await this._coinData.getTransactionInfos(
+EsAccount.prototype.getTxInfos = async function (startIndex, endIndex) {
+  await this._coinData.getTxInfos(
     {
       accountId: this.accountId,
       startIndex: startIndex,

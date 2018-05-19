@@ -100,7 +100,7 @@ ChainSo.prototype.queryAddress = async function (address) {
 
 ChainSo.prototype.queryTransaction = async function (txId, callback) {
   let response = await this.get([this._apiUrl, 'get_tx', this._coinTypeStr, txId].join('/'))
-  let transactionInfo = {
+  let txInfo = {
     txId: response.txid,
     version: response.version,
     blockNumber: response.block_no,
@@ -109,23 +109,23 @@ ChainSo.prototype.queryTransaction = async function (txId, callback) {
     time: response.time,
     hasDetails: true
   }
-  transactionInfo.inputs = []
+  txInfo.inputs = []
   for (let input of response.inputs) {
-    transactionInfo.inputs.push({
+    txInfo.inputs.push({
       address: input.address,
       value: D.getIntFee(this.coinType, input.value)
     })
   }
-  transactionInfo.outputs = []
+  txInfo.outputs = []
   for (let output of response.outputs) {
-    transactionInfo.outputs.push({
+    txInfo.outputs.push({
       address: output.address,
       value: D.getIntFee(this.coinType, output.value),
       index: output.output_no,
       script: output.script_hex
     })
   }
-  return transactionInfo
+  return txInfo
 }
 
 ChainSo.prototype.sendTransaction = async function (rawTransaction) {

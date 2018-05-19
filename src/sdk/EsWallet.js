@@ -31,8 +31,8 @@ EsWallet.prototype.listenDevice = function (callback) {
   })
 }
 
-EsWallet.prototype.listenTransactionInfo = function () {
-  return this._coinData.listenTransactionInfo()
+EsWallet.prototype.listenTxInfo = function () {
+  return this._coinData.listenTxInfo()
 }
 
 EsWallet.prototype.getAccounts = function (deviceID, passPhraseID) {

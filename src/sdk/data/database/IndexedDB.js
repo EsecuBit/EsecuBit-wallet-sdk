@@ -32,7 +32,10 @@ IndexedDB.prototype.init = function () {
        *   label: string,
        *   deviceID: string,
        *   passPhraseID: string,
-       *   coinType: string
+       *   coinType: string,
+       *   balance: long,
+       *   extendPublicKey: string,
+       *   changePublicKey: string
        * }
        */
       if (!db.objectStoreNames.contains('account')) {
@@ -42,7 +45,7 @@ IndexedDB.prototype.init = function () {
       }
 
       /**
-       * transactionInfo:
+       * txInfo:
        * {
        *   accountId: string,
        *   coinType: string,
@@ -52,18 +55,18 @@ IndexedDB.prototype.init = function () {
        *   confirmations: int, // just for showing the status. won't active update after confirmations >= D.TRANSACTION_##COIN_TYPE##_MATURE_CONFIRMATIONS
        *   lockTime: long,
        *   time: long,
-       *   direction: D.TRANSACTION_DIRECTION_IN / D.TRANSACTION_DIRECTION_OUT,
+       *   direction: D.TX_DIRECTION_IN / D.TX_DIRECTION_OUT,
        *   inputs: in array [{prevAddress, isMine, value}]
        *   outputs: out array [{address, isMine, value}]
        *   value: long (bitcoin -> santoshi) // value that shows the account balance changes, calculated by inputs and outputs
        * }
        */
       // TODO createIndex when upgrade?
-      if (!db.objectStoreNames.contains('transactionInfo')) {
-        let transactionInfo = db.createObjectStore('transactionInfo', {autoIncrement: true})
-        transactionInfo.createIndex('accountId', 'accountId', {unique: false})
-        transactionInfo.createIndex('txId', 'txId', {unique: false})
-        transactionInfo.createIndex('time', 'time', {unique: false})
+      if (!db.objectStoreNames.contains('txInfo')) {
+        let txInfo = db.createObjectStore('txInfo', {autoIncrement: true})
+        txInfo.createIndex('accountId', 'accountId', {unique: false})
+        txInfo.createIndex('txId', 'txId', {unique: false})
+        txInfo.createIndex('time', 'time', {unique: false})
       }
 
       /**
@@ -145,28 +148,28 @@ IndexedDB.prototype.getAccounts = function (deviceId, passPhraseId) {
   })
 }
 
-IndexedDB.prototype.saveOrUpdateTransactionInfo = function (transactionInfo) {
+IndexedDB.prototype.saveOrUpdateTxInfo = function (txInfo) {
   return new Promise((resolve, reject) => {
     if (this._db === null) {
       reject(D.ERROR_DATABASE_OPEN_FAILED)
       return
     }
 
-    let request = this._db.transaction(['transactionInfo'], 'readwrite')
-      .objectStore('transactionInfo')
-      .add(transactionInfo)
+    let request = this._db.transaction(['txInfo'], 'readwrite')
+      .objectStore('txInfo')
+      .add(txInfo)
 
     request.onsuccess = function () {
-      resolve(transactionInfo)
+      resolve(txInfo)
     }
     request.onerror = function (e) {
-      console.warn('saveOrUpdateTransactionInfo', e)
-      reject(D.ERROR_DATABASE_EXEC_FAILED, transactionInfo)
+      console.warn('saveOrUpdateTxInfo', e)
+      reject(D.ERROR_DATABASE_EXEC_FAILED, txInfo)
     }
   })
 }
 
-IndexedDB.prototype.getTransactionInfos = function (filter) {
+IndexedDB.prototype.getTxInfos = function (filter) {
   return new Promise((resolve, reject) => {
     if (this._db === null) {
       reject(D.ERROR_DATABASE_OPEN_FAILED)
@@ -176,15 +179,15 @@ IndexedDB.prototype.getTransactionInfos = function (filter) {
     let request
     if (filter.accountId !== null) {
       // var range = IDBKeyRange.bound(startIndex, endIndex)
-      request = this._db.transaction(['transactionInfo'], 'readonly')
-        .objectStore('transactionInfo')
+      request = this._db.transaction(['txInfo'], 'readonly')
+        .objectStore('txInfo')
         .index('accountId')
         .openCursor(filter.accountId)
       // TODO optimize
       // .openCursor(range)
     } else {
-      request = this._db.transaction(['transactionInfo'], 'readonly')
-        .objectStore('transactionInfo')
+      request = this._db.transaction(['txInfo'], 'readonly')
+        .objectStore('txInfo')
         .openCursor()
     }
 
@@ -203,7 +206,7 @@ IndexedDB.prototype.getTransactionInfos = function (filter) {
       cursor.continue()
     }
     request.onerror = function (e) {
-      console.log('getTransactionInfos', e)
+      console.log('getTxInfos', e)
       reject(D.ERROR_DATABASE_EXEC_FAILED)
     }
   })

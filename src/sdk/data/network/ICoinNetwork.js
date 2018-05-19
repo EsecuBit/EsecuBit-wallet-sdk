@@ -96,11 +96,11 @@ ICoinNetwork.prototype.post = function (url, args) {
 /**
  * listen transaction confirm status
  */
-ICoinNetwork.prototype.listenTransaction = function (transactionInfo, callback) {
+ICoinNetwork.prototype.listenTransaction = function (txInfo, callback) {
   const that = this
   this._requestList.push({
     type: TYPE_TRANSACTION_INFO,
-    transactionInfo: transactionInfo,
+    txInfo: txInfo,
     nextTime: new Date().getTime(),
     request: () => {
       let remove = function remove (arr, val) {
@@ -110,17 +110,17 @@ ICoinNetwork.prototype.listenTransaction = function (transactionInfo, callback) 
         }
       }
 
-      that.queryTransaction(this.transactionInfo.txId, (error, response) => {
+      that.queryTransaction(this.txInfo.txId, (error, response) => {
         if (error !== D.ERROR_NO_ERROR) {
           callback(error)
           return
         }
-        this.transactionInfo.confirmations = response.confirmations
+        this.txInfo.confirmations = response.confirmations
         if (response.confirmations >= D.TRANSACTION_BTC_MATURE_CONFIRMATIONS) {
           console.info('confirmations enough, remove', this)
           remove(that._requestList, this)
         }
-        callback(error, this.transactionInfo)
+        callback(error, this.txInfo)
       })
       this.nextTime = new Date().getTime() + TRANSACTION_REQUEST_PERIOD * 1000
     }
@@ -204,16 +204,16 @@ ICoinNetwork.prototype.listenAddresses = function (addressInfos, callback) {
 
     function newTransaction (addressInfo, tx) {
       addressInfo.txs.push(tx.txId)
-      let transactionInfo = {
+      let txInfo = {
         accountId: addressInfo.accountId,
         coinType: addressInfo.coinType,
         txId: tx.txId,
         confirmations: tx.confirmations,
         time: tx.time,
-        direction: D.TRANSACTION_DIRECTION_IN,
+        direction: D.TX_DIRECTION_IN,
         value: tx.value
       }
-      callback(D.ERROR_NO_ERROR, addressInfo, transactionInfo)
+      callback(D.ERROR_NO_ERROR, addressInfo, txInfo)
     }
   }
 }
