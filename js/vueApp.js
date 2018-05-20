@@ -27,7 +27,7 @@ var i18n=new VueI18n({
             receiveBitcoins: "Receive Bitcoins",
             sendDescription:"Please use the mobile phone to scan the QR code in the picture",
             display:"display",
-            hardwareInformation:"hardware information",
+            hardwareInformation:"device information",
             selectLang:"Interface Language"
         },
         "zh-CN":{

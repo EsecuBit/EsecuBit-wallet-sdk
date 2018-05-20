@@ -23,7 +23,7 @@
     , top: '50%'            // center vertically
     , left: '50%'           // center horizontally
     , shadow: false         // Whether to render a shadow
-    , hwaccel: false        // Whether to use hardware acceleration (might be buggy)
+    , hwaccel: false        // Whether to use device acceleration (might be buggy)
     , position: 'absolute'  // Element positioning
     }
  var target = document.getElementById('foo')
@@ -166,7 +166,7 @@
         , top: '50%'            // center vertically
         , left: '50%'           // center horizontally
         , shadow: false         // Whether to render a shadow
-        , hwaccel: false        // Whether to use hardware acceleration (might be buggy)
+        , hwaccel: false        // Whether to use device acceleration (might be buggy)
         , position: 'absolute'  // Element positioning
     }
 

@@ -2,7 +2,7 @@
 const D = require('./D').class
 
 const EsWallet = function () {
-  this._device = require('./hardware/CoreWallet').instance
+  this._device = require('./device/CoreWallet').instance
   this._coinData = require('./data/CoinData').instance
 }
 module.exports = {class: EsWallet}

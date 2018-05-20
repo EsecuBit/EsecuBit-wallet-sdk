@@ -11,7 +11,7 @@ const EsAccount = function (info) {
   this.coinType = info.coinType
   this.balance = info.balance
 
-  this._device = require('./hardware/CoreWallet').instance
+  this._device = require('./device/CoreWallet').instance
   // TODO fix circle require
   this._coinData = require('./data/CoinData').instance
 }
