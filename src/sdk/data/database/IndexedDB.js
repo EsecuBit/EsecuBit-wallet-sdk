@@ -34,6 +34,7 @@ IndexedDB.prototype.init = function () {
        *   passPhraseID: string,
        *   coinType: string,
        *   balance: long,
+       *   path: string, // TODO complete
        *   extendPublicKey: string,
        *   changePublicKey: string
        * }
@@ -75,7 +76,7 @@ IndexedDB.prototype.init = function () {
        *   address: string,
        *   accountId: string,
        *   coinType: string,
-       *   path: int array,
+       *   path: string,
        *   type: D.ADDRESS_EXTERNAL / D.ADDRESS_CHANGE,
        *   txCount: int,
        *   balance: long (santoshi),

@@ -116,7 +116,7 @@ ICoinNetwork.prototype.listenTransaction = function (txInfo, callback) {
           return
         }
         this.txInfo.confirmations = response.confirmations
-        if (response.confirmations >= D.TRANSACTION_BTC_MATURE_CONFIRMATIONS) {
+        if (response.confirmations >= D.TX_BTC_MATURE_CONFIRMATIONS) {
           console.info('confirmations enough, remove', this)
           remove(that._requestList, this)
         }

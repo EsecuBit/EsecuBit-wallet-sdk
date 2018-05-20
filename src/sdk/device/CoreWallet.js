@@ -10,7 +10,7 @@ const CoreWallet = function () {
 module.exports = {instance: new CoreWallet()}
 
 CoreWallet.prototype.init = function () {
-  D.wait(0)
+  return D.wait(0)
 }
 
 CoreWallet.prototype.listenPlug = function (callback) {

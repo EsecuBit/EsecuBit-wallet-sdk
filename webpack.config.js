@@ -51,8 +51,8 @@ module.exports = {
     },
 
 	plugins: [
-		new UglifyJSPlugin(),
-		new MiniCssExtractPlugin({ filename: 'style.css' })
+		// new UglifyJSPlugin(),
+		// new MiniCssExtractPlugin({ filename: 'style.css' })
 	],
 	entry: ['babel-polyfill', __dirname + '/src/index.js'],
 
