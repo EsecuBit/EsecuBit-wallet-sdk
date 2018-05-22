@@ -3,15 +3,24 @@
 const D = require('../D').class
 const bitcoin = require('bitcoinjs-lib')
 
+// TODO remove when publish
 const TEST_SEED = 'aa49342d805682f345135afcba79ffa7d50c2999944b91d88e01e1d38b80ca63'
 
+const NETWORK = D.TEST_MODE ? bitcoin.networks.testnet : bitcoin.networks.bitcoin
+
 const JsWallet = function () {
-  this._root = bitcoin.HDNode.fromSeedHex(TEST_SEED)
 }
 module.exports = {instance: new JsWallet()}
 
-JsWallet.prototype.init = function () {
-  return D.wait(0)
+JsWallet.prototype.init = function (initSeed) {
+  return new Promise(resolve => {
+    let seed = TEST_SEED
+    if (initSeed) {
+      seed = initSeed
+    }
+    this._root = bitcoin.HDNode.fromSeedHex(seed, NETWORK)
+    resolve()
+  })
 }
 
 JsWallet.prototype.listenPlug = function (callback) {
@@ -48,6 +57,7 @@ JsWallet.prototype.getAddress = function (addressPath) {
  *     prevAddressPath: string,
  *     prevTxId: hex string,
  *     prevOutIndex: int,
+ *     prevOutScript: string,
  *   }],
  *   outputs: [{
  *     address: WIF,
@@ -57,7 +67,7 @@ JsWallet.prototype.getAddress = function (addressPath) {
 JsWallet.prototype.signTransaction = function (tx) {
   return new Promise((resolve, reject) => {
     try {
-      let txb = new bitcoin.TransactionBuilder()
+      let txb = new bitcoin.TransactionBuilder(NETWORK)
       txb.setVersion(1)
       for (let input of tx.inputs) {
         txb.addInput(input.prevTxId, input.prevOutIndex)
@@ -71,18 +81,11 @@ JsWallet.prototype.signTransaction = function (tx) {
         txb.sign(i, key)
         i++
       }
-      resolve(txb.build().toHex())
+      let transaction = txb.build()
+      resolve({id: transaction.getId(), hex: transaction.toHex()})
     } catch (e) {
       console.warn(e)
       reject(D.ERROR_UNKNOWN)
     }
   })
-}
-
-JsWallet.prototype.sendHexApdu = function (apdu) {
-  return this._device.sendAndReceive(D.hexToArrayBuffer(apdu))
-}
-
-JsWallet.prototype.sendHexApduTrue = function (apdu) {
-  return this._deviceTrue.sendAndReceive(D.hexToArrayBuffer(apdu))
 }

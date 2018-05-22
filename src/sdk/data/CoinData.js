@@ -52,7 +52,7 @@ CoinData.prototype.init = async function () {
     // TODO continue update transaction confirmations if confirmations < D.TRANSACTION_##COIN_TYPE##_MATURE_CONFIRMATIONS
     await Promise.all(Object.entries(this._network).map(([coinType, network]) => async () => {
       let addressInfos = await this._db.getAddressInfos({coinType: coinType, type: D.ADDRESS_EXTERNAL})
-      await network.listenAddresses(addressInfos)
+      network.listenAddresses(addressInfos, this._addressListener)
     }))
   }
 

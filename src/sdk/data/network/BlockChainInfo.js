@@ -112,7 +112,8 @@ BlockchainInfo.prototype.queryTransaction = async function (txId) {
 }
 
 BlockchainInfo.prototype.sendTransaction = async (rawTransaction) => {
-  let response = await this.post([this._apiUrl, 'send_tx', this._coinTypeStr].join('/'), {tx_hex: rawTransaction})
+  console.log('send', rawTransaction)
+  let response = await this.post([this._apiUrl, 'pushtx'].join('/'), {tx: rawTransaction})
   // TODO wrap
   return response
 }

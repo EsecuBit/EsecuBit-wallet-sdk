@@ -80,16 +80,30 @@ IndexedDB.prototype.init = function () {
        *   type: D.ADDRESS_EXTERNAL / D.ADDRESS_CHANGE,
        *   txCount: int,
        *   balance: long (santoshi),
-       *   txs: [{txId, direction, hasSpent, index, script}]
+       *   txs: txId (string) array
        * }
        */
       if (!db.objectStoreNames.contains('addressInfo')) {
         let addressInfo = db.createObjectStore('addressInfo')
         addressInfo.createIndex('accountId', 'accountId', {unique: false})
         addressInfo.createIndex('coinType', 'coinType', {unique: false})
-        addressInfo.createIndex('type', 'type', {unique: false})
-        addressInfo.createIndex('accountId, type', ['accountId', 'type'], {unique: false})
-        addressInfo.createIndex('coinType, type', ['coinType', 'type'], {unique: false})
+      }
+
+      /**
+       * utxo:
+       * {
+       *   accoundId: string,
+       *   address: string,
+       *   path: string,
+       *   txId: string,
+       *   index: int,
+       *   script: string,
+       *   value: long (santoshi)
+       * }
+       */
+      if (!db.objectStoreNames.contains('utxo')) {
+        let utxo = db.createObjectStore('utxo', {autoIncrement: true})
+        utxo.createIndex('accoundId', 'accoundId', {unique: false})
       }
     }
 

@@ -5,7 +5,7 @@ const TYPE_ADDRESS = 'address'
 const TYPE_TRANSACTION_INFO = 'transaction_info'
 // TODO check block height to restart request
 let ADDRESS_REQUEST_PERIOD = 600 // seconds per request
-let TRANSACTION_REQUEST_PERIOD = 600 // seconds per request
+let TRANSACTION_REQUEST_PERIOD = 30 // seconds per request
 
 if (D.TEST_MODE) {
   ADDRESS_REQUEST_PERIOD = 5 // seconds per request
@@ -22,6 +22,7 @@ const ICoinNetwork = function () {
 
   this._queue = () => {
     const timeStamp = new Date().getTime()
+    console.log(timeStamp)
     for (let request of this._requestList) {
       console.warn('compare', request.nextTime, timeStamp)
       if (request.nextTime <= timeStamp) {
@@ -102,26 +103,24 @@ ICoinNetwork.prototype.listenTransaction = function (txInfo, callback) {
     type: TYPE_TRANSACTION_INFO,
     txInfo: txInfo,
     nextTime: new Date().getTime(),
-    request: () => {
+    request: async () => {
       let remove = function remove (arr, val) {
         let index = arr.indexOf(val)
         if (index > -1) {
           arr.splice(index, 1)
         }
       }
-
-      that.queryTransaction(this.txInfo.txId, (error, response) => {
-        if (error !== D.ERROR_NO_ERROR) {
-          callback(error)
-          return
-        }
+      try {
+        let response = that.queryTransaction(this.txInfo.txId)
         this.txInfo.confirmations = response.confirmations
         if (response.confirmations >= D.TX_BTC_MATURE_CONFIRMATIONS) {
           console.info('confirmations enough, remove', this)
           remove(that._requestList, this)
         }
-        callback(error, this.txInfo)
-      })
+        callback(D.ERROR_NO_ERROR, this.txInfo)
+      } catch (e) {
+        callback(e)
+      }
       this.nextTime = new Date().getTime() + TRANSACTION_REQUEST_PERIOD * 1000
     }
   })
@@ -141,19 +140,19 @@ ICoinNetwork.prototype.listenAddresses = function (addressInfos, callback) {
       type: TYPE_ADDRESS,
       addressMap: addressMap,
       nextTime: new Date().getTime(),
-      request: function () {
+      request: async () => {
         let addresses = Object.keys(addressMap)
-        that.queryAddresses(addresses, function (error, multiResponses) {
-          if (error !== D.ERROR_NO_ERROR) {
-            callback(error)
-            return
-          }
+        try {
+          console.log('hi')
+          let multiResponses = await that.queryAddresses(addresses)
           for (let response of multiResponses) {
             let addressInfo = addressMap[response.address]
             checkNewTx(response, addressInfo)
           }
           this.nextTime = new Date().getTime() + ADDRESS_REQUEST_PERIOD * 1000
-        })
+        } catch (e) {
+          callback(e)
+        }
       }
     })
   } else {
@@ -162,15 +161,14 @@ ICoinNetwork.prototype.listenAddresses = function (addressInfos, callback) {
         type: TYPE_ADDRESS,
         addressInfo: addressInfo,
         nextTime: new Date().getTime(),
-        request: () => {
-          that.queryAddress(this.addressInfo.address, (error, response) => {
-            if (error !== D.ERROR_NO_ERROR) {
-              callback(error)
-              return
-            }
+        request: async () => {
+          try {
+            let response = await that.queryAddress(this.addressInfo.address)
             checkNewTx(response, this.addressInfo)
             this.nextTime = new Date().getTime() + ADDRESS_REQUEST_PERIOD * 1000
-          })
+          } catch (e) {
+            callback(e)
+          }
         }
       })
     }
@@ -178,7 +176,7 @@ ICoinNetwork.prototype.listenAddresses = function (addressInfos, callback) {
 
   function checkNewTx (response, addressInfo) {
     for (let tx of response) {
-      if (!hasTxId(addressInfo.txs, tx.txId)) {
+      if (addressInfo.txs.some(aTx => aTx.txId === tx.txId)) {
         if (tx.hasDetails) {
           that._network[addressInfo.coinType].queryTransaction(tx.txId, function (error, response) {
             if (error !== D.ERROR_NO_ERROR) {
@@ -191,15 +189,6 @@ ICoinNetwork.prototype.listenAddresses = function (addressInfos, callback) {
           newTransaction(addressInfo, tx)
         }
       }
-    }
-
-    function hasTxId (txs, txId) {
-      for (let tx of txs) {
-        if (tx.txId === txId) {
-          return true
-        }
-      }
-      return false
     }
 
     function newTransaction (addressInfo, tx) {
