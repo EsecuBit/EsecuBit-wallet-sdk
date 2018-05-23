@@ -3,6 +3,10 @@ require('chai').should()
 const wallet = require('../../sdk/device/JsWallet').instance
 
 describe('JsWallet', function () {
+  it('init', async () => {
+    await wallet.init()
+  })
+
   it('getAddress', async () => {
     let address = await wallet.getAddress("m/44'/0'/0'/0/0")
     address.should.equal('mzkFNdNqZM6YN9r1STVMZeWvhCgfvqSfwR')
@@ -17,16 +21,10 @@ describe('JsWallet', function () {
         prevOutIndex: 0
       }],
       outputs: [{
-        address: '1cMh228HTCiwS8ZsaakH8A8wze1JR5ZsP',
+        address: 'mzkFNdNqZM6YN9r1STVMZeWvhCgfvqSfwR',
         value: 12000
       }]
     })
-    response.hex.should.equal(
-      '01000000019d344070eac3fe6e394a16d06d7704a7d5c0a10eb2a2c16bc98842' +
-      'b7cc20d561000000006a473044022004b9b566374f9f125df0fe6361ed416e63' +
-      'cc77b7bae6be398d8a25a1cb7b555e02205217dee44ebf998e443b48c741a93b' +
-      '24e680560f001f349a1010ed84445f745d012102524af713c5a64f26a1a7ccf1' +
-      'd752146e4c8cbaea08ef0848fe3dc80961747245ffffffff01e02e0000000000' +
-      '001976a91406afd46bcdfd22ef94ac122aa11f241244a37ecc88ac00000000')
+    response.hex.should.equal('01000000019d344070eac3fe6e394a16d06d7704a7d5c0a10eb2a2c16bc98842b7cc20d561000000006b483045022100f13343e9ddf2786c043c2c59469db21c872b29879cfba58bdfd4ddc407a3486302200436bd82925d19acfe6c10e342713e5b4fbf26be69b4af74e3f0fd8dbf323ef8012102524af713c5a64f26a1a7ccf1d752146e4c8cbaea08ef0848fe3dc80961747245ffffffff01e02e0000000000001976a914d2ee0dda3473302abe5c9c315a6da0581d543a9888ac00000000')
   })
 })

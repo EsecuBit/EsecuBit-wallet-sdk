@@ -5,7 +5,7 @@ const TYPE_ADDRESS = 'address'
 const TYPE_TRANSACTION_INFO = 'transaction_info'
 // TODO check block height to restart request
 let ADDRESS_REQUEST_PERIOD = 600 // seconds per request
-let TRANSACTION_REQUEST_PERIOD = 30 // seconds per request
+let TRANSACTION_REQUEST_PERIOD = 60 // seconds per request
 
 if (D.TEST_MODE) {
   ADDRESS_REQUEST_PERIOD = 5 // seconds per request
@@ -49,14 +49,13 @@ ICoinNetwork.prototype.get = function (url) {
           try {
             resolve(JSON.parse(xmlhttp.responseText))
           } catch (e) {
-            console.warn(e)
-            reject(D.ERROR_NETWORK_PROVIDER_ERROR)
+            resolve({response: xmlhttp.responseText})
           }
         } else if (xmlhttp.status === 500) {
-          console.warn(url, xmlhttp.status)
+          console.warn(url, xmlhttp)
           reject(D.ERROR_NETWORK_PROVIDER_ERROR)
         } else {
-          console.warn(url, xmlhttp.status)
+          console.warn(url, xmlhttp)
           reject(D.ERROR_NETWORK_UNVAILABLE)
         }
       }
@@ -76,14 +75,13 @@ ICoinNetwork.prototype.post = function (url, args) {
           try {
             resolve(JSON.parse(xmlhttp.responseText))
           } catch (e) {
-            console.warn(e)
-            reject(D.ERROR_NETWORK_PROVIDER_ERROR)
+            resolve({response: xmlhttp.responseText})
           }
         } else if (xmlhttp.status === 500) {
-          console.warn(url, xmlhttp.status)
+          console.warn(url, xmlhttp)
           reject(D.ERROR_NETWORK_PROVIDER_ERROR)
         } else {
-          console.warn(url, xmlhttp.status)
+          console.warn(url, xmlhttp)
           reject(D.ERROR_NETWORK_UNVAILABLE)
         }
       }

@@ -1,5 +1,5 @@
 
-const CoinNetwork = require('./ICoinNetwork').class
+const ICoinNetwork = require('./ICoinNetwork').class
 const D = require('../../D').class
 
 const TEST_URL = 'https://testnet.blockchain.info'
@@ -11,7 +11,7 @@ const BlockchainInfo = function () {
 }
 module.exports = {class: BlockchainInfo}
 
-BlockchainInfo.prototype = new CoinNetwork()
+BlockchainInfo.prototype = new ICoinNetwork()
 BlockchainInfo.prototype.website = 'blockchain.info'
 BlockchainInfo.prototype._apiUrl = 'undefined'
 
@@ -111,9 +111,9 @@ BlockchainInfo.prototype.queryTransaction = async function (txId) {
   return wrapTx(response)
 }
 
-BlockchainInfo.prototype.sendTransaction = async (rawTransaction) => {
+BlockchainInfo.prototype.sendTransaction = async function (rawTransaction) {
   console.log('send', rawTransaction)
-  let response = await this.post([this._apiUrl, 'pushtx'].join('/'), {tx: rawTransaction})
+  let response = await this.post([this._apiUrl, 'pushtx'].join('/'), 'tx=' + rawTransaction)
   // TODO wrap
   return response
 }
