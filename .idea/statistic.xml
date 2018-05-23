@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Statistic">
+    <option name="excludeDotArtifactDirectory" value="true" />
+    <option name="excludedDirectories">
+      <list>
+        <option value="$PROJECT_DIR$/node_modules" />
+        <option value="$PROJECT_DIR$/js" />
+        <option value="$PROJECT_DIR$/statics" />
+      </list>
+    </option>
+  </component>
+</project>
