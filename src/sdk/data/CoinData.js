@@ -39,7 +39,6 @@ module.exports = {instance: new CoinData()}
 
 CoinData.prototype.init = async function () {
   if (this._initialized) {
-    await D.wait(0)
     return
   }
 
@@ -47,19 +46,18 @@ CoinData.prototype.init = async function () {
     await Promise.all(Object.entries(this._network).map(([coinType, network]) => network.init(coinType)))
   }
 
-  let sync = async () => {
-    // TODO read device to sync old transaction before listen new transaction
-    // TODO continue update transaction confirmations if confirmations < D.TRANSACTION_##COIN_TYPE##_MATURE_CONFIRMATIONS
-    await Promise.all(Object.entries(this._network).map(([coinType, network]) => async () => {
-      let addressInfos = await this._db.getAddressInfos({coinType: coinType, type: D.ADDRESS_EXTERNAL})
-      network.listenAddresses(addressInfos, this._addressListener)
-    }))
-  }
-
   await this._db.init()
   await initNetwork()
-  await sync()
   this._initialized = true
+}
+
+CoinData.prototype.sync = async function () {
+  // TODO read device to sync old transaction before listen new transaction
+  // TODO continue update transaction confirmations if confirmations < D.TRANSACTION_##COIN_TYPE##_MATURE_CONFIRMATIONS
+  await Promise.all(Object.entries(this._network).map(([coinType, network]) => async () => {
+    let addressInfos = await this._db.getAddressInfos({coinType: coinType, type: D.ADDRESS_EXTERNAL})
+    network.listenAddresses(addressInfos, this._addressListener)
+  }))
 }
 
 CoinData.prototype.release = function () {
@@ -82,13 +80,13 @@ CoinData.prototype.getAccounts = async function (deviceId, passPhraseId) {
       coinType: D.COIN_BIT_COIN,
       balance: 0
     }
-    if (D.TEST_MODE) {
+    if (D.TEST_DATA) {
       firstAccount.balance = 32000000
     }
     let account = await this._db.saveAccount(firstAccount)
     accounts.push(account)
-    if (D.TEST_MODE) {
-      console.log('TEST_MODE add test txInfo')
+    if (D.TEST_DATA) {
+      console.log('TEST_DATA add test txInfo')
       await this.initTestDbData(firstAccount.accountId)
     }
   }
@@ -160,7 +158,7 @@ CoinData.prototype.addListener = function (callback) {
 }
 
 /*
- * Test data in TEST_MODE
+ * Test data when TEST_DATA=true
  */
 CoinData.prototype.initTestDbData = async function (accountId) {
   console.log('initTestDbData')

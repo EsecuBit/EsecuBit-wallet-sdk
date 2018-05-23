@@ -9,8 +9,10 @@ const CoreWallet = function () {
 }
 module.exports = {instance: new CoreWallet()}
 
-CoreWallet.prototype.init = function () {
-  return D.wait(0)
+CoreWallet.prototype.init = async function () {
+}
+
+CoreWallet.prototype.sync = async function () {
 }
 
 CoreWallet.prototype.listenPlug = function (callback) {
@@ -34,7 +36,6 @@ CoreWallet.prototype._getCosVersion = function () {
 }
 
 CoreWallet.prototype.verifyPin = async function () {
-  await D.wait(0)
   throw D.ERROR_DEVICE_COMM
 }
 

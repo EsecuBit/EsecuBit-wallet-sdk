@@ -104,7 +104,6 @@ EsHidDevice.prototype = new Device()
 
 EsHidDevice.prototype.sendAndReceive = async function (apdu) {
   if (this._deviceId === null || this._connectionHandle === null) {
-    D.wait(0)
     throw D.ERROR_NO_DEVICE
   }
 
@@ -239,6 +238,6 @@ EsHidDevice.prototype.sendAndReceive = async function (apdu) {
 EsHidDevice.prototype.listenPlug = function (callback) {
   this._listener = callback
   if (this._deviceId !== null && this._connectionHandle !== null) {
-    callback(D.ERROR_NO_ERROR, true)
+    callback(D.ERROR_NO_ERROR, D.STATUS_PLUG_IN)
   }
 }

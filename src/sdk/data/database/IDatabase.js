@@ -7,19 +7,16 @@ module.exports = {class: IDatabase}
 
 // noinspection JSUnusedLocalSymbols
 IDatabase.prototype.saveAccount = async function (account) {
-  await D.wait(0)
   throw D.ERROR_NOT_IMPLEMENTED
 }
 
 // noinspection JSUnusedLocalSymbols
 IDatabase.prototype.getAccounts = async function (deviceID, passPhraseID) {
-  await D.wait(0)
   throw D.ERROR_NOT_IMPLEMENTED
 }
 
 // noinspection JSUnusedLocalSymbols
 IDatabase.prototype.saveTxInfo = async function (txInfo) {
-  await D.wait(0)
   throw D.ERROR_NOT_IMPLEMENTED
 }
 
@@ -29,13 +26,11 @@ IDatabase.prototype.saveTxInfo = async function (txInfo) {
  * @param filter {accountId}
  */
 IDatabase.prototype.getTxInfos = async function (filter) {
-  await D.wait(0)
   throw D.ERROR_NOT_IMPLEMENTED
 }
 
 // noinspection JSUnusedLocalSymbols
 IDatabase.prototype.saveOrUpdateAddressInfo = async function (addressInfo) {
-  await D.wait(0)
   throw D.ERROR_NOT_IMPLEMENTED
 }
 
@@ -45,6 +40,5 @@ IDatabase.prototype.saveOrUpdateAddressInfo = async function (addressInfo) {
  * @param filter {coinType}
  */
 IDatabase.prototype.getAddressInfos = async function (filter) {
-  await D.wait(0)
   throw D.ERROR_NOT_IMPLEMENTED
 }

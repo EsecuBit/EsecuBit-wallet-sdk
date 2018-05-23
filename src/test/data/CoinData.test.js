@@ -6,7 +6,7 @@ require('chai').should()
 const deviceId = 'default'
 const passPhraseId = 'BA3253876AED6BC22D4A6FF53D8406C6AD864195ED144AB5C87621B6C233B548'
 
-describe('Coin Data', function () {
+describe('CoinData', function () {
   it('delete database', async () => {
     if (!('indexedDB' in window)) {
       console.warn('no indexedDB implementation')
@@ -46,7 +46,7 @@ describe('Coin Data', function () {
     account.deviceId.should.equal(deviceId)
     account.passPhraseId.should.equal(passPhraseId)
     account.label.should.equal('Account#1')
-    if (D.TEST_MODE) {
+    if (D.TEST_DATA) {
       account.balance.should.equal(32000000)
     } else {
       account.balance.should.equal(0)
@@ -55,7 +55,7 @@ describe('Coin Data', function () {
 
   let account2
   it('newAccount', async () => {
-    if (D.TEST_MODE) {
+    if (D.TEST_DATA) {
       let account = await coinData.newAccount(deviceId, passPhraseId, D.COIN_BIT_COIN)
       account2 = account
       account.should.not.equal(undefined)
@@ -85,7 +85,7 @@ describe('Coin Data', function () {
 
   it('getTxInfos', async () => {
     let [total, transactions] = await coinData.getTxInfos({accountId: account1.accountId})
-    if (D.TEST_MODE) {
+    if (D.TEST_DATA) {
       total.should.equal(3)
       let accountId = account1.accountId
       transactions[0].should.deep.equal({
@@ -124,7 +124,7 @@ describe('Coin Data', function () {
       total.should.equal(0)
       transactions.length.should.equal(0)
     }
-    if (D.TEST_MODE) {
+    if (D.TEST_DATA) {
       let [total, transactions] = await coinData.getTxInfos({accountId: account2.accountId})
       total.should.equal(0)
       transactions.length.should.equal(0)

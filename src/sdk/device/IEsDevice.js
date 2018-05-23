@@ -10,6 +10,5 @@ IEsDevice.prototype.listenPlug = function (callback) {
 }
 
 IEsDevice.prototype.sendAndReceive = async function (apdu) {
-  await D.wait(0)
   throw D.ERROR_NOT_IMPLEMENTED
 }

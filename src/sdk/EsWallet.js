@@ -2,7 +2,11 @@
 const D = require('./D').class
 
 const EsWallet = function () {
-  this._device = require('./device/CoreWallet').instance
+  if (D.TEST_JS_WALLET) {
+    this._device = require('./device/JsWallet').instance
+  } else {
+    this._device = require('./device/CoreWallet').instance
+  }
   this._coinData = require('./data/CoinData').instance
 }
 module.exports = {class: EsWallet}
@@ -15,16 +19,28 @@ EsWallet.prototype._release = function () {
   this._coinData.release()
 }
 
-EsWallet.prototype.listenDevice = function (callback) {
-  this._device.listenPlug((error, isPluged) => {
+EsWallet.prototype.listenStatus = function (callback) {
+  this._device.listenPlug(async (error, plugStatus) => {
+    let status = plugStatus;
     if (error !== D.ERROR_NO_ERROR) {
-      callback(error, isPluged)
+      callback(error, status)
       return
     }
-    if (isPluged) {
-      this._init(function (error) {
-        callback(error, isPluged)
-      })
+    callback(D.ERROR_NO_ERROR, status)
+    if (status === D.STATUS_PLUG_IN) {
+      try {
+        status = D.STATUS_INITIALIZING
+        callback(D.ERROR_NO_ERROR, status)
+        await this._init()
+        status = D.STATUS_SYNCING
+        callback(D.ERROR_NO_ERROR, status)
+        await this._device.sync()
+        await this._coinData.sync()
+        status = D.STATUS_SYNC_FINISH
+        callback(D.ERROR_NO_ERROR, status)
+      } catch (e) {
+        callback(e, status)
+      }
     } else {
       this._release()
     }

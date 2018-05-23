@@ -1,6 +1,15 @@
 
 const D = {
   TEST_MODE: true,
+  TEST_DATA: false,
+  TEST_JS_WALLET: true,
+
+  // listen status
+  STATUS_PLUG_IN: 1,
+  STATUS_INITIALIZING: 2,
+  STATUS_SYNCING: 3,
+  STATUS_SYNC_FINISH: 10,
+  STATUS_PLUG_OUT: 99,
 
   ERROR_NO_ERROR: 0,
   ERROR_USER_CANCEL: 1,

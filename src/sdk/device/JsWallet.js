@@ -12,41 +12,35 @@ const JsWallet = function () {
 }
 module.exports = {instance: new JsWallet()}
 
-JsWallet.prototype.init = function (initSeed) {
-  return new Promise(resolve => {
-    let seed = TEST_SEED
-    if (initSeed) {
-      seed = initSeed
-    }
-    this._root = bitcoin.HDNode.fromSeedHex(seed, NETWORK)
-    resolve()
-  })
+JsWallet.prototype.init = async function (initSeed) {
+  let seed = TEST_SEED
+  if (initSeed) {
+    seed = initSeed
+  }
+  this._root = bitcoin.HDNode.fromSeedHex(seed, NETWORK)
 }
 
-JsWallet.prototype.listenPlug = function (callback) {
-  this._deviceTrue.listenPlug(callback)
+JsWallet.prototype.sync = async function () {
+
+}
+
+JsWallet.prototype.listenPlug = async function (callback) {
+  callback(D.ERROR_NO_ERROR, D.STATUS_PLUG_IN)
 }
 
 JsWallet.prototype.getWalletInfo = async function () {
-  await D.wait(0)
   return [
     {name: 'COS Version', value: 1},
     {name: 'Firmware Version', value: 1}]
 }
 
-JsWallet.prototype.getPublicKey = function (addressPath) {
-  return 0
-}
-
-JsWallet.prototype.getAddress = function (addressPath) {
-  return new Promise((resolve, reject) => {
-    try {
-      resolve(this._root.derivePath(addressPath).getAddress())
-    } catch (e) {
-      console.warn(e)
-      reject(D.ERROR_UNKNOWN)
-    }
-  })
+JsWallet.prototype.getAddress = async function (addressPath) {
+  try {
+    return this._root.derivePath(addressPath).getAddress()
+  } catch (e) {
+    console.warn(e)
+    throw D.ERROR_UNKNOWN
+  }
 }
 
 /**
@@ -64,28 +58,26 @@ JsWallet.prototype.getAddress = function (addressPath) {
  *     value: long
  *   }]
  */
-JsWallet.prototype.signTransaction = function (tx) {
-  return new Promise((resolve, reject) => {
-    try {
-      let txb = new bitcoin.TransactionBuilder(NETWORK)
-      txb.setVersion(1)
-      for (let input of tx.inputs) {
-        txb.addInput(input.prevTxId, input.prevOutIndex)
-      }
-      for (let output of tx.outputs) {
-        txb.addOutput(output.address, output.value)
-      }
-      let i = 0
-      for (let input of tx.inputs) {
-        let key = this._root.derivePath(input.prevAddressPath)
-        txb.sign(i, key)
-        i++
-      }
-      let transaction = txb.build()
-      resolve({id: transaction.getId(), hex: transaction.toHex()})
-    } catch (e) {
-      console.warn(e)
-      reject(D.ERROR_UNKNOWN)
+JsWallet.prototype.signTransaction = async function (tx) {
+  try {
+    let txb = new bitcoin.TransactionBuilder(NETWORK)
+    txb.setVersion(1)
+    for (let input of tx.inputs) {
+      txb.addInput(input.prevTxId, input.prevOutIndex)
     }
-  })
+    for (let output of tx.outputs) {
+      txb.addOutput(output.address, output.value)
+    }
+    let i = 0
+    for (let input of tx.inputs) {
+      let key = this._root.derivePath(input.prevAddressPath)
+      txb.sign(i, key)
+      i++
+    }
+    let transaction = txb.build()
+    return {id: transaction.getId(), hex: transaction.toHex()}
+  } catch (e) {
+    console.warn(e)
+    throw D.ERROR_UNKNOWN
+  }
 }

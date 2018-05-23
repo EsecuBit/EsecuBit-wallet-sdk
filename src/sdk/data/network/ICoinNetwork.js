@@ -209,7 +209,6 @@ ICoinNetwork.prototype.init = async function (coinType) {
   this.startQueue = true
   // start the request loop
   setTimeout(this._queue, this._requestRate * 1000)
-  await D.wait(0)
   return {}
 }
 
@@ -223,7 +222,6 @@ ICoinNetwork.prototype.release = function () {
  * @see addressInfo
  */
 ICoinNetwork.prototype.queryAddresses = async function (addresses) {
-  await D.wait(0)
   throw D.ERROR_NOT_IMPLEMENTED
 }
 
@@ -239,7 +237,6 @@ ICoinNetwork.prototype.queryAddresses = async function (addresses) {
  *
  */
 ICoinNetwork.prototype.queryAddress = async function (address) {
-  await D.wait(0)
   throw D.ERROR_NOT_IMPLEMENTED
 }
 
@@ -260,11 +257,9 @@ ICoinNetwork.prototype.queryAddress = async function (address) {
  *
  */
 ICoinNetwork.prototype.queryTransaction = async function (txId) {
-  await D.wait(0)
   throw D.ERROR_NOT_IMPLEMENTED
 }
 
 ICoinNetwork.prototype.sendTrnasaction = async function (rawTransaction) {
-  await D.wait(0)
   throw D.ERROR_NOT_IMPLEMENTED
 }

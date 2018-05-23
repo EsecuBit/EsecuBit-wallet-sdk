@@ -18,15 +18,14 @@ module.exports = {class: MockDevice}
 MockDevice.prototype = new Device()
 MockDevice.prototype.listenPlug = function (callback) {
   setTimeout(() => {
-    callback(D.ERROR_NO_ERROR, true)
+    callback(D.ERROR_NO_ERROR, D.STATUS_PLUG_IN)
     // setTimeout(function () {
-    //   callback(D.ERROR_NO_ERROR, false)
+    //   callback(D.ERROR_NO_ERROR, D.STATUS_PLUG_IN)
     // }, 2000)
   }, 500)
 }
 
 MockDevice.prototype.sendAndReceive = async function (apdu) {
-  D.wait(0)
   if (D.arrayBufferToHex(apdu) === '0003000000') {
     return D.hexToArrayBuffer('010100')
   }
