@@ -95,7 +95,7 @@ ICoinNetwork.prototype.post = function (url, args) {
 /**
  * listen transaction confirm status
  */
-ICoinNetwork.prototype.listenTransaction = function (txInfo, callback) {
+ICoinNetwork.prototype.listenTx = function (txInfo, callback) {
   const that = this
   this._requestList.push({
     type: TYPE_TRANSACTION_INFO,
@@ -141,7 +141,6 @@ ICoinNetwork.prototype.listenAddresses = function (addressInfos, callback) {
       request: async () => {
         let addresses = Object.keys(addressMap)
         try {
-          console.log('hi')
           let multiResponses = await that.queryAddresses(addresses)
           for (let response of multiResponses) {
             let addressInfo = addressMap[response.address]
@@ -175,7 +174,7 @@ ICoinNetwork.prototype.listenAddresses = function (addressInfos, callback) {
   function checkNewTx (response, addressInfo) {
     for (let tx of response) {
       if (addressInfo.txs.some(aTx => aTx.txId === tx.txId)) {
-        if (tx.hasDetails) {
+        if (!tx.hasDetails) {
           that._network[addressInfo.coinType].queryTransaction(tx.txId, function (error, response) {
             if (error !== D.ERROR_NO_ERROR) {
               callback(error)
@@ -191,16 +190,35 @@ ICoinNetwork.prototype.listenAddresses = function (addressInfos, callback) {
 
     function newTransaction (addressInfo, tx) {
       addressInfo.txs.push(tx.txId)
+      let output = tx.outputs.find(output => addressInfo.address === output.address)
+      let direction = output ? D.TX_DIRECTION_IN : D.TX_DIRECTION_OUT
       let txInfo = {
         accountId: addressInfo.accountId,
         coinType: addressInfo.coinType,
         txId: tx.txId,
+        version: tx.version,
+        blockNumber: tx.blockNumber,
         confirmations: tx.confirmations,
+        lockTime: tx.lockTime,
         time: tx.time,
-        direction: D.TX_DIRECTION_IN,
+        direction: direction,
         value: tx.value
       }
-      callback(D.ERROR_NO_ERROR, addressInfo, txInfo)
+      if (direction === D.TX_DIRECTION_IN) {
+        let utxo = {
+          accountId: addressInfo.accountId,
+          coinType: addressInfo.coinType,
+          address: addressInfo.addressInfo,
+          path: addressInfo.path,
+          txId: tx.txId,
+          index: output.index,
+          script: output.script,
+          value: output.value
+        }
+        callback(D.ERROR_NO_ERROR, addressInfo, txInfo, utxo)
+      } else {
+        callback(D.ERROR_NO_ERROR, addressInfo, txInfo)
+      }
     }
   }
 }
@@ -251,7 +269,7 @@ ICoinNetwork.prototype.queryAddress = async function (address) {
  *    lockTime: long
  *    time: long,
  *    hasDetails: bool,   // for queryAddress only, whether the tx has inputs and outputs. e.g. blockchain.info -> true, chain.so -> false
- *    intputs: [{address, value(bitcoin -> santoshi)}],
+ *    intputs: [{prevAddress, value(bitcoin -> santoshi)}],
  *    outputs: [{address, value(bitcoin -> santoshi)}, index, script]
  * }
  *

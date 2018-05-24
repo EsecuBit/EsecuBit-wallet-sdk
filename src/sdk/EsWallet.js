@@ -34,7 +34,6 @@ EsWallet.prototype.listenStatus = function (callback) {
         await this._init()
         status = D.STATUS_SYNCING
         callback(D.ERROR_NO_ERROR, status)
-        await this._device.sync()
         await this._coinData.sync()
         status = D.STATUS_SYNC_FINISH
         callback(D.ERROR_NO_ERROR, status)

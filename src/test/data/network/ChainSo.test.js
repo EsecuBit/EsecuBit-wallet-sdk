@@ -11,16 +11,15 @@ describe('Network ChainSo Bitcoin', function () {
 
   // server limit
   it('init network', async () => {
-    chainSo.init(D.COIN_BIT_COIN)
+    chainSo.init(D.COIN_BIT_COIN_TEST)
   })
 
   it('query address', async () => {
     await D.wait(1000)
-    let response = await chainSo.queryAddress('1AjAF7bZvimjdTuPnWLNN3F4WCbzLbuyG7')
+    let response = await chainSo.queryAddress('mu7QFoRttcxmJLedCuznEtVXCVZofCPkp8')
     console.log(response)
-    response.address.should.not.equal(undefined)
-    response.address.should.equal('1AjAF7bZvimjdTuPnWLNN3F4WCbzLbuyG7')
+    response.address.should.equal('mu7QFoRttcxmJLedCuznEtVXCVZofCPkp8')
     response.total_txs.should.equal(1)
-    response.txs[0].txid.should.equal('20a42ecd34af95dc5fd5197f8971f7d9d690f7e456abb8c1f6a6ef6a25b56616')
+    response.txs[0].txid.should.equal('45a1a9707d67730961dffe363cec5645b1460715e59955ce389df4f6dcc16f10')
   })
 })

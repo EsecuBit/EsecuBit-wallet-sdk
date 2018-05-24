@@ -7,6 +7,7 @@ const Account = require('../EsAccount').class
 const CoinData = function () {
   this._initialized = false
   this._db = new IndexedDB()
+  this._device = D.TEST_JS_WALLET ? require('../device/JsWallet').instance : require('../device/CoreWallet').instance
   // TODO read provider from settings
   this._networkProvider = BlockChainInfo
   this._network = {}
@@ -19,17 +20,26 @@ const CoinData = function () {
       return
     }
     this._db.saveOrUpdateTxInfo(txInfo, (error) => {
-      if (error !== D.ERROR_NO_ERROR) {
-        for (let listener of this._registeredListeners) {
-          listener(txInfo)
-        }
+      if (error !== D.ERROR_NO_ERROR) return
+      for (let listener of this._registeredListeners) {
+        listener(txInfo)
       }
     })
   }
-  this._addressListener = function (error, addressInfo, txInfo) {
-    if (error !== D.ERROR_NO_ERROR) {
-      return
-    }
+
+  /**
+   * handle when new transaction comes:
+   * 1. store/update new txInfo after filling "isMine" and "value" field
+   * 2. store utxo, addressInfo, txInfo
+   */
+  this._addressListener = async function (error, addressInfo, txInfo, utxo) {
+    if (error !== D.ERROR_NO_ERROR) return
+    let addressInfos = await this._db.getAddressInfos({accountId: addressInfo.accountId})
+    txInfo.inputs.forEach(input => { input['isMine'] = addressInfos.some(a => a.address === addressInfo.address) })
+    txInfo.outputs.forEach(output => { output['isMine'] = addressInfos.some(a => a.address === addressInfo.address) })
+    txInfo.value -= txInfo.inputs.reduce((sum, input) => sum + input.isMine ? input.value : 0)
+    txInfo.value += txInfo.outputs.reduce((sum, output) => sum + output.isMine ? output.value : 0)
+    await this._db.newTx(addressInfo, txInfo, utxo)
     for (let listener of this._registeredListeners) {
       listener(addressInfo, txInfo)
     }
@@ -38,33 +48,26 @@ const CoinData = function () {
 module.exports = {instance: new CoinData()}
 
 CoinData.prototype.init = async function () {
-  if (this._initialized) {
-    return
-  }
-
-  let initNetwork = async () => {
-    await Promise.all(Object.entries(this._network).map(([coinType, network]) => network.init(coinType)))
-  }
-
+  if (this._initialized) return
   await this._db.init()
-  await initNetwork()
+  await Promise.all(Object.entries(this._network).map(([coinType, network]) => network.init(coinType)))
   this._initialized = true
 }
 
 CoinData.prototype.sync = async function () {
-  // TODO read device to sync old transaction before listen new transaction
-  // TODO continue update transaction confirmations if confirmations < D.TRANSACTION_##COIN_TYPE##_MATURE_CONFIRMATIONS
+  await this._device.sync()
   await Promise.all(Object.entries(this._network).map(([coinType, network]) => async () => {
     let addressInfos = await this._db.getAddressInfos({coinType: coinType, type: D.ADDRESS_EXTERNAL})
     network.listenAddresses(addressInfos, this._addressListener)
   }))
+  let txInfos = await this._db.getTxInfos()
+  txInfos.filter(txInfos => txInfos.confirmations < 6)
+    .map(txInfo => async () => this._network[txInfo.coinType].listenTx(txInfo, this._txListener))
 }
 
 CoinData.prototype.release = function () {
   this._listeners = []
-  for (let network of this._network) {
-    network.release()
-  }
+  this._network.forEach(network => network.release())
 }
 
 CoinData.prototype.getAccounts = async function (deviceId, passPhraseId) {
@@ -150,7 +153,8 @@ CoinData.prototype.getFloatFee = function (coinType, fee) {
 }
 
 CoinData.prototype.addListener = function (callback) {
-  if (this._listeners.reduce((exists, listener) => exists || listener === callback)) {
+  let exists = this._listeners.reduce((exists, listener) => exists || listener === callback)
+  if (exists) {
     console.log('addTransactionListener already has this listener', callback)
     return
   }

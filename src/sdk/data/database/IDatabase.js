@@ -5,6 +5,8 @@ const IDatabase = function () {
 }
 module.exports = {class: IDatabase}
 
+// TODO update API
+
 // noinspection JSUnusedLocalSymbols
 IDatabase.prototype.saveAccount = async function (account) {
   throw D.ERROR_NOT_IMPLEMENTED

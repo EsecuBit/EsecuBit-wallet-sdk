@@ -46,7 +46,7 @@ const D = {
   FEE_NORMAL: 'normal',
   FEE_ECNOMIC: 'economy',
 
-  getFloatFee: function (coinType, intFee) {
+  getFloatFee (coinType, intFee) {
     switch (coinType) {
       case D.COIN_BIT_COIN:
       case D.COIN_BIT_COIN_TEST:
@@ -56,7 +56,7 @@ const D = {
     }
   },
 
-  getIntFee: function (coinType, floatFee) {
+  getIntFee (coinType, floatFee) {
     switch (coinType) {
       case D.COIN_BIT_COIN:
       case D.COIN_BIT_COIN_TEST:
@@ -66,11 +66,11 @@ const D = {
     }
   },
 
-  wait: (timeMill) => {
+  wait (timeMill) {
     return new Promise(resolve => setTimeout(resolve, timeMill))
   },
 
-  arrayBufferToHex: (array) => {
+  arrayBufferToHex (array) {
     const hexChars = '0123456789ABCDEF'
     let hexString = new Array(array.byteLength * 2)
     let intArray = new Uint8Array(array)
@@ -82,7 +82,7 @@ const D = {
     return hexString.join('')
   },
 
-  hexToArrayBuffer: (hex) => {
+  hexToArrayBuffer (hex) {
     const hexChars = '0123456789ABCDEFabcdef'
     let result = new ArrayBuffer(hex.length / 2)
     let res = new Uint8Array(result)

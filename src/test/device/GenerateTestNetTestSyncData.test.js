@@ -33,7 +33,7 @@ describe('Generate Testnet Test Sync Data', function () {
     hex: '0100000001106fc1dcf6f49d38ce5599e5150746b14556ec3c36fedf610973677d70a9a145010000006b483045022100bc4a040ebcf05c7fbb967cfb261a547aa94c25b376b0535d914c046c24484d8202203a884c6b8258f66839192bbb730029e176bd3996cad516dd6f774a89b15e04410121037fd9d3aa263c2089c65daf4dac09f64b322cef2702b877ee824de817ea2f123dffffffff02464b2f03000000001976a914b79047772fb5b4237aec1ce53dad76ead349232588ac50365600000000001976a914e520bb3933ab1333d34092e4722fd4f8be856dc988ac00000000'
   }
 
-  // transaction 5: change address 1 + change address 21 -> other address 1 + extend address 4 (you1 + you2 -> other + you)
+  // transaction 5: change address 1 + change address 21 -> extend address 4 + change address 21 (you1 + you2 -> you3 + you1)
   // 53431110 + 5650000 -> 40000000 + 19061110 + 20000(fee)
   this.transaction5 = {
     id: '75a5866ecd001d616b0f785bbdd82f0dd3c742dda276e05be30e82fb5ac233e6',
@@ -63,17 +63,17 @@ describe('Generate Testnet Test Sync Data', function () {
   // 71677952
 
   this.otherAddress0 = 'mu7QFoRttcxmJLedCuznEtVXCVZofCPkp8' // 10000000
-  this.otherAddress1 = 'mn4ddJmfccTr5rSp1LTknPpdKatiaivw2X' // 40000000
+  this.otherAddress1 = 'mn4ddJmfccTr5rSp1LTknPpdKatiaivw2X' // 0
   this.otherAddress2 = 'mqjGANawowPiTDKKtuqdf7mqumWAoyHsdG' // 0
 
   this.extendAddress0 = 'mzkFNdNqZM6YN9r1STVMZeWvhCgfvqSfwR' // 69432710 -> 0
-  this.extendAddress4 = 'mx1ZzXmZTaV55t7vm3uTw3X9TnFGhTQPsU' // 19061110
+  this.extendAddress4 = 'mx1ZzXmZTaV55t7vm3uTw3X9TnFGhTQPsU' // 40000000
   this.extendAddress24 = 'mnSdnqUD41Rkx9YhQcUddYwC2j3ju7sm8D' // 1957264260 -> 195725426 -> 0
-  this.extendAddress44 = 'mzzXogigLmnCfisTgGYg956dRwB2PyZwKx' // 195718254 + 71677952
+  this.extendAddress44 = 'mzzXogigLmnCfisTgGYg956dRwB2PyZwKx' // 195718254, 71677952
 
   this.changeAddress0 = 'n1ZeY35ALhicxFi4PYc4Nc77B9zzzzfAzM' // 69431710 -> 0
   this.changeAddress1 = 'mxFYnrJoMHP5jnFpTwvoEi2SmN2kNB6Cmr' // 59431210 -> 53431110 -> 0
-  this.changeAddress21 = 'n2QUFCMrJ9jPqSbmpD9jkDLEs3GHBmQthE' // 5650000 -> 0
+  this.changeAddress21 = 'n2QUFCMrJ9jPqSbmpD9jkDLEs3GHBmQthE' // 5650000 -> 19061110
 
   it('generateAddress', async () => {
     await wallet.init(OTHER_SEED)

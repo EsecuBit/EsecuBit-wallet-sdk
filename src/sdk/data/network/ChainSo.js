@@ -112,7 +112,7 @@ ChainSo.prototype.queryTransaction = async function (txId, callback) {
   txInfo.inputs = []
   for (let input of response.inputs) {
     txInfo.inputs.push({
-      address: input.address,
+      prevAddress: input.address,
       value: D.getIntFee(this.coinType, input.value)
     })
   }

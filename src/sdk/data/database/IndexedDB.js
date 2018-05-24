@@ -34,13 +34,14 @@ IndexedDB.prototype.init = function () {
        *   passPhraseID: string,
        *   coinType: string,
        *   balance: long,
-       *   path: string, // TODO complete
        *   extendPublicKey: string,
-       *   changePublicKey: string
+       *   extendPublicKeyIndex: int,
+       *   changePublicKey: string,
+       *   changePublicKeyIndex: int
        * }
        */
       if (!db.objectStoreNames.contains('account')) {
-        let account = db.createObjectStore('account', {autoIncrement: true})
+        let account = db.createObjectStore('account', {keyPath: 'accountId'})
         account.createIndex('deviceId, passPhraseId', ['deviceId', 'passPhraseId'], {unique: false})
         account.createIndex('coinType', 'coinType', {unique: false})
       }
@@ -64,7 +65,7 @@ IndexedDB.prototype.init = function () {
        */
       // TODO createIndex when upgrade?
       if (!db.objectStoreNames.contains('txInfo')) {
-        let txInfo = db.createObjectStore('txInfo', {autoIncrement: true})
+        let txInfo = db.createObjectStore('txInfo', {keyPath: 'txId'})
         txInfo.createIndex('accountId', 'accountId', {unique: false})
         txInfo.createIndex('txId', 'txId', {unique: false})
         txInfo.createIndex('time', 'time', {unique: false})
@@ -84,7 +85,7 @@ IndexedDB.prototype.init = function () {
        * }
        */
       if (!db.objectStoreNames.contains('addressInfo')) {
-        let addressInfo = db.createObjectStore('addressInfo')
+        let addressInfo = db.createObjectStore('addressInfo', {keyPath: 'address'})
         addressInfo.createIndex('accountId', 'accountId', {unique: false})
         addressInfo.createIndex('coinType', 'coinType', {unique: false})
       }
@@ -92,7 +93,8 @@ IndexedDB.prototype.init = function () {
       /**
        * utxo:
        * {
-       *   accoundId: string,
+       *   accountId: string,
+       *   coinType: string,
        *   address: string,
        *   path: string,
        *   txId: string,
@@ -102,7 +104,7 @@ IndexedDB.prototype.init = function () {
        * }
        */
       if (!db.objectStoreNames.contains('utxo')) {
-        let utxo = db.createObjectStore('utxo', {autoIncrement: true})
+        let utxo = db.createObjectStore('utxo', {keyPath: ['txId', 'address']})
         utxo.createIndex('accoundId', 'accoundId', {unique: false})
       }
     }
@@ -115,6 +117,20 @@ IndexedDB.prototype.init = function () {
 
     openRequest.onerror = (e) => {
       console.warn('indexedDB open error', e)
+      reject(D.ERROR_DATABASE_OPEN_FAILED)
+    }
+  })
+}
+
+IndexedDB.prototype.deleteDatabase = function () {
+  return new Promise((resolve, reject) => {
+    let deleteRequest = indexedDB.deleteDatabase('wallet')
+    deleteRequest.onsuccess = function () {
+      console.log('indexedDB delete succeed')
+      resolve()
+    }
+    deleteRequest.onerror = function (ev) {
+      console.log('indexedDB delete failed', ev)
       reject(D.ERROR_DATABASE_OPEN_FAILED)
     }
   })
@@ -153,10 +169,10 @@ IndexedDB.prototype.getAccounts = function (deviceId, passPhraseId) {
       .index('deviceId, passPhraseId')
       .getAll([deviceId, passPhraseId])
 
-    request.onsuccess = function (e) {
+    request.onsuccess = (e) => {
       resolve(e.target.result)
     }
-    request.onerror = function (e) {
+    request.onerror = (e) => {
       console.warn('getAccounts', e)
       reject(D.ERROR_DATABASE_EXEC_FAILED)
     }
@@ -172,12 +188,12 @@ IndexedDB.prototype.saveOrUpdateTxInfo = function (txInfo) {
 
     let request = this._db.transaction(['txInfo'], 'readwrite')
       .objectStore('txInfo')
-      .add(txInfo)
+      .put(txInfo)
 
-    request.onsuccess = function () {
+    request.onsuccess = () => {
       resolve(txInfo)
     }
-    request.onerror = function (e) {
+    request.onerror = (e) => {
       console.warn('saveOrUpdateTxInfo', e)
       reject(D.ERROR_DATABASE_EXEC_FAILED, txInfo)
     }
@@ -209,7 +225,7 @@ IndexedDB.prototype.getTxInfos = function (filter) {
     let total = 0
     let array = []
     let startIndex = filter.hasOwnProperty('startIndex') ? filter.startIndex : 0
-    request.onsuccess = function (e) {
+    request.onsuccess = (e) => {
       let cursor = e.target.result
       if (!cursor) {
         resolve([total, array])
@@ -220,7 +236,7 @@ IndexedDB.prototype.getTxInfos = function (filter) {
       }
       cursor.continue()
     }
-    request.onerror = function (e) {
+    request.onerror = (e) => {
       console.log('getTxInfos', e)
       reject(D.ERROR_DATABASE_EXEC_FAILED)
     }
@@ -236,12 +252,12 @@ IndexedDB.prototype.saveOrUpdateAddressInfo = function (addressInfo) {
 
     let request = this._db.transaction(['addressInfo'], 'readwrite')
       .objectStore('addressInfo')
-      .add(addressInfo, addressInfo.address)
+      .put(addressInfo, addressInfo.address)
 
-    request.onsuccess = function () {
+    request.onsuccess = () => {
       resolve(addressInfo)
     }
-    request.onerror = function (e) {
+    request.onerror = (e) => {
       console.log('saveOrUpdateAddressInfo', e)
       reject(D.ERROR_DATABASE_EXEC_FAILED, addressInfo)
     }
@@ -260,27 +276,51 @@ IndexedDB.prototype.getAddressInfos = function (filter) {
       request = this._db.transaction(['addressInfo'], 'readonly')
         .objectStore('addressInfo')
         .index('coinType')
-        .openCursor(filter.coinType)
+        .getAll(filter.coinType)
     } else {
       request = this._db.transaction(['addressInfo'], 'readonly')
         .objectStore('addressInfo')
-        .openCursor()
+        .getAll()
     }
 
-    let array = []
-    request.onsuccess = function (e) {
-      let cursor = e.target.result
-      if (!cursor) {
-        resolve(array)
-        return
-      }
-
-      array.push(cursor.value)
-      cursor.continue()
+    request.onsuccess = (e) => {
+      resolve(e.target.result)
     }
-    request.onerror = function (e) {
+    request.onerror = (e) => {
       console.warn('getAddressInfos', e)
       reject(D.ERROR_DATABASE_EXEC_FAILED)
     }
+  })
+}
+
+IndexedDB.prototype.newTx = function (addressInfo, txInfo, utxo) {
+  return new Promise((resolve, reject) => {
+    let objectStores = ['addressInfo', 'txInfo'];
+    // TODO remove?
+    if (utxo) {
+      objectStores.push('utxo')
+    }
+    let transaction = this._db.transaction(objectStores, 'readwrite')
+    let request = transaction.objectStore('addressInfo').put(addressInfo)
+    let error = (e) => {
+      console.warn(e)
+      reject(e)
+    }
+    request.onsuccess = () => {
+      let request2 = transaction.objectStore('txInfo').put(txInfo)
+      request2.onsuccess = () => {
+        if (utxo) {
+          let request3 = transaction.objectStore('utxo').put(utxo)
+          request3.onsuccess = () => {
+            resolve(addressInfo, txInfo, utxo)
+          }
+          request3.onerror = error
+        } else {
+          resolve(addressInfo, txInfo)
+        }
+      }
+      request2.onerror = error
+    }
+    request.onerror = error
   })
 }

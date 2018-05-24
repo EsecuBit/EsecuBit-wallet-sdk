@@ -13,17 +13,9 @@ describe('CoinData', function () {
       throw D.ERROR_DATABASE_OPEN_FAILED
     }
 
-    await new Promise((resolve, reject) => {
-      let deleteRequest = indexedDB.deleteDatabase('wallet')
-      deleteRequest.onsuccess = function () {
-        console.log('indexedDB delete succeed')
-        resolve()
-      }
-      deleteRequest.onerror = function (ev) {
-        console.log('indexedDB delete failed', ev)
-        reject(D.ERROR_DATABASE_OPEN_FAILED)
-      }
-    })
+    let IndexedDB = require('../../sdk/data/database/IndexedDB').class
+    let indexedDB = new IndexedDB()
+    await indexedDB.deleteDatabase()
   })
 
   it('init', async () => {

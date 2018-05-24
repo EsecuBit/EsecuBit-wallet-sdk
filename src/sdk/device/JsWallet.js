@@ -21,7 +21,6 @@ JsWallet.prototype.init = async function (initSeed) {
 }
 
 JsWallet.prototype.sync = async function () {
-
 }
 
 JsWallet.prototype.listenPlug = async function (callback) {

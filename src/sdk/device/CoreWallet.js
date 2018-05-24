@@ -13,6 +13,7 @@ CoreWallet.prototype.init = async function () {
 }
 
 CoreWallet.prototype.sync = async function () {
+  // TODO get index from device
 }
 
 CoreWallet.prototype.listenPlug = function (callback) {
