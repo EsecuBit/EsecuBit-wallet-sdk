@@ -1,9 +1,5 @@
 
 const D = {
-  TEST_MODE: true,
-  TEST_DATA: false,
-  TEST_JS_WALLET: true,
-
   // listen status
   STATUS_PLUG_IN: 1,
   STATUS_INITIALIZING: 2,
@@ -11,6 +7,7 @@ const D = {
   STATUS_SYNC_FINISH: 10,
   STATUS_PLUG_OUT: 99,
 
+  // error code
   ERROR_NO_ERROR: 0,
   ERROR_USER_CANCEL: 1,
 
@@ -31,6 +28,7 @@ const D = {
   ERROR_UNKNOWN: 10001,
   ERROR_COIN_NOT_SUPPORTED: 10002,
 
+  // coin type
   COIN_BIT_COIN: 'bitcoin',
   COIN_BIT_COIN_TEST: 'bitcoin_test',
 
@@ -38,10 +36,12 @@ const D = {
   ADDRESS_EXTERNAL: 0,
   ADDRESS_CHANGE: 1,
 
+  // transaction
   TX_DIRECTION_IN: 'in',
   TX_DIRECTION_OUT: 'out',
   TX_BTC_MATURE_CONFIRMATIONS: 6,
 
+  // fee type
   FEE_FAST: 'fast',
   FEE_NORMAL: 'normal',
   FEE_ECNOMIC: 'economy',
@@ -91,6 +91,12 @@ const D = {
       res[i / 2] = parseInt(hex.substring(i, i + 2), 16)
     }
     return result
-  }
+  },
+
+  // test
+  TEST_MODE: true,
+  TEST_DATA: false,
+  TEST_JS_WALLET: true,
+  TEST_WALLET_ID: 'BA3253876AED6BC22D4A6FF53D8406C6AD864195ED144AB5C87621B6C233B548'
 }
 module.exports = {class: D}

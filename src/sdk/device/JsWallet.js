@@ -9,6 +9,7 @@ const TEST_SEED = 'aa49342d805682f345135afcba79ffa7d50c2999944b91d88e01e1d38b80c
 const NETWORK = D.TEST_MODE ? bitcoin.networks.testnet : bitcoin.networks.bitcoin
 
 const JsWallet = function () {
+  this._walletId = D.TEST_WALLET_ID
 }
 module.exports = {instance: new JsWallet()}
 
@@ -18,9 +19,14 @@ JsWallet.prototype.init = async function (initSeed) {
     seed = initSeed
   }
   this._root = bitcoin.HDNode.fromSeedHex(seed, NETWORK)
+
+  return {walletId: this._walletId}
 }
 
 JsWallet.prototype.sync = async function () {
+}
+
+JsWallet.prototype.updateIndex = async function (addressInfo) {
 }
 
 JsWallet.prototype.listenPlug = async function (callback) {

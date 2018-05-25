@@ -11,4 +11,4 @@ import './test/data/CoinData.test'
 
 import './test/device/JsWallet.test'
 
-import './test/EsWallet.test'
+// import './test/EsWallet.test'

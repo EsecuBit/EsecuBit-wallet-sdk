@@ -6,8 +6,6 @@ const EsAccount = function (info) {
   this.info = info
   this.accountId = info.accountId
   this.label = info.label
-  this.deviceId = info.deviceId
-  this.passPhraseId = info.passPhraseId
   this.coinType = info.coinType
   this.balance = info.balance
 

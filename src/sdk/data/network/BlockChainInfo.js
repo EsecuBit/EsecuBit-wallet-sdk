@@ -16,6 +16,7 @@ BlockchainInfo.prototype.website = 'blockchain.info'
 BlockchainInfo.prototype._apiUrl = 'undefined'
 
 BlockchainInfo.prototype.init = async function (coinType) {
+  await this.constructor.prototype.init()
   switch (coinType) {
     case D.COIN_BIT_COIN:
       this._apiUrl = MAIN_URL

@@ -17,7 +17,7 @@ const EsHidDevice = function() {
   this._connectionHandle = null
   this._listener = null
 
-  if (chrome === undefined || chrome.usb === undefined) {
+  if (!chrome || !chrome.usb) {
     console.warn('EsHidDevice not in chrome app env, exit')
     return
   }
@@ -36,7 +36,7 @@ const EsHidDevice = function() {
       //   })
       //
       //   chrome.usb.claimInterface(connectionHandle, 0, function() {
-      //     if (chrome.runtime.lastError !== undefined) {
+      //     if (chrome.runtime.lastError) {
       //       console.warn('chrome.usb.claimInterface error: ' + chrome.runtime.lastError.message)
       //       // if (that._listener !== null) {
       //       //   that._listener(D.ERROR_DEVICE_CONNECT_FAILED, true)
@@ -81,7 +81,7 @@ const EsHidDevice = function() {
   })
 
   chrome.usb.getDevices({}, (foundDevices) => {
-    if (chrome.runtime.lastError !== undefined) {
+    if (chrome.runtime.lastError) {
       console.warn('chrome.usb.getDevices error: ' + chrome.runtime.lastError.message)
       return
     }
@@ -130,7 +130,7 @@ EsHidDevice.prototype.sendAndReceive = async function (apdu) {
     }
     return new Promise((resolve, reject) => {
       chrome.usb.controlTransfer(this._connectionHandle, transferInfo, (info) => {
-        if (chrome.runtime.lastError !== undefined) {
+        if (chrome.runtime.lastError) {
           console.warn('send error: ' + chrome.runtime.lastError.message + ' resultCode: ' + info ? 'undefined' : info.resultCode)
           reject(D.ERROR_DEVICE_COMM)
         }
@@ -155,7 +155,7 @@ EsHidDevice.prototype.sendAndReceive = async function (apdu) {
         // package[29] = 0x04
         //
         // chrome.usb.controlTransfer(that._connectionHandle, transferInfo, function(info) {
-        //   if (chrome.runtime.lastError !== undefined) {
+        //   if (chrome.runtime.lastError) {
         //     console.warn('send error: ' + chrome.runtime.lastError.message
         //     + ' resultCode: ' + info? 'undefined' : info.resultCode)
         //     return
@@ -203,7 +203,7 @@ EsHidDevice.prototype.sendAndReceive = async function (apdu) {
     let transfer = () => {
       return new Promise((resolve, reject) => {
         chrome.usb.controlTransfer(this._connectionHandle, transferInfo, (info) => {
-          if (chrome.runtime.lastError !== undefined) {
+          if (chrome.runtime.lastError) {
             console.warn('receive error: ' + chrome.runtime.lastError.message + ' resultCode: ' + info.resultCode)
             reject(D.ERROR_DEVICE_COMM)
           }

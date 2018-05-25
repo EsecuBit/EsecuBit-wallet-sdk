@@ -13,7 +13,7 @@ if (D.TEST_MODE) {
 }
 
 const ICoinNetwork = function () {
-  this.startQueue = false
+  this._startQueue = false
   this.coinType = 'undefined'
   this._blockHeight = -1
   this._supportMultiAddresses = false
@@ -30,7 +30,7 @@ const ICoinNetwork = function () {
         break
       }
     }
-    if (this.startQueue) {
+    if (this._startQueue) {
       setTimeout(this._queue, this._requestRate * 1000)
     }
   }
@@ -224,14 +224,14 @@ ICoinNetwork.prototype.listenAddresses = function (addressInfos, callback) {
 }
 
 ICoinNetwork.prototype.init = async function (coinType) {
-  this.startQueue = true
+  this._startQueue = true
   // start the request loop
   setTimeout(this._queue, this._requestRate * 1000)
   return {}
 }
 
-ICoinNetwork.prototype.release = function () {
-  this.startQueue = false
+ICoinNetwork.prototype.release = async function () {
+  this._startQueue = false
   this._requestList = []
 }
 

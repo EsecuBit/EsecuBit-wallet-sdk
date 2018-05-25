@@ -3,11 +3,61 @@ const D = require('../../../sdk/D').class
 const IndexedDB = require('../../../sdk/data/database/IndexedDB').class
 require('chai').should()
 
-const deviceId = 'default'
-const passPhraseId = 'BA3253876AED6BC22D4A6FF53D8406C6AD864195ED144AB5C87621B6C233B548'
-const indexedDB = new IndexedDB()
+const indexedDB = new IndexedDB(D.TEST_WALLET_ID)
 
 describe('IndexedDB', function () {
+  let account1 = {
+    accountId: '123',
+    label: 'Account#1',
+    coinType: D.COIN_BIT_COIN,
+    balance: 0
+  }
+
+  let txInfo = {
+    accountId: account1.accountId,
+    coinType: account1.coinType,
+    txId: '111',
+    version: 1,
+    blockNumber: 10000,
+    confirmations: 100,
+    lockTime: 0,
+    time: 222,
+    direction: D.TX_DIRECTION_IN,
+    inputs: [{
+      prevAddress: 'aaa',
+      isMine: false,
+      value: 766
+    }],
+    outputs: [{
+      address: 'bbb',
+      isMine: true,
+      value: 666
+    }],
+    value: 666
+  }
+
+  let addressInfo = {
+    address: txInfo.outputs[0].address,
+    accountId: account1.accountId,
+    coinType: D.COIN_BIT_COIN,
+    path: "m/0'/44'/0'/0/0",
+    type: D.ADDRESS_EXTERNAL,
+    txCount: 1,
+    balance: txInfo.outputs[0].value,
+    txIds: [txInfo.txId]
+  }
+
+  let utxo = {
+    accountId: account1.accountId,
+    coinType: account1.coinType,
+    address: addressInfo.address,
+    path: addressInfo.path,
+    txId: txInfo.txId,
+    index: txInfo.outputs[0].index,
+    script: 'abc',
+    value: txInfo.outputs[0].value
+  }
+
   it('delete database', async () => {
     await indexedDB.deleteDatabase()
   })
@@ -17,24 +67,15 @@ describe('IndexedDB', function () {
   })
 
   it('getAccounts', async () => {
-    let accounts = await indexedDB.getAccounts(deviceId, passPhraseId)
+    let accounts = await indexedDB.getAccounts()
     accounts.length.should.equal(0)
   })
 
-  let account1
   it('saveAccount1', async () => {
-    account1 = {
-      accountId: '123',
-      label: 'Account#1',
-      deviceId: deviceId,
-      passPhraseId: passPhraseId,
-      coinType: D.COIN_BIT_COIN,
-      balance: 0
-    }
     let account = await indexedDB.saveAccount(account1)
     account.should.deep.equal(account1)
 
-    let accounts = await indexedDB.getAccounts(deviceId, passPhraseId)
+    let accounts = await indexedDB.getAccounts()
     accounts.should.deep.equal([account1])
   })
 
@@ -44,8 +85,6 @@ describe('IndexedDB', function () {
       let account1 = {
         accountId: '123',
         label: 'Account#2',
-        deviceId: deviceId,
-        passPhraseId: passPhraseId,
         coinType: D.COIN_BIT_COIN,
         balance: 0
       }
@@ -60,15 +99,13 @@ describe('IndexedDB', function () {
     let account2 = {
       accountId: '456',
       label: 'Account#2',
-      deviceId: deviceId,
-      passPhraseId: passPhraseId,
       coinType: D.COIN_BIT_COIN,
       balance: 0
     }
     let account = await indexedDB.saveAccount(account2)
     account.should.deep.equal(account2)
 
-    let accounts = await indexedDB.getAccounts(deviceId, passPhraseId)
+    let accounts = await indexedDB.getAccounts()
     accounts.should.deep.equal([account1, account2])
   })
 
@@ -76,31 +113,7 @@ describe('IndexedDB', function () {
     let [total] = await indexedDB.getTxInfos({accountId: account1.accountId})
     total.should.equal(0)
   })
-
-  let txInfo
   it('saveOrUpdateTxInfo', async () => {
-    txInfo = {
-      accountId: account1.accountId,
-      coinType: account1.coinType,
-      txId: '111',
-      version: 1,
-      blockNumber: 10000,
-      confirmations: 100,
-      lockTime: 0,
-      time: 222,
-      direction: D.TX_DIRECTION_IN,
-      inputs: [{
-        prevAddress: 'aaa',
-        isMine: false,
-        value: 766
-      }],
-      outputs: [{
-        address: 'bbb',
-        isMine: true,
-        value: 666
-      }],
-      value: 666
-    }
     let txInfo2 = await indexedDB.saveOrUpdateTxInfo(txInfo)
     txInfo2.should.deep.equal(txInfo)
 
@@ -120,5 +133,26 @@ describe('IndexedDB', function () {
     total.should.equal(1)
     txs.length.should.equal(1)
     txs[0].should.deep.equal(txInfo)
+  })
+
+  it('getAddressInfos', async () => {
+    let addressInfos = await indexedDB.getAddressInfos()
+    addressInfos.length.should.equal(0)
+  })
+
+  it('saveOrUpdateAddressInfo', async () => {
+    let addressInfo2 = await indexedDB.saveOrUpdateAddressInfo(addressInfo)
+    addressInfo2.should.deep.equal(addressInfo)
+
+    let addressInfos = await indexedDB.getAddressInfos()
+    addressInfos[0].should.deep.equal(addressInfo)
+  })
+
+  it('newTx', async () => {
+    await indexedDB.newTx(addressInfo, txInfo, utxo)
+  })
+
+  it('release', async () => {
+    await indexedDB.release()
   })
 })

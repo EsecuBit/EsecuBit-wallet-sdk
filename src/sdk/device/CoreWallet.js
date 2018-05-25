@@ -6,14 +6,20 @@ const EsHidDevice = require('./EsHidDevice').class
 const CoreWallet = function () {
   this._deviceTrue = new EsHidDevice()
   this._device = new MockDevice()
+
+  this._walletId = ''
 }
 module.exports = {instance: new CoreWallet()}
 
 CoreWallet.prototype.init = async function () {
+  return {walletId: this._walletId}
 }
 
 CoreWallet.prototype.sync = async function () {
   // TODO get index from device
+}
+
+CoreWallet.prototype.updateIndex = async function(addressInfo) {
 }
 
 CoreWallet.prototype.listenPlug = function (callback) {

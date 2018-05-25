@@ -4,8 +4,9 @@ const Database = require('./IDatabase').class
 
 const DB_VERSION = 3
 
-const IndexedDB = function () {
+const IndexedDB = function (walletId) {
   this._db = null
+  this._walletId = walletId
 }
 module.exports = {class: IndexedDB}
 
@@ -20,7 +21,8 @@ IndexedDB.prototype.init = function () {
       return
     }
 
-    let openRequest = indexedDB.open('wallet', DB_VERSION)
+    let finished = false
+    let openRequest = indexedDB.open(this._walletId, DB_VERSION)
     openRequest.onupgradeneeded = (e) => {
       console.log('indexedDB upgrading...')
       let db = e.target.result
@@ -30,8 +32,6 @@ IndexedDB.prototype.init = function () {
        * {
        *   accountId: string,
        *   label: string,
-       *   deviceID: string,
-       *   passPhraseID: string,
        *   coinType: string,
        *   balance: long,
        *   extendPublicKey: string,
@@ -42,7 +42,6 @@ IndexedDB.prototype.init = function () {
        */
       if (!db.objectStoreNames.contains('account')) {
         let account = db.createObjectStore('account', {keyPath: 'accountId'})
-        account.createIndex('deviceId, passPhraseId', ['deviceId', 'passPhraseId'], {unique: false})
         account.createIndex('coinType', 'coinType', {unique: false})
       }
 
@@ -112,28 +111,44 @@ IndexedDB.prototype.init = function () {
     openRequest.onsuccess = (e) => {
       console.log('indexedDB open success!')
       this._db = e.target.result
-      resolve()
+      finished++ || resolve()
     }
 
     openRequest.onerror = (e) => {
       console.warn('indexedDB open error', e)
-      reject(D.ERROR_DATABASE_OPEN_FAILED)
+      finished++ || reject(D.ERROR_DATABASE_OPEN_FAILED)
     }
+
+    setTimeout(() => {
+      finished || console.warn('open database time exceed, database maybe not closed')
+      finished++ || reject(D.ERROR_DATABASE_OPEN_FAILED)
+    }, 1900)
   })
 }
 
 IndexedDB.prototype.deleteDatabase = function () {
   return new Promise((resolve, reject) => {
-    let deleteRequest = indexedDB.deleteDatabase('wallet')
+    let finished = false
+    let deleteRequest = indexedDB.deleteDatabase(this._walletId)
     deleteRequest.onsuccess = function () {
       console.log('indexedDB delete succeed')
-      resolve()
+      finished++ || resolve()
     }
     deleteRequest.onerror = function (ev) {
       console.log('indexedDB delete failed', ev)
-      reject(D.ERROR_DATABASE_OPEN_FAILED)
+      finished++ || reject(D.ERROR_DATABASE_OPEN_FAILED)
     }
+
+    setTimeout(() => {
+      finished || console.warn('deleteDatabase database time exceed, database maybe not closed')
+      finished++ || reject(D.ERROR_DATABASE_OPEN_FAILED)
+    }, 1900)
   })
+}
+
+IndexedDB.prototype.release = async function () {
+  if (!this._db) return
+  this._db.close()
 }
 
 IndexedDB.prototype.saveAccount = function (account) {
@@ -157,17 +172,24 @@ IndexedDB.prototype.saveAccount = function (account) {
   })
 }
 
-IndexedDB.prototype.getAccounts = function (deviceId, passPhraseId) {
+IndexedDB.prototype.getAccounts = function (filter = {}) {
   return new Promise((resolve, reject) => {
     if (this._db === null) {
       reject(D.ERROR_DATABASE_OPEN_FAILED)
       return
     }
 
-    let request = this._db.transaction(['account'], 'readonly')
-      .objectStore('account')
-      .index('deviceId, passPhraseId')
-      .getAll([deviceId, passPhraseId])
+    let request
+    if (filter.accountId) {
+      request = this._db.transaction(['account'], 'readonly')
+        .objectStore('account')
+        .index('accountId')
+        .getAll(filter.accountId)
+    } else {
+      request = this._db.transaction(['account'], 'readonly')
+        .objectStore('account')
+        .getAll()
+    }
 
     request.onsuccess = (e) => {
       resolve(e.target.result)
@@ -200,7 +222,7 @@ IndexedDB.prototype.saveOrUpdateTxInfo = function (txInfo) {
   })
 }
 
-IndexedDB.prototype.getTxInfos = function (filter) {
+IndexedDB.prototype.getTxInfos = function (filter = {}) {
   return new Promise((resolve, reject) => {
     if (this._db === null) {
       reject(D.ERROR_DATABASE_OPEN_FAILED)
@@ -224,15 +246,17 @@ IndexedDB.prototype.getTxInfos = function (filter) {
 
     let total = 0
     let array = []
-    let startIndex = filter.hasOwnProperty('startIndex') ? filter.startIndex : 0
+    let startIndex = filter.startIndex || 0
+    let endIndex = filter.endIndex || Number.MAX_SAFE_INTEGER
     request.onsuccess = (e) => {
       let cursor = e.target.result
       if (!cursor) {
         resolve([total, array])
         return
       }
-      if (total++ >= startIndex) {
+      if (total >= startIndex && total < endIndex) {
         array.push(cursor.value)
+        total++
       }
       cursor.continue()
     }
@@ -252,7 +276,7 @@ IndexedDB.prototype.saveOrUpdateAddressInfo = function (addressInfo) {
 
     let request = this._db.transaction(['addressInfo'], 'readwrite')
       .objectStore('addressInfo')
-      .put(addressInfo, addressInfo.address)
+      .put(addressInfo)
 
     request.onsuccess = () => {
       resolve(addressInfo)
@@ -264,7 +288,7 @@ IndexedDB.prototype.saveOrUpdateAddressInfo = function (addressInfo) {
   })
 }
 
-IndexedDB.prototype.getAddressInfos = function (filter) {
+IndexedDB.prototype.getAddressInfos = function (filter = {}) {
   return new Promise((resolve, reject) => {
     if (this._db === null) {
       reject(D.ERROR_DATABASE_OPEN_FAILED)
@@ -295,11 +319,7 @@ IndexedDB.prototype.getAddressInfos = function (filter) {
 
 IndexedDB.prototype.newTx = function (addressInfo, txInfo, utxo) {
   return new Promise((resolve, reject) => {
-    let objectStores = ['addressInfo', 'txInfo'];
-    // TODO remove?
-    if (utxo) {
-      objectStores.push('utxo')
-    }
+    let objectStores = ['addressInfo', 'txInfo', 'utxo']
     let transaction = this._db.transaction(objectStores, 'readwrite')
     let request = transaction.objectStore('addressInfo').put(addressInfo)
     let error = (e) => {

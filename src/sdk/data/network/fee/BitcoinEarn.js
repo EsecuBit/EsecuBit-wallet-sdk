@@ -1,12 +1,11 @@
 
 const D = require('../../../D').class
 
-const BitCoinFeeEarn = function (fee) {
-  fee = fee || {}
+const BitCoinFeeEarn = function (fee = {}) {
   this.fee = {} // santonshi per b
-  this.fee[D.FEE_FAST] = fee.hasOwnProperty(D.FEE_FAST) ? fee[D.FEE_FAST] : 100
-  this.fee[D.FEE_NORMAL] = fee.hasOwnProperty(D.FEE_NORMAL) ? fee[D.FEE_NORMAL] : 50
-  this.fee[D.FEE_ECNOMIC] = fee.hasOwnProperty(D.FEE_ECNOMIC) ? fee[D.FEE_ECNOMIC] : 20
+  this.fee[D.FEE_FAST] = fee[D.FEE_FAST] || 100
+  this.fee[D.FEE_NORMAL] = fee[D.FEE_NORMAL] || 50
+  this.fee[D.FEE_ECNOMIC] = fee[D.FEE_ECNOMIC] || 20
 }
 module.exports = {class: BitCoinFeeEarn}
 

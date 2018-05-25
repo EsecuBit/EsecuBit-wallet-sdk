@@ -12,7 +12,7 @@ describe('Simple Test', function () {
 
 describe('BitCoinEarn', function () {
   it('empty BitCoinEarn', function () {
-    const bitCoinEarn = new BitCoinEarn({})
+    const bitCoinEarn = new BitCoinEarn()
     bitCoinEarn.fee.should.deep.equal({'fast': 100, 'normal': 50, 'economy': 20})
   })
   it('init BitCoinEarn', function () {

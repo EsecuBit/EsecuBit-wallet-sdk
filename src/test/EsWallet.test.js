@@ -2,8 +2,6 @@
 const Wallet = require('../sdk/EsWallet').class
 const D = require('../sdk/D').class
 
-const deviceId = 'default'
-const passPhraseId = 'BA3253876AED6BC22D4A6FF53D8406C6AD864195ED144AB5C87621B6C233B548'
 const coinType = D.COIN_BIT_COIN
 const wallet = new Wallet()
 

@@ -11,8 +11,9 @@ const EsWallet = function () {
 }
 module.exports = {class: EsWallet}
 
-EsWallet.prototype._init = function () {
-  return Promise.all([this._device.init, this._coinData.init])
+EsWallet.prototype._init = async function () {
+  let info = await this._device.init()
+  await this._coinData.init(info)
 }
 
 EsWallet.prototype._release = function () {
@@ -46,12 +47,26 @@ EsWallet.prototype.listenStatus = function (callback) {
   })
 }
 
-EsWallet.prototype.listenTxInfo = function () {
-  return this._coinData.listenTxInfo()
+/**
+ * callback when new transaction detect or old transaction status update
+ *
+ * @returns {Promise<*>}
+ */
+EsWallet.prototype.listenTxInfo = function (callback) {
+  return this._coinData.listenTxInfo(callback)
 }
 
-EsWallet.prototype.getAccounts = function (deviceID, passPhraseID) {
-  return this._coinData.getAccounts(deviceID, passPhraseID)
+/**
+ * get accounts in database matches the filter
+ *
+ * @param filter (optional)
+ * {
+ *   accountId: string
+ * }
+ * @returns {Promise<*>}
+ */
+EsWallet.prototype.getAccounts = function (filter) {
+  return this._coinData.getAccounts(filter)
 }
 
 EsWallet.prototype.newAccount = function (deviceID, passPhraseID, coinType) {

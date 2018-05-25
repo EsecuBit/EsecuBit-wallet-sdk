@@ -3,40 +3,30 @@ const D = require('../../sdk/D').class
 const coinData = require('../../sdk/data/CoinData').instance
 require('chai').should()
 
-const deviceId = 'default'
-const passPhraseId = 'BA3253876AED6BC22D4A6FF53D8406C6AD864195ED144AB5C87621B6C233B548'
-
 describe('CoinData', function () {
   it('delete database', async () => {
-    if (!('indexedDB' in window)) {
-      console.warn('no indexedDB implementation')
-      throw D.ERROR_DATABASE_OPEN_FAILED
-    }
-
     let IndexedDB = require('../../sdk/data/database/IndexedDB').class
-    let indexedDB = new IndexedDB()
+    let indexedDB = new IndexedDB(D.TEST_WALLET_ID)
     await indexedDB.deleteDatabase()
   })
 
   it('init', async () => {
-    await coinData.init()
+    await coinData.init({walletId: D.TEST_WALLET_ID})
   })
   it('init again', async () => {
-    await coinData.init()
+    await coinData.init({walletId: D.TEST_WALLET_ID})
   })
   it('init again again', async () => {
-    await coinData.init()
+    await coinData.init({walletId: D.TEST_WALLET_ID})
   })
 
   let account1
   it('getAccounts', async () => {
-    let accounts = await coinData.getAccounts(deviceId, passPhraseId)
+    let accounts = await coinData.getAccounts()
     accounts.length.should.equal(1)
     let account = accounts[0]
     account1 = account
     account.should.not.equal(undefined)
-    account.deviceId.should.equal(deviceId)
-    account.passPhraseId.should.equal(passPhraseId)
     account.label.should.equal('Account#1')
     if (D.TEST_DATA) {
       account.balance.should.equal(32000000)
@@ -48,17 +38,15 @@ describe('CoinData', function () {
   let account2
   it('newAccount', async () => {
     if (D.TEST_DATA) {
-      let account = await coinData.newAccount(deviceId, passPhraseId, D.COIN_BIT_COIN)
+      let account = await coinData.newAccount(D.COIN_BIT_COIN)
       account2 = account
       account.should.not.equal(undefined)
-      account.deviceId.should.equal(deviceId)
-      account.passPhraseId.should.equal(passPhraseId)
       account.label.should.equal('Account#2')
       account.balance.should.equal(0)
     } else {
       let error = D.ERROR_NO_ERROR
       try {
-        await coinData.newAccount(deviceId, passPhraseId, D.COIN_BIT_COIN)
+        await coinData.newAccount(D.COIN_BIT_COIN)
       } catch (e) {
         error = e
       }
@@ -68,7 +56,7 @@ describe('CoinData', function () {
   it('newAccount again', async () => {
     let error = D.ERROR_NO_ERROR
     try {
-      await coinData.newAccount(deviceId, passPhraseId, D.COIN_BIT_COIN)
+      await coinData.newAccount(D.COIN_BIT_COIN)
     } catch (e) {
       error = e
     }
@@ -135,5 +123,9 @@ describe('CoinData', function () {
       error = e
     }
     error.should.equal(D.ERROR_COIN_NOT_SUPPORTED)
+  })
+
+  it('release', async () => {
+    await coinData.release()
   })
 })
