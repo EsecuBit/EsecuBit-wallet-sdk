@@ -160,7 +160,7 @@ IndexedDB.prototype.saveAccount = function (account) {
 
     let request = this._db.transaction(['account'], 'readwrite')
       .objectStore('account')
-      .add(account)
+      .put(account)
 
     request.onsuccess = () => {
       resolve(account)

@@ -13,14 +13,14 @@ const CoinData = function () {
   this._network[D.COIN_BIT_COIN] = new this._networkProvider()
   this._network[D.COIN_BIT_COIN_TEST] = new this._networkProvider()
 
-  this._registeredListeners = []
+  this._listeners = []
   this._txListener = (error, txInfo) => {
     if (error !== D.ERROR_NO_ERROR) {
       return
     }
     this._db.saveOrUpdateTxInfo(txInfo, (error) => {
       if (error !== D.ERROR_NO_ERROR) return
-      for (let listener of this._registeredListeners) {
+      for (let listener of this._listeners) {
         listener(txInfo)
       }
     })
@@ -31,7 +31,13 @@ const CoinData = function () {
    * 1. store/update new txInfo after filling "isMine" and "value" field
    * 2. store utxo, addressInfo, txInfo
    */
+  let busy = false
   this._addressListener = async function (error, addressInfo, txInfo, utxo) {
+    // eslint-disable-next-line
+    while (busy) {
+      await D.wait(100)
+    }
+    busy = true
     if (error !== D.ERROR_NO_ERROR) return
     let addressInfos = await this._db.getAddressInfos({accountId: addressInfo.accountId})
     txInfo.inputs.forEach(input => { input['isMine'] = addressInfos.some(a => a.address === addressInfo.address) })
@@ -39,10 +45,11 @@ const CoinData = function () {
     txInfo.value -= txInfo.inputs.reduce((sum, input) => sum + input.isMine ? input.value : 0)
     txInfo.value += txInfo.outputs.reduce((sum, output) => sum + output.isMine ? output.value : 0)
     await this._db.newTx(addressInfo, txInfo, utxo)
-    for (let listener of this._registeredListeners) {
-      listener(addressInfo, txInfo)
+    for (let listener of this._listeners) {
+      listener(txInfo)
     }
-    this._device.updateIndex(addressInfo)
+    await this._device.updateIndex(addressInfo)
+    busy = false
   }
 }
 module.exports = {instance: new CoinData()}
@@ -52,6 +59,19 @@ CoinData.prototype.init = async function (info) {
   this._db = new IndexedDB(info.walletId)
   await this._db.init()
   await Promise.all(Object.entries(this._network).map(([coinType, network]) => network.init(coinType)))
+
+  let accounts = await this._db.getAccounts()
+  if (accounts.length === 0) {
+    console.log('no accounts, init the first account')
+    // initialize first account
+    let firstAccount = await this.newAccount(D.TEST_MODE ? D.COIN_BIT_COIN_TEST : D.COIN_BIT_COIN)
+    if (D.TEST_DATA) {
+      firstAccount.balance = 32000000
+      await this._db.saveAccount(firstAccount)
+      console.log('TEST_DATA add test txInfo')
+      await this.initTestDbData(firstAccount.accountId)
+    }
+  }
   this._initialized = true
 }
 
@@ -74,26 +94,6 @@ CoinData.prototype.release = async function () {
 
 CoinData.prototype.getAccounts = async function (filter = {}) {
   let accounts = await this._db.getAccounts(filter)
-  if (accounts.length === 0) {
-    console.log('no accounts, init the first account')
-    // initialize first account
-    let firstAccount = {
-      accountId: makeId(),
-      label: 'Account#1',
-      coinType: D.COIN_BIT_COIN,
-      balance: 0
-    }
-    if (D.TEST_DATA) {
-      firstAccount.balance = 32000000
-    }
-    let account = await this._db.saveAccount(firstAccount)
-    accounts.push(account)
-    if (D.TEST_DATA) {
-      console.log('TEST_DATA add test txInfo')
-      await this.initTestDbData(firstAccount.accountId)
-    }
-  }
-
   return accounts.map(account => new Account(account))
 }
 
@@ -101,17 +101,18 @@ CoinData.prototype.newAccount = async function (coinType) {
   let accounts = await this._db.getAccounts()
 
   // check whether the last spec coinType account has transaction
-  let lastAccountInfo = null
+  let lastAccount = null
   let count = 0
   for (let account of accounts) {
     if (account.coinType === coinType) {
-      lastAccountInfo = account
+      lastAccount = account
       count++
     }
   }
   let index = count + 1
 
-  if (lastAccountInfo === null) {
+  let newAccount = async () => {
+    // TODO
     // TODO get account public key from device, and generate first 20 address
     let newAccount = {
       accountId: makeId(),
@@ -122,22 +123,19 @@ CoinData.prototype.newAccount = async function (coinType) {
     return this._db.saveAccount(newAccount)
   }
 
+  if (lastAccount === null) {
+    return newAccount()
+  }
   let [total] = await this._db.getTxInfos(
     {
-      accountId: lastAccountInfo.accountId,
+      accountId: lastAccount.accountId,
       startIndex: 0,
       endIndex: 1
     })
   if (total === 0) {
     throw D.ERROR_LAST_ACCOUNT_NO_TRANSACTION
   }
-  return this._db.saveAccount(
-    {
-      accountId: makeId(),
-      label: 'Account#' + index,
-      coinType: coinType,
-      balance: 0
-    })
+  return newAccount()
 }
 
 CoinData.prototype.getTxInfos = function (filter) {
@@ -149,12 +147,12 @@ CoinData.prototype.getFloatFee = function (coinType, fee) {
 }
 
 CoinData.prototype.addListener = function (callback) {
-  let exists = this._listeners.reduce((exists, listener) => exists || listener === callback)
+  let exists = this._listeners.some(listener => listener === callback)
   if (exists) {
     console.log('addTransactionListener already has this listener', callback)
     return
   }
-  this._registeredListeners.push(callback)
+  this._listeners.push(callback)
 }
 
 /*

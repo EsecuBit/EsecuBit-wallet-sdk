@@ -11,6 +11,9 @@ describe('CoinData', function () {
   })
 
   it('init', async () => {
+    coinData.addListener((txInfo) => {
+      console.log('detect new tx', txInfo)
+    })
     await coinData.init({walletId: D.TEST_WALLET_ID})
   })
   it('init again', async () => {

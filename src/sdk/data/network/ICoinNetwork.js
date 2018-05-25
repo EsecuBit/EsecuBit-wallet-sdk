@@ -7,9 +7,9 @@ const TYPE_TRANSACTION_INFO = 'transaction_info'
 let ADDRESS_REQUEST_PERIOD = 600 // seconds per request
 let TRANSACTION_REQUEST_PERIOD = 60 // seconds per request
 
-if (D.TEST_MODE) {
-  ADDRESS_REQUEST_PERIOD = 5 // seconds per request
-  TRANSACTION_REQUEST_PERIOD = 5 // seconds per request
+if (D.TEST_NETWORK_REQUEST) {
+  ADDRESS_REQUEST_PERIOD = 10 // seconds per request
+  TRANSACTION_REQUEST_PERIOD = 10 // seconds per request
 }
 
 const ICoinNetwork = function () {
