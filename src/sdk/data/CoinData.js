@@ -2,7 +2,7 @@
 const D = require('../D').class
 const IndexedDB = require('./database/IndexedDB').class
 const BlockChainInfo = require('./network/BlockChainInfo').class
-const Account = require('../EsAccount').class
+const EsAccount = require('../EsAccount').class
 
 const CoinData = function () {
   this._initialized = false
@@ -94,7 +94,7 @@ CoinData.prototype.release = async function () {
 
 CoinData.prototype.getAccounts = async function (filter = {}) {
   let accounts = await this._db.getAccounts(filter)
-  return accounts.map(account => new Account(account))
+  return accounts.map(account => new EsAccount(account))
 }
 
 CoinData.prototype.newAccount = async function (coinType) {
@@ -112,7 +112,6 @@ CoinData.prototype.newAccount = async function (coinType) {
   let index = count + 1
 
   let newAccount = async () => {
-    // TODO
     // TODO get account public key from device, and generate first 20 address
     let newAccount = {
       accountId: makeId(),
@@ -120,6 +119,12 @@ CoinData.prototype.newAccount = async function (coinType) {
       coinType: coinType,
       balance: 0
     }
+    newAccount.extendPublicKey = this._device.getPublicKey("m/44'/" + D.getCoinIndex(coinType) + "'/0/0")
+    newAccount.extendPublicKeyIndex = 0
+    newAccount.changePublicKey = this._device.getPublicKey("m/44'/" + D.getCoinIndex(coinType) + "'/1/0")
+    newAccount.changePublicKeyIndex = 0
+    let extendAddresses = Array.from({length: newAccount.extendPublicKeyIndex + 20}, (v, k) => k).map()
+
     return this._db.saveAccount(newAccount)
   }
 

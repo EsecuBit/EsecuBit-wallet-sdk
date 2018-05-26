@@ -3,11 +3,7 @@ const D = require('./D').class
 
 // TODO listen transaction after boardcast a transaction successfully
 const EsAccount = function (info) {
-  this.info = info
-  this.accountId = info.accountId
-  this.label = info.label
-  this.coinType = info.coinType
-  this.balance = info.balance
+  this._info = info
 
   this._device = require('./device/CoreWallet').instance
   // TODO fix circle require
@@ -35,7 +31,7 @@ EsAccount.prototype.getAddress = async function (addressParam) {
     default:
       throw D.ERROR_COIN_NOT_SUPPORTED
   }
-  return { address: address, qrAddress: prefix + address }
+  return {address: address, qrAddress: prefix + address}
 }
 
 // TODO judge lockTime, judge confirmations?

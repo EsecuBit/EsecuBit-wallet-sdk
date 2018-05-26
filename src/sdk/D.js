@@ -14,6 +14,7 @@ const D = {
   ERROR_NO_DEVICE: 101,
   ERROR_DEVICE_COMM: 102,
   ERROR_DEVICE_CONNECT_FAILED: 103,
+  ERROR_DEVICE_DERIVE_LARGER_THAN_N: 104,
 
   ERROR_DATABASE_OPEN_FAILED: 201,
   ERROR_DATABASE_EXEC_FAILED: 202,
@@ -31,6 +32,8 @@ const D = {
   // coin type
   COIN_BIT_COIN: 'bitcoin',
   COIN_BIT_COIN_TEST: 'bitcoin_test',
+  COIN_ETH: 'ethernet',
+  COIN_ETH_TEST: 'ethernet_test',
 
   // BIP44
   ADDRESS_EXTERNAL: 0,
@@ -91,6 +94,18 @@ const D = {
       res[i / 2] = parseInt(hex.substring(i, i + 2), 16)
     }
     return result
+  },
+
+  getCoinIndex (coinType) {
+    switch (coinType) {
+      case D.COIN_BIT_COIN:
+        return 0
+      case D.COIN_ETH:
+      case D.COIN_ETH_TEST:
+        return 60
+      default:
+        throw D.ERROR_COIN_NOT_SUPPORTED
+    }
   },
 
   // test

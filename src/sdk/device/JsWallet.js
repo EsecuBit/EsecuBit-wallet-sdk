@@ -14,10 +14,7 @@ const JsWallet = function () {
 module.exports = {instance: new JsWallet()}
 
 JsWallet.prototype.init = async function (initSeed) {
-  let seed = TEST_SEED
-  if (initSeed) {
-    seed = initSeed
-  }
+  let seed = initSeed || TEST_SEED
   this._root = bitcoin.HDNode.fromSeedHex(seed, NETWORK)
 
   return {walletId: this._walletId}
@@ -37,6 +34,29 @@ JsWallet.prototype.getWalletInfo = async function () {
   return [
     {name: 'COS Version', value: 1},
     {name: 'Firmware Version', value: 1}]
+}
+
+JsWallet.prototype.getPublicKey = async function (publicKeyPath, pPublicKey) {
+  try {
+    let node = this._root
+    if (pPublicKey) {
+      const ECPair = bitcoin.ECPair
+      const HDNode = bitcoin.HDNode
+      let ecurve = require('ecurve')
+      let curve = ecurve.getCurveByName('secp256k1')
+      let Q = ecurve.Point.decodeFrom(curve, Buffer.from(D.hexToArrayBuffer(pPublicKey.publicKey)))
+      let pChainCode = Buffer.from(D.hexToArrayBuffer(pPublicKey.chainCode))
+      let keyPair = new ECPair(null, Q, null)
+      node = new HDNode(keyPair, pChainCode)
+    }
+    let childNode = node.derivePath(publicKeyPath)
+    let publicKey = D.arrayBufferToHex(childNode.getPublicKeyBuffer())
+    let chainCode = D.arrayBufferToHex(childNode.chainCode)
+    return {publicKey, chainCode}
+  } catch (e) {
+    console.warn(e)
+    throw D.ERROR_UNKNOWN
+  }
 }
 
 JsWallet.prototype.getAddress = async function (addressPath) {
