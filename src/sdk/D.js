@@ -36,8 +36,8 @@ const D = {
   COIN_ETH_TEST: 'ethernet_test',
 
   // BIP44
-  ADDRESS_EXTERNAL: 0,
-  ADDRESS_CHANGE: 1,
+  ADDRESS_EXTERNAL: 'external',
+  ADDRESS_CHANGE: 'change',
 
   // transaction
   TX_DIRECTION_IN: 'in',
@@ -99,6 +99,7 @@ const D = {
   getCoinIndex (coinType) {
     switch (coinType) {
       case D.COIN_BIT_COIN:
+      case D.COIN_BIT_COIN_TEST:
         return 0
       case D.COIN_ETH:
       case D.COIN_ETH_TEST:
@@ -111,7 +112,7 @@ const D = {
   // test
   TEST_MODE: true,
   TEST_DATA: false,
-  TEST_NETWORK_REQUEST: true,
+  TEST_NETWORK_REQUEST: false,
   TEST_JS_WALLET: true,
   TEST_WALLET_ID: 'BA3253876AED6BC22D4A6FF53D8406C6AD864195ED144AB5C87621B6C233B548'
 }

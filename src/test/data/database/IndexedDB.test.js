@@ -72,7 +72,7 @@ describe('IndexedDB', function () {
   })
 
   it('saveAccount1', async () => {
-    let account = await indexedDB.saveAccount(account1)
+    let account = await indexedDB.newAccount(account1)
     account.should.deep.equal(account1)
 
     let accounts = await indexedDB.getAccounts()
@@ -88,7 +88,7 @@ describe('IndexedDB', function () {
         coinType: D.COIN_BIT_COIN,
         balance: 0
       }
-      await indexedDB.saveAccount(account1)
+      await indexedDB.newAccount(account1)
     } catch (e) {
       error = e
     }
@@ -102,7 +102,7 @@ describe('IndexedDB', function () {
       coinType: D.COIN_BIT_COIN,
       balance: 0
     }
-    let account = await indexedDB.saveAccount(account2)
+    let account = await indexedDB.newAccount(account2)
     account.should.deep.equal(account2)
 
     let accounts = await indexedDB.getAccounts()

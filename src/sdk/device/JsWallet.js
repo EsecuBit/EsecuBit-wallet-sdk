@@ -36,8 +36,9 @@ JsWallet.prototype.getWalletInfo = async function () {
     {name: 'Firmware Version', value: 1}]
 }
 
-JsWallet.prototype.getPublicKey = async function (publicKeyPath, pPublicKey) {
+JsWallet.prototype._derive = async function (path, pPublicKey) {
   try {
+    // TODO change to bip32 package implement
     let node = this._root
     if (pPublicKey) {
       const ECPair = bitcoin.ECPair
@@ -46,12 +47,21 @@ JsWallet.prototype.getPublicKey = async function (publicKeyPath, pPublicKey) {
       let curve = ecurve.getCurveByName('secp256k1')
       let Q = ecurve.Point.decodeFrom(curve, Buffer.from(D.hexToArrayBuffer(pPublicKey.publicKey)))
       let pChainCode = Buffer.from(D.hexToArrayBuffer(pPublicKey.chainCode))
-      let keyPair = new ECPair(null, Q, null)
+      let keyPair = new ECPair(null, Q, {network: NETWORK})
       node = new HDNode(keyPair, pChainCode)
     }
-    let childNode = node.derivePath(publicKeyPath)
-    let publicKey = D.arrayBufferToHex(childNode.getPublicKeyBuffer())
-    let chainCode = D.arrayBufferToHex(childNode.chainCode)
+    return node.derivePath(path)
+  } catch (e) {
+    console.warn(e)
+    throw D.ERROR_UNKNOWN
+  }
+}
+
+JsWallet.prototype.getPublicKey = async function (publicKeyPath, pPublicKey) {
+  try {
+    let node = await this._derive(publicKeyPath, pPublicKey)
+    let publicKey = D.arrayBufferToHex(node.getPublicKeyBuffer())
+    let chainCode = D.arrayBufferToHex(node.chainCode)
     return {publicKey, chainCode}
   } catch (e) {
     console.warn(e)
@@ -59,9 +69,10 @@ JsWallet.prototype.getPublicKey = async function (publicKeyPath, pPublicKey) {
   }
 }
 
-JsWallet.prototype.getAddress = async function (addressPath) {
+JsWallet.prototype.getAddress = async function (addressPath, pPublicKey) {
   try {
-    return this._root.derivePath(addressPath).getAddress()
+    let node = await this._derive(addressPath, pPublicKey)
+    return node.getAddress()
   } catch (e) {
     console.warn(e)
     throw D.ERROR_UNKNOWN

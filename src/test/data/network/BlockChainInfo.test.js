@@ -3,13 +3,13 @@ const D = require('../../../sdk/D').class
 const BlockchainInfo = require('../../../sdk/data/network/BlockChainInfo').class
 require('chai').should()
 
-const blockchainInfo = new BlockchainInfo()
+const blockchainInfo = new BlockchainInfo(D.COIN_BIT_COIN_TEST)
 
 // TODO complete test
-describe('Network BlockChainInfo Bitcoin', function() {
+describe('Network BlockChainInfo Bitcoin', function () {
   this.timeout(3000)
   it('init network', async () => {
-    let response = await blockchainInfo.init(D.COIN_BIT_COIN_TEST)
+    let response = await blockchainInfo.init()
     response.should.not.equal(undefined)
   })
 

@@ -48,8 +48,8 @@ const CoinNetwork = require('./ICoinNetwork').class
 const D = require('../../D').class
 
 // TODO test
-const ChainSo = function () {
-  this.coinType = null
+const ChainSo = function (coinType) {
+  this.coinType = coinType
   this._coinTypeStr = null
 }
 module.exports = {class: ChainSo}
@@ -68,9 +68,10 @@ ChainSo.prototype.get = async (url) => {
   return response.data
 }
 
-ChainSo.prototype.init = async function (coinType) {
-  await this.constructor.prototype.init()
-  switch (coinType) {
+ChainSo.prototype.superInit = ChainSo.prototype.init
+ChainSo.prototype.init = async function () {
+  await this.superInit(this.coinType)
+  switch (this.coinType) {
     case D.COIN_BIT_COIN:
       this._coinTypeStr = 'BTC'
       break
@@ -80,7 +81,6 @@ ChainSo.prototype.init = async function (coinType) {
     default:
       throw D.ERROR_COIN_NOT_SUPPORTED
   }
-  this.coinType = coinType
 
   // TODO slow down the request speed
   // this.get([this._apiUrl, 'get_info', this._coinTypeStr].join('/'), callback, function (response) {

@@ -1,6 +1,5 @@
 
 require('chai').should()
-const D = require('../../sdk/D').class
 const wallet = require('../../sdk/device/JsWallet').instance
 
 describe('JsWallet', function () {
@@ -39,5 +38,12 @@ describe('JsWallet', function () {
     let publicKey4 = await wallet.getPublicKey("m/44'/0'/0'/0")
     let publicKey4to5 = await wallet.getPublicKey('100', publicKey4)
     publicKey5.should.deep.equal(publicKey4to5)
+  })
+
+  it('deriveAddress', async () => {
+    let address5 = await wallet.getAddress("m/44'/0'/0'/0/100")
+    let publicKey4 = await wallet.getPublicKey("m/44'/0'/0'/0")
+    let address4to5 = await wallet.getAddress('100', publicKey4)
+    address5.should.deep.equal(address4to5)
   })
 })

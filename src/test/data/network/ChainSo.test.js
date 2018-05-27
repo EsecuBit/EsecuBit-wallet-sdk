@@ -3,7 +3,7 @@ const D = require('../../../sdk/D').class
 const ChainSo = require('../../../sdk/data/network/ChainSo').class
 require('chai').should()
 
-const chainSo = new ChainSo()
+const chainSo = new ChainSo(D.COIN_BIT_COIN_TEST)
 
 // TODO complete test
 describe('Network ChainSo Bitcoin', function () {
@@ -11,7 +11,7 @@ describe('Network ChainSo Bitcoin', function () {
 
   // server limit
   it('init network', async () => {
-    chainSo.init(D.COIN_BIT_COIN_TEST)
+    chainSo.init()
   })
 
   it('query address', async () => {

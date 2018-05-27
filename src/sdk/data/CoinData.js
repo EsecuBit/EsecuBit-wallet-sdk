@@ -10,8 +10,11 @@ const CoinData = function () {
   // TODO read provider from settings
   this._networkProvider = BlockChainInfo
   this._network = {}
-  this._network[D.COIN_BIT_COIN] = new this._networkProvider()
-  this._network[D.COIN_BIT_COIN_TEST] = new this._networkProvider()
+  if (D.TEST_MODE) {
+    this._network[D.COIN_BIT_COIN_TEST] = new this._networkProvider(D.COIN_BIT_COIN_TEST)
+  } else {
+    this._network[D.COIN_BIT_COIN] = new this._networkProvider(D.COIN_BIT_COIN)
+  }
 
   this._listeners = []
   this._txListener = (error, txInfo) => {
@@ -55,11 +58,18 @@ const CoinData = function () {
 module.exports = {instance: new CoinData()}
 
 CoinData.prototype.init = async function (info) {
+  // TODO real with dependenices between device, coin data and wallet
   if (this._initialized) return
   this._db = new IndexedDB(info.walletId)
-  await this._db.init()
-  await Promise.all(Object.entries(this._network).map(([coinType, network]) => network.init(coinType)))
+  let initList = []
+  initList.push(this._db.init())
+  initList.push(...Object.values(this._network).map(network => network.init()))
+  await Promise.all(initList)
+  this._initialized = true
+}
 
+CoinData.prototype.sync = async function () {
+  // TODO recover multiple account
   let accounts = await this._db.getAccounts()
   if (accounts.length === 0) {
     console.log('no accounts, init the first account')
@@ -67,17 +77,13 @@ CoinData.prototype.init = async function (info) {
     let firstAccount = await this.newAccount(D.TEST_MODE ? D.COIN_BIT_COIN_TEST : D.COIN_BIT_COIN)
     if (D.TEST_DATA) {
       firstAccount.balance = 32000000
-      await this._db.saveAccount(firstAccount)
+      await this._db.newAccount(firstAccount)
       console.log('TEST_DATA add test txInfo')
       await this.initTestDbData(firstAccount.accountId)
     }
   }
-  this._initialized = true
-}
-
-CoinData.prototype.sync = async function () {
   await this._device.sync()
-  await Promise.all(Object.entries(this._network).map(([coinType, network]) => async () => {
+  await Promise.all(Object.entries(this._network).map(async ([coinType, network]) => {
     let addressInfos = await this._db.getAddressInfos({coinType: coinType, type: D.ADDRESS_EXTERNAL})
     network.listenAddresses(addressInfos, this._addressListener)
   }))
@@ -112,20 +118,46 @@ CoinData.prototype.newAccount = async function (coinType) {
   let index = count + 1
 
   let newAccount = async () => {
-    // TODO get account public key from device, and generate first 20 address
     let newAccount = {
       accountId: makeId(),
       label: 'Account#' + index,
       coinType: coinType,
       balance: 0
     }
-    newAccount.extendPublicKey = this._device.getPublicKey("m/44'/" + D.getCoinIndex(coinType) + "'/0/0")
-    newAccount.extendPublicKeyIndex = 0
-    newAccount.changePublicKey = this._device.getPublicKey("m/44'/" + D.getCoinIndex(coinType) + "'/1/0")
+    let externalPath = "m/44'/" + D.getCoinIndex(coinType) + "'/" + count + "'/0"
+    let changePath = "m/44'/" + D.getCoinIndex(coinType) + "'/" + count + "'/1"
+    newAccount.externalPublicKey = await this._device.getPublicKey(externalPath)
+    newAccount.externalPublicKeyIndex = 0
+    newAccount.changePublicKey = await this._device.getPublicKey(changePath)
     newAccount.changePublicKeyIndex = 0
-    let extendAddresses = Array.from({length: newAccount.extendPublicKeyIndex + 20}, (v, k) => k).map()
-
-    return this._db.saveAccount(newAccount)
+    let addresses = []
+    await Promise.all(Array.from({length: 20}, (v, k) => '' + k)
+      .map(async (k) => {
+        let externalAddress = await this._device.getAddress(k, newAccount.externalPublicKey)
+        addresses.push({
+          address: externalAddress,
+          accountId: newAccount.accountId,
+          coinType: coinType,
+          path: externalPath + '/' + k,
+          type: D.ADDRESS_EXTERNAL,
+          txCount: 0,
+          balance: 0,
+          txs: []
+        })
+        let changeAddress = await this._device.getAddress(k, newAccount.changePublicKey)
+        addresses.push({
+          address: changeAddress,
+          accountId: newAccount.accountId,
+          coinType: coinType,
+          path: changePath + '/' + k,
+          type: D.ADDRESS_CHANGE,
+          txCount: 0,
+          balance: 0,
+          txs: []
+        })
+      }))
+    await this._db.newAccount(newAccount, addresses)
+    console.log('newAccount', newAccount, 'addresses', addresses)
   }
 
   if (lastAccount === null) {

@@ -5,9 +5,11 @@ const D = require('../../D').class
 const TEST_URL = 'https://testnet.blockchain.info'
 const MAIN_URL = 'https://blockchain.info'
 
-const BlockchainInfo = function () {
+const BlockchainInfo = function (coinType) {
+  this._supportMultiAddresses = true
   this.coinType = 'undefined'
   this._blockHeight = -1
+  this.coinType = coinType
 }
 module.exports = {class: BlockchainInfo}
 
@@ -15,9 +17,10 @@ BlockchainInfo.prototype = new ICoinNetwork()
 BlockchainInfo.prototype.website = 'blockchain.info'
 BlockchainInfo.prototype._apiUrl = 'undefined'
 
-BlockchainInfo.prototype.init = async function (coinType) {
-  await this.constructor.prototype.init()
-  switch (coinType) {
+BlockchainInfo.prototype.superInit = BlockchainInfo.prototype.init
+BlockchainInfo.prototype.init = async function () {
+  await this.superInit(this.coinType)
+  switch (this.coinType) {
     case D.COIN_BIT_COIN:
       this._apiUrl = MAIN_URL
       break
@@ -27,7 +30,6 @@ BlockchainInfo.prototype.init = async function (coinType) {
     default:
       throw D.ERROR_COIN_NOT_SUPPORTED
   }
-  this.coinType = coinType
 
   let response = await this.get([this._apiUrl, 'q', 'getblockcount?cors=true'].join('/'))
   this._blockHeight = parseInt(response)

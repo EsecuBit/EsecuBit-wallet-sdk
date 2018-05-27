@@ -1,6 +1,5 @@
 
 require('chai').should()
-const D = require('../../sdk/D').class
 const wallet = require('../../sdk/device/JsWallet').instance
 
 const OTHER_SEED = 'aa49342d805682f345135afcba79ffa7d50c2999944b91d88e01e1d300000000'

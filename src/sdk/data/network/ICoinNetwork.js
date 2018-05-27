@@ -14,26 +14,10 @@ if (D.TEST_NETWORK_REQUEST) {
 
 const ICoinNetwork = function () {
   this._startQueue = false
-  this.coinType = 'undefined'
   this._blockHeight = -1
   this._supportMultiAddresses = false
   this._requestRate = 2 // seconds per request
   this._requestList = []
-
-  this._queue = () => {
-    const timeStamp = new Date().getTime()
-    console.log(timeStamp)
-    for (let request of this._requestList) {
-      console.warn('compare', request.nextTime, timeStamp)
-      if (request.nextTime <= timeStamp) {
-        request.request()
-        break
-      }
-    }
-    if (this._startQueue) {
-      setTimeout(this._queue, this._requestRate * 1000)
-    }
-  }
 }
 module.exports = {class: ICoinNetwork}
 
@@ -42,6 +26,7 @@ ICoinNetwork.prototype.website = 'undefined'
 
 ICoinNetwork.prototype.get = function (url) {
   return new Promise((resolve, reject) => {
+    console.log('get', url)
     let xmlhttp = new XMLHttpRequest()
     xmlhttp.onreadystatechange = () => {
       if (xmlhttp.readyState === 4) {
@@ -67,6 +52,7 @@ ICoinNetwork.prototype.get = function (url) {
 }
 
 ICoinNetwork.prototype.post = function (url, args) {
+  console.log('post', url, args)
   return new Promise((resolve, reject) => {
     const xmlhttp = new XMLHttpRequest()
     xmlhttp.onreadystatechange = () => {
@@ -97,17 +83,18 @@ ICoinNetwork.prototype.post = function (url, args) {
  */
 ICoinNetwork.prototype.listenTx = function (txInfo, callback) {
   const that = this
+  let remove = (arr, val) => {
+    let index = arr.indexOf(val)
+    if (index > -1) {
+      arr.splice(index, 1)
+    }
+  }
   this._requestList.push({
     type: TYPE_TRANSACTION_INFO,
     txInfo: txInfo,
-    nextTime: new Date().getTime(),
-    request: async () => {
-      let remove = function remove (arr, val) {
-        let index = arr.indexOf(val)
-        if (index > -1) {
-          arr.splice(index, 1)
-        }
-      }
+    nextTime: 0,
+    request: async function () {
+      this.nextTime = new Date().getTime() + TRANSACTION_REQUEST_PERIOD * 1000
       try {
         let response = that.queryTransaction(this.txInfo.txId)
         this.txInfo.confirmations = response.confirmations
@@ -119,7 +106,6 @@ ICoinNetwork.prototype.listenTx = function (txInfo, callback) {
       } catch (e) {
         callback(e)
       }
-      this.nextTime = new Date().getTime() + TRANSACTION_REQUEST_PERIOD * 1000
     }
   })
 }
@@ -127,29 +113,33 @@ ICoinNetwork.prototype.listenTx = function (txInfo, callback) {
 /**
  * listen new transaction from specific address
  */
-ICoinNetwork.prototype.listenAddresses = function (addressInfos, callback) {
+ICoinNetwork.prototype.listenAddresses = function (addressInfos, callback, oneTime = false) {
   const that = this
+  let remove = (arr, val) => {
+    let index = arr.indexOf(val)
+    if (index > -1) {
+      arr.splice(index, 1)
+    }
+  }
   if (this._supportMultiAddresses) {
     let addressMap = {}
-    for (let addressInfo of addressInfos) {
-      addressMap[addressInfo.address] = addressInfo
-    }
+    addressInfos.forEach(addressInfo => { addressMap[addressInfo.address] = addressInfo })
     this._requestList.push({
       type: TYPE_ADDRESS,
       addressMap: addressMap,
-      nextTime: new Date().getTime(),
-      request: async () => {
+      oneTime: oneTime,
+      nextTime: 0,
+      request: function () {
+        this.nextTime = new Date().getTime() + ADDRESS_REQUEST_PERIOD * 1000
         let addresses = Object.keys(addressMap)
-        try {
-          let multiResponses = await that.queryAddresses(addresses)
-          for (let response of multiResponses) {
-            let addressInfo = addressMap[response.address]
-            checkNewTx(response, addressInfo)
-          }
-          this.nextTime = new Date().getTime() + ADDRESS_REQUEST_PERIOD * 1000
-        } catch (e) {
-          callback(e)
-        }
+        that.queryAddresses(addresses)
+          .then(multiResponses => {
+            multiResponses.forEach(response => checkNewTx(response, addressMap[response.address]))
+            oneTime && remove(that._requestList, this)
+          })
+          // TODO retry
+          // TODO callback error once
+          .catch(callback)
       }
     })
   } else {
@@ -157,41 +147,34 @@ ICoinNetwork.prototype.listenAddresses = function (addressInfos, callback) {
       this._requestList.push({
         type: TYPE_ADDRESS,
         addressInfo: addressInfo,
-        nextTime: new Date().getTime(),
-        request: async () => {
-          try {
-            let response = await that.queryAddress(this.addressInfo.address)
-            checkNewTx(response, this.addressInfo)
-            this.nextTime = new Date().getTime() + ADDRESS_REQUEST_PERIOD * 1000
-          } catch (e) {
-            callback(e)
-          }
+        nextTime: 0,
+        request: async function () {
+          this.nextTime = new Date().getTime() + ADDRESS_REQUEST_PERIOD * 1000
+          that.queryAddress(this.addressInfo.address)
+            .then(response => {
+              checkNewTx(response, this.addressInfo)
+              oneTime && remove(that._requestList, this)
+            })
+            .catch(callback)
         }
       })
     }
   }
 
-  function checkNewTx (response, addressInfo) {
-    for (let tx of response) {
-      if (addressInfo.txs.some(aTx => aTx.txId === tx.txId)) {
-        if (!tx.hasDetails) {
-          that._network[addressInfo.coinType].queryTransaction(tx.txId, function (error, response) {
-            if (error !== D.ERROR_NO_ERROR) {
-              callback(error)
-              return
-            }
-            newTransaction(addressInfo, response)
-          })
-        } else {
-          newTransaction(addressInfo, tx)
-        }
-      }
-    }
+  let checkNewTx = (response, addressInfo) => {
+    // TODO check
+    let newTxs = response.txs.filter(tx => addressInfo.txs.some(aTx => aTx.txId === tx.txId))
+    // noinspection JSCheckFunctionSignatures
+    newTxs.filter(tx => tx.hasDetails).forEach(tx => newTransaction(addressInfo, tx))
+    newTxs.filter(tx => !tx.hasDetails).forEach(
+      tx => that._network[addressInfo.coinType].queryTransaction(tx.txId)
+        .then(tx => newTransaction(addressInfo, tx))
+        .catch(callback))
 
-    function newTransaction (addressInfo, tx) {
+    let newTransaction = function (addressInfo, tx) {
       addressInfo.txs.push(tx.txId)
-      let output = tx.outputs.find(output => addressInfo.address === output.address)
-      let direction = output ? D.TX_DIRECTION_IN : D.TX_DIRECTION_OUT
+      let hasOutput = tx.outputs.find(output => addressInfo.address === output.address)
+      let direction = hasOutput ? D.TX_DIRECTION_IN : D.TX_DIRECTION_OUT
       let txInfo = {
         accountId: addressInfo.accountId,
         coinType: addressInfo.coinType,
@@ -211,9 +194,9 @@ ICoinNetwork.prototype.listenAddresses = function (addressInfos, callback) {
           address: addressInfo.addressInfo,
           path: addressInfo.path,
           txId: tx.txId,
-          index: output.index,
-          script: output.script,
-          value: output.value
+          index: hasOutput.index,
+          script: hasOutput.script,
+          value: hasOutput.value
         }
         callback(D.ERROR_NO_ERROR, addressInfo, txInfo, utxo)
       } else {
@@ -223,10 +206,26 @@ ICoinNetwork.prototype.listenAddresses = function (addressInfos, callback) {
   }
 }
 
-ICoinNetwork.prototype.init = async function (coinType) {
+ICoinNetwork.prototype.init = async function () {
   this._startQueue = true
   // start the request loop
-  setTimeout(this._queue, this._requestRate * 1000)
+  let queue = () => {
+    const timeStamp = new Date().getTime()
+    for (let request of this._requestList) {
+      if (!request) {
+        // TODO one time
+        console.warn('a removed request')
+      }
+      if (request.nextTime <= timeStamp) {
+        request.request()
+        break
+      }
+    }
+    if (this._startQueue) {
+      setTimeout(queue, this._requestRate * 1000)
+    }
+  }
+  setTimeout(queue, 0)
   return {}
 }
 
@@ -255,6 +254,7 @@ ICoinNetwork.prototype.queryAddresses = async function (addresses) {
  *
  */
 ICoinNetwork.prototype.queryAddress = async function (address) {
+  console.log('???')
   throw D.ERROR_NOT_IMPLEMENTED
 }
 

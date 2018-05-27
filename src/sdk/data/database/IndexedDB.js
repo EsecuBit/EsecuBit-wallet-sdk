@@ -34,8 +34,8 @@ IndexedDB.prototype.init = function () {
        *   label: string,
        *   coinType: string,
        *   balance: long,
-       *   extendPublicKey: string,
-       *   extendPublicKeyIndex: int,
+       *   externalPublicKey: string,
+       *   externalPublicKeyIndex: int,
        *   changePublicKey: string,
        *   changePublicKeyIndex: int
        * }
@@ -151,7 +151,38 @@ IndexedDB.prototype.release = async function () {
   this._db.close()
 }
 
-IndexedDB.prototype.saveAccount = function (account) {
+IndexedDB.prototype.newAccount = function (account, addresseInfos) {
+  return new Promise((resolve, reject) => {
+    if (this._db === null) {
+      reject(D.ERROR_DATABASE_OPEN_FAILED)
+      return
+    }
+
+    let transaction = this._db.transaction(['account', 'addressInfo'], 'readwrite')
+    let request = transaction.objectStore('account').add(account)
+
+    let error = (e) => {
+      console.warn('newAccount', e)
+      reject(D.ERROR_DATABASE_EXEC_FAILED)
+    }
+    request.onsuccess = async () => {
+      let promise = (address) => {
+        return new Promise((resolve, reject) => {
+          let request = transaction.objectStore('addressInfo').add(address)
+          request.onsuccess = resolve
+          request.onerror = reject
+        })
+      }
+      Promise.all(addresseInfos.map(address => promise(address))).then(resolve).catch(reason => {
+        console.warn('newAccount addressInfos', reason)
+        reject(D.ERROR_DATABASE_EXEC_FAILED)
+      })
+    }
+    request.onerror = error
+  })
+}
+
+IndexedDB.prototype.updateAccount = function (account) {
   return new Promise((resolve, reject) => {
     if (this._db === null) {
       reject(D.ERROR_DATABASE_OPEN_FAILED)
@@ -166,8 +197,8 @@ IndexedDB.prototype.saveAccount = function (account) {
       resolve(account)
     }
     request.onerror = (e) => {
-      console.warn('saveAccount', e)
-      reject(D.ERROR_DATABASE_EXEC_FAILED, account)
+      console.warn('newAccount', e)
+      reject(D.ERROR_DATABASE_EXEC_FAILED)
     }
   })
 }
@@ -217,7 +248,7 @@ IndexedDB.prototype.saveOrUpdateTxInfo = function (txInfo) {
     }
     request.onerror = (e) => {
       console.warn('saveOrUpdateTxInfo', e)
-      reject(D.ERROR_DATABASE_EXEC_FAILED, txInfo)
+      reject(D.ERROR_DATABASE_EXEC_FAILED)
     }
   })
 }
@@ -283,7 +314,7 @@ IndexedDB.prototype.saveOrUpdateAddressInfo = function (addressInfo) {
     }
     request.onerror = (e) => {
       console.log('saveOrUpdateAddressInfo', e)
-      reject(D.ERROR_DATABASE_EXEC_FAILED, addressInfo)
+      reject(D.ERROR_DATABASE_EXEC_FAILED)
     }
   })
 }
