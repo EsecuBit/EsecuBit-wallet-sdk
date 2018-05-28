@@ -35,23 +35,27 @@ const CoinData = function () {
    * 2. store utxo, addressInfo, txInfo
    */
   let busy = false
-  this._addressListener = async function (error, addressInfo, txInfo, utxo) {
+  this._addressListener = async (error, addressInfo, txInfo, utxo) => {
     // eslint-disable-next-line
     while (busy) {
-      await D.wait(100)
+      await D.wait(5)
     }
     busy = true
-    if (error !== D.ERROR_NO_ERROR) return
-    let addressInfos = await this._db.getAddressInfos({accountId: addressInfo.accountId})
-    txInfo.inputs.forEach(input => { input['isMine'] = addressInfos.some(a => a.address === addressInfo.address) })
-    txInfo.outputs.forEach(output => { output['isMine'] = addressInfos.some(a => a.address === addressInfo.address) })
-    txInfo.value -= txInfo.inputs.reduce((sum, input) => sum + input.isMine ? input.value : 0)
-    txInfo.value += txInfo.outputs.reduce((sum, output) => sum + output.isMine ? output.value : 0)
-    await this._db.newTx(addressInfo, txInfo, utxo)
-    for (let listener of this._listeners) {
-      listener(txInfo)
+    if (error !== D.ERROR_NO_ERROR) {
+      this._listeners.forEach(listener => listener(error, txInfo))
+      return
     }
+    let addressInfos = await this._db.getAddressInfos({accountId: addressInfo.accountId})
+    txInfo.inputs.forEach(input => { input['isMine'] = addressInfos.some(a => a.address === input.prevAddress) })
+    txInfo.outputs.forEach(output => { output['isMine'] = addressInfos.some(a => a.address === output.address) })
+    txInfo.value = 0
+    txInfo.value -= txInfo.inputs.reduce((sum, input) => sum + input.isMine ? input.value : 0, 0)
+    txInfo.value += txInfo.outputs.reduce((sum, output) => sum + output.isMine ? output.value : 0, 0)
+    await this._db.newTx(addressInfo, txInfo, utxo)
     await this._device.updateIndex(addressInfo)
+    // TODO add addressListener after updateIndex
+    // TODO find spent utxo and remove
+    this._listeners.forEach(listener => listener(D.ERROR_NO_ERROR, txInfo))
     busy = false
   }
 }
@@ -156,8 +160,8 @@ CoinData.prototype.newAccount = async function (coinType) {
           txs: []
         })
       }))
-    await this._db.newAccount(newAccount, addresses)
     console.log('newAccount', newAccount, 'addresses', addresses)
+    await this._db.newAccount(newAccount, addresses)
   }
 
   if (lastAccount === null) {

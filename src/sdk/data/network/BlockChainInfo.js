@@ -67,13 +67,13 @@ BlockchainInfo.prototype.queryAddresses = async function (addresses) {
   let response = await this.get(this._apiUrl + '/multiaddr?cors=true&active=' + addresses.join('|'))
   let addressInfos = []
   for (let rAddress of response.addresses) {
-    let info = {}
-    info.address = rAddress.address
-    info.txCount = rAddress.n_tx
     let exist = (io) => {
       let address = io.addr || io.prev_out.addr
       return address === rAddress.address
     }
+    let info = {}
+    info.address = rAddress.address
+    info.txCount = rAddress.n_tx
     info.txs = response.txs
       .filter(rTx => rTx.inputs.some(exist) || rTx.out.some(exist))
       .map(rTx => wrapTx(rTx))

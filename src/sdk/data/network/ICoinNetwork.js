@@ -114,13 +114,59 @@ ICoinNetwork.prototype.listenTx = function (txInfo, callback) {
  * listen new transaction from specific address
  */
 ICoinNetwork.prototype.listenAddresses = function (addressInfos, callback, oneTime = false) {
-  const that = this
   let remove = (arr, val) => {
     let index = arr.indexOf(val)
     if (index > -1) {
       arr.splice(index, 1)
     }
   }
+
+  let checkNewTx = (response, addressInfo) => {
+    let newTransaction = (addressInfo, tx) => {
+      console.log('newTransaction', addressInfo, tx)
+      addressInfo.txs.push(tx.txId)
+      let output = tx.outputs.find(output => addressInfo.address === output.address)
+      let direction = output ? D.TX_DIRECTION_IN : D.TX_DIRECTION_OUT
+      let txInfo = {
+        accountId: addressInfo.accountId,
+        coinType: addressInfo.coinType,
+        txId: tx.txId,
+        version: tx.version,
+        blockNumber: tx.blockNumber,
+        confirmations: tx.confirmations,
+        lockTime: tx.lockTime,
+        time: tx.time,
+        direction: direction,
+        inputs: tx.inputs.map(input => { return {prevAddress: input.prevAddress, value: input.value} }),
+        outputs: tx.outputs.map(output => { return {address: output.address, value: output.value} })
+      }
+      if (direction === D.TX_DIRECTION_IN) {
+        let utxo = {
+          accountId: addressInfo.accountId,
+          coinType: addressInfo.coinType,
+          address: addressInfo.address,
+          path: addressInfo.path,
+          txId: tx.txId,
+          index: output.index,
+          script: output.script,
+          value: output.value
+        }
+        callback(D.ERROR_NO_ERROR, addressInfo, txInfo, utxo)
+      } else {
+        callback(D.ERROR_NO_ERROR, addressInfo, txInfo)
+      }
+    }
+
+    let newTxs = response.txs.filter(tx => !addressInfo.txs.some(aTx => aTx.txId === tx.txId))
+    // noinspection JSCheckFunctionSignatures
+    newTxs.filter(tx => tx.hasDetails).forEach(tx => newTransaction(addressInfo, tx))
+    newTxs.filter(tx => !tx.hasDetails).forEach(
+      tx => that._network[addressInfo.coinType].queryTransaction(tx.txId)
+        .then(tx => newTransaction(addressInfo, tx))
+        .catch(callback))
+  }
+
+  const that = this
   if (this._supportMultiAddresses) {
     let addressMap = {}
     addressInfos.forEach(addressInfo => { addressMap[addressInfo.address] = addressInfo })
@@ -158,50 +204,6 @@ ICoinNetwork.prototype.listenAddresses = function (addressInfos, callback, oneTi
             .catch(callback)
         }
       })
-    }
-  }
-
-  let checkNewTx = (response, addressInfo) => {
-    // TODO check
-    let newTxs = response.txs.filter(tx => addressInfo.txs.some(aTx => aTx.txId === tx.txId))
-    // noinspection JSCheckFunctionSignatures
-    newTxs.filter(tx => tx.hasDetails).forEach(tx => newTransaction(addressInfo, tx))
-    newTxs.filter(tx => !tx.hasDetails).forEach(
-      tx => that._network[addressInfo.coinType].queryTransaction(tx.txId)
-        .then(tx => newTransaction(addressInfo, tx))
-        .catch(callback))
-
-    let newTransaction = function (addressInfo, tx) {
-      addressInfo.txs.push(tx.txId)
-      let hasOutput = tx.outputs.find(output => addressInfo.address === output.address)
-      let direction = hasOutput ? D.TX_DIRECTION_IN : D.TX_DIRECTION_OUT
-      let txInfo = {
-        accountId: addressInfo.accountId,
-        coinType: addressInfo.coinType,
-        txId: tx.txId,
-        version: tx.version,
-        blockNumber: tx.blockNumber,
-        confirmations: tx.confirmations,
-        lockTime: tx.lockTime,
-        time: tx.time,
-        direction: direction,
-        value: tx.value
-      }
-      if (direction === D.TX_DIRECTION_IN) {
-        let utxo = {
-          accountId: addressInfo.accountId,
-          coinType: addressInfo.coinType,
-          address: addressInfo.addressInfo,
-          path: addressInfo.path,
-          txId: tx.txId,
-          index: hasOutput.index,
-          script: hasOutput.script,
-          value: hasOutput.value
-        }
-        callback(D.ERROR_NO_ERROR, addressInfo, txInfo, utxo)
-      } else {
-        callback(D.ERROR_NO_ERROR, addressInfo, txInfo)
-      }
     }
   }
 }

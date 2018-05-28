@@ -6,11 +6,11 @@ require('chai').should()
 describe('CoinData', function () {
   this.timeout(100000)
 
-  // it('delete database', async () => {
-  //   let IndexedDB = require('../../sdk/data/database/IndexedDB').class
-  //   let indexedDB = new IndexedDB(D.TEST_WALLET_ID)
-  //   await indexedDB.deleteDatabase()
-  // })
+  it('delete database', async () => {
+    let IndexedDB = require('../../sdk/data/database/IndexedDB').class
+    let indexedDB = new IndexedDB(D.TEST_WALLET_ID)
+    await indexedDB.deleteDatabase()
+  })
 
   it('init', async () => {
     let info = await require('../../sdk/device/JsWallet').instance.init()
@@ -24,8 +24,8 @@ describe('CoinData', function () {
   })
 
   it('sync', async () => {
-    coinData.addListener((txInfo) => {
-      console.log('detect new tx', txInfo)
+    coinData.addListener((error, txInfo) => {
+      console.log('detect new tx', error, txInfo)
     })
     await coinData.sync()
   })
