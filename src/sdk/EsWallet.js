@@ -13,11 +13,11 @@ module.exports = {class: EsWallet}
 
 EsWallet.prototype._init = async function () {
   let info = await this._device.init()
-  await this._coinData.init(info)
+  return this._coinData.init(info)
 }
 
 EsWallet.prototype._release = function () {
-  this._coinData.release()
+  return this._coinData.release()
 }
 
 EsWallet.prototype.listenStatus = function (callback) {
@@ -49,11 +49,9 @@ EsWallet.prototype.listenStatus = function (callback) {
 
 /**
  * callback when new transaction detect or old transaction status update
- *
- * @returns {Promise<*>}
  */
 EsWallet.prototype.listenTxInfo = function (callback) {
-  return this._coinData.listenTxInfo(callback)
+  this._coinData.addListener(callback)
 }
 
 /**
