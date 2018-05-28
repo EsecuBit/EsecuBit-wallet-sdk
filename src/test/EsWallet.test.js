@@ -1,18 +1,16 @@
 
-const Wallet = require('../sdk/EsWallet').class
+const wallet = require('../sdk/EsWallet').instance
 const D = require('../sdk/D').class
-
-const wallet = new Wallet()
 
 // TODO test
 describe('EsWallet', function () {
-  this.timeout(100000)
+  this.timeout(5000)
 
-  it('delete database', async () => {
-    let IndexedDB = require('../sdk/data/database/IndexedDB').class
-    let indexedDB = new IndexedDB(D.TEST_WALLET_ID)
-    await indexedDB.deleteDatabase()
-  })
+  // it('delete database', async () => {
+  //   let IndexedDB = require('../sdk/data/database/IndexedDB').class
+  //   let indexedDB = new IndexedDB(D.TEST_WALLET_ID)
+  //   await indexedDB.deleteDatabase()
+  // })
 
   it('listenStatus', (done) => {
     const statusList = [D.STATUS_PLUG_IN, D.STATUS_INITIALIZING, D.STATUS_SYNCING, D.STATUS_SYNC_FINISH]

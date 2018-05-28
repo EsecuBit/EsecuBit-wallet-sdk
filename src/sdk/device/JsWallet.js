@@ -4,7 +4,8 @@ const D = require('../D').class
 const bitcoin = require('bitcoinjs-lib')
 
 // TODO remove when publish
-const TEST_SEED = 'aa49342d805682f345135afcba79ffa7d50c2999944b91d88e01e1d38b80ca63'
+const TEST_SYNC_SEED = 'aa49342d805682f345135afcba79ffa7d50c2999944b91d88e01e1d38b80ca63'
+const TEST_TRANSACTION_SEED = 'aa49342d805682f345135afcba79ffa7d50c2999944b91d88e01e1d300000000'
 
 const NETWORK = D.TEST_MODE ? bitcoin.networks.testnet : bitcoin.networks.bitcoin
 
@@ -14,7 +15,8 @@ const JsWallet = function () {
 module.exports = {instance: new JsWallet()}
 
 JsWallet.prototype.init = async function (initSeed) {
-  let seed = initSeed || TEST_SEED
+  const DEFAULT_SEED = D.TEST_SYNC ? TEST_SYNC_SEED : TEST_TRANSACTION_SEED
+  let seed = initSeed || DEFAULT_SEED
   this._root = bitcoin.HDNode.fromSeedHex(seed, NETWORK)
 
   return {walletId: this._walletId}

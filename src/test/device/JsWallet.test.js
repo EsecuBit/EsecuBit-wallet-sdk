@@ -1,7 +1,9 @@
 
 require('chai').should()
+const D = require('../../sdk/D').class
 const wallet = require('../../sdk/device/JsWallet').instance
 
+D.TEST_SYNC = true
 describe('JsWallet', function () {
   this.timeout('10000')
 

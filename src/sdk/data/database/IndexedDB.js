@@ -130,11 +130,11 @@ IndexedDB.prototype.deleteDatabase = function () {
   return new Promise((resolve, reject) => {
     let finished = false
     let deleteRequest = indexedDB.deleteDatabase(this._walletId)
-    deleteRequest.onsuccess = function () {
+    deleteRequest.onsuccess = () => {
       console.log('indexedDB delete succeed')
       finished++ || resolve()
     }
-    deleteRequest.onerror = function (ev) {
+    deleteRequest.onerror = (ev) => {
       console.log('indexedDB delete failed', ev)
       finished++ || reject(D.ERROR_DATABASE_OPEN_FAILED)
     }
@@ -152,6 +152,7 @@ IndexedDB.prototype.release = async function () {
 }
 
 IndexedDB.prototype.newAccount = function (account, addresseInfos) {
+  addresseInfos = addresseInfos || []
   return new Promise((resolve, reject) => {
     if (this._db === null) {
       reject(D.ERROR_DATABASE_OPEN_FAILED)
@@ -173,8 +174,8 @@ IndexedDB.prototype.newAccount = function (account, addresseInfos) {
           request.onerror = reject
         })
       }
-      Promise.all(addresseInfos.map(address => promise(address))).then(resolve).catch(reason => {
-        console.warn('newAccount addressInfos', reason)
+      Promise.all(addresseInfos.map(address => promise(address))).then(() => resolve(account)).catch(ev => {
+        console.warn('newAccount addressInfos', ev)
         reject(D.ERROR_DATABASE_EXEC_FAILED)
       })
     }

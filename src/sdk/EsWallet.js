@@ -8,8 +8,34 @@ const EsWallet = function () {
     this._device = require('./device/CoreWallet').instance
   }
   this._coinData = require('./data/CoinData').instance
+
+  this._status = D.STATUS_PLUG_OUT
+  this._callback = null
+  this._device.listenPlug(async (error, plugStatus) => {
+    this._status = plugStatus
+    if (error !== D.ERROR_NO_ERROR) {
+      this._callback && this._callback(error, this._status)
+      return
+    }
+    this._callback && this._callback(D.ERROR_NO_ERROR, this._status)
+    if (this._status === D.STATUS_PLUG_IN) {
+      try {
+        this._status = D.STATUS_INITIALIZING
+        this._callback && this._callback(D.ERROR_NO_ERROR, this._status)
+        await this._init()
+        this._status = D.STATUS_SYNCING
+        this._callback && this._callback(D.ERROR_NO_ERROR, this._status)
+        await this._coinData.sync()
+        this._status = D.STATUS_SYNC_FINISH
+        this._callback && this._callback(D.ERROR_NO_ERROR, this._status)
+      } catch (e) {
+        this._callback && this._callback(e, status)
+      }
+    } else {
+      this._release()
+    }
+  })
 }
-module.exports = {class: EsWallet}
 
 EsWallet.prototype._init = async function () {
   let info = await this._device.init()
@@ -21,30 +47,29 @@ EsWallet.prototype._release = function () {
 }
 
 EsWallet.prototype.listenStatus = function (callback) {
-  this._device.listenPlug(async (error, plugStatus) => {
-    let status = plugStatus;
-    if (error !== D.ERROR_NO_ERROR) {
-      callback(error, status)
-      return
-    }
-    callback(D.ERROR_NO_ERROR, status)
-    if (status === D.STATUS_PLUG_IN) {
-      try {
-        status = D.STATUS_INITIALIZING
-        callback(D.ERROR_NO_ERROR, status)
-        await this._init()
-        status = D.STATUS_SYNCING
-        callback(D.ERROR_NO_ERROR, status)
-        await this._coinData.sync()
-        status = D.STATUS_SYNC_FINISH
-        callback(D.ERROR_NO_ERROR, status)
-      } catch (e) {
-        callback(e, status)
-      }
-    } else {
-      this._release()
-    }
-  })
+  this._callback = callback
+  switch (this._status) {
+    case D.STATUS_PLUG_IN:
+      callback(D.ERROR_NO_ERROR, D.STATUS_PLUG_IN)
+      break
+    case D.STATUS_INITIALIZING:
+      callback(D.ERROR_NO_ERROR, D.STATUS_PLUG_IN)
+      callback(D.ERROR_NO_ERROR, D.STATUS_INITIALIZING)
+      break
+    case D.STATUS_SYNCING:
+      callback(D.ERROR_NO_ERROR, D.STATUS_PLUG_IN)
+      callback(D.ERROR_NO_ERROR, D.STATUS_INITIALIZING)
+      callback(D.ERROR_NO_ERROR, D.STATUS_SYNCING)
+      break
+    case D.STATUS_SYNC_FINISH:
+      callback(D.ERROR_NO_ERROR, D.STATUS_PLUG_IN)
+      callback(D.ERROR_NO_ERROR, D.STATUS_INITIALIZING)
+      callback(D.ERROR_NO_ERROR, D.STATUS_SYNCING)
+      callback(D.ERROR_NO_ERROR, D.STATUS_SYNC_FINISH)
+      break
+    case D.STATUS_PLUG_OUT:
+    default:
+  }
 }
 
 /**
@@ -83,3 +108,5 @@ EsWallet.prototype.getSuggestedFee = function (transaction, coinType, feeType) {
 EsWallet.prototype.getFloatFee = function (coinType, fee) {
   return this._coinData.getFloatFee(coinType, fee)
 }
+
+module.exports = {instance: new EsWallet()}

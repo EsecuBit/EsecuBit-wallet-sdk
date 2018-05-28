@@ -99,7 +99,8 @@ CoinData.prototype.sync = async function () {
 CoinData.prototype.release = async function () {
   this._listeners = []
   await Promise.all(Object.values(this._network).map(network => network.release()))
-  if (this._db) await this._db.release()
+  // FIXME after release and reinit, throw "the database connection is closing".
+  // if (this._db) await this._db.release()
 }
 
 CoinData.prototype.getAccounts = async function (filter = {}) {

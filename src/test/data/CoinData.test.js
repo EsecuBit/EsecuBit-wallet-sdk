@@ -6,11 +6,11 @@ require('chai').should()
 describe('CoinData', function () {
   this.timeout(100000)
 
-  it('delete database', async () => {
-    let IndexedDB = require('../../sdk/data/database/IndexedDB').class
-    let indexedDB = new IndexedDB(D.TEST_WALLET_ID)
-    await indexedDB.deleteDatabase()
-  })
+  // it('delete database', async () => {
+  //   let IndexedDB = require('../../sdk/data/database/IndexedDB').class
+  //   let indexedDB = new IndexedDB(D.TEST_WALLET_ID)
+  //   await indexedDB.deleteDatabase()
+  // })
 
   it('init', async () => {
     let info = await require('../../sdk/device/JsWallet').instance.init()
@@ -23,12 +23,12 @@ describe('CoinData', function () {
     await coinData.init({walletId: D.TEST_WALLET_ID})
   })
 
-  it('sync', async () => {
-    coinData.addListener((error, txInfo) => {
-      console.log('detect new tx', error, txInfo)
-    })
-    await coinData.sync()
-  })
+  // it('sync', async () => {
+  //   coinData.addListener((error, txInfo) => {
+  //     console.log('detect new tx', error, txInfo)
+  //   })
+  //   await coinData.sync()
+  // })
 
   //
   // let account1
@@ -136,7 +136,7 @@ describe('CoinData', function () {
   //   error.should.equal(D.ERROR_COIN_NOT_SUPPORTED)
   // })
   //
-  // it('release', async () => {
-  //   await coinData.release()
-  // })
+  it('release', async () => {
+    await coinData.release()
+  })
 })

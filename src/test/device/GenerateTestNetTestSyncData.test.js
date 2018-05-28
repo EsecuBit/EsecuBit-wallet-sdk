@@ -1,8 +1,7 @@
 
 require('chai').should()
+const D = require('../../sdk/D').class
 const wallet = require('../../sdk/device/JsWallet').instance
-
-const OTHER_SEED = 'aa49342d805682f345135afcba79ffa7d50c2999944b91d88e01e1d300000000'
 
 describe('Generate Testnet Test Sync Data', function () {
   this.timeout('1000000')
@@ -71,15 +70,18 @@ describe('Generate Testnet Test Sync Data', function () {
   this.extendAddress44 = 'mzzXogigLmnCfisTgGYg956dRwB2PyZwKx' // 195718254, 71677952
 
   this.changeAddress0 = 'n1ZeY35ALhicxFi4PYc4Nc77B9zzzzfAzM' // 69431710 -> 0
-  this.changeAddress1 = 'mxFYnrJoMHP5jnFpTwvoEi2SmN2kNB6Cmr' // 59431210 -> 53431110 -> 0
+  this.changeAddress1 = 'm' +
+    'xFYnrJoMHP5jnFpTwvoEi2SmN2kNB6Cmr' // 59431210 -> 53431110 -> 0
   this.changeAddress21 = 'n2QUFCMrJ9jPqSbmpD9jkDLEs3GHBmQthE' // 5650000 -> 19061110
 
   it('generateAddress', async () => {
-    await wallet.init(OTHER_SEED)
+    D.TEST_SYNC = false
+    await wallet.init()
     let otherAddress0 = await wallet.getAddress("m/44'/0'/0'/0/0")
     let otherAddress1 = await wallet.getAddress("m/44'/0'/0'/0/1")
     let otherAddress2 = await wallet.getAddress("m/44'/0'/0'/0/2")
 
+    D.TEST_SYNC = true
     await wallet.init()
     let extendAddress0 = await wallet.getAddress("m/44'/0'/0'/0/0")
     let extendAddress4 = await wallet.getAddress("m/44'/0'/0'/0/4")
