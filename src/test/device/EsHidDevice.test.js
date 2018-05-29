@@ -1,12 +1,9 @@
 
-console.log('start es hid device test')
+import D from '../../sdk/D'
+import EsHidDevice from '../../sdk/device/EsHidDevice'
 
-var EsHidDevice = require('../../sdk/device/EsHidDevice').class
-var D = require('../../sdk/D')
-
-var device = new EsHidDevice()
-
-device.listenPlug(function (error, isPlugIn) {
+const esHidDevice = new EsHidDevice()
+esHidDevice.listenPlug(function (error, isPlugIn) {
   console.log('error ' + error + ', isPlugIn: ' + isPlugIn)
 
   if (isPlugIn) {
@@ -35,7 +32,7 @@ x.onclick = doit
 function doit() {
   var apdu = '007800002E09302e303132204254430122314d6459433232476d6a7032656a5670437879596a66795762514359544768477138'
   console.log('test send ' + apdu)
-  device.sendAndReceive(hexToArrayBuffer(apdu), function (error, receive) {
+  esHidDevice.sendAndReceive(hexToArrayBuffer(apdu), function (error, receive) {
     if (error !== D.ERROR_NO_ERROR) {
       return
     }

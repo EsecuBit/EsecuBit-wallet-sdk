@@ -3,66 +3,70 @@ import D from '../D'
 import MockDevice from './MockDevice'
 import EsHidDevice from './EsHidDevice'
 
-const CoreWallet = function () {
-  this._deviceTrue = new EsHidDevice()
-  this._device = new MockDevice()
+export default class CoreWallet {
+  constructor () {
+    if (CoreWallet.prototype.Instance) {
+      return CoreWallet.prototype.Instance
+    }
+    CoreWallet.prototype.Instance = this
 
-  this._walletId = ''
-}
-
-CoreWallet.prototype.init = async function () {
-  return {walletId: this._walletId}
-}
-
-CoreWallet.prototype.sync = async function () {
-  // TODO get index from device
-}
-
-CoreWallet.prototype.updateIndex = async function(addressInfo) {
-}
-
-CoreWallet.prototype.listenPlug = function (callback) {
-  this._deviceTrue.listenPlug(callback)
-}
-
-CoreWallet.prototype.getWalletInfo = async function () {
-  let cosVersion = await this._getCosVersion()
-  let firmwareVersion = await this._getFirmwareVersion()
-  return [
-    {name: 'COS Version', value: D.arrayBufferToHex(cosVersion)},
-    {name: 'Firmware Version', value: D.arrayBufferToHex(firmwareVersion)}]
-}
-
-CoreWallet.prototype._getFirmwareVersion = function () {
-  return this.sendHexApdu('0003000000')
-}
-
-CoreWallet.prototype._getCosVersion = function () {
-  return this.sendHexApdu('00FF000000')
-}
-
-CoreWallet.prototype.verifyPin = async function () {
-  throw D.ERROR_DEVICE_COMM
-}
-
-CoreWallet.prototype.getAddress = async function (addressParams) {
-  // TODO fix
-  let apdu
-  if (addressParams.force === true) {
-    apdu = '0023010000'
-  } else {
-    apdu = '0023000000'
+    this._deviceTrue = new EsHidDevice()
+    this._device = new MockDevice()
+    this._walletId = 'defaultId'
   }
-  let response = await this.sendHexApdu(apdu)
-  return String.fromCharCode.apply(null, new Uint8Array(response))
-}
 
-CoreWallet.prototype.sendHexApdu = function (apdu) {
-  return this._device.sendAndReceive(D.hexToArrayBuffer(apdu))
-}
+  async init () {
+    return {walletId: this._walletId}
+  }
 
-CoreWallet.prototype.sendHexApduTrue = function (apdu) {
-  return this._deviceTrue.sendAndReceive(D.hexToArrayBuffer(apdu))
-}
+  async sync () {
+    // TODO get index from device
+  }
 
-export default {instance: new CoreWallet()}
+  async updateIndex (addressInfo) {
+  }
+
+  listenPlug (callback) {
+    this._deviceTrue.listenPlug(callback)
+  }
+
+  async getWalletInfo () {
+    let cosVersion = await this._getCosVersion()
+    let firmwareVersion = await this._getFirmwareVersion()
+    return [
+      {name: 'COS Version', value: D.arrayBufferToHex(cosVersion)},
+      {name: 'Firmware Version', value: D.arrayBufferToHex(firmwareVersion)}]
+  }
+
+  _getFirmwareVersion () {
+    return this.sendHexApdu('0003000000')
+  }
+
+  _getCosVersion () {
+    return this.sendHexApdu('00FF000000')
+  }
+
+  async verifyPin () {
+    throw D.ERROR_DEVICE_COMM
+  }
+
+  async getAddress (addressParams) {
+    // TODO fix
+    let apdu
+    if (addressParams.force === true) {
+      apdu = '0023010000'
+    } else {
+      apdu = '0023000000'
+    }
+    let response = await this.sendHexApdu(apdu)
+    return String.fromCharCode.apply(null, new Uint8Array(response))
+  }
+
+  sendHexApdu (apdu) {
+    return this._device.sendAndReceive(D.hexToArrayBuffer(apdu))
+  }
+
+  sendHexApduTrue (apdu) {
+    return this._deviceTrue.sendAndReceive(D.hexToArrayBuffer(apdu))
+  }
+}

@@ -1,19 +1,24 @@
 
+import chai from 'chai'
 import D from '../../sdk/D'
-import coinData from '../../sdk/data/CoinData'
-require('chai').should()
+import CoinData from '../../sdk/data/CoinData'
+import IndexedDB from '../../sdk/data/database/IndexedDB'
+import JsWallet from '../../sdk/device/JsWallet'
 
+chai.should()
 describe('CoinData', function () {
   this.timeout(100000)
+  let coinData = null
 
-  // it('delete database', async () => {
-  //   let IndexedDB = require('../../sdk/data/database/IndexedDB').class
-  //   let indexedDB = new IndexedDB(D.TEST_WALLET_ID)
-  //   await indexedDB.deleteDatabase()
-  // })
+  it('clearDatabase', async () => {
+    let indexedDB = new IndexedDB(D.TEST_WALLET_ID)
+    await indexedDB.init()
+    await indexedDB.clearDatabase()
+  })
 
   it('init', async () => {
-    let info = await require('../../sdk/device/JsWallet').instance.init()
+    coinData = new CoinData()
+    let info = await new JsWallet().init()
     await coinData.init(info)
   })
   it('init again', async () => {

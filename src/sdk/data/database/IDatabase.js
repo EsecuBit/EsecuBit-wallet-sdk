@@ -1,41 +1,36 @@
 
 import D from '../../D'
 
-const IDatabase = function () {
+export default class IDatabase {
+  // TODO update API
+  async saveAccount (account) {
+    throw D.ERROR_NOT_IMPLEMENTED
+  }
+
+  async getAccounts (deviceID, passPhraseID) {
+    throw D.ERROR_NOT_IMPLEMENTED
+  }
+
+  async saveTxInfo (txInfo) {
+    throw D.ERROR_NOT_IMPLEMENTED
+  }
+
+  /**
+   * @param filter {accountId}
+   */
+  async getTxInfos (filter) {
+    throw D.ERROR_NOT_IMPLEMENTED
+  }
+
+  async saveOrUpdateAddressInfo (addressInfo) {
+    throw D.ERROR_NOT_IMPLEMENTED
+  }
+
+  /**
+   *
+   * @param filter {coinType}
+   */
+  async getAddressInfos (filter) {
+    throw D.ERROR_NOT_IMPLEMENTED
+  }
 }
-
-// TODO update API
-
-IDatabase.prototype.saveAccount = async function (account) {
-  throw D.ERROR_NOT_IMPLEMENTED
-}
-
-IDatabase.prototype.getAccounts = async function (deviceID, passPhraseID) {
-  throw D.ERROR_NOT_IMPLEMENTED
-}
-
-IDatabase.prototype.saveTxInfo = async function (txInfo) {
-  throw D.ERROR_NOT_IMPLEMENTED
-}
-
-/**
- *
- * @param filter {accountId}
- */
-IDatabase.prototype.getTxInfos = async function (filter) {
-  throw D.ERROR_NOT_IMPLEMENTED
-}
-
-IDatabase.prototype.saveOrUpdateAddressInfo = async function (addressInfo) {
-  throw D.ERROR_NOT_IMPLEMENTED
-}
-
-/**
- *
- * @param filter {coinType}
- */
-IDatabase.prototype.getAddressInfos = async function (filter) {
-  throw D.ERROR_NOT_IMPLEMENTED
-}
-
-export default IDatabase

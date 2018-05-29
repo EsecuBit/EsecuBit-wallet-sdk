@@ -1,17 +1,16 @@
 
+import chai from 'chai'
 import D from '../../../sdk/D'
 import ChainSo from '../../../sdk/data/network/ChainSo'
-require('chai').should()
 
-const chainSo = new ChainSo(D.COIN_BIT_COIN_TEST)
-
-// TODO complete test
+chai.should()
 describe('Network ChainSo Bitcoin', function () {
   this.timeout(5000)
+  const chainSo = new ChainSo(D.COIN_BIT_COIN_TEST)
 
   // server limit
   it('init network', async () => {
-    chainSo.init()
+    await chainSo.init()
   })
 
   it('query address', async () => {

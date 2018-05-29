@@ -1,9 +1,14 @@
-require('chai').should()
-import D from '../sdk/D'
-import coinData from '../sdk/data/CoinData'
-import jsWallet from '../sdk/device/JsWallet'
 
+import chai from 'chai'
+import D from '../sdk/D'
+import CoinData from '../sdk/data/CoinData'
+import JsWallet from '../sdk/device/JsWallet'
+
+chai.should()
 describe('EsAccount', function () {
+  const jsWallet = new JsWallet()
+  const coinData = new CoinData()
+
   let account = null
   it('checkAccount', async () => {
     let info = await jsWallet.init()

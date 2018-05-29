@@ -11,6 +11,11 @@ const NETWORK = D.TEST_MODE ? bitcoin.networks.testnet : bitcoin.networks.bitcoi
 
 export default class JsWallet {
   constructor () {
+    if (JsWallet.prototype.Instance) {
+      return JsWallet.prototype.Instance
+    }
+    JsWallet.prototype.Instance = this
+
     this._walletId = D.TEST_WALLET_ID
   }
 
@@ -28,7 +33,7 @@ export default class JsWallet {
   async updateIndex (addressInfo) {
   }
 
-  static async listenPlug (callback) {
+  async listenPlug (callback) {
     callback(D.ERROR_NO_ERROR, D.STATUS_PLUG_IN)
   }
 

@@ -47,86 +47,82 @@
 import CoinNetwork from './ICoinNetwork'
 import D from '../../D'
 
-// TODO test
-const ChainSo = function (coinType) {
-  this.coinType = coinType
-  this._coinTypeStr = null
-}
-
-ChainSo.prototype = new CoinNetwork()
-ChainSo.prototype.type = 'chainso'
-ChainSo.prototype.website = 'chain.so'
-ChainSo.prototype._apiUrl = 'https://chain.so/api/v2'
-
-ChainSo.prototype.get = async (url) => {
-  let response = await CoinNetwork.prototype.get(url)
-  if (response.status !== 'success') {
-    console.warn('chainso request failed', url, response)
-    throw D.ERROR_NETWORK_PROVIDER_ERROR
-  }
-  return response.data
-}
-
-ChainSo.prototype.superInit = ChainSo.prototype.init
-ChainSo.prototype.init = async function () {
-  await this.superInit(this.coinType)
-  switch (this.coinType) {
-    case D.COIN_BIT_COIN:
-      this._coinTypeStr = 'BTC'
-      break
-    case D.COIN_BIT_COIN_TEST:
-      this._coinTypeStr = 'BTCTEST'
-      break
-    default:
-      throw D.ERROR_COIN_NOT_SUPPORTED
+export default class ChainSo extends CoinNetwork {
+  constructor (coinType) {
+    super()
+    this.coinType = coinType
+    this._coinTypeStr = null
+    this._apiUrl = 'https://chain.so/api/v2'
   }
 
-  // TODO slow down the request speed
-  // this.get([this._apiUrl, 'get_info', this._coinTypeStr].join('/'), callback, function (response) {
-  //   callback(D.ERROR_NO_ERROR, response)
-  // })
-}
-
-ChainSo.prototype.queryAddress = async function (address) {
-  let response = await this.get([this._apiUrl, 'address', this._coinTypeStr, address].join('/'))
-  // TODO wrap
-  return response
-}
-
-ChainSo.prototype.queryTransaction = async function (txId, callback) {
-  let response = await this.get([this._apiUrl, 'get_tx', this._coinTypeStr, txId].join('/'))
-  let txInfo = {
-    txId: response.txid,
-    version: response.version,
-    blockNumber: response.block_no,
-    confirmations: response.confirmations,
-    locktime: response.locktime,
-    time: response.time,
-    hasDetails: true
+  async get (url) {
+    let response = await CoinNetwork.prototype.get(url)
+    if (response.status !== 'success') {
+      console.warn('chainso request failed', url, response)
+      throw D.ERROR_NETWORK_PROVIDER_ERROR
+    }
+    return response.data
   }
-  txInfo.inputs = []
-  for (let input of response.inputs) {
-    txInfo.inputs.push({
-      prevAddress: input.address,
-      value: D.getIntFee(this.coinType, input.value)
-    })
-  }
-  txInfo.outputs = []
-  for (let output of response.outputs) {
-    txInfo.outputs.push({
-      address: output.address,
-      value: D.getIntFee(this.coinType, output.value),
-      index: output.output_no,
-      script: output.script_hex
-    })
-  }
-  return txInfo
-}
 
-ChainSo.prototype.sendTransaction = async function (rawTransaction) {
-  let response = await this.post([this._apiUrl, 'send_tx', this._coinTypeStr].join('/'), {tx_hex: rawTransaction})
-  // TODO wrap
-  return response
-}
+  async init () {
+    await super.init()
+    switch (this.coinType) {
+      case D.COIN_BIT_COIN:
+        this._coinTypeStr = 'BTC'
+        break
+      case D.COIN_BIT_COIN_TEST:
+        this._coinTypeStr = 'BTCTEST'
+        break
+      default:
+        throw D.ERROR_COIN_NOT_SUPPORTED
+    }
 
-export default {class: ChainSo}
+    // TODO slow down the request speed
+    // this.get([this._apiUrl, 'get_info', this._coinTypeStr].join('/'), callback, function (response) {
+    //   callback(D.ERROR_NO_ERROR, response)
+    // })
+  }
+
+  async queryAddress (address) {
+    let addressInfo = await this.get([this._apiUrl, 'address', this._coinTypeStr, address].join('/'))
+    // TODO wrap
+    return addressInfo
+  }
+
+  async queryTransaction (txId) {
+    let response = await this.get([this._apiUrl, 'get_tx', this._coinTypeStr, txId].join('/'))
+    let txInfo = {
+      txId: response.txid,
+      version: response.version,
+      blockNumber: response.block_no,
+      confirmations: response.confirmations,
+      locktime: response.locktime,
+      time: response.time,
+      hasDetails: true
+    }
+    txInfo.inputs = []
+    for (let input of response.inputs) {
+      txInfo.inputs.push({
+        prevAddress: input.address,
+        value: D.getIntFee(this.coinType, input.value)
+      })
+    }
+    txInfo.outputs = []
+    for (let output of response.outputs) {
+      txInfo.outputs.push({
+        address: output.address,
+        value: D.getIntFee(this.coinType, output.value),
+        index: output.output_no,
+        script: output.script_hex
+      })
+    }
+    return txInfo
+  }
+
+  async sendTransaction (rawTransaction) {
+    let response = await this.post([this._apiUrl, 'send_tx', this._coinTypeStr].join('/'), {tx_hex: rawTransaction})
+    // TODO wrap
+    return response
+  }
+}
+ChainSo.provider = 'chain.so'

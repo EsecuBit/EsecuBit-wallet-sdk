@@ -1,8 +1,9 @@
 
+import chai from 'chai'
 import D from '../../../../sdk/D'
 import BitCoinEarn from '../../../../sdk/data/network/fee/BitcoinEarn'
-require('chai').should()
 
+chai.should()
 describe('BitCoinEarn', function () {
   it('empty BitCoinEarn', function () {
     const bitCoinEarn = new BitCoinEarn()

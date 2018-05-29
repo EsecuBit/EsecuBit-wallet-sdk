@@ -6,20 +6,17 @@ import CoinData from './data/CoinData'
 
 export default class EsWallet {
   constructor () {
+    console.log('constructor eswallet')
     if (EsWallet.prototype.Instance) {
       return EsWallet.prototype.Instance
     }
+    EsWallet.prototype.Instance = this
 
-    if (D.TEST_JS_WALLET) {
-      this._device = new JsWallet()
-    } else {
-      this._device = new CoreWallet()
-    }
+    this._device = D.TEST_JS_WALLET ? new JsWallet() : new CoreWallet()
     this._coinData = new CoinData()
-
     this._status = D.STATUS_PLUG_OUT
     this._callback = null
-    JsWallet.listenPlug(async (error, plugStatus) => {
+    this._device.listenPlug(async (error, plugStatus) => {
       this._status = plugStatus
       if (error !== D.ERROR_NO_ERROR) {
         this._callback && this._callback(error, this._status)
@@ -50,7 +47,6 @@ export default class EsWallet {
       } else {
         this._release()
       }
-    EsWallet.prototype.Instance = this
     })
   }
 
@@ -123,6 +119,6 @@ export default class EsWallet {
   }
 
   getFloatFee (coinType, fee) {
-    return this._coinData.getFloatFee(coinType, fee)
+    return CoinData.getFloatFee(coinType, fee)
   }
 }

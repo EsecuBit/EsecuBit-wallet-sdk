@@ -1,11 +1,13 @@
 
-require('chai').should()
+import chai from 'chai'
 import D from '../../sdk/D'
-import jsWallet from '../../sdk/device/JsWallet'
+import JsWallet from '../../sdk/device/JsWallet'
 
-D.TEST_SYNC = true
+chai.should()
 describe('JsWallet', function () {
   this.timeout('10000')
+  const jsWallet = new JsWallet()
+  D.TEST_SYNC = true
 
   it('init', async () => {
     await jsWallet.init()
