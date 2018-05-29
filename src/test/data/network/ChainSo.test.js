@@ -1,6 +1,6 @@
 
-const D = require('../../../sdk/D').class
-const ChainSo = require('../../../sdk/data/network/ChainSo').class
+import D from '../../../sdk/D'
+import ChainSo from '../../../sdk/data/network/ChainSo'
 require('chai').should()
 
 const chainSo = new ChainSo(D.COIN_BIT_COIN_TEST)

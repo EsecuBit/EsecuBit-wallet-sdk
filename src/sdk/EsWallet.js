@@ -1,112 +1,128 @@
 
-const D = require('./D').class
+import D from './D'
+import JsWallet from './device/JsWallet'
+import CoreWallet from './device/CoreWallet'
+import CoinData from './data/CoinData'
 
-const EsWallet = function () {
-  if (D.TEST_JS_WALLET) {
-    this._device = require('./device/JsWallet').instance
-  } else {
-    this._device = require('./device/CoreWallet').instance
-  }
-  this._coinData = require('./data/CoinData').instance
-
-  this._status = D.STATUS_PLUG_OUT
-  this._callback = null
-  this._device.listenPlug(async (error, plugStatus) => {
-    this._status = plugStatus
-    if (error !== D.ERROR_NO_ERROR) {
-      this._callback && this._callback(error, this._status)
-      return
+export default class EsWallet {
+  constructor () {
+    if (EsWallet.prototype.Instance) {
+      return EsWallet.prototype.Instance
     }
-    this._callback && this._callback(D.ERROR_NO_ERROR, this._status)
-    if (this._status === D.STATUS_PLUG_IN) {
-      try {
+
+    if (D.TEST_JS_WALLET) {
+      this._device = new JsWallet()
+    } else {
+      this._device = new CoreWallet()
+    }
+    this._coinData = new CoinData()
+
+    this._status = D.STATUS_PLUG_OUT
+    this._callback = null
+    JsWallet.listenPlug(async (error, plugStatus) => {
+      this._status = plugStatus
+      if (error !== D.ERROR_NO_ERROR) {
+        this._callback && this._callback(error, this._status)
+        return
+      }
+      this._callback && this._callback(D.ERROR_NO_ERROR, this._status)
+      if (this._status === D.STATUS_PLUG_IN) {
         this._status = D.STATUS_INITIALIZING
         this._callback && this._callback(D.ERROR_NO_ERROR, this._status)
-        await this._init()
+        try {
+          await this._init()
+        } catch (e) {
+          this._callback && this._callback(e, this._status)
+        }
+        if (this._status === D.STATUS_PLUG_OUT) return
+
         this._status = D.STATUS_SYNCING
         this._callback && this._callback(D.ERROR_NO_ERROR, this._status)
-        await this._coinData.sync()
+        try {
+          await this._coinData.sync()
+        } catch (e) {
+          this._callback && this._callback(e, this._status)
+        }
+        if (this._status === D.STATUS_PLUG_OUT) return
+
         this._status = D.STATUS_SYNC_FINISH
         this._callback && this._callback(D.ERROR_NO_ERROR, this._status)
-      } catch (e) {
-        this._callback && this._callback(e, status)
+      } else {
+        this._release()
       }
-    } else {
-      this._release()
+    EsWallet.prototype.Instance = this
+    })
+  }
+
+  async _init () {
+    let info = await this._device.init()
+    return this._coinData.init(info)
+  }
+
+  _release () {
+    return this._coinData.release()
+  }
+
+  listenStatus (callback) {
+    this._callback = callback
+    switch (this._status) {
+      case D.STATUS_PLUG_IN:
+        callback(D.ERROR_NO_ERROR, D.STATUS_PLUG_IN)
+        break
+      case D.STATUS_INITIALIZING:
+        callback(D.ERROR_NO_ERROR, D.STATUS_PLUG_IN)
+        callback(D.ERROR_NO_ERROR, D.STATUS_INITIALIZING)
+        break
+      case D.STATUS_SYNCING:
+        callback(D.ERROR_NO_ERROR, D.STATUS_PLUG_IN)
+        callback(D.ERROR_NO_ERROR, D.STATUS_INITIALIZING)
+        callback(D.ERROR_NO_ERROR, D.STATUS_SYNCING)
+        break
+      case D.STATUS_SYNC_FINISH:
+        callback(D.ERROR_NO_ERROR, D.STATUS_PLUG_IN)
+        callback(D.ERROR_NO_ERROR, D.STATUS_INITIALIZING)
+        callback(D.ERROR_NO_ERROR, D.STATUS_SYNCING)
+        callback(D.ERROR_NO_ERROR, D.STATUS_SYNC_FINISH)
+        break
+      case D.STATUS_PLUG_OUT:
+      default:
     }
-  })
-}
+  }
 
-EsWallet.prototype._init = async function () {
-  let info = await this._device.init()
-  return this._coinData.init(info)
-}
+  /**
+   * callback when new transaction detect or old transaction status update
+   */
+  listenTxInfo (callback) {
+    this._coinData.addListener(callback)
+  }
 
-EsWallet.prototype._release = function () {
-  return this._coinData.release()
-}
+  /**
+   * get accounts in database matches the filter
+   *
+   * @param filter (optional)
+   * {
+   *   accountId: string
+   * }
+   * @returns {Promise<*>}
+   */
+  getAccounts (filter) {
+    return this._coinData.getAccounts(filter)
+  }
 
-EsWallet.prototype.listenStatus = function (callback) {
-  this._callback = callback
-  switch (this._status) {
-    case D.STATUS_PLUG_IN:
-      callback(D.ERROR_NO_ERROR, D.STATUS_PLUG_IN)
-      break
-    case D.STATUS_INITIALIZING:
-      callback(D.ERROR_NO_ERROR, D.STATUS_PLUG_IN)
-      callback(D.ERROR_NO_ERROR, D.STATUS_INITIALIZING)
-      break
-    case D.STATUS_SYNCING:
-      callback(D.ERROR_NO_ERROR, D.STATUS_PLUG_IN)
-      callback(D.ERROR_NO_ERROR, D.STATUS_INITIALIZING)
-      callback(D.ERROR_NO_ERROR, D.STATUS_SYNCING)
-      break
-    case D.STATUS_SYNC_FINISH:
-      callback(D.ERROR_NO_ERROR, D.STATUS_PLUG_IN)
-      callback(D.ERROR_NO_ERROR, D.STATUS_INITIALIZING)
-      callback(D.ERROR_NO_ERROR, D.STATUS_SYNCING)
-      callback(D.ERROR_NO_ERROR, D.STATUS_SYNC_FINISH)
-      break
-    case D.STATUS_PLUG_OUT:
-    default:
+  newAccount (deviceID, passPhraseID, coinType) {
+    return this._coinData.newAccount(deviceID, passPhraseID, coinType)
+  }
+
+  getWalletInfo () {
+    return JsWallet.getWalletInfo()
+  }
+
+  getSuggestedFee (transaction, coinType, feeType) {
+    // TODO move to account
+    // var transactionSize = 180 * ins + 34 * outs + 10
+  }
+
+  getFloatFee (coinType, fee) {
+    return this._coinData.getFloatFee(coinType, fee)
   }
 }
-
-/**
- * callback when new transaction detect or old transaction status update
- */
-EsWallet.prototype.listenTxInfo = function (callback) {
-  this._coinData.addListener(callback)
-}
-
-/**
- * get accounts in database matches the filter
- *
- * @param filter (optional)
- * {
- *   accountId: string
- * }
- * @returns {Promise<*>}
- */
-EsWallet.prototype.getAccounts = function (filter) {
-  return this._coinData.getAccounts(filter)
-}
-
-EsWallet.prototype.newAccount = function (deviceID, passPhraseID, coinType) {
-  return this._coinData.newAccount(deviceID, passPhraseID, coinType)
-}
-
-EsWallet.prototype.getWalletInfo = function () {
-  return this._device.getWalletInfo()
-}
-
-EsWallet.prototype.getSuggestedFee = function (transaction, coinType, feeType) {
-  // TODO move to account
-  // var transactionSize = 180 * ins + 34 * outs + 10
-}
-
-EsWallet.prototype.getFloatFee = function (coinType, fee) {
-  return this._coinData.getFloatFee(coinType, fee)
-}
-
-module.exports = {instance: new EsWallet()}

@@ -1,23 +1,23 @@
 
 require('chai').should()
-const D = require('../../sdk/D').class
-const wallet = require('../../sdk/device/JsWallet').instance
+import D from '../../sdk/D'
+import jsWallet from '../../sdk/device/JsWallet'
 
 D.TEST_SYNC = true
 describe('JsWallet', function () {
   this.timeout('10000')
 
   it('init', async () => {
-    await wallet.init()
+    await jsWallet.init()
   })
 
   it('getAddress', async () => {
-    let address = await wallet.getAddress("m/44'/0'/0'/0/0")
+    let address = await jsWallet.getAddress("m/44'/0'/0'/0/0")
     address.should.equal('mzkFNdNqZM6YN9r1STVMZeWvhCgfvqSfwR')
   })
 
   it('signTransaction', async () => {
-    let response = await wallet.signTransaction({
+    let response = await jsWallet.signTransaction({
       inputs: [{
         prevAddress: 'mzkFNdNqZM6YN9r1STVMZeWvhCgfvqSfwR',
         prevAddressPath: "m/44'/0'/0'/0/0",
@@ -36,16 +36,16 @@ describe('JsWallet', function () {
   })
 
   it('derivePublicKey', async () => {
-    let publicKey5 = await wallet.getPublicKey("m/44'/0'/0'/0/100")
-    let publicKey4 = await wallet.getPublicKey("m/44'/0'/0'/0")
-    let publicKey4to5 = await wallet.getPublicKey('100', publicKey4)
+    let publicKey5 = await jsWallet.getPublicKey("m/44'/0'/0'/0/100")
+    let publicKey4 = await jsWallet.getPublicKey("m/44'/0'/0'/0")
+    let publicKey4to5 = await jsWallet.getPublicKey('100', publicKey4)
     publicKey5.should.deep.equal(publicKey4to5)
   })
 
   it('deriveAddress', async () => {
-    let address5 = await wallet.getAddress("m/44'/0'/0'/0/100")
-    let publicKey4 = await wallet.getPublicKey("m/44'/0'/0'/0")
-    let address4to5 = await wallet.getAddress('100', publicKey4)
+    let address5 = await jsWallet.getAddress("m/44'/0'/0'/0/100")
+    let publicKey4 = await jsWallet.getPublicKey("m/44'/0'/0'/0")
+    let address4to5 = await jsWallet.getAddress(100, publicKey4)
     address5.should.deep.equal(address4to5)
   })
 })

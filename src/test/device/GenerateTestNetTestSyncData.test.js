@@ -1,7 +1,7 @@
 
 require('chai').should()
-const D = require('../../sdk/D').class
-const wallet = require('../../sdk/device/JsWallet').instance
+import D from '../../sdk/D'
+import wallet from '../../sdk/device/JsWallet'
 
 describe('Generate Testnet Test Sync Data', function () {
   this.timeout('1000000')
@@ -240,7 +240,7 @@ describe('Generate Testnet Test Sync Data', function () {
     transaction8.should.deep.equal(this.transaction8)
     console.log('transaction8', transaction8)
 
-    // const BlockChainInfo = require('../../sdk/data/network/BlockChainInfo').class
+    // import BlockChainInfo from '../../sdk/data/network/BlockChainInfo'
     // let network = new BlockChainInfo()
     // await network.init(D.COIN_BIT_COIN_TEST)
     // let response = await network.sendTransaction(transaction8.hex)

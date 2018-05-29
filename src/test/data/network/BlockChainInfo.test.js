@@ -1,6 +1,6 @@
 
-const D = require('../../../sdk/D').class
-const BlockchainInfo = require('../../../sdk/data/network/BlockChainInfo').class
+import D from '../../../sdk/D'
+import BlockchainInfo from '../../../sdk/data/network/BlockChainInfo'
 require('chai').should()
 
 const blockchainInfo = new BlockchainInfo(D.COIN_BIT_COIN_TEST)

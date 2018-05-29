@@ -1,6 +1,6 @@
 
-const ICoinNetwork = require('./ICoinNetwork').class
-const D = require('../../D').class
+import ICoinNetwork from './ICoinNetwork'
+import D from '../../D'
 
 const TEST_URL = 'https://testnet.blockchain.info'
 const MAIN_URL = 'https://blockchain.info'
@@ -11,7 +11,6 @@ const BlockchainInfo = function (coinType) {
   this._blockHeight = -1
   this.coinType = coinType
 }
-module.exports = {class: BlockchainInfo}
 
 BlockchainInfo.prototype = new ICoinNetwork()
 BlockchainInfo.prototype.website = 'blockchain.info'
@@ -120,3 +119,5 @@ BlockchainInfo.prototype.sendTransaction = async function (rawTransaction) {
   // TODO wrap
   return response
 }
+
+export default {class: BlockchainInfo}

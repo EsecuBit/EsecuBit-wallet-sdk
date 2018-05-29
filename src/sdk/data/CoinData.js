@@ -1,8 +1,8 @@
 
-const D = require('../D').class
-const IndexedDB = require('./database/IndexedDB').class
-const BlockChainInfo = require('./network/BlockChainInfo').class
-const EsAccount = require('../EsAccount').class
+import D from '../D'
+import IndexedDB from './database/IndexedDB'
+import BlockChainInfo from './network/BlockChainInfo'
+import EsAccount from '../EsAccount'
 
 const CoinData = function () {
   this._initialized = false
@@ -59,7 +59,6 @@ const CoinData = function () {
     busy = false
   }
 }
-module.exports = {instance: new CoinData()}
 
 CoinData.prototype.init = async function (info) {
   // TODO real with dependenices between device, coin data and wallet
@@ -120,13 +119,13 @@ CoinData.prototype.newAccount = async function (coinType) {
       count++
     }
   }
-  let index = count + 1
 
   let newAccount = async () => {
     let newAccount = {
       accountId: makeId(),
-      label: 'Account#' + index,
+      label: 'Account#' + count + 1,
       coinType: coinType,
+      index: count,
       balance: 0
     }
     let externalPath = "m/44'/" + D.getCoinIndex(coinType) + "'/" + count + "'/0"
@@ -136,7 +135,7 @@ CoinData.prototype.newAccount = async function (coinType) {
     newAccount.changePublicKey = await this._device.getPublicKey(changePath)
     newAccount.changePublicKeyIndex = 0
     let addresses = []
-    await Promise.all(Array.from({length: 20}, (v, k) => '' + k)
+    await Promise.all(Array.from({length: 20}, (v, k) => k)
       .map(async (k) => {
         let externalAddress = await this._device.getAddress(k, newAccount.externalPublicKey)
         addresses.push({
@@ -182,6 +181,10 @@ CoinData.prototype.newAccount = async function (coinType) {
 
 CoinData.prototype.getTxInfos = function (filter) {
   return this._db.getTxInfos(filter)
+}
+
+CoinData.prototype.getUtxos = function (filter) {
+  return this._db.getUtxos(filter)
 }
 
 CoinData.prototype.getFloatFee = function (coinType, fee) {
@@ -263,3 +266,5 @@ function makeId () {
   }
   return text
 }
+
+export default {instance: new CoinData()}

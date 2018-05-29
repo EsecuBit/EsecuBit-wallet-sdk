@@ -1,7 +1,7 @@
 
-const D = require('../D').class
-const MockDevice = require('./MockDevice').class
-const EsHidDevice = require('./EsHidDevice').class
+import D from '../D'
+import MockDevice from './MockDevice'
+import EsHidDevice from './EsHidDevice'
 
 const CoreWallet = function () {
   this._deviceTrue = new EsHidDevice()
@@ -9,7 +9,6 @@ const CoreWallet = function () {
 
   this._walletId = ''
 }
-module.exports = {instance: new CoreWallet()}
 
 CoreWallet.prototype.init = async function () {
   return {walletId: this._walletId}
@@ -65,3 +64,5 @@ CoreWallet.prototype.sendHexApdu = function (apdu) {
 CoreWallet.prototype.sendHexApduTrue = function (apdu) {
   return this._deviceTrue.sendAndReceive(D.hexToArrayBuffer(apdu))
 }
+
+export default {instance: new CoreWallet()}

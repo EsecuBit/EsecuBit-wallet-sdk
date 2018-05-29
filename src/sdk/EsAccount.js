@@ -1,29 +1,31 @@
 
-const D = require('./D').class
+import D from './D'
+import JsWallet from './device/JsWallet'
+import CoreWallet from './device/CoreWallet'
+import CoinData from './data/CoinData'
 
 // TODO listen transaction after boardcast a transaction successfully
 const EsAccount = function (info) {
-  this._info = info
+  this.info = info
 
-  this._device = require('./device/CoreWallet').instance
+  this._device = D.TEST_JS_WALLET ? new JsWallet() : new CoreWallet()
   // TODO fix circle require
-  this._coinData = require('./data/CoinData').instance
+  this._coinData = new CoinData()
 }
-module.exports = {class: EsAccount}
 
 EsAccount.prototype.getTxInfos = async function (startIndex, endIndex) {
-  await this._coinData.getTxInfos(
+  return this._coinData.getTxInfos(
     {
       accountId: this.accountId,
-      startIndex: startIndex,
-      endIndex: endIndex
+      startIndex: startIndex || 0,
+      endIndex: endIndex || Number.MAX_SAFE_INTEGER
     })
 }
 
-EsAccount.prototype.getAddress = async function (addressParam) {
-  let address = await this._device.getAddress(addressParam)
+EsAccount.prototype.getAddress = async function () {
+  let address = await this._device.getAddress(this.info.externalPublicKeyIndex, this.info.externalPublicKey)
   let prefix
-  switch (this.coinType) {
+  switch (this.info.coinType) {
     case D.COIN_BIT_COIN:
     case D.COIN_BIT_COIN_TEST:
       prefix = 'bitcoin:'
@@ -34,8 +36,36 @@ EsAccount.prototype.getAddress = async function (addressParam) {
   return {address: address, qrAddress: prefix + address}
 }
 
+/**
+ *
+ * @param details:
+ * {
+ *     fee: long (bitcoin -> santoshi),
+ *     outputs: [{
+ *       address: base58 string,
+ *       value: long (bitcoin -> santoshi)
+ *     }]
+ * }
+ * @returns {Promise<void>}
+ */
+EsAccount.prototype.buildTransaction = async function (details) {
+  let utxos = await this._coinData.getUtxos({accountId: this.info.accountId})
+  let total = utxos.reduce((sum, utxo) => sum + utxo.value, 0)
+  let fee = details.fee
+  let totalOut = details.outputs.reduce((sum, output) => sum + output.value, 0)
+  let inputs = []
+  let getSuitableUtxo = () => {
+
+  }
+  while (true) {
+    if (total < fee + totalOut) throw D.ERROR_TX_NOT_ENOUGH_VALUE
+
+    break
+  }
+}
+
 // TODO judge lockTime, judge confirmations?
-EsAccount.prototype.sendBitCoin = async function (transaction, callback) {
+EsAccount.prototype.sendBitCoin = function (transaction, callback) {
   let enc = new TextEncoder()
   console.dir(enc)
 
@@ -55,7 +85,7 @@ EsAccount.prototype.sendBitCoin = async function (transaction, callback) {
   console.log(apdu)
 
   // var ok = "007800002E09302e303132204254430122314d6459433232476d6a7032656a5670437879596a66795762514359544768477138"
-  let response = await this._device.sendHexApduTrue(apdu, callback)
+  let response = this._device.sendHexApduTrue(apdu, callback)
   let data = new Uint8Array(response)
   let intArray = new Uint8Array(new Array(2))
   intArray[0] = data[3]
@@ -66,7 +96,9 @@ EsAccount.prototype.sendBitCoin = async function (transaction, callback) {
   let sw = D.arrayBufferToHex(intArray)
 
   if (sw === '6FFA') {
-    this.sendBitCoin(transaction, callback)
+    this._device.sendBitCoin(transaction, callback)
   }
   callback(sw === '9000' ? D.ERROR_NO_ERROR : D.ERROR_USER_CANCEL)
 }
+
+export default {class: EsAccount}

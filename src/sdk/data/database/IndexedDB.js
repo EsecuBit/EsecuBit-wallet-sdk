@@ -1,16 +1,18 @@
 
-const D = require('../../D').class
-const Database = require('./IDatabase').class
+import IDatabase from './IDatabase'
+import D from '../../D'
+console.log(IDatabase)
 
 const DB_VERSION = 3
+
+const pool = {}
 
 const IndexedDB = function (walletId) {
   this._db = null
   this._walletId = walletId
 }
-module.exports = {class: IndexedDB}
 
-IndexedDB.prototype = new Database()
+IndexedDB.prototype = new IDatabase.cls()
 
 // TODO judge is new app, whether need recover wallet
 IndexedDB.prototype.init = function () {
@@ -18,6 +20,12 @@ IndexedDB.prototype.init = function () {
     if (!('indexedDB' in window)) {
       console.warn('no indexedDB implementation')
       reject(D.ERROR_DATABASE_OPEN_FAILED)
+      return
+    }
+
+    if (pool[this._walletId]) {
+      console.log('found indexedDB connection in pool')
+      this._db = pool[this._walletId]
       return
     }
 
@@ -33,6 +41,7 @@ IndexedDB.prototype.init = function () {
        *   accountId: string,
        *   label: string,
        *   coinType: string,
+       *   index: 0,
        *   balance: long,
        *   externalPublicKey: string,
        *   externalPublicKeyIndex: int,
@@ -104,13 +113,14 @@ IndexedDB.prototype.init = function () {
        */
       if (!db.objectStoreNames.contains('utxo')) {
         let utxo = db.createObjectStore('utxo', {keyPath: ['txId', 'address']})
-        utxo.createIndex('accoundId', 'accoundId', {unique: false})
+        utxo.createIndex('accountId', 'accountId', {unique: false})
       }
     }
 
     openRequest.onsuccess = (e) => {
       console.log('indexedDB open success!')
       this._db = e.target.result
+      pool[this._walletId] = this._db
       finished++ || resolve()
     }
 
@@ -147,12 +157,11 @@ IndexedDB.prototype.deleteDatabase = function () {
 }
 
 IndexedDB.prototype.release = async function () {
-  if (!this._db) return
-  this._db.close()
+  pool[this._walletId] = undefined
+  this._db && this._db.close()
 }
 
-IndexedDB.prototype.newAccount = function (account, addresseInfos) {
-  addresseInfos = addresseInfos || []
+IndexedDB.prototype.newAccount = function (account, addresseInfos = []) {
   return new Promise((resolve, reject) => {
     if (this._db === null) {
       reject(D.ERROR_DATABASE_OPEN_FAILED)
@@ -262,14 +271,11 @@ IndexedDB.prototype.getTxInfos = function (filter = {}) {
     }
 
     let request
-    if (filter.accountId !== null) {
-      // var range = IDBKeyRange.bound(startIndex, endIndex)
+    if (filter.accountId) {
       request = this._db.transaction(['txInfo'], 'readonly')
         .objectStore('txInfo')
         .index('accountId')
         .openCursor(filter.accountId)
-      // TODO optimize
-      // .openCursor(range)
     } else {
       request = this._db.transaction(['txInfo'], 'readonly')
         .objectStore('txInfo')
@@ -328,7 +334,7 @@ IndexedDB.prototype.getAddressInfos = function (filter = {}) {
     }
 
     let request
-    if (filter.coinType !== null) {
+    if (filter.coinType) {
       request = this._db.transaction(['addressInfo'], 'readonly')
         .objectStore('addressInfo')
         .index('coinType')
@@ -376,3 +382,34 @@ IndexedDB.prototype.newTx = function (addressInfo, txInfo, utxo) {
     request.onerror = error
   })
 }
+
+IndexedDB.prototype.getUtxos = function (filter = {}) {
+  return new Promise((resolve, reject) => {
+    if (this._db === null) {
+      reject(D.ERROR_DATABASE_OPEN_FAILED)
+      return
+    }
+
+    let request
+    if (filter.accountId) {
+      request = this._db.transaction(['utxo'], 'readonly')
+        .objectStore('utxo')
+        .index('accountId')
+        .getAll(filter.accountId)
+    } else {
+      request = this._db.transaction(['utxo'], 'readonly')
+        .objectStore('utxo')
+        .getAll()
+    }
+
+    request.onsuccess = (e) => {
+      resolve(e.target.result)
+    }
+    request.onerror = (e) => {
+      console.warn('getAccounts', e)
+      reject(D.ERROR_DATABASE_EXEC_FAILED)
+    }
+  })
+}
+
+export default {class: IndexedDB}

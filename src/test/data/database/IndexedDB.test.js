@@ -1,6 +1,6 @@
 
-const D = require('../../../sdk/D').class
-const IndexedDB = require('../../../sdk/data/database/IndexedDB').class
+import D from '../../../sdk/D'
+import IndexedDB from '../../../sdk/data/database/IndexedDB'
 require('chai').should()
 
 const indexedDB = new IndexedDB(D.TEST_WALLET_ID)

@@ -1,6 +1,6 @@
 
-const D = require('../../sdk/D').class
-const coinData = require('../../sdk/data/CoinData').instance
+import D from '../../sdk/D'
+import coinData from '../../sdk/data/CoinData'
 require('chai').should()
 
 describe('CoinData', function () {

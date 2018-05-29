@@ -8,8 +8,8 @@
 /** @namespace chrome.runtime.lastError */
 /** @namespace chrome.usb.controlTransfer */
 
-const D = require('../D').class
-const Device = require('./IEsDevice').class
+import D from '../D'
+import Device from './IEsDevice'
 
 // TODO ask level 3 path publickey to get multi level 5 address
 const EsHidDevice = function() {
@@ -98,7 +98,6 @@ const EsHidDevice = function() {
     connect(device)
   })
 }
-module.exports = {class: EsHidDevice}
 
 EsHidDevice.prototype = new Device()
 
@@ -241,3 +240,5 @@ EsHidDevice.prototype.listenPlug = function (callback) {
     callback(D.ERROR_NO_ERROR, D.STATUS_PLUG_IN)
   }
 }
+
+export default {class: EsHidDevice}

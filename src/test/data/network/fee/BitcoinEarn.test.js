@@ -1,14 +1,7 @@
 
-const D = require('../../../../sdk/D').class
-const BitCoinEarn = require('../../../../sdk/data/network/fee/BitcoinEarn').class
+import D from '../../../../sdk/D'
+import BitCoinEarn from '../../../../sdk/data/network/fee/BitcoinEarn'
 require('chai').should()
-
-describe('Simple Test', function () {
-  it('1 == 1', function () {
-    const i = 1
-    i.should.equal(1)
-  })
-})
 
 describe('BitCoinEarn', function () {
   it('empty BitCoinEarn', function () {

@@ -1,5 +1,5 @@
 
-const D = require('../../../D').class
+import D from '../../../D'
 
 const BitCoinFeeEarn = function (fee = {}) {
   this.fee = {} // santonshi per b
@@ -7,7 +7,6 @@ const BitCoinFeeEarn = function (fee = {}) {
   this.fee[D.FEE_NORMAL] = fee[D.FEE_NORMAL] || 50
   this.fee[D.FEE_ECNOMIC] = fee[D.FEE_ECNOMIC] || 20
 }
-module.exports = {class: BitCoinFeeEarn}
 
 BitCoinFeeEarn.prototype.updateFee = async function () {
   const url = 'https://bitcoinfees.earn.com/api/v1/fees/recommended'
@@ -53,3 +52,5 @@ BitCoinFeeEarn.prototype.updateFee = async function () {
   console.info('new fee', this.fee)
   return Object.assign(this.fee)
 }
+
+export default {class: BitCoinFeeEarn}

@@ -1,5 +1,5 @@
 
-const D = require('../../D').class
+import D from '../../D'
 
 const TYPE_ADDRESS = 'address'
 const TYPE_TRANSACTION_INFO = 'transaction_info'
@@ -19,7 +19,6 @@ const ICoinNetwork = function () {
   this._requestRate = 2 // seconds per request
   this._requestList = []
 }
-module.exports = {class: ICoinNetwork}
 
 ICoinNetwork.prototype.provider = 'undefined'
 ICoinNetwork.prototype.website = 'undefined'
@@ -256,7 +255,6 @@ ICoinNetwork.prototype.queryAddresses = async function (addresses) {
  *
  */
 ICoinNetwork.prototype.queryAddress = async function (address) {
-  console.log('???')
   throw D.ERROR_NOT_IMPLEMENTED
 }
 
@@ -283,3 +281,5 @@ ICoinNetwork.prototype.queryTransaction = async function (txId) {
 ICoinNetwork.prototype.sendTrnasaction = async function (rawTransaction) {
   throw D.ERROR_NOT_IMPLEMENTED
 }
+
+export default {class: ICoinNetwork}

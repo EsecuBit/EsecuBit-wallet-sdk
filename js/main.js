@@ -87,7 +87,7 @@ layui.use(['jquery','form','jqGrid','localeEn','laypage','element','qrcode'], fu
 
 
 
-            wallet.getWalletInfo(function (error, info) {
+            JsWallet.getWalletInfo(function (error, info) {
                 //获取硬件信息
                 $.each(info,function (i,val) {
                     $("#hardwareInformation").append('<tr><td>'+val.name +'</td><td>'+ val.value+'</td></tr>');

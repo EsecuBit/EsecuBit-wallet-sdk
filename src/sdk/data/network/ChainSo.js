@@ -44,15 +44,14 @@
  * }
  */
 
-const CoinNetwork = require('./ICoinNetwork').class
-const D = require('../../D').class
+import CoinNetwork from './ICoinNetwork'
+import D from '../../D'
 
 // TODO test
 const ChainSo = function (coinType) {
   this.coinType = coinType
   this._coinTypeStr = null
 }
-module.exports = {class: ChainSo}
 
 ChainSo.prototype = new CoinNetwork()
 ChainSo.prototype.type = 'chainso'
@@ -129,3 +128,5 @@ ChainSo.prototype.sendTransaction = async function (rawTransaction) {
   // TODO wrap
   return response
 }
+
+export default {class: ChainSo}
