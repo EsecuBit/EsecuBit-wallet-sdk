@@ -8,7 +8,7 @@ import JsWallet from '../../sdk/device/JsWallet'
 chai.should()
 describe('CoinData', function () {
   this.timeout(100000)
-  let coinData = null
+  let coinData = new CoinData()
 
   it('clearDatabase', async () => {
     let indexedDB = new IndexedDB(D.TEST_WALLET_ID)
@@ -17,7 +17,6 @@ describe('CoinData', function () {
   })
 
   it('init', async () => {
-    coinData = new CoinData()
     let info = await new JsWallet().init()
     await coinData.init(info)
   })
