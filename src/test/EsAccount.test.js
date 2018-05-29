@@ -57,7 +57,7 @@ describe('EsAccount', function () {
     address.qrAddress.should.be.a('string')
   })
 
-  it('buildTransaction', async () => {
+  it('perpareTransaction', async () => {
 
   })
 })

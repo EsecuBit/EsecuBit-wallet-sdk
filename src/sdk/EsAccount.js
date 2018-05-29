@@ -4,6 +4,7 @@ import JsWallet from './device/JsWallet'
 import CoreWallet from './device/CoreWallet'
 import CoinData from './data/CoinData'
 
+// TODO surrounded with try catch
 export default class EsAccount {
   constructor (info) {
     this.info = info
@@ -37,31 +38,73 @@ export default class EsAccount {
 
   /**
    *
-   * @param details:
+   * @param details
    * {
-   *     fee: long (bitcoin -> santoshi),
-   *     outputs: [{
-   *       address: base58 string,
-   *       value: long (bitcoin -> santoshi)
-   *     }]
+   *   feeRate: long (bitcoin -> santoshi) per byte,
+   *   outputs: [{
+   *     address: base58 string,
+   *     value: long (bitcoin -> santoshi)
+   *   }]
    * }
-   * @returns {Promise<void>}
+   * @returns {Promise<result>}
+   * {
+   *   total: long (bitcoin -> santoshi)
+   *   fee: long (bitcoin -> santoshi)
+   *   feeRate: long (bitcoin -> santoshi) per byte,
+   *   utxos: utxo array,
+   *   outputs: [{
+   *     address: base58 string,
+   *     value: long (bitcoin -> santoshi)
+   *   }]
+   * }
    */
-  async buildTransaction (details) {
+  async perpareTransaction (details) {
+    if (this.info.coinType !== D.COIN_BIT_COIN && this.info.coinType !== D.COIN_BIT_COIN) throw D.ERROR_COIN_NOT_SUPPORTED
+
+    let getEnoughUtxo = (total) => {
+      let willSpentUtxos = []
+      let newTotal = 0
+      for (let utxo of utxos) {
+        newTotal += utxo.value
+        willSpentUtxos.push(utxo)
+        if (newTotal > total) {
+          break
+        }
+      }
+      if (newTotal <= total) {
+        throw D.ERROR_TX_NOT_ENOUGH_VALUE
+      }
+      return {newTotal, willSpentUtxos}
+    }
+
     // TODO judge lockTime, judge confirmations
     let utxos = await this._coinData.getUtxos({accountId: this.info.accountId})
     let total = utxos.reduce((sum, utxo) => sum + utxo.value, 0)
-    let fee = details.fee
+    let fee = details.feeRate
     let totalOut = details.outputs.reduce((sum, output) => sum + output.value, 0)
-    let inputs = []
-    let getSuitableUtxo = () => {
-
-    }
+    // fee using uncompressed public key
+    let calculateFee = (utxos, outputs) => (utxos.length * 180 + 34 * outputs.length + 34 + 10) * details.feeRate
+    let result
     while (true) {
       if (total < fee + totalOut) throw D.ERROR_TX_NOT_ENOUGH_VALUE
-
-      break
+      result = getEnoughUtxo(totalOut + fee)
+      // new fee calculated
+      fee = calculateFee(result.willSpentUtxos, details.outputs)
+      if (result.newTotal > totalOut + fee) {
+        return {
+          feeRate: details.feeRate,
+          outputs: details.outputs,
+          fee: fee,
+          total: totalOut + fee,
+          utxos: result.utxos
+        }
+      }
+      // new fee + total out is larger than new total, calculate again
     }
+  }
+
+  async buildTransaction () {
+    // TODO
   }
 
   sendBitCoin (transaction, callback) {

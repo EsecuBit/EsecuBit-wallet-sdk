@@ -59,6 +59,8 @@ export default class CoinData {
       txInfo.value = 0
       txInfo.value -= txInfo.inputs.reduce((sum, input) => sum + input.isMine ? input.value : 0, 0)
       txInfo.value += txInfo.outputs.reduce((sum, output) => sum + output.isMine ? output.value : 0, 0)
+
+      utxo = txInfo.confirmations >= 6 ? utxo : null
       await this._db.newTx(addressInfo, txInfo, utxo)
       await this._device.updateIndex(addressInfo)
       // TODO add addressListener after updateIndex

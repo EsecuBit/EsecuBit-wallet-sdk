@@ -4,6 +4,7 @@ import JsWallet from './device/JsWallet'
 import CoreWallet from './device/CoreWallet'
 import CoinData from './data/CoinData'
 
+// TODO surrounded with try catch
 export default class EsWallet {
   constructor () {
     console.log('constructor eswallet')
@@ -111,11 +112,6 @@ export default class EsWallet {
 
   getWalletInfo () {
     return JsWallet.getWalletInfo()
-  }
-
-  getSuggestedFee (transaction, coinType, feeType) {
-    // TODO move to account
-    // var transactionSize = 180 * ins + 34 * outs + 10
   }
 
   getFloatFee (coinType, fee) {
