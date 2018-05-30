@@ -120,6 +120,17 @@ const D = {
       (addressIndex ? ('/' + addressIndex) : '')
   },
 
+  parseBip44Path (path, coinType) {
+    let splitPath = path.split('/')
+    console.log('splitPath', splitPath)
+    return {
+      coinType: coinType,
+      accountIndex: parseInt(splitPath[3].slice(0, -1)),
+      isExternal: parseInt(splitPath[4]),
+      addressIndex: parseInt(splitPath[5])
+    }
+  },
+
   // test
   TEST_MODE: true,
   TEST_DATA: false,

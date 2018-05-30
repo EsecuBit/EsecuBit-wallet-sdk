@@ -4,35 +4,38 @@ import D from '../../D'
 const TYPE_ADDRESS = 'address'
 const TYPE_TRANSACTION_INFO = 'transaction_info'
 // TODO check block height to restart request
-let ADDRESS_REQUEST_PERIOD = 600 // seconds per request
-let TRANSACTION_REQUEST_PERIOD = 60 // seconds per request
+// seconds per request
+let BLOCK_HEIGHT_REQUEST_PERIOD = 120
 
 if (D.TEST_NETWORK_REQUEST) {
-  ADDRESS_REQUEST_PERIOD = 10 // seconds per request
-  TRANSACTION_REQUEST_PERIOD = 10 // seconds per request
+  BLOCK_HEIGHT_REQUEST_PERIOD = 20
 }
 
 export default class ICoinNetwork {
-  constructor () {
+  constructor (coinType) {
+    this.coinType = coinType
     this._startQueue = false
     this._blockHeight = -1
     this._supportMultiAddresses = false
-    this._requestRate = 2 // seconds per request
+    this._requestRate = 1 // seconds per request
     this._requestList = []
   }
 
   async init () {
-    this._startQueue = true
+    this._blockHeight = await this.getBlockHeight()
+    console.info(this.coinType + ' current block height ' + this._blockHeight)
+
     // start the request loop
+    this._startQueue = true
     let queue = () => {
-      const timeStamp = new Date().getTime()
       for (let request of this._requestList) {
         if (!request) {
           // TODO one time
           console.warn('a removed request')
           continue
         }
-        if (request.nextTime <= timeStamp) {
+        if (request.currentBlock < this._blockHeight) {
+          request.currentBlock = this._blockHeight
           request.request()
           break
         }
@@ -42,7 +45,19 @@ export default class ICoinNetwork {
       }
     }
     setTimeout(queue, 0)
-    return {}
+
+    // start the blockHeight loop
+    let blockHeightRequest = async () => {
+      let newBlockHeight = await this.getBlockHeight()
+      if (newBlockHeight !== this._blockHeight) {
+        this._blockHeight = newBlockHeight
+        console.debug(this.coinType + ' has new block height ' + this._blockHeight)
+      }
+      setTimeout(blockHeightRequest, BLOCK_HEIGHT_REQUEST_PERIOD * 1000)
+    }
+    setTimeout(blockHeightRequest, BLOCK_HEIGHT_REQUEST_PERIOD * 1000)
+
+    return {blockHeight: this._blockHeight}
   }
 
   async release () {
@@ -52,7 +67,7 @@ export default class ICoinNetwork {
 
   get (url) {
     return new Promise((resolve, reject) => {
-      console.log('get', url)
+      console.debug('get', url)
       let xmlhttp = new XMLHttpRequest()
       xmlhttp.onreadystatechange = () => {
         if (xmlhttp.readyState === 4) {
@@ -78,7 +93,7 @@ export default class ICoinNetwork {
   }
 
   post (url, args) {
-    console.log('post', url, args)
+    console.debug('post', url, args)
     return new Promise((resolve, reject) => {
       const xmlhttp = new XMLHttpRequest()
       xmlhttp.onreadystatechange = () => {
@@ -119,14 +134,13 @@ export default class ICoinNetwork {
       type: TYPE_TRANSACTION_INFO,
       txInfo: txInfo,
       response: null,
-      nextTime: 0,
+      currentBlock: -1,
       request: async function () {
-        this.nextTime = new Date().getTime() + TRANSACTION_REQUEST_PERIOD * 1000
         try {
           if (!this.response) this.response = await that.queryTx(this.txInfo.txId)
         } catch (e) {
           if (e === D.ERROR_TX_NOT_FOUND) {
-            console.log('tx not found in network, continue. id: ', txInfo.txId)
+            console.info('tx not found in network, continue. id: ', txInfo.txId)
             return
           }
           callback(e, this.txInfo)
@@ -157,7 +171,7 @@ export default class ICoinNetwork {
 
     let checkNewTx = (response, addressInfo) => {
       let newTransaction = (addressInfo, tx) => {
-        console.log('newTransaction', addressInfo, tx)
+        console.info('newTransaction', addressInfo, tx)
         // if tx.confirmations = 0 (not found)
         if (tx.confirmations > 0) addressInfo.txs.push(tx.txId)
         let output = tx.outputs.find(output => addressInfo.address === output.address)
@@ -171,12 +185,8 @@ export default class ICoinNetwork {
           confirmations: tx.confirmations,
           time: tx.time,
           direction: direction,
-          inputs: tx.inputs.map(input => {
-            return {prevAddress: input.prevAddress, value: input.value}
-          }),
-          outputs: tx.outputs.map(output => {
-            return {address: output.address, value: output.value}
-          })
+          inputs: tx.inputs,
+          outputs: tx.outputs
         }
         if (direction === D.TX_DIRECTION_IN) {
           let utxo = {
@@ -214,9 +224,8 @@ export default class ICoinNetwork {
         type: TYPE_ADDRESS,
         addressMap: addressMap,
         oneTime: oneTime,
-        nextTime: 0,
+        currentBlock: -1,
         request: function () {
-          this.nextTime = new Date().getTime() + ADDRESS_REQUEST_PERIOD * 1000
           let addresses = Object.keys(addressMap)
           that.queryAddresses(addresses)
             .then(multiResponses => {
@@ -233,9 +242,8 @@ export default class ICoinNetwork {
         this._requestList.push({
           type: TYPE_ADDRESS,
           addressInfo: addressInfo,
-          nextTime: 0,
+          currentBlock: -1,
           request: async function () {
-            this.nextTime = new Date().getTime() + ADDRESS_REQUEST_PERIOD * 1000
             that.queryAddress(this.addressInfo.address)
               .then(response => {
                 checkNewTx(response, this.addressInfo)
@@ -291,6 +299,10 @@ export default class ICoinNetwork {
   }
 
   async sendTx (rawTx) {
+    throw D.ERROR_NOT_IMPLEMENTED
+  }
+
+  async getBlockHeight () {
     throw D.ERROR_NOT_IMPLEMENTED
   }
 }

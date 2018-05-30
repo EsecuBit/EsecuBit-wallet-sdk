@@ -69,13 +69,13 @@ layui.use(['jquery','form','jqGrid','localeEn','laypage','element','qrcode'], fu
 
         wallet.listenDevice(function (error, isPlugIn) {
             if(isPlugIn){
-                console.log(231)
+                console.info(231)
             }
-            console.log('plug out');
+            console.info('plug out');
             if (!isPlugIn) {
                 return;
             }
-            console.log('listenDevice: error ' + error + ', isPlugIn ' + isPlugIn);
+            console.info('listenDevice: error ' + error + ', isPlugIn ' + isPlugIn);
 
             //跳转
             $('#u-disk').hide();
@@ -92,7 +92,7 @@ layui.use(['jquery','form','jqGrid','localeEn','laypage','element','qrcode'], fu
                 $.each(info,function (i,val) {
                     $("#hardwareInformation").append('<tr><td>'+val.name +'</td><td>'+ val.value+'</td></tr>');
                 });
-                console.log(info);
+                console.info(info);
                 if (error !== D.ERROR_NO_ERROR) {
                     return;
                 }
@@ -105,7 +105,7 @@ layui.use(['jquery','form','jqGrid','localeEn','laypage','element','qrcode'], fu
                 if (error !== D.ERROR_NO_ERROR) {
                     return;
                 }
-                console.log(accounts);
+                console.info(accounts);
                 //业务逻辑代码
                 for(var i=0;i<accounts.length;i++){
                     setGlobalAccount[accounts[i].accountId] = accounts[i];
@@ -114,7 +114,7 @@ layui.use(['jquery','form','jqGrid','localeEn','laypage','element','qrcode'], fu
                         accountAddress.push(address);
                     });
                 }
-                console.log(setGlobalAccount);
+                console.info(setGlobalAccount);
                 //渲染表单
                 $("select[name='receiveAccount']").empty();
                 $("select[name='account']").empty();
@@ -211,8 +211,8 @@ layui.use(['jquery','form','jqGrid','localeEn','laypage','element','qrcode'], fu
             var startItem = limit*(page-1),
                 endItem = limit*(page-1)+limit-1;
             val.getTxInfos(startItem, endItem, function (error, total, transactions) {
-                console.log(total);
-                console.log(transactions);
+                console.info(total);
+                console.info(transactions);
                 //清空表格并且重载
                 $("#table-content-"+i).empty().append('<table id='+ 'tab_'+ i +'></table><div id='+'grid-pager-'+i+'></div>');
 
@@ -285,8 +285,8 @@ layui.use(['jquery','form','jqGrid','localeEn','laypage','element','qrcode'], fu
                         layout:['prev', 'page', 'next','count'],
                         jump: function(obj, first){
                             //obj包含了当前分页的所有参数，比如：
-                            console.log(obj.curr); //得到当前页，以便向服务端请求对应页的数据。
-                            console.log(obj.limit); //得到每页显示的条数
+                            console.info(obj.curr); //得到当前页，以便向服务端请求对应页的数据。
+                            console.info(obj.limit); //得到每页显示的条数
                             //首次不执行
                             if(!first){
                                 limit=obj.limit;

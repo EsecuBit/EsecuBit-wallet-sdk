@@ -7,15 +7,13 @@ const MAIN_URL = 'https://blockchain.info'
 
 export default class BlockchainInfo extends ICoinNetwork {
   constructor (coinType) {
-    super()
+    super(coinType)
     // noinspection JSUnusedGlobalSymbols
     this._supportMultiAddresses = true
-    this.coinType = 'undefined'
     this.coinType = coinType
   }
 
   async init () {
-    await super.init()
     switch (this.coinType) {
       case D.COIN_BIT_COIN:
         this._apiUrl = MAIN_URL
@@ -26,14 +24,12 @@ export default class BlockchainInfo extends ICoinNetwork {
       default:
         throw D.ERROR_COIN_NOT_SUPPORTED
     }
-
-    let response = await this.get([this._apiUrl, 'q', 'getblockcount?cors=true'].join('/'))
-    this._blockHeight = parseInt(response)
-    return {blockHeight: this._blockHeight}
+    return super.init()
   }
 
   get (url) {
     return new Promise((resolve, reject) => {
+      console.debug('get', url)
       let xmlhttp = new XMLHttpRequest()
       xmlhttp.onreadystatechange = () => {
         if (xmlhttp.readyState === 4) {
@@ -65,6 +61,10 @@ export default class BlockchainInfo extends ICoinNetwork {
     })
   }
 
+  async getBlockHeight () {
+    return parseInt(await this.get([this._apiUrl, 'q', 'getblockcount?cors=true'].join('/')))
+  }
+
   async queryAddresses (addresses) {
     let response = await this.get(this._apiUrl + '/multiaddr?cors=true&active=' + addresses.join('|'))
     let addressInfos = []
@@ -94,12 +94,12 @@ export default class BlockchainInfo extends ICoinNetwork {
     // let response = await this.post([this._apiUrl, 'pushtx'].join('/'), 'tx=' + rawTransaction)
     // TODO wrap
     // return response
-    console.log('blockchain.info send', rawTransaction)
+    console.info('blockchain.info send', rawTransaction)
     return {}
   }
 
   wrapTx (rTx) {
-    let confirmations = (rTx.block_height || this._blockHeight) - this._blockHeight
+    let confirmations = this._blockHeight - (rTx.block_height || this._blockHeight)
     let tx = {
       txId: rTx.hash,
       version: rTx.ver,
@@ -111,6 +111,8 @@ export default class BlockchainInfo extends ICoinNetwork {
     tx.inputs = rTx.inputs.map(input => {
       return {
         prevAddress: input.prev_out.addr,
+        prevOutIndex: input.prev_out.n,
+        index: input.n,
         value: input.prev_out.value
       }
     })

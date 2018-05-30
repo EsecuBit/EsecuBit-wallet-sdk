@@ -29,7 +29,7 @@ describe('CoinData', function () {
 
   // it('sync', async () => {
   //   coinData.addListener((error, txInfo) => {
-  //     console.log('detect new tx', error, txInfo)
+  //     console.info('detect new tx', error, txInfo)
   //   })
   //   await coinData.sync()
   // })

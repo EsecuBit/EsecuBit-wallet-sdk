@@ -54,8 +54,8 @@ function requestPermission(callback) {
     if (result) {
       callback();
     } else {
-      console.log('App was not granted the "usbDevices" permission.');
-      console.log(chrome.runtime.lastError);
+      console.info('App was not granted the "usbDevices" permission.');
+      console.info(chrome.runtime.lastError);
     }
   });
 }
@@ -63,10 +63,10 @@ function requestPermission(callback) {
 function connect(device) {
   chrome.usb.openDevice(device, function(connectionHandle) {
     _connectionHandle = connectionHandle;
-    console.log('Connected to the USB device!', _connectionHandle);
+    console.info('Connected to the USB device!', _connectionHandle);
     chrome.usb.listInterfaces(_connectionHandle, function(descriptors) {
       for (des of descriptors) {
-        console.log('device interface info' + des);
+        console.info('device interface info' + des);
       }
     });
 
@@ -75,7 +75,7 @@ function connect(device) {
         console.warn('chrome.usb.bulkTransfer error: ' + chrome.runtime.lastError.message);
         return;
       }
-        console.log("Claimed");
+        console.info("Claimed");
         send(hexToArrayBuffer('0204048033000004bd02000000000000'));
     });
   });
@@ -98,10 +98,10 @@ function send(data) {
         + ' resultCode: ' + info? 'undefined' : info.resultCode);
       return;
     }
-    console.log('Sent to the USB device!', _connectionHandle);
+    console.info('Sent to the USB device!', _connectionHandle);
     if (info && info.resultCode === 0 && info.data) {
-      console.log("send got " + info.data.byteLength + " bytes");
-      console.log(arrayBufferToHex(info.data));
+      console.info("send got " + info.data.byteLength + " bytes");
+      console.info(arrayBufferToHex(info.data));
       receive();
     }
   });
@@ -133,10 +133,10 @@ function receive() {
         + ' resultCode: ' + info.resultCode);
       return;
     }
-    console.log('receive from the USB device!', _connectionHandle);
+    console.info('receive from the USB device!', _connectionHandle);
     if (info && info.resultCode === 0 && info.data) {
-      console.log("receive got " + info.data.byteLength + " bytes");
-      console.log(arrayBufferToHex(info.data));
+      console.info("receive got " + info.data.byteLength + " bytes");
+      console.info(arrayBufferToHex(info.data));
     }
   });
 }
@@ -157,10 +157,10 @@ function receive2() {
         + ' resultCode: ' + info.resultCode);
       return;
     }
-    console.log('receive from the USB device!', _connectionHandle);
+    console.info('receive from the USB device!', _connectionHandle);
     if (info && info.resultCode === 0 && info.data) {
-      console.log("receive got " + info.data.byteLength + " bytes");
-      console.log(arrayBufferToHex(info.data));
+      console.info("receive got " + info.data.byteLength + " bytes");
+      console.info(arrayBufferToHex(info.data));
     }
   });
 }
@@ -173,7 +173,7 @@ chrome.usb.getDevices({}, function(foundDevices) {
   }
 
   for (var device of foundDevices) {
-      console.log('found device: vid=' + device.vendorId + ', pid=' + device.productId);
+      console.info('found device: vid=' + device.vendorId + ', pid=' + device.productId);
     if (device.productId == MY_HID_PRODUCT_ID && device.vendorId == MY_HID_VENDOR_ID) {
       foundDevice(device);
     }
@@ -181,14 +181,14 @@ chrome.usb.getDevices({}, function(foundDevices) {
 });
 
 chrome.usb.onDeviceAdded.addListener(function(device) {
-  console.log('plugin vid=' + device.vendorId + ', pid=' + device.productId);
+  console.info('plugin vid=' + device.vendorId + ', pid=' + device.productId);
   if (device.productId == MY_HID_PRODUCT_ID && device.vendorId == MY_HID_VENDOR_ID) {
     foundDevice(device);
   }
 });
 
 chrome.usb.onDeviceRemoved.addListener(function(device) {
-  console.log('plugout vid=' + device.vendorId + ', pid=' + device.productId);
+  console.info('plugout vid=' + device.vendorId + ', pid=' + device.productId);
   if (device.device == _deviceId) {
     _status.innerHTML = 'unpluged';
     _connectionHandle = null;
@@ -206,14 +206,14 @@ document.getElementById('button').addEventListener('click', function() {
       return;
     }
     for (var device of selected_devices) {
-      console.log('pid=' +  device.productId + ', vid=' + device.vendorId);
+      console.info('pid=' +  device.productId + ', vid=' + device.vendorId);
     }
   });
 });
 
 document.getElementById('button2').addEventListener('click', function() {
   requestPermission(function() {
-    console.log('ok!');
+    console.info('ok!');
     // send(hexToArrayBuffer('0204048033000004bd02000000000000'));
     receive2();
   });

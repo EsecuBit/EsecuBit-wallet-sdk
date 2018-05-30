@@ -76,6 +76,7 @@ export default class EsAccount {
       return {newTotal, willSpentUtxos}
     }
 
+    console.info('1')
     let utxos = await this._coinData.getUtxos({accountId: this.info.accountId})
     let total = utxos.reduce((sum, utxo) => sum + utxo.value, 0)
     let fee = details.feeRate
@@ -120,7 +121,7 @@ export default class EsAccount {
       outputs: prepareTx.outputs
     }
     rawTx.outputs.push({address: changeAddress, value: value})
-    console.log(rawTx)
+    console.info(rawTx)
     let signedTx = await this._device.signTransaction(rawTx)
     let txInfo = {
       accountId: this.info.accountId,
@@ -170,15 +171,15 @@ export default class EsAccount {
     let apdu = ''
     let hexChars = '0123456789ABCDEF'
     apdu += hexChars[totalString.length >> 4] + hexChars[totalString.length % 0x10] + D.arrayBufferToHex(enc.encode(totalString))
-    console.log(apdu)
+    console.info(apdu)
     apdu += '01'
-    console.log(apdu)
+    console.info(apdu)
     apdu += hexChars[transaction.addresses[0].length >> 4] + hexChars[transaction.addresses[0].length % 0x10] + D.arrayBufferToHex(enc.encode(transaction.addresses[0]))
-    console.log(apdu)
+    console.info(apdu)
     apdu = hexChars[parseInt(apdu.length / 2) % 0x10] + apdu
     apdu = hexChars[parseInt(apdu.length / 2) >> 4] + apdu
     apdu = '00780000' + apdu
-    console.log(apdu)
+    console.info(apdu)
 
     // var ok = "007800002E09302e303132204254430122314d6459433232476d6a7032656a5670437879596a66795762514359544768477138"
     let response = this._device.sendHexApduTrue(apdu, callback)
@@ -186,9 +187,9 @@ export default class EsAccount {
     let intArray = new Uint8Array(new Array(2))
     intArray[0] = data[3]
     intArray[1] = data[4]
-    console.log('data ' + D.arrayBufferToHex(response))
-    console.log('data ' + D.arrayBufferToHex(data))
-    console.log('sw ' + D.arrayBufferToHex(intArray))
+    console.info('data ' + D.arrayBufferToHex(response))
+    console.info('data ' + D.arrayBufferToHex(data))
+    console.info('sw ' + D.arrayBufferToHex(intArray))
     let sw = D.arrayBufferToHex(intArray)
 
     if (sw === '6FFA') {

@@ -172,14 +172,14 @@ layui.define(['jquery', 'form', 'layer', 'element'], function(exports) {
         tabAdd: function(title, url, id) {
             //判断当前id的元素是否存在于tab中
             var li = $("#WeTabTip li[lay-id=" + id + "]").length;
-            //console.log(li);
+            //console.info(li);
             if(li > 0) {
                 //tab已经存在，直接切换到指定Tab项
-                //console.log(">0");
+                //console.info(">0");
                 element.tabChange('wenav_tab', id); //切换到：用户管理
             } else {
                 //该id不存在，新增一个Tab项
-                //console.log("<0");
+                //console.info("<0");
                 element.tabAdd('wenav_tab', {
                     title: title,
                     content: '<iframe tab-id="' + id + '" frameborder="0" sdk="' + url + '" scrolling="yes" class="weIframe"></iframe>',
@@ -227,7 +227,7 @@ layui.define(['jquery', 'form', 'layer', 'element'], function(exports) {
             var aid = $(this).attr("lay-id"); //获取右键时li的lay-id属性
             var popupmenu = $(".rightMenu");
             popupmenu.find("li").attr("data-id", aid);
-            //console.log("popopmenuId:" + popupmenu.find("li").attr("data-id"));
+            //console.info("popopmenuId:" + popupmenu.find("li").attr("data-id"));
             l = ($(document).width() - e.clientX) < popupmenu.width() ? (e.clientX - popupmenu.width()) : e.clientX;
             t = ($(document).height() - e.clientY) < popupmenu.height() ? (e.clientY - popupmenu.height()) : e.clientY;
             popupmenu.css({
@@ -242,10 +242,10 @@ layui.define(['jquery', 'form', 'layer', 'element'], function(exports) {
         var type = $(this).attr("data-type");
         var layId = $(this).attr("data-id")
         if(type == "current") {
-            //console.log("close this:" + layId);
+            //console.info("close this:" + layId);
             tab.tabDelete(layId);
         } else if(type == "all") {
-            //console.log("closeAll");
+            //console.info("closeAll");
             var tabtitle = $(".layui-tab-title li");
             var ids = new Array();
             $.each(tabtitle, function(i) {
@@ -253,7 +253,7 @@ layui.define(['jquery', 'form', 'layer', 'element'], function(exports) {
             })
             tab.tabDeleteAll(ids);
         } else if(type == "fresh") {
-            //console.log("fresh:" + layId);
+            //console.info("fresh:" + layId);
             tab.tabChange($(this).attr("data-id"));
             var othis = $('.layui-tab-title').find('>li[lay-id="' + layId + '"]'),
                 index = othis.parent().children('li').index(othis),
@@ -348,7 +348,7 @@ layui.define(['jquery', 'form', 'layer', 'element'], function(exports) {
                 //向iframe页的id=house的元素传值  // 参考 https://yq.aliyun.com/ziliao/133150
                 var body = layer.getChildFrame('body', index);
                 body.contents().find("#dataId").val(id);
-                console.log(id);
+                console.info(id);
             },
             error: function(layero, index) {
                 alert("aaa");
@@ -367,7 +367,7 @@ layui.define(['jquery', 'form', 'layer', 'element'], function(exports) {
      * tab切换监听不能写字初始化加载$(function())方法内，否则不执行
      */
     element.on('tab(wenav_tab)', function(data) {
-        //console.log(this); //当前Tab标题所在的原始DOM元素
+        //console.info(this); //当前Tab标题所在的原始DOM元素
         setStorageCurMenu();
     });
     /*
@@ -375,7 +375,7 @@ layui.define(['jquery', 'form', 'layer', 'element'], function(exports) {
      */
     element.on('tabDelete(wenav_tab)', function(data) {
         var layId = $(this).parent('li').attr('lay-id');
-        //console.log(layId);
+        //console.info(layId);
         removeStorageMenu(layId);
     });
     /**
@@ -418,7 +418,7 @@ layui.define(['jquery', 'form', 'layer', 'element'], function(exports) {
         text = text.split('?')[0];
         var url = $('.layui-tab-content').find('.layui-show').find('.weIframe').attr('src');
         var id = $('.layui-tab-title').find('.layui-this').attr('lay-id');
-        //console.log(text);
+        //console.info(text);
         curMenu = {
             title: text,
             url: url,

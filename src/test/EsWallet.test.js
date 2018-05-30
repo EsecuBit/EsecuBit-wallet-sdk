@@ -26,10 +26,10 @@ describe('EsWallet', function () {
     let currentStatusIndex = 0
 
     esWallet.listenTxInfo((error, txInfo) => {
-      console.log('detect new tx', error, txInfo)
+      console.info('detect new tx', error, txInfo)
     })
     esWallet.listenStatus((error, status) => {
-      console.log('error, status', error, status)
+      console.info('error, status', error, status)
       error.should.equal(D.ERROR_NO_ERROR)
       status.should.equal(statusList[currentStatusIndex])
       currentStatusIndex++

@@ -3,11 +3,11 @@ import IDatabase from './IDatabase'
 import D from '../../D'
 
 const DB_VERSION = 3
-export default class IndexedDB extends IDatabase{
+export default class IndexedDB extends IDatabase {
   constructor (walletId) {
     super()
     if (IndexedDB.pool[walletId]) {
-      console.log('return exists instance', IndexedDB.pool[walletId])
+      console.info('return exists instance', IndexedDB.pool[walletId])
       return IndexedDB.pool[walletId]
     }
     IndexedDB.pool[walletId] = this
@@ -37,7 +37,7 @@ export default class IndexedDB extends IDatabase{
 
       let openRequest = indexedDB.open(this._walletId, DB_VERSION)
       openRequest.onupgradeneeded = (e) => {
-        console.log('indexedDB upgrading...')
+        console.info('indexedDB upgrading...')
         let db = e.target.result
 
         /**
@@ -71,8 +71,8 @@ export default class IndexedDB extends IDatabase{
          *                  just for showing the status. won't active update after confirmations >= D.TRANSACTION_##COIN_TYPE##_MATURE_CONFIRMATIONS
          *   time: long,
          *   direction: D.TX_DIRECTION_IN / D.TX_DIRECTION_OUT,
-         *   inputs: in array [{prevAddress, isMine, value}]
-         *   outputs: out array [{address, isMine, value}]
+         *   inputs: [{prevAddress, prevOutIndex, index, value, isMine}, ...]
+         *   outputs: [{address, index, value, isMine}, ...]
          *   value: long (bitcoin -> santoshi) // value that shows the account balance changes, calculated by inputs and outputs
          * }
          */
@@ -117,13 +117,13 @@ export default class IndexedDB extends IDatabase{
          * }
          */
         if (!db.objectStoreNames.contains('utxo')) {
-          let utxo = db.createObjectStore('utxo', {keyPath: ['txId', 'address']})
+          let utxo = db.createObjectStore('utxo', {keyPath: ['txId', 'index']})
           utxo.createIndex('accountId', 'accountId', {unique: false})
         }
       }
 
       openRequest.onsuccess = (e) => {
-        console.log('indexedDB open success!')
+        console.info('indexedDB open success!')
         this._db = e.target.result
         this._finished++ || resolve()
       }
@@ -173,11 +173,11 @@ export default class IndexedDB extends IDatabase{
       let finished = false
       let deleteRequest = indexedDB.deleteDatabase(this._walletId)
       deleteRequest.onsuccess = () => {
-        console.log('indexedDB delete succeed')
+        console.info('indexedDB delete succeed')
         finished++ || resolve()
       }
       deleteRequest.onerror = (ev) => {
-        console.log('indexedDB delete failed', ev)
+        console.info('indexedDB delete failed', ev)
         finished++ || reject(D.ERROR_DATABASE_OPEN_FAILED)
       }
 
@@ -239,7 +239,6 @@ export default class IndexedDB extends IDatabase{
       if (filter.accountId) {
         request = this._db.transaction(['account'], 'readonly')
           .objectStore('account')
-          .index('accountId')
           .getAll(filter.accountId)
       } else {
         request = this._db.transaction(['account'], 'readonly')
@@ -314,7 +313,7 @@ export default class IndexedDB extends IDatabase{
         cursor.continue()
       }
       request.onerror = (e) => {
-        console.log('getTxInfos', e)
+        console.info('getTxInfos', e)
         reject(D.ERROR_DATABASE_EXEC_FAILED)
       }
     })
@@ -335,7 +334,7 @@ export default class IndexedDB extends IDatabase{
         resolve(addressInfo)
       }
       request.onerror = (e) => {
-        console.log('saveOrUpdateAddressInfo', e)
+        console.info('saveOrUpdateAddressInfo', e)
         reject(D.ERROR_DATABASE_EXEC_FAILED)
       }
     })
@@ -399,36 +398,57 @@ export default class IndexedDB extends IDatabase{
     })
   }
 
-  newTx (account, addressInfo, txInfo, utxo, removUtxo) {
+  newTx (account, addressInfo, txInfo, utxo, removeUtxos = []) {
     // TODO finish
     return new Promise((resolve, reject) => {
       let objectStores = ['account', 'addressInfo', 'txInfo', 'utxo']
       let transaction = this._db.transaction(objectStores, 'readwrite')
-      let request = transaction.objectStore('account').put(account)
-      request.onsuccess = () => {
-        let request = transaction.objectStore('addressInfo').put(addressInfo)
-        let error = (e) => {
-          console.warn(e)
-          reject(e)
-        }
-        request.onsuccess = () => {
-          let request = transaction.objectStore('txInfo').put(txInfo)
-          request.onsuccess = () => {
-            if (utxo) {
-              let request = transaction.objectStore('utxo').put(utxo)
-              request.onsuccess = () => {
-                resolve(addressInfo, txInfo, utxo)
-              }
-              request.onerror = error
-            } else {
-              resolve(addressInfo, txInfo)
-            }
-          }
-          request.onerror = error
-        }
-        request.onerror = error
+
+      let accountRequest = () => {
+        return new Promise((resolve, reject) => {
+          let request = transaction.objectStore('account').put(account)
+          request.onsuccess = resolve
+          request.onerror = reject
+        })
       }
-      request.onerror = error
+      let addressInfoRequest = () => {
+        return new Promise((resolve, reject) => {
+          let request = transaction.objectStore('addressInfo').put(addressInfo)
+          request.onsuccess = resolve
+          request.onerror = reject
+        })
+      }
+      let txInfoRequest = () => {
+        return new Promise((resolve, reject) => {
+          let request = transaction.objectStore('txInfo').put(txInfo)
+          request.onsuccess = resolve
+          request.onerror = reject
+        })
+      }
+      let utxoRequest = () => {
+        return new Promise((resolve, reject) => {
+          if (!utxo) {
+            resolve()
+            return
+          }
+          let request = transaction.objectStore('utxo').put(utxo)
+          request.onsuccess = resolve
+          request.onerror = reject
+        })
+      }
+      let removeUtxosRequest = () => {
+        return Promise.all(removeUtxos.map(utxo => new Promise((resolve, reject) => {
+          let request = transaction.objectStore('utxo').delete(utxo)
+          request.onsuccess = resolve
+          request.onerror = reject
+        })))
+      }
+      accountRequest().then(addressInfoRequest).then(txInfoRequest).then(utxoRequest).then(removeUtxosRequest)
+        .then(resolve)
+        .catch(ev => {
+          console.warn('newTx', ev)
+          reject(D.ERROR_DATABASE_EXEC_FAILED)
+        })
     })
   }
 }

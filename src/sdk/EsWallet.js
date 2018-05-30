@@ -7,7 +7,7 @@ import CoinData from './data/CoinData'
 // TODO surrounded with try catch
 export default class EsWallet {
   constructor () {
-    console.log('constructor eswallet')
+    console.info('constructor eswallet')
     if (EsWallet.prototype.Instance) {
       return EsWallet.prototype.Instance
     }

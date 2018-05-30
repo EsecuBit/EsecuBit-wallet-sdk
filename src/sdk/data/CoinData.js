@@ -25,17 +25,14 @@ export default class CoinData {
     }
 
     this._listeners = []
-    this._txListener = (error, txInfo) => {
+    this._txListener = async (error, txInfo) => {
       if (error !== D.ERROR_NO_ERROR) {
-        this._listeners.forEach(listener => listener(error, txInfo))
+        this._listeners.forEach(listener => listener(error))
         return
       }
-      this._db.saveOrUpdateTxInfo(txInfo, (error) => {
-        if (error !== D.ERROR_NO_ERROR) return
-        for (let listener of this._listeners) {
-          listener(txInfo)
-        }
-      })
+      await this._db.saveOrUpdateTxInfo(txInfo)
+      let accounts = await this._db.getAccounts({accountId: txInfo.accountId})
+      this._listeners.forEach(listener => listener(D.ERROR_NO_ERROR, txInfo, accounts[0]))
     }
 
     /**
@@ -50,24 +47,54 @@ export default class CoinData {
         await D.wait(5)
       }
       busy = true
-      if (error !== D.ERROR_NO_ERROR) {
-        this._listeners.forEach(listener => listener(error, txInfo))
-        return
-      }
-      let addressInfos = await this._db.getAddressInfos({accountId: addressInfo.accountId})
-      txInfo.inputs.forEach(input => { input['isMine'] = addressInfos.some(a => a.address === input.prevAddress) })
-      txInfo.outputs.forEach(output => { output['isMine'] = addressInfos.some(a => a.address === output.address) })
-      txInfo.value = 0
-      txInfo.value -= txInfo.inputs.reduce((sum, input) => sum + input.isMine ? input.value : 0, 0)
-      txInfo.value += txInfo.outputs.reduce((sum, output) => sum + output.isMine ? output.value : 0, 0)
+      try {
+        if (error !== D.ERROR_NO_ERROR) {
+          this._listeners.forEach(listener => listener(error, txInfo))
+          return
+        }
+        let addressInfos = await this._db.getAddressInfos({accountId: addressInfo.accountId})
+        txInfo.inputs.forEach(input => { input['isMine'] = addressInfos.some(a => a.address === input.prevAddress) })
+        txInfo.outputs.forEach(output => { output['isMine'] = addressInfos.some(a => a.address === output.address) })
+        txInfo.value = 0
+        txInfo.value -= txInfo.inputs.reduce((sum, input) => sum + input.isMine ? input.value : 0, 0)
+        txInfo.value += txInfo.outputs.reduce((sum, output) => sum + output.isMine ? output.value : 0, 0)
 
-      let account = await this._db.getAccounts({accountId: addressInfo.accountId})
-      account.balance += txInfo.value
-      await this._db.newTx(account, addressInfo, txInfo, utxo)
-      await this._device.updateIndex(addressInfo)
-      // TODO add addressListener after updateIndex
-      // TODO find spent utxo and remove
-      this._listeners.forEach(listener => listener(D.ERROR_NO_ERROR, txInfo))
+        // update account balance and addressIndex
+        let accounts = await this._db.getAccounts({accountId: addressInfo.accountId})
+        let account = accounts[0]
+        let addressPath = D.parseBip44Path(addressInfo.path)
+        let nextIndex = addressPath.addressIndex + 1
+        if (addressPath.isExternal) {
+          account.externalPublicKeyIndex =
+            account.externalPublicKeyIndex > nextIndex ? account.externalPublicKeyIndex : nextIndex
+        }
+        else {
+          account.changePublicKeyIndex =
+            account.changePublicKeyIndex > nextIndex ? account.changePublicKeyIndex : nextIndex
+        }
+        await this._device.updateIndex(account)
+
+        // find spent utxo and remove
+        let removedUtxo = null
+        if (txInfo.direction === D.TX_DIRECTION_OUT) {
+          let index = txInfo.inputs.reduce((index, input) => {
+            if (index !== -1) return index
+            if (input.prevAddress === addressInfo) return input.prevOutIndex
+            return -1
+          })
+          let utxos = await this._db.getUtxos({accountId: addressInfo.accountId})
+          // tx won't have two input using the same output index from the same tx
+          removedUtxo = utxos.filter(utxo => utxo.txId === txInfo??? && utxo.index === index)[0]
+        }
+
+        account.balance += txInfo.value
+        await this._db.newTx(account, addressInfo, txInfo, utxo, removedUtxo)
+        // TODO add addressListener after updateIndex
+        this._listeners.forEach(listener => listener(D.ERROR_NO_ERROR, txInfo, account))
+      } catch (e) {
+        console.warn('error in address listener', e)
+        this._listeners.forEach(listener => listener(e))
+      }
       busy = false
     }
   }
@@ -83,7 +110,7 @@ export default class CoinData {
       await Promise.all(initList)
       this._initialized = true
     } catch (e) {
-      console.log(e)
+      console.info(e)
       throw D.ERROR_UNKNOWN
     }
   }
@@ -93,13 +120,13 @@ export default class CoinData {
     // TODO some block may forked and became orphan in the future, some tx and utxo will be invalid
     let accounts = await this._db.getAccounts()
     if (accounts.length === 0) {
-      console.log('no accounts, init the first account')
+      console.info('no accounts, init the first account')
       // initialize first account
       let firstAccount = await this.newAccount(D.TEST_MODE ? D.COIN_BIT_COIN_TEST : D.COIN_BIT_COIN)
       if (D.TEST_DATA) {
         firstAccount.balance = 32000000
         await this._db.newAccount(firstAccount)
-        console.log('TEST_DATA add test txInfo')
+        console.info('TEST_DATA add test txInfo')
         await this.initTestDbData(firstAccount.accountId)
       }
     }
@@ -149,7 +176,7 @@ export default class CoinData {
 
       let newAccount = {
         accountId: makeId(),
-        label: 'Account#' + accountIndex + 1,
+        label: 'Account#' + (accountIndex + 1),
         coinType: coinType,
         index: accountIndex,
         balance: 0
@@ -186,7 +213,7 @@ export default class CoinData {
             txs: []
           })
         }))
-      console.log('newAccount', newAccount, 'addresses', addresses)
+      console.info('newAccount', newAccount, 'addresses', addresses)
       await this._db.newAccount(newAccount, addresses)
     }
 
@@ -224,7 +251,7 @@ export default class CoinData {
   addListener (callback) {
     let exists = this._listeners.some(listener => listener === callback)
     if (exists) {
-      console.log('addTransactionListener already has this listener', callback)
+      console.info('addTransactionListener already has this listener', callback)
       return
     }
     this._listeners.push(callback)
@@ -234,7 +261,7 @@ export default class CoinData {
    * Test data when TEST_DATA=true
    */
   async initTestDbData (accountId) {
-    console.log('initTestDbData')
+    console.info('initTestDbData')
     await Promise.all([
       this._db.saveOrUpdateTxInfo(
         {

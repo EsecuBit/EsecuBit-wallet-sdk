@@ -1985,7 +1985,7 @@ var generateDiff = exports.generateDiff = function (actual, expected) {
  */
 
 exports.list = function (failures) {
-  console.log();
+  console.info();
   failures.forEach(function (test, i) {
     // format
     var fmt = color('error title', '  %s) %s:\n') +
@@ -2044,7 +2044,7 @@ exports.list = function (failures) {
       testTitle += str;
     });
 
-    console.log(fmt, (i + 1), testTitle, msg, stack);
+    console.info(fmt, (i + 1), testTitle, msg, stack);
   });
 };
 
@@ -2134,14 +2134,14 @@ Base.prototype.epilogue = function () {
   var stats = this.stats;
   var fmt;
 
-  console.log();
+  console.info();
 
   // passes
   fmt = color('bright pass', ' ') +
     color('green', ' %d passing') +
     color('light', ' (%s)');
 
-  console.log(fmt,
+  console.info(fmt,
     stats.passes || 0,
     ms(stats.duration));
 
@@ -2150,20 +2150,20 @@ Base.prototype.epilogue = function () {
     fmt = color('pending', ' ') +
       color('pending', ' %d pending');
 
-    console.log(fmt, stats.pending);
+    console.info(fmt, stats.pending);
   }
 
   // failures
   if (stats.failures) {
     fmt = color('fail', '  %d failing');
 
-    console.log(fmt, stats.failures);
+    console.info(fmt, stats.failures);
 
     Base.list(this.failures);
-    console.log();
+    console.info();
   }
 
-  console.log();
+  console.info();
 };
 
 /**
@@ -2344,33 +2344,33 @@ function Doc (runner) {
       return;
     }
     ++indents;
-    console.log('%s<section class="suite">', indent());
+    console.info('%s<section class="suite">', indent());
     ++indents;
-    console.log('%s<h1>%s</h1>', indent(), utils.escape(suite.title));
-    console.log('%s<dl>', indent());
+    console.info('%s<h1>%s</h1>', indent(), utils.escape(suite.title));
+    console.info('%s<dl>', indent());
   });
 
   runner.on('suite end', function (suite) {
     if (suite.root) {
       return;
     }
-    console.log('%s</dl>', indent());
+    console.info('%s</dl>', indent());
     --indents;
-    console.log('%s</section>', indent());
+    console.info('%s</section>', indent());
     --indents;
   });
 
   runner.on('pass', function (test) {
-    console.log('%s  <dt>%s</dt>', indent(), utils.escape(test.title));
+    console.info('%s  <dt>%s</dt>', indent(), utils.escape(test.title));
     var code = utils.escape(utils.clean(test.body));
-    console.log('%s  <dd><pre><code>%s</code></pre></dd>', indent(), code);
+    console.info('%s  <dd><pre><code>%s</code></pre></dd>', indent(), code);
   });
 
   runner.on('fail', function (test, err) {
-    console.log('%s  <dt class="error">%s</dt>', indent(), utils.escape(test.title));
+    console.info('%s  <dt class="error">%s</dt>', indent(), utils.escape(test.title));
     var code = utils.escape(utils.clean(test.body));
-    console.log('%s  <dd class="error"><pre><code>%s</code></pre></dd>', indent(), code);
-    console.log('%s  <dd class="error">%s</dd>', indent(), utils.escape(err));
+    console.info('%s  <dd class="error"><pre><code>%s</code></pre></dd>', indent(), code);
+    console.info('%s  <dd class="error">%s</dd>', indent(), utils.escape(err));
   });
 }
 
@@ -2441,7 +2441,7 @@ function Dot (runner) {
   });
 
   runner.once('end', function () {
-    console.log();
+    console.info();
     self.epilogue();
   });
 }
@@ -2867,18 +2867,18 @@ function List (runner) {
   var total = runner.total;
 
   runner.on('start', function () {
-    console.log(JSON.stringify(['start', { total: total }]));
+    console.info(JSON.stringify(['start', { total: total }]));
   });
 
   runner.on('pass', function (test) {
-    console.log(JSON.stringify(['pass', clean(test)]));
+    console.info(JSON.stringify(['pass', clean(test)]));
   });
 
   runner.on('fail', function (test, err) {
     test = clean(test);
     test.err = err.message;
     test.stack = err.stack || null;
-    console.log(JSON.stringify(['fail', test]));
+    console.info(JSON.stringify(['fail', test]));
   });
 
   runner.once('end', function () {
@@ -3126,7 +3126,7 @@ function Landing (runner) {
 
   runner.once('end', function () {
     cursor.show();
-    console.log();
+    console.info();
     self.epilogue();
   });
 }
@@ -3175,7 +3175,7 @@ function List (runner) {
   var n = 0;
 
   runner.on('start', function () {
-    console.log();
+    console.info();
   });
 
   runner.on('test', function (test) {
@@ -3185,7 +3185,7 @@ function List (runner) {
   runner.on('pending', function (test) {
     var fmt = color('checkmark', '  -') +
       color('pending', ' %s');
-    console.log(fmt, test.fullTitle());
+    console.info(fmt, test.fullTitle());
   });
 
   runner.on('pass', function (test) {
@@ -3193,12 +3193,12 @@ function List (runner) {
       color('pass', ' %s: ') +
       color(test.speed, '%dms');
     cursor.CR();
-    console.log(fmt, test.fullTitle(), test.duration);
+    console.info(fmt, test.fullTitle(), test.duration);
   });
 
   runner.on('fail', function (test) {
     cursor.CR();
-    console.log(color('fail', '  %d) %s'), ++n, test.fullTitle());
+    console.info(color('fail', '  %d) %s'), ++n, test.fullTitle());
   });
 
   runner.once('end', self.epilogue.bind(self));
@@ -3699,7 +3699,7 @@ function Progress (runner, options) {
 
   // tests started
   runner.on('start', function () {
-    console.log();
+    console.info();
     cursor.hide();
   });
 
@@ -3732,7 +3732,7 @@ function Progress (runner, options) {
   // and the failures if any
   runner.once('end', function () {
     cursor.show();
-    console.log();
+    console.info();
     self.epilogue();
   });
 }
@@ -3784,24 +3784,24 @@ function Spec (runner) {
   }
 
   runner.on('start', function () {
-    console.log();
+    console.info();
   });
 
   runner.on('suite', function (suite) {
     ++indents;
-    console.log(color('suite', '%s%s'), indent(), suite.title);
+    console.info(color('suite', '%s%s'), indent(), suite.title);
   });
 
   runner.on('suite end', function () {
     --indents;
     if (indents === 1) {
-      console.log();
+      console.info();
     }
   });
 
   runner.on('pending', function (test) {
     var fmt = indent() + color('pending', '  - %s');
-    console.log(fmt, test.title);
+    console.info(fmt, test.title);
   });
 
   runner.on('pass', function (test) {
@@ -3810,18 +3810,18 @@ function Spec (runner) {
       fmt = indent() +
         color('checkmark', '  ' + Base.symbols.ok) +
         color('pass', ' %s');
-      console.log(fmt, test.title);
+      console.info(fmt, test.title);
     } else {
       fmt = indent() +
         color('checkmark', '  ' + Base.symbols.ok) +
         color('pass', ' %s') +
         color(test.speed, ' (%dms)');
-      console.log(fmt, test.title, test.duration);
+      console.info(fmt, test.title, test.duration);
     }
   });
 
   runner.on('fail', function (test) {
-    console.log(indent() + color('fail', '  %d) %s'), ++n, test.title);
+    console.info(indent() + color('fail', '  %d) %s'), ++n, test.title);
   });
 
   runner.once('end', self.epilogue.bind(self));
@@ -3868,7 +3868,7 @@ function TAP (runner) {
 
   runner.on('start', function () {
     var total = runner.grepTotal(runner.suite);
-    console.log('%d..%d', 1, total);
+    console.info('%d..%d', 1, total);
   });
 
   runner.on('test end', function () {
@@ -3876,26 +3876,26 @@ function TAP (runner) {
   });
 
   runner.on('pending', function (test) {
-    console.log('ok %d %s # SKIP -', n, title(test));
+    console.info('ok %d %s # SKIP -', n, title(test));
   });
 
   runner.on('pass', function (test) {
     passes++;
-    console.log('ok %d %s', n, title(test));
+    console.info('ok %d %s', n, title(test));
   });
 
   runner.on('fail', function (test, err) {
     failures++;
-    console.log('not ok %d %s', n, title(test));
+    console.info('not ok %d %s', n, title(test));
     if (err.stack) {
-      console.log(err.stack.replace(/^/gm, '  '));
+      console.info(err.stack.replace(/^/gm, '  '));
     }
   });
 
   runner.once('end', function () {
-    console.log('# tests ' + (passes + failures));
-    console.log('# pass ' + passes);
-    console.log('# fail ' + failures);
+    console.info('# tests ' + (passes + failures));
+    console.info('# pass ' + passes);
+    console.info('# fail ' + failures);
   });
 }
 
@@ -4049,7 +4049,7 @@ XUnit.prototype.write = function (line) {
   } else if (typeof process === 'object' && process.stdout) {
     process.stdout.write(line + '\n');
   } else {
-    console.log(line);
+    console.info(line);
   }
 };
 
@@ -6780,9 +6780,9 @@ function BrowserStdout(opts) {
 BrowserStdout.prototype._write = function(chunks, encoding, cb) {
   var output = chunks.toString ? chunks.toString() : chunks
   if (this.label === false) {
-    console.log(output)
+    console.info(output)
   } else {
-    console.log(this.label+':', output)
+    console.info(this.label+':', output)
   }
   process.nextTick(cb)
 }
@@ -8740,18 +8740,18 @@ function formatArgs(args) {
 }
 
 /**
- * Invokes `console.log()` when available.
- * No-op when `console.log` is not a "function".
+ * Invokes `console.info()` when available.
+ * No-op when `console.info` is not a "function".
  *
  * @api public
  */
 
 function log() {
   // this hackery is required for IE8/9, where
-  // the `console.log` function doesn't have 'apply'
+  // the `console.info` function doesn't have 'apply'
   return 'object' === typeof console
-    && console.log
-    && Function.prototype.apply.call(console.log, console, arguments);
+    && console.info
+    && Function.prototype.apply.call(console.info, console, arguments);
 }
 
 /**
@@ -8930,7 +8930,7 @@ function createDebug(namespace) {
     // apply env-specific formatting (colors, etc.)
     exports.formatArgs.call(self, args);
 
-    var logFn = debug.log || exports.log || console.log.bind(console);
+    var logFn = debug.log || exports.log || console.info.bind(console);
     logFn.apply(self, args);
   }
 
@@ -15513,9 +15513,9 @@ function timestamp() {
 }
 
 
-// log is just a thin wrapper to console.log that prepends a timestamp
+// log is just a thin wrapper to console.info that prepends a timestamp
 exports.log = function() {
-  console.log('%s - %s', timestamp(), exports.format.apply(exports, arguments));
+  console.info('%s - %s', timestamp(), exports.format.apply(exports, arguments));
 };
 
 

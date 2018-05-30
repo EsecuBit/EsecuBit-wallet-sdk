@@ -6,6 +6,7 @@ import JsWallet from '../sdk/device/JsWallet'
 
 chai.should()
 describe('EsAccount', function () {
+  this.timeout(5000)
 
   let account = null
   it('checkAccount', async () => {
@@ -19,7 +20,7 @@ describe('EsAccount', function () {
     account = accounts[0]
     let utxo = await coinData.getUtxos(account.accountId)
     utxo.length.should.not.equal(0)
-    console.log('utxos', utxo)
+    console.info('utxos', utxo)
   })
 
   it('getTxInfos', async () => {
@@ -31,7 +32,7 @@ describe('EsAccount', function () {
       tx.coinType.should.equal(account.info.coinType)
       tx.txId.should.be.a('string').and.lengthOf(64)
       tx.version.should.above(0)
-      tx.blockNumber.should.above(0)
+      tx.blockNumber.should.be.a('number')
       tx.confirmations.should.be.a('number')
       tx.time.should.be.a('number')
       tx.direction.should.be.oneOf([D.TX_DIRECTION_IN, D.TX_DIRECTION_OUT])
@@ -57,7 +58,7 @@ describe('EsAccount', function () {
     address.qrAddress.should.be.a('string')
   })
 
-  it('prepareTx', async () => {
+  it('sendTx', async () => {
     let prepareTx = await account.prepareTx({
       feeRate: 5,
       outputs: [{
@@ -68,10 +69,10 @@ describe('EsAccount', function () {
         value: 1456
       }]
     })
-    console.log('prepareTx', prepareTx)
+    console.info('prepareTx', prepareTx)
     let signedTx = await account.buildTx(prepareTx)
-    console.log('signedTx', signedTx)
+    console.info('signedTx', signedTx)
     let response = await account.sendTx(signedTx)
-    console.log('response', response)
+    console.info('response', response)
   })
 })

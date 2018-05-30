@@ -18,7 +18,7 @@ describe('BitCoinEarn', function () {
     const initFee = {'fast': 0, 'normal': 0, 'economy': 0}
     const bitCoinEarn = new BitCoinEarn(initFee)
     let response = await bitCoinEarn.updateFee()
-    console.log(response)
+    console.info(response)
     bitCoinEarn.fee.should.deep.equal(response)
     bitCoinEarn.fee[D.FEE_FAST].should.not.equal(0)
     bitCoinEarn.fee[D.FEE_NORMAL].should.not.equal(0)
