@@ -3,6 +3,8 @@
 
 // import './sdk/EsWallet'
 
+// import './test/GenerateTestNetTestSyncData.test'
+
 // import './test/device/JsWallet.test'
 //
 // import './test/data/database/IndexedDB.test'

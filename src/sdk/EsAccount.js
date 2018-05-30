@@ -14,12 +14,11 @@ export default class EsAccount {
   }
 
   async getTxInfos (startIndex, endIndex) {
-    return this._coinData.getTxInfos(
-      {
-        accountId: this.info.accountId,
-        startIndex: startIndex || 0,
-        endIndex: endIndex || Number.MAX_SAFE_INTEGER
-      })
+    return this._coinData.getTxInfos({
+      accountId: this.info.accountId,
+      startIndex: startIndex || 0,
+      endIndex: endIndex || Number.MAX_SAFE_INTEGER
+    })
   }
 
   async getAddress () {
@@ -46,7 +45,7 @@ export default class EsAccount {
    *     value: long (bitcoin -> santoshi)
    *   }]
    * }
-   * @returns {Promise<result>}
+   * @returns {Promise<prepareTx>}
    * {
    *   total: long (bitcoin -> santoshi)
    *   fee: long (bitcoin -> santoshi)
@@ -58,8 +57,8 @@ export default class EsAccount {
    *   }]
    * }
    */
-  async perpareTransaction (details) {
-    if (this.info.coinType !== D.COIN_BIT_COIN && this.info.coinType !== D.COIN_BIT_COIN) throw D.ERROR_COIN_NOT_SUPPORTED
+  async prepareTx (details) {
+    if (this.info.coinType !== D.COIN_BIT_COIN && this.info.coinType !== D.COIN_BIT_COIN_TEST) throw D.ERROR_COIN_NOT_SUPPORTED
 
     let getEnoughUtxo = (total) => {
       let willSpentUtxos = []
@@ -77,12 +76,11 @@ export default class EsAccount {
       return {newTotal, willSpentUtxos}
     }
 
-    // TODO judge lockTime, judge confirmations
     let utxos = await this._coinData.getUtxos({accountId: this.info.accountId})
     let total = utxos.reduce((sum, utxo) => sum + utxo.value, 0)
     let fee = details.feeRate
     let totalOut = details.outputs.reduce((sum, output) => sum + output.value, 0)
-    // fee using uncompressed public key
+    // calculate the fee using uncompressed public key
     let calculateFee = (utxos, outputs) => (utxos.length * 180 + 34 * outputs.length + 34 + 10) * details.feeRate
     let result
     while (true) {
@@ -96,15 +94,71 @@ export default class EsAccount {
           outputs: details.outputs,
           fee: fee,
           total: totalOut + fee,
-          utxos: result.utxos
+          utxos: result.willSpentUtxos
         }
       }
       // new fee + total out is larger than new total, calculate again
     }
   }
 
-  async buildTransaction () {
-    // TODO
+  /**
+   * use the result of prepareTx to make transaction
+   * @param prepareTx
+   * @returns {Promise<{txInfo, hex}>}
+   * @see prepareTx
+   */
+  async buildTx (prepareTx) {
+    let totalOut = prepareTx.outputs.reduce((sum, output) => sum + output.value, 0)
+    if (totalOut + prepareTx.fee !== prepareTx.total) throw D.ERROR_UNKNOWN
+    let totalIn = prepareTx.utxos.reduce((sum, utxo) => sum + utxo.value, 0)
+    if (totalIn < prepareTx.total) throw D.ERROR_TX_NOT_ENOUGH_VALUE
+
+    let changeAddress = await this._device.getAddress(this.info.changePublicKeyIndex, this.info.changePublicKey)
+    let value = totalIn - prepareTx.total
+    let rawTx = {
+      inputs: prepareTx.utxos,
+      outputs: prepareTx.outputs
+    }
+    rawTx.outputs.push({address: changeAddress, value: value})
+    console.log(rawTx)
+    let signedTx = await this._device.signTransaction(rawTx)
+    let txInfo = {
+      accountId: this.info.accountId,
+      coinType: this.info.coinType,
+      txId: signedTx.id,
+      version: 1,
+      blockNumber: -1,
+      confirmations: -1,
+      time: new Date().getTime(),
+      direction: D.TX_DIRECTION_OUT,
+      inputs: prepareTx.utxos.map(utxo => {
+        return {
+          prevAddress: utxo.address,
+          isMine: true,
+          value: utxo.value
+        }
+      }),
+      // TODO output has self address
+      outputs: prepareTx.outputs.map(output => {
+        return {
+          address: output.address,
+          isMine: output.address === changeAddress,
+          value: output.value
+        }
+      }),
+      value: prepareTx.total
+    }
+    return {txInfo: txInfo, hex: signedTx.hex}
+  }
+
+  /**
+   * broadcast transaction to network
+   * @param signedTx
+   * @returns {Promise<void>}
+   * @see buildTx
+   */
+  sendTx (signedTx) {
+    return this._coinData.sendTx(signedTx.txInfo, signedTx.hex)
   }
 
   sendBitCoin (transaction, callback) {

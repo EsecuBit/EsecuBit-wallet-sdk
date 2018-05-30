@@ -7,11 +7,11 @@ import IndexedDB from '../sdk/data/database/IndexedDB'
 chai.should()
 describe('EsWallet', function () {
   this.timeout(30000)
-  D.TEST_SYNC = true
   let esWallet = null
 
   it('clearDatabase', async () => {
     let indexedDB = new IndexedDB(D.TEST_WALLET_ID)
+    await indexedDB.init()
     await indexedDB.clearDatabase()
   })
 

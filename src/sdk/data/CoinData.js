@@ -27,6 +27,7 @@ export default class CoinData {
     this._listeners = []
     this._txListener = (error, txInfo) => {
       if (error !== D.ERROR_NO_ERROR) {
+        this._listeners.forEach(listener => listener(error, txInfo))
         return
       }
       this._db.saveOrUpdateTxInfo(txInfo, (error) => {
@@ -60,8 +61,9 @@ export default class CoinData {
       txInfo.value -= txInfo.inputs.reduce((sum, input) => sum + input.isMine ? input.value : 0, 0)
       txInfo.value += txInfo.outputs.reduce((sum, output) => sum + output.isMine ? output.value : 0, 0)
 
-      utxo = txInfo.confirmations >= 6 ? utxo : null
-      await this._db.newTx(addressInfo, txInfo, utxo)
+      let account = await this._db.getAccounts({accountId: addressInfo.accountId})
+      account.balance += txInfo.value
+      await this._db.newTx(account, addressInfo, txInfo, utxo)
       await this._device.updateIndex(addressInfo)
       // TODO add addressListener after updateIndex
       // TODO find spent utxo and remove
@@ -88,6 +90,7 @@ export default class CoinData {
 
   async sync () {
     // TODO judge is new app, whether need recover wallet, recover multiple account
+    // TODO some block may forked and became orphan in the future, some tx and utxo will be invalid
     let accounts = await this._db.getAccounts()
     if (accounts.length === 0) {
       console.log('no accounts, init the first account')
@@ -126,11 +129,11 @@ export default class CoinData {
 
     // check whether the last spec coinType account has transaction
     let lastAccount = null
-    let count = 0
+    let accountIndex = 0
     for (let account of accounts) {
       if (account.coinType === coinType) {
         lastAccount = account
-        count++
+        accountIndex++
       }
     }
 
@@ -146,13 +149,13 @@ export default class CoinData {
 
       let newAccount = {
         accountId: makeId(),
-        label: 'Account#' + count + 1,
+        label: 'Account#' + accountIndex + 1,
         coinType: coinType,
-        index: count,
+        index: accountIndex,
         balance: 0
       }
-      let externalPath = "m/44'/" + D.getCoinIndex(coinType) + "'/" + count + "'/0"
-      let changePath = "m/44'/" + D.getCoinIndex(coinType) + "'/" + count + "'/1"
+      let externalPath = D.makeBip44Path(coinType, accountIndex, true)
+      let changePath = D.makeBip44Path(coinType, accountIndex, false)
       newAccount.externalPublicKey = await this._device.getPublicKey(externalPath)
       newAccount.externalPublicKeyIndex = 0
       newAccount.changePublicKey = await this._device.getPublicKey(changePath)
@@ -200,6 +203,14 @@ export default class CoinData {
       throw D.ERROR_LAST_ACCOUNT_NO_TRANSACTION
     }
     return newAccount()
+  }
+
+  async sendTx (txInfo, rawTx) {
+    let coinType = txInfo.coinType
+    await this._network[coinType].sendTx(rawTx)
+    await this._db.saveOrUpdateTxInfo(txInfo)
+    this._network[coinType].listenTx(txInfo, this._txListener)
+    this._listeners.forEach(listener => listener.callback(D.ERROR_NO_ERROR, txInfo))
   }
 
   getTxInfos (filter) {

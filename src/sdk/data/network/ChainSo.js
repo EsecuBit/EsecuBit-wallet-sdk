@@ -44,10 +44,10 @@
  * }
  */
 
-import CoinNetwork from './ICoinNetwork'
+import ICoinNetwork from './ICoinNetwork'
 import D from '../../D'
 
-export default class ChainSo extends CoinNetwork {
+export default class ChainSo extends ICoinNetwork {
   constructor (coinType) {
     super()
     this.coinType = coinType
@@ -56,7 +56,7 @@ export default class ChainSo extends CoinNetwork {
   }
 
   async get (url) {
-    let response = await CoinNetwork.prototype.get(url)
+    let response = await super.get(url)
     if (response.status !== 'success') {
       console.warn('chainso request failed', url, response)
       throw D.ERROR_NETWORK_PROVIDER_ERROR
@@ -89,14 +89,13 @@ export default class ChainSo extends CoinNetwork {
     return addressInfo
   }
 
-  async queryTransaction (txId) {
+  async queryTx (txId) {
     let response = await this.get([this._apiUrl, 'get_tx', this._coinTypeStr, txId].join('/'))
     let txInfo = {
       txId: response.txid,
       version: response.version,
       blockNumber: response.block_no,
       confirmations: response.confirmations,
-      locktime: response.locktime,
       time: response.time,
       hasDetails: true
     }
@@ -119,7 +118,7 @@ export default class ChainSo extends CoinNetwork {
     return txInfo
   }
 
-  async sendTransaction (rawTransaction) {
+  async sendTx (rawTransaction) {
     let response = await this.post([this._apiUrl, 'send_tx', this._coinTypeStr].join('/'), {tx_hex: rawTransaction})
     // TODO wrap
     return response

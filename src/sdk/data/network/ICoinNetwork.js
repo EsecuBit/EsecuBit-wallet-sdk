@@ -21,6 +21,35 @@ export default class ICoinNetwork {
     this._requestList = []
   }
 
+  async init () {
+    this._startQueue = true
+    // start the request loop
+    let queue = () => {
+      const timeStamp = new Date().getTime()
+      for (let request of this._requestList) {
+        if (!request) {
+          // TODO one time
+          console.warn('a removed request')
+          continue
+        }
+        if (request.nextTime <= timeStamp) {
+          request.request()
+          break
+        }
+      }
+      if (this._startQueue) {
+        setTimeout(queue, this._requestRate * 1000)
+      }
+    }
+    setTimeout(queue, 0)
+    return {}
+  }
+
+  async release () {
+    this._startQueue = false
+    this._requestList = []
+  }
+
   get (url) {
     return new Promise((resolve, reject) => {
       console.log('get', url)
@@ -89,19 +118,27 @@ export default class ICoinNetwork {
     this._requestList.push({
       type: TYPE_TRANSACTION_INFO,
       txInfo: txInfo,
+      response: null,
       nextTime: 0,
       request: async function () {
         this.nextTime = new Date().getTime() + TRANSACTION_REQUEST_PERIOD * 1000
         try {
-          let response = that.queryTransaction(this.txInfo.txId)
-          this.txInfo.confirmations = response.confirmations
-          if (response.confirmations >= D.TX_BTC_MATURE_CONFIRMATIONS) {
-            console.info('confirmations enough, remove', this)
-            remove(that._requestList, this)
-          }
-          callback(D.ERROR_NO_ERROR, this.txInfo)
+          if (!this.response) this.response = await that.queryTx(this.txInfo.txId)
         } catch (e) {
-          callback(e)
+          if (e === D.ERROR_TX_NOT_FOUND) {
+            console.log('tx not found in network, continue. id: ', txInfo.txId)
+            return
+          }
+          callback(e, this.txInfo)
+        }
+        let confirmations = this.response.confirmations === 0 ? 0 : this._blockHeight - this.response.blockNumber
+        if (confirmations >= D.TX_BTC_MATURE_CONFIRMATIONS) {
+          console.info('confirmations enough, remove', this)
+          remove(that._requestList, this)
+        }
+        if (this.response.confirmations !== confirmations) {
+          this.response.confirmations = confirmations
+          callback(D.ERROR_NO_ERROR, this.txInfo)
         }
       }
     })
@@ -121,7 +158,8 @@ export default class ICoinNetwork {
     let checkNewTx = (response, addressInfo) => {
       let newTransaction = (addressInfo, tx) => {
         console.log('newTransaction', addressInfo, tx)
-        addressInfo.txs.push(tx.txId)
+        // if tx.confirmations = 0 (not found)
+        if (tx.confirmations > 0) addressInfo.txs.push(tx.txId)
         let output = tx.outputs.find(output => addressInfo.address === output.address)
         let direction = output ? D.TX_DIRECTION_IN : D.TX_DIRECTION_OUT
         let txInfo = {
@@ -131,7 +169,6 @@ export default class ICoinNetwork {
           version: tx.version,
           blockNumber: tx.blockNumber,
           confirmations: tx.confirmations,
-          lockTime: tx.lockTime,
           time: tx.time,
           direction: direction,
           inputs: tx.inputs.map(input => {
@@ -162,7 +199,7 @@ export default class ICoinNetwork {
       // noinspection JSCheckFunctionSignatures
       newTxs.filter(tx => tx.hasDetails).forEach(tx => newTransaction(addressInfo, tx))
       newTxs.filter(tx => !tx.hasDetails).forEach(
-        tx => that._network[addressInfo.coinType].queryTransaction(tx.txId)
+        tx => that._network[addressInfo.coinType].queryTx(tx.txId)
           .then(tx => newTransaction(addressInfo, tx))
           .catch(callback))
     }
@@ -211,34 +248,6 @@ export default class ICoinNetwork {
     }
   }
 
-  async init () {
-    this._startQueue = true
-    // start the request loop
-    let queue = () => {
-      const timeStamp = new Date().getTime()
-      for (let request of this._requestList) {
-        if (!request) {
-          // TODO one time
-          console.warn('a removed request')
-        }
-        if (request.nextTime <= timeStamp) {
-          request.request()
-          break
-        }
-      }
-      if (this._startQueue) {
-        setTimeout(queue, this._requestRate * 1000)
-      }
-    }
-    setTimeout(queue, 0)
-    return {}
-  }
-
-  async release () {
-    this._startQueue = false
-    this._requestList = []
-  }
-
   /**
    * @return addressInfo array
    * @see addressInfo
@@ -255,7 +264,7 @@ export default class ICoinNetwork {
    *    txs: tx array
    * }
    *
-   * @see queryTransaction
+   * @see queryTx
    *
    */
   async queryAddress (address) {
@@ -270,7 +279,6 @@ export default class ICoinNetwork {
    *    version: int,
    *    blockNumber: int,
    *    confirmations: int,
-   *    lockTime: long
    *    time: long,
    *    hasDetails: bool,   // for queryAddress only, whether the tx has inputs and outputs. e.g. blockchain.info -> true, chain.so -> false
    *    intputs: [{prevAddress, value(bitcoin -> santoshi)}],
@@ -278,11 +286,11 @@ export default class ICoinNetwork {
    * }
    *
    */
-  async queryTransaction (txId) {
+  async queryTx (txId) {
     throw D.ERROR_NOT_IMPLEMENTED
   }
 
-  async sendTrnasaction (rawTx) {
+  async sendTx (rawTx) {
     throw D.ERROR_NOT_IMPLEMENTED
   }
 }

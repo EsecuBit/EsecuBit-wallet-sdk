@@ -43,16 +43,16 @@ export default class IndexedDB extends IDatabase{
         /**
          * account:
          * {
-       *   accountId: string,
-       *   label: string,
-       *   coinType: string,
-       *   index: 0,
-       *   balance: long,
-       *   externalPublicKey: string,
-       *   externalPublicKeyIndex: int,
-       *   changePublicKey: string,
-       *   changePublicKeyIndex: int
-       * }
+         *   accountId: string,
+         *   label: string,
+         *   coinType: string,
+         *   index: 0,
+         *   balance: long,
+         *   externalPublicKey: string,
+         *   externalPublicKeyIndex: int,
+         *   changePublicKey: string,
+         *   changePublicKeyIndex: int
+         * }
          */
         if (!db.objectStoreNames.contains('account')) {
           let account = db.createObjectStore('account', {keyPath: 'accountId'})
@@ -62,19 +62,19 @@ export default class IndexedDB extends IDatabase{
         /**
          * txInfo:
          * {
-       *   accountId: string,
-       *   coinType: string,
-       *   txId: string,
-       *   version: int,
-       *   blockNumber: int,
-       *   confirmations: int, // just for showing the status. won't active update after confirmations >= D.TRANSACTION_##COIN_TYPE##_MATURE_CONFIRMATIONS
-       *   lockTime: long,
-       *   time: long,
-       *   direction: D.TX_DIRECTION_IN / D.TX_DIRECTION_OUT,
-       *   inputs: in array [{prevAddress, isMine, value}]
-       *   outputs: out array [{address, isMine, value}]
-       *   value: long (bitcoin -> santoshi) // value that shows the account balance changes, calculated by inputs and outputs
-       * }
+         *   accountId: string,
+         *   coinType: string,
+         *   txId: string,
+         *   version: int,
+         *   blockNumber: int,
+         *   confirmations: int, // -1: not found in network, 0: found in miner's memory pool. other: confirmations
+         *                  just for showing the status. won't active update after confirmations >= D.TRANSACTION_##COIN_TYPE##_MATURE_CONFIRMATIONS
+         *   time: long,
+         *   direction: D.TX_DIRECTION_IN / D.TX_DIRECTION_OUT,
+         *   inputs: in array [{prevAddress, isMine, value}]
+         *   outputs: out array [{address, isMine, value}]
+         *   value: long (bitcoin -> santoshi) // value that shows the account balance changes, calculated by inputs and outputs
+         * }
          */
         // TODO createIndex when upgrade?
         if (!db.objectStoreNames.contains('txInfo')) {
@@ -87,15 +87,15 @@ export default class IndexedDB extends IDatabase{
         /**
          * addressInfo:
          * {
-       *   address: string,
-       *   accountId: string,
-       *   coinType: string,
-       *   path: string,
-       *   type: D.ADDRESS_EXTERNAL / D.ADDRESS_CHANGE,
-       *   txCount: int,
-       *   balance: long (santoshi),
-       *   txs: txId (string) array
-       * }
+         *   address: string,
+         *   accountId: string,
+         *   coinType: string,
+         *   path: string,
+         *   type: D.ADDRESS_EXTERNAL / D.ADDRESS_CHANGE,
+         *   txCount: int,
+         *   balance: long (santoshi),
+         *   txs: txId (string) array
+         * }
          */
         if (!db.objectStoreNames.contains('addressInfo')) {
           let addressInfo = db.createObjectStore('addressInfo', {keyPath: 'address'})
@@ -106,15 +106,15 @@ export default class IndexedDB extends IDatabase{
         /**
          * utxo:
          * {
-       *   accountId: string,
-       *   coinType: string,
-       *   address: string,
-       *   path: string,
-       *   txId: string,
-       *   index: int,
-       *   script: string,
-       *   value: long (santoshi)
-       * }
+         *   accountId: string,
+         *   coinType: string,
+         *   address: string,
+         *   path: string,
+         *   txId: string,
+         *   index: int,
+         *   script: string,
+         *   value: long (santoshi),
+         * }
          */
         if (!db.objectStoreNames.contains('utxo')) {
           let utxo = db.createObjectStore('utxo', {keyPath: ['txId', 'address']})
@@ -370,34 +370,6 @@ export default class IndexedDB extends IDatabase{
     })
   }
 
-  newTx (addressInfo, txInfo, utxo) {
-    return new Promise((resolve, reject) => {
-      let objectStores = ['addressInfo', 'txInfo', 'utxo']
-      let transaction = this._db.transaction(objectStores, 'readwrite')
-      let request = transaction.objectStore('addressInfo').put(addressInfo)
-      let error = (e) => {
-        console.warn(e)
-        reject(e)
-      }
-      request.onsuccess = () => {
-        let request2 = transaction.objectStore('txInfo').put(txInfo)
-        request2.onsuccess = () => {
-          if (utxo) {
-            let request3 = transaction.objectStore('utxo').put(utxo)
-            request3.onsuccess = () => {
-              resolve(addressInfo, txInfo, utxo)
-            }
-            request3.onerror = error
-          } else {
-            resolve(addressInfo, txInfo)
-          }
-        }
-        request2.onerror = error
-      }
-      request.onerror = error
-    })
-  }
-
   getUtxos (filter = {}) {
     return new Promise((resolve, reject) => {
       if (this._db === null) {
@@ -424,6 +396,39 @@ export default class IndexedDB extends IDatabase{
         console.warn('getAccounts', e)
         reject(D.ERROR_DATABASE_EXEC_FAILED)
       }
+    })
+  }
+
+  newTx (account, addressInfo, txInfo, utxo, removUtxo) {
+    // TODO finish
+    return new Promise((resolve, reject) => {
+      let objectStores = ['account', 'addressInfo', 'txInfo', 'utxo']
+      let transaction = this._db.transaction(objectStores, 'readwrite')
+      let request = transaction.objectStore('account').put(account)
+      request.onsuccess = () => {
+        let request = transaction.objectStore('addressInfo').put(addressInfo)
+        let error = (e) => {
+          console.warn(e)
+          reject(e)
+        }
+        request.onsuccess = () => {
+          let request = transaction.objectStore('txInfo').put(txInfo)
+          request.onsuccess = () => {
+            if (utxo) {
+              let request = transaction.objectStore('utxo').put(utxo)
+              request.onsuccess = () => {
+                resolve(addressInfo, txInfo, utxo)
+              }
+              request.onerror = error
+            } else {
+              resolve(addressInfo, txInfo)
+            }
+          }
+          request.onerror = error
+        }
+        request.onerror = error
+      }
+      request.onerror = error
     })
   }
 }

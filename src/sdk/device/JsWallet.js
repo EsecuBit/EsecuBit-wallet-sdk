@@ -1,7 +1,8 @@
 // powered by bitcoin-js
 
-import D from '../D'
+import ecurve from 'ecurve'
 import bitcoin from 'bitcoinjs-lib'
+import D from '../D'
 
 // TODO remove when publish
 const TEST_SYNC_SEED = 'aa49342d805682f345135afcba79ffa7d50c2999944b91d88e01e1d38b80ca63'
@@ -51,7 +52,6 @@ export default class JsWallet {
       if (pPublicKey) {
         const ECPair = bitcoin.ECPair
         const HDNode = bitcoin.HDNode
-        let ecurve = require('ecurve')
         let curve = ecurve.getCurveByName('secp256k1')
         let Q = ecurve.Point.decodeFrom(curve, Buffer.from(D.hexToArrayBuffer(pPublicKey.publicKey)))
         let pChainCode = Buffer.from(D.hexToArrayBuffer(pPublicKey.chainCode))
@@ -77,18 +77,26 @@ export default class JsWallet {
     return node.getAddress()
   }
 
+  async publicKeyToAddress (publicKey) {
+    const ECPair = bitcoin.ECPair
+    let curve = ecurve.getCurveByName('secp256k1')
+    let Q = ecurve.Point.decodeFrom(curve, Buffer.from(D.hexToArrayBuffer(publicKey)))
+    let keyPair = new ECPair(null, Q, {network: NETWORK})
+    return keyPair.getAddress()
+  }
+
   /**
    * tx:
    * {
    *   inputs: [{
-   *     prevAddress: WIF,
-   *     prevAddressPath: string,
-   *     prevTxId: hex string,
-   *     prevOutIndex: int,
-   *     prevOutScript: string,
+   *     address: base58 string,
+   *     path: string,
+   *     txId: hex string,
+   *     index: int,
+   *     script: string,
    *   }],
    *   outputs: [{
-   *     address: WIF,
+   *     address: base58 string,
    *     value: long
    *   }]
    */
@@ -97,14 +105,14 @@ export default class JsWallet {
       let txb = new bitcoin.TransactionBuilder(NETWORK)
       txb.setVersion(1)
       for (let input of tx.inputs) {
-        txb.addInput(input.prevTxId, input.prevOutIndex)
+        txb.addInput(input.txId, input.index)
       }
       for (let output of tx.outputs) {
         txb.addOutput(output.address, output.value)
       }
       let i = 0
       for (let input of tx.inputs) {
-        let key = this._root.derivePath(input.prevAddressPath)
+        let key = this._root.derivePath(input.path)
         txb.sign(i, key)
         i++
       }

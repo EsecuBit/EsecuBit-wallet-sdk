@@ -6,11 +6,11 @@ import JsWallet from '../sdk/device/JsWallet'
 
 chai.should()
 describe('EsAccount', function () {
-  const jsWallet = new JsWallet()
-  const coinData = new CoinData()
 
   let account = null
   it('checkAccount', async () => {
+    const jsWallet = new JsWallet()
+    const coinData = new CoinData()
     let info = await jsWallet.init()
     await coinData.init(info)
     let accounts = await coinData.getAccounts()
@@ -19,6 +19,7 @@ describe('EsAccount', function () {
     account = accounts[0]
     let utxo = await coinData.getUtxos(account.accountId)
     utxo.length.should.not.equal(0)
+    console.log('utxos', utxo)
   })
 
   it('getTxInfos', async () => {
@@ -32,7 +33,6 @@ describe('EsAccount', function () {
       tx.version.should.above(0)
       tx.blockNumber.should.above(0)
       tx.confirmations.should.be.a('number')
-      tx.lockTime.should.be.a('number')
       tx.time.should.be.a('number')
       tx.direction.should.be.oneOf([D.TX_DIRECTION_IN, D.TX_DIRECTION_OUT])
       tx.inputs.should.lengthOf.above(0)
@@ -57,7 +57,21 @@ describe('EsAccount', function () {
     address.qrAddress.should.be.a('string')
   })
 
-  it('perpareTransaction', async () => {
-
+  it('prepareTx', async () => {
+    let prepareTx = await account.prepareTx({
+      feeRate: 5,
+      outputs: [{
+        address: 'mn4ddJmfccTr5rSp1LTknPpdKatiaivw2X',
+        value: 3000
+      }, {
+        address: 'mqjGANawowPiTDKKtuqdf7mqumWAoyHsdG',
+        value: 1456
+      }]
+    })
+    console.log('prepareTx', prepareTx)
+    let signedTx = await account.buildTx(prepareTx)
+    console.log('signedTx', signedTx)
+    let response = await account.sendTx(signedTx)
+    console.log('response', response)
   })
 })

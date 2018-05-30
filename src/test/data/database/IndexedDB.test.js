@@ -20,7 +20,6 @@ describe('IndexedDB', function () {
     version: 1,
     blockNumber: 10000,
     confirmations: 100,
-    lockTime: 0,
     time: 222,
     direction: D.TX_DIRECTION_IN,
     inputs: [{

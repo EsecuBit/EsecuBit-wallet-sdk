@@ -26,6 +26,7 @@ const D = {
   ERROR_NETWORK_PROVIDER_ERROR: 403,
 
   ERROR_TX_NOT_ENOUGH_VALUE: 501,
+  ERROR_TX_NOT_FOUND: 502,
 
   ERROR_NOT_IMPLEMENTED: 10000,
   ERROR_UNKNOWN: 10001,
@@ -111,10 +112,18 @@ const D = {
     }
   },
 
+  makeBip44Path (coinType, accountIndex, isExternal, addressIndex) {
+    return "m/44'/" +
+      D.getCoinIndex(coinType) + "'/" +
+      accountIndex + "'/" +
+      (isExternal ? 0 : 1) +
+      (addressIndex ? ('/' + addressIndex) : '')
+  },
+
   // test
   TEST_MODE: true,
   TEST_DATA: false,
-  TEST_NETWORK_REQUEST: false,
+  TEST_NETWORK_REQUEST: true,
   TEST_JS_WALLET: true,
   TEST_SYNC: false,
   TEST_WALLET_ID: 'BA3253876AED6BC22D4A6FF53D8406C6AD864195ED144AB5C87621B6C233B548'

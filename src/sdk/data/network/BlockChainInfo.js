@@ -11,7 +11,6 @@ export default class BlockchainInfo extends ICoinNetwork {
     // noinspection JSUnusedGlobalSymbols
     this._supportMultiAddresses = true
     this.coinType = 'undefined'
-    this._blockHeight = -1
     this.coinType = coinType
   }
 
@@ -33,6 +32,39 @@ export default class BlockchainInfo extends ICoinNetwork {
     return {blockHeight: this._blockHeight}
   }
 
+  get (url) {
+    return new Promise((resolve, reject) => {
+      let xmlhttp = new XMLHttpRequest()
+      xmlhttp.onreadystatechange = () => {
+        if (xmlhttp.readyState === 4) {
+          if (xmlhttp.status === 200) {
+            try {
+              resolve(JSON.parse(xmlhttp.responseText))
+            } catch (e) {
+              resolve({response: xmlhttp.responseText})
+            }
+          } else if (xmlhttp.status === 500) {
+            let response = xmlhttp.responseText
+            switch (response) {
+              case 'Transaction not found':
+                reject(D.ERROR_TX_NOT_FOUND)
+                return
+              default:
+                console.warn('BlockChainInfo get', xmlhttp)
+                reject(D.ERROR_NETWORK_PROVIDER_ERROR)
+            }
+          } else {
+            console.warn(url, xmlhttp)
+            reject(D.ERROR_NETWORK_UNVAILABLE)
+          }
+        }
+      }
+      xmlhttp.open('GET', url, true)
+      xmlhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded')
+      xmlhttp.send()
+    })
+  }
+
   async queryAddresses (addresses) {
     let response = await this.get(this._apiUrl + '/multiaddr?cors=true&active=' + addresses.join('|'))
     let addressInfos = []
@@ -46,32 +78,34 @@ export default class BlockchainInfo extends ICoinNetwork {
       info.txCount = rAddress.n_tx
       info.txs = response.txs
         .filter(rTx => rTx.inputs.some(exist) || rTx.out.some(exist))
-        .map(rTx => BlockchainInfo.wrapTx(rTx))
+        .map(rTx => this.wrapTx(rTx))
       addressInfos.push(info)
     }
     return addressInfos
   }
 
-  async queryTransaction (txId) {
+  async queryTx (txId) {
     let response = await this.get([this._apiUrl, 'rawtx', txId].join('/') + '?cors=true')
-    return BlockchainInfo.wrapTx(response)
+    return this.wrapTx(response)
   }
 
-  async sendTransaction (rawTransaction) {
-    console.log('send', rawTransaction)
-    let response = await this.post([this._apiUrl, 'pushtx'].join('/'), 'tx=' + rawTransaction)
+  async sendTx (rawTransaction) {
+    // TODO uncomment after testing EsAccount
+    // let response = await this.post([this._apiUrl, 'pushtx'].join('/'), 'tx=' + rawTransaction)
     // TODO wrap
-    return response
+    // return response
+    console.log('blockchain.info send', rawTransaction)
+    return {}
   }
 
-  static wrapTx (rTx) {
+  wrapTx (rTx) {
+    let confirmations = (rTx.block_height || this._blockHeight) - this._blockHeight
     let tx = {
       txId: rTx.hash,
       version: rTx.ver,
-      blockNumber: rTx.block_height,
-      confirmations: rTx.weight,
-      lockTime: rTx.lock_time,
-      time: rTx.time,
+      blockNumber: rTx.block_height || -1,
+      confirmations: confirmations,
+      time: rTx.time * 1000,
       hasDetails: true
     }
     tx.inputs = rTx.inputs.map(input => {
