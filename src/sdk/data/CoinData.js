@@ -41,7 +41,7 @@ export default class CoinData {
      * 2. store utxo, addressInfo, txInfo
      */
     let busy = false
-    this._addressListener = async (error, addressInfo, txInfo, utxo) => {
+    this._addressListener = async (error, addressInfo, txInfo, utxos) => {
       // eslint-disable-next-line
       while (busy) {
         await D.wait(5)
@@ -62,34 +62,59 @@ export default class CoinData {
         // update account balance and addressIndex
         let accounts = await this._db.getAccounts({accountId: addressInfo.accountId})
         let account = accounts[0]
+        account.balance += txInfo.value
+
         let addressPath = D.parseBip44Path(addressInfo.path)
         let nextIndex = addressPath.addressIndex + 1
-        if (addressPath.isExternal) {
-          account.externalPublicKeyIndex =
-            account.externalPublicKeyIndex > nextIndex ? account.externalPublicKeyIndex : nextIndex
+        if (addressPath.isExternal && account.externalPublicKeyIndex < nextIndex) {
+          let externalPath = D.makeBip44Path(account.coinType, account.index, true)
+          let addresses = []
+          await Promise.all(Array.from({length: nextIndex - account.externalPublicKeyIndex},
+            (v, k) => account.externalPublicKeyIndex + k)
+            .map(async i => {
+              let externalAddress = await this._device.getAddress(i, account.externalPublicKey)
+              addresses.push({
+                address: externalAddress,
+                accountId: account.accountId,
+                coinType: account.coinType,
+                path: externalPath + '/' + i,
+                type: D.ADDRESS_EXTERNAL,
+                txCount: 0,
+                balance: 0,
+                txs: []
+              })
+            }))
+          account.externalPublicKeyIndex = nextIndex
+          console.info('account', account, 'new external index', account.externalPublicKeyIndex, 'new address', addresses)
+          await this._device.updateIndex(account)
+        } else if (!addressPath.isExternal && account.changePublicKeyIndex < nextIndex) {
+          let changePath = D.makeBip44Path(account.coinType, account.index, false)
+          let addresses = []
+          await Promise.all(Array.from({length: nextIndex - account.changePublicKeyIndex},
+            (v, k) => account.changePublicKeyIndex + k)
+            .map(async i => {
+              let externalAddress = await this._device.getAddress(i, account.changePublicKey)
+              addresses.push({
+                address: externalAddress,
+                accountId: account.accountId,
+                coinType: account.coinType,
+                path: changePath + '/' + i,
+                type: D.ADDRESS_CHANGE,
+                txCount: 0,
+                balance: 0,
+                txs: []
+              })
+            }))
+          account.changePublicKeyIndex = nextIndex
+          console.info('account', account, 'new change index', account.externalPublicKeyIndex, 'new address', addresses)
+          await this._device.updateIndex(account)
         }
-        else {
-          account.changePublicKeyIndex =
-            account.changePublicKeyIndex > nextIndex ? account.changePublicKeyIndex : nextIndex
-        }
-        await this._device.updateIndex(account)
 
-        // find spent utxo and remove
-        let removedUtxo = null
-        if (txInfo.direction === D.TX_DIRECTION_OUT) {
-          let index = txInfo.inputs.reduce((index, input) => {
-            if (index !== -1) return index
-            if (input.prevAddress === addressInfo) return input.prevOutIndex
-            return -1
-          })
-          let utxos = await this._db.getUtxos({accountId: addressInfo.accountId})
-          // tx won't have two input using the same output index from the same tx
-          removedUtxo = utxos.filter(utxo => utxo.txId === txInfo??? && utxo.index === index)[0]
-        }
+        // check utxo update. unspent can update to pending and spent, pending can update to spent. otherwise ignore
+        let oldUtxos = await this._db.getUtxos({accountId: account.accountId})
+        if
 
-        account.balance += txInfo.value
-        await this._db.newTx(account, addressInfo, txInfo, utxo, removedUtxo)
-        // TODO add addressListener after updateIndex
+        await this._db.newTx(account, addressInfo, txInfo, utxos)
         this._listeners.forEach(listener => listener(D.ERROR_NO_ERROR, txInfo, account))
       } catch (e) {
         console.warn('error in address listener', e)
@@ -232,11 +257,12 @@ export default class CoinData {
     return newAccount()
   }
 
-  async sendTx (txInfo, rawTx) {
+  async sendTx (account, utxos, txInfo, rawTx) {
     let coinType = txInfo.coinType
     await this._network[coinType].sendTx(rawTx)
     await this._db.saveOrUpdateTxInfo(txInfo)
     this._network[coinType].listenTx(txInfo, this._txListener)
+    // ??? newTx?
     this._listeners.forEach(listener => listener.callback(D.ERROR_NO_ERROR, txInfo))
   }
 
@@ -313,9 +339,5 @@ export default class CoinData {
           txIds: []
         })
     ])
-  }
-
-  static getFloatFee (coinType, fee) {
-    return D.getFloatFee(coinType, fee)
   }
 }

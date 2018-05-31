@@ -114,7 +114,7 @@ export default class EsWallet {
     return JsWallet.getWalletInfo()
   }
 
-  getFloatFee (coinType, fee) {
-    return CoinData.getFloatFee(coinType, fee)
+  getFloatValue (coinType, fee) {
+    return D.getFloatValue(coinType, fee)
   }
 }

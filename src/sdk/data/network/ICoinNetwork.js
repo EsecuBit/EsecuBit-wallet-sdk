@@ -170,12 +170,12 @@ export default class ICoinNetwork {
     }
 
     let checkNewTx = (response, addressInfo) => {
-      let newTransaction = (addressInfo, tx) => {
+      let newTransaction = async (addressInfo, tx) => {
         console.info('newTransaction', addressInfo, tx)
         // if tx.confirmations = 0 (not found)
         if (tx.confirmations > 0) addressInfo.txs.push(tx.txId)
-        let output = tx.outputs.find(output => addressInfo.address === output.address)
-        let direction = output ? D.TX_DIRECTION_IN : D.TX_DIRECTION_OUT
+        let input = tx.inputs.find(input => addressInfo.address === input.address)
+        let direction = input ? D.TX_DIRECTION_OUT : D.TX_DIRECTION_IN
         let txInfo = {
           accountId: addressInfo.accountId,
           coinType: addressInfo.coinType,
@@ -188,8 +188,10 @@ export default class ICoinNetwork {
           inputs: tx.inputs,
           outputs: tx.outputs
         }
-        if (direction === D.TX_DIRECTION_IN) {
-          let utxo = {
+        let utxos = []
+        let unspentOutputs = tx.outputs.filter(output => addressInfo.address === output.address)
+        let unspentUtxos = unspentOutputs.map(output => {
+          return {
             accountId: addressInfo.accountId,
             coinType: addressInfo.coinType,
             address: addressInfo.address,
@@ -197,12 +199,42 @@ export default class ICoinNetwork {
             txId: tx.txId,
             index: output.index,
             script: output.script,
-            value: output.value
+            value: output.value,
+            spent: D.TX_UNSPENT
           }
-          callback(D.ERROR_NO_ERROR, addressInfo, txInfo, utxo)
-        } else {
-          callback(D.ERROR_NO_ERROR, addressInfo, txInfo)
+        })
+        utxos.push(...unspentUtxos)
+
+        let spentInputs = tx.inputs.filter(input => addressInfo.address === input.prevAddress)
+        if (spentInputs.length > 0) {
+          console.info('1', spentInputs)
+          if (!spentInputs[0].prevTxId) {
+            console.info('2', spentInputs)
+            let formatTx = await this.queryRawTx(txInfo.txId)
+            console.info('3', spentInputs, formatTx)
+            spentInputs.forEach(input => {
+              input.prevTxId = formatTx.in[input.index].hash
+            })
+            console.info('4', spentInputs)
+          }
+          let spentUtxos = spentInputs.map(input => {
+            return {
+              accountId: addressInfo.accountId,
+              coinType: addressInfo.coinType,
+              address: addressInfo.address,
+              path: addressInfo.path,
+              txId: input.prevTxId,
+              index: input.prevIndex,
+              script: input.prevOutScript,
+              value: input.value,
+              spent: tx.confirmations === 0 ? D.TX_SPENT_PENDING : D.TX_SPENT
+            }
+          })
+          utxos.push(...spentUtxos)
         }
+
+        // TODO test address1 + address1 => address1 + address1
+        callback(D.ERROR_NO_ERROR, addressInfo, txInfo, utxos)
       }
 
       let newTxs = response.txs.filter(tx => !addressInfo.txs.some(aTx => aTx.txId === tx.txId))
@@ -217,9 +249,7 @@ export default class ICoinNetwork {
     const that = this
     if (this._supportMultiAddresses) {
       let addressMap = {}
-      addressInfos.forEach(addressInfo => {
-        addressMap[addressInfo.address] = addressInfo
-      })
+      addressInfos.forEach(addressInfo => { addressMap[addressInfo.address] = addressInfo })
       this._requestList.push({
         type: TYPE_ADDRESS,
         addressMap: addressMap,
@@ -245,8 +275,8 @@ export default class ICoinNetwork {
           currentBlock: -1,
           request: async function () {
             that.queryAddress(this.addressInfo.address)
-              .then(response => {
-                checkNewTx(response, this.addressInfo)
+              .then(async response => {
+                await checkNewTx(response, this.addressInfo)
                 oneTime && remove(that._requestList, this)
               })
               .catch(callback)
@@ -295,6 +325,10 @@ export default class ICoinNetwork {
    *
    */
   async queryTx (txId) {
+    throw D.ERROR_NOT_IMPLEMENTED
+  }
+
+  async queryRawTx (txId) {
     throw D.ERROR_NOT_IMPLEMENTED
   }
 

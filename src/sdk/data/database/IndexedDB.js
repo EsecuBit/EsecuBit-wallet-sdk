@@ -114,11 +114,13 @@ export default class IndexedDB extends IDatabase {
          *   index: int,
          *   script: string,
          *   value: long (santoshi),
+         *   spent: int // D.TX_UNSPENT, D.TX_SPENT, D.SPENT_PENDING
          * }
          */
         if (!db.objectStoreNames.contains('utxo')) {
           let utxo = db.createObjectStore('utxo', {keyPath: ['txId', 'index']})
           utxo.createIndex('accountId', 'accountId', {unique: false})
+          utxo.createIndex('accountId, spent', ['accountId, spent'], {unique: false})
         }
       }
 
@@ -308,8 +310,8 @@ export default class IndexedDB extends IDatabase {
         }
         if (total >= startIndex && total < endIndex) {
           array.push(cursor.value)
-          total++
         }
+        total++
         cursor.continue()
       }
       request.onerror = (e) => {
@@ -377,11 +379,16 @@ export default class IndexedDB extends IDatabase {
       }
 
       let request
-      if (filter.accountId) {
+      if (filter.accountId && filter.spent) {
         request = this._db.transaction(['utxo'], 'readonly')
           .objectStore('utxo')
+          .index('accountId, spent')
+          .getAll([filter.accountId, filter.spent])
+      } else if (filter.accountId) {
+        request = this._db.transaction(['utxo'], 'readonly')
           .index('accountId')
-          .getAll(filter.accountId)
+          .objectStore('utxo')
+          .getAll()
       } else {
         request = this._db.transaction(['utxo'], 'readonly')
           .objectStore('utxo')
@@ -398,8 +405,7 @@ export default class IndexedDB extends IDatabase {
     })
   }
 
-  newTx (account, addressInfo, txInfo, utxo, removeUtxos = []) {
-    // TODO finish
+  newTx (account, addressInfo, txInfo, utxos = []) {
     return new Promise((resolve, reject) => {
       let objectStores = ['account', 'addressInfo', 'txInfo', 'utxo']
       let transaction = this._db.transaction(objectStores, 'readwrite')
@@ -426,24 +432,13 @@ export default class IndexedDB extends IDatabase {
         })
       }
       let utxoRequest = () => {
-        return new Promise((resolve, reject) => {
-          if (!utxo) {
-            resolve()
-            return
-          }
+        return Promise.all(utxos.map(utxo => new Promise((resolve, reject) => {
           let request = transaction.objectStore('utxo').put(utxo)
-          request.onsuccess = resolve
-          request.onerror = reject
-        })
-      }
-      let removeUtxosRequest = () => {
-        return Promise.all(removeUtxos.map(utxo => new Promise((resolve, reject) => {
-          let request = transaction.objectStore('utxo').delete(utxo)
           request.onsuccess = resolve
           request.onerror = reject
         })))
       }
-      accountRequest().then(addressInfoRequest).then(txInfoRequest).then(utxoRequest).then(removeUtxosRequest)
+      accountRequest().then(addressInfoRequest).then(txInfoRequest).then(utxoRequest)
         .then(resolve)
         .catch(ev => {
           console.warn('newTx', ev)

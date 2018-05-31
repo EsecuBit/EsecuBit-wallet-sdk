@@ -76,8 +76,7 @@ export default class EsAccount {
       return {newTotal, willSpentUtxos}
     }
 
-    console.info('1')
-    let utxos = await this._coinData.getUtxos({accountId: this.info.accountId})
+    let utxos = await this._coinData.getUtxos({accountId: this.info.accountId, spent: D.TX_UNSPENT})
     let total = utxos.reduce((sum, utxo) => sum + utxo.value, 0)
     let fee = details.feeRate
     let totalOut = details.outputs.reduce((sum, output) => sum + output.value, 0)
@@ -149,7 +148,7 @@ export default class EsAccount {
       }),
       value: prepareTx.total
     }
-    return {txInfo: txInfo, hex: signedTx.hex}
+    return {txInfo: txInfo, utxos: prepareTx.utxos, hex: signedTx.hex}
   }
 
   /**
@@ -159,7 +158,7 @@ export default class EsAccount {
    * @see buildTx
    */
   sendTx (signedTx) {
-    return this._coinData.sendTx(signedTx.txInfo, signedTx.hex)
+    return this._coinData.sendTx(this.info, signedTx.utxos, signedTx.txInfo, signedTx.hex)
   }
 
   sendBitCoin (transaction, callback) {

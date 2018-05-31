@@ -89,6 +89,11 @@ export default class BlockchainInfo extends ICoinNetwork {
     return this.wrapTx(response)
   }
 
+  async queryRawTx (txId) {
+    let response = await this.get([this._apiUrl, 'rawtx', txId].join('/') + '?cors=true&format=hex')
+    return D.parseRawTx(response.response)
+  }
+
   async sendTx (rawTransaction) {
     // TODO uncomment after testing EsAccount
     // let response = await this.post([this._apiUrl, 'pushtx'].join('/'), 'tx=' + rawTransaction)
@@ -108,11 +113,14 @@ export default class BlockchainInfo extends ICoinNetwork {
       time: rTx.time * 1000,
       hasDetails: true
     }
+    let index = 0
     tx.inputs = rTx.inputs.map(input => {
       return {
         prevAddress: input.prev_out.addr,
+        prevTxId: null, // blockchain.info don't have this field, need query tx raw hex
         prevOutIndex: input.prev_out.n,
-        index: input.n,
+        prevScript: input.prev_out.script,
+        index: index++,
         value: input.prev_out.value
       }
     })

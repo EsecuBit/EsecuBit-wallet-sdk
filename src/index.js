@@ -13,5 +13,5 @@
 // import './test/data/network/BlockChainInfo.test'
 // import './test/data/CoinData.test'
 //
-// import './test/EsWallet.test'
-import './test/EsAccount.test'
+import './test/EsWallet.test'
+// import './test/EsAccount.test'

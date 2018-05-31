@@ -1,4 +1,6 @@
 
+import bitPony from 'bitpony'
+
 const D = {
   // listen status
   STATUS_PLUG_IN: 1,
@@ -46,13 +48,16 @@ const D = {
   TX_DIRECTION_IN: 'in',
   TX_DIRECTION_OUT: 'out',
   TX_BTC_MATURE_CONFIRMATIONS: 6,
+  TX_UNSPENT: 0,
+  TX_SPENT: 1,
+  TX_SPENT_PENDING: 2,
 
   // fee type
   FEE_FAST: 'fast',
   FEE_NORMAL: 'normal',
   FEE_ECNOMIC: 'economy',
 
-  getFloatFee (coinType, intFee) {
+  getFloatValue (coinType, intFee) {
     switch (coinType) {
       case D.COIN_BIT_COIN:
       case D.COIN_BIT_COIN_TEST:
@@ -122,7 +127,6 @@ const D = {
 
   parseBip44Path (path, coinType) {
     let splitPath = path.split('/')
-    console.log('splitPath', splitPath)
     return {
       coinType: coinType,
       accountIndex: parseInt(splitPath[3].slice(0, -1)),
@@ -131,12 +135,28 @@ const D = {
     }
   },
 
+  /**
+   * @return format tx
+   * {
+   *   hash: hex string,
+   *   length: int,
+   *   in_count: int.
+   *   in: [{hash, index, scriptSig, script_len, sequence}, ...]
+   *   out_count: int,
+   *   out: [{amount, scriptPubKey, script_len}, ...]
+   *   lock_time: long
+   * }
+   */
+  parseRawTx (hexTx) {
+    return bitPony.tx.read(hexTx)
+  },
+
   // test
   TEST_MODE: true,
   TEST_DATA: false,
-  TEST_NETWORK_REQUEST: true,
+  TEST_NETWORK_REQUEST: false,
   TEST_JS_WALLET: true,
-  TEST_SYNC: false,
+  TEST_SYNC: true,
   TEST_WALLET_ID: 'BA3253876AED6BC22D4A6FF53D8406C6AD864195ED144AB5C87621B6C233B548'
 }
 export default D
