@@ -92,8 +92,6 @@ export default class IndexedDB extends IDatabase {
          *   coinType: string,
          *   path: string,
          *   type: D.ADDRESS_EXTERNAL / D.ADDRESS_CHANGE,
-         *   txCount: int,
-         *   balance: long (santoshi),
          *   txs: txId (string) array
          * }
          */
@@ -114,7 +112,7 @@ export default class IndexedDB extends IDatabase {
          *   index: int,
          *   script: string,
          *   value: long (santoshi),
-         *   spent: int // D.TX_UNSPENT, D.TX_SPENT, D.SPENT_PENDING
+         *   spent: D.TX_UNSPENT / D.SPENT_PENDING / D.TX_SPENT
          * }
          */
         if (!db.objectStoreNames.contains('utxo')) {
@@ -386,8 +384,8 @@ export default class IndexedDB extends IDatabase {
           .getAll([filter.accountId, filter.spent])
       } else if (filter.accountId) {
         request = this._db.transaction(['utxo'], 'readonly')
-          .index('accountId')
           .objectStore('utxo')
+          .index('accountId')
           .getAll()
       } else {
         request = this._db.transaction(['utxo'], 'readonly')
@@ -412,6 +410,10 @@ export default class IndexedDB extends IDatabase {
 
       let accountRequest = () => {
         return new Promise((resolve, reject) => {
+          if (!account) {
+            resolve()
+            return
+          }
           let request = transaction.objectStore('account').put(account)
           request.onsuccess = resolve
           request.onerror = reject
@@ -419,6 +421,10 @@ export default class IndexedDB extends IDatabase {
       }
       let addressInfoRequest = () => {
         return new Promise((resolve, reject) => {
+          if (!addressInfo) {
+            resolve()
+            return
+          }
           let request = transaction.objectStore('addressInfo').put(addressInfo)
           request.onsuccess = resolve
           request.onerror = reject

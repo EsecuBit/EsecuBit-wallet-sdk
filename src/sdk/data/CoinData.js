@@ -59,60 +59,50 @@ export default class CoinData {
         txInfo.value -= txInfo.inputs.reduce((sum, input) => sum + input.isMine ? input.value : 0, 0)
         txInfo.value += txInfo.outputs.reduce((sum, output) => sum + output.isMine ? output.value : 0, 0)
 
-        // update account balance and addressIndex
+        // update account balance
         let accounts = await this._db.getAccounts({accountId: addressInfo.accountId})
         let account = accounts[0]
         account.balance += txInfo.value
 
+        // update and addressIndex and listen new address
         let addressPath = D.parseBip44Path(addressInfo.path)
-        let nextIndex = addressPath.addressIndex + 1
-        if (addressPath.isExternal && account.externalPublicKeyIndex < nextIndex) {
-          let externalPath = D.makeBip44Path(account.coinType, account.index, true)
-          let addresses = []
-          await Promise.all(Array.from({length: nextIndex - account.externalPublicKeyIndex},
-            (v, k) => account.externalPublicKeyIndex + k)
-            .map(async i => {
-              let externalAddress = await this._device.getAddress(i, account.externalPublicKey)
-              addresses.push({
-                address: externalAddress,
-                accountId: account.accountId,
-                coinType: account.coinType,
-                path: externalPath + '/' + i,
-                type: D.ADDRESS_EXTERNAL,
-                txCount: 0,
-                balance: 0,
-                txs: []
-              })
-            }))
-          account.externalPublicKeyIndex = nextIndex
-          console.info('account', account, 'new external index', account.externalPublicKeyIndex, 'new address', addresses)
-          await this._device.updateIndex(account)
-        } else if (!addressPath.isExternal && account.changePublicKeyIndex < nextIndex) {
-          let changePath = D.makeBip44Path(account.coinType, account.index, false)
-          let addresses = []
-          await Promise.all(Array.from({length: nextIndex - account.changePublicKeyIndex},
-            (v, k) => account.changePublicKeyIndex + k)
-            .map(async i => {
-              let externalAddress = await this._device.getAddress(i, account.changePublicKey)
-              addresses.push({
-                address: externalAddress,
-                accountId: account.accountId,
-                coinType: account.coinType,
-                path: changePath + '/' + i,
-                type: D.ADDRESS_CHANGE,
-                txCount: 0,
-                balance: 0,
-                txs: []
-              })
-            }))
-          account.changePublicKeyIndex = nextIndex
-          console.info('account', account, 'new change index', account.externalPublicKeyIndex, 'new address', addresses)
-          await this._device.updateIndex(account)
-        }
+        let newIndex = addressPath.addressIndex + 1
+        let addresses = []
+        let parentPublicKey = addressPath.isExternal ? account.externalPublicKey : account.changePublicKey
+        let oldIndex = addressPath.isExternal ? account.externalPublicKeyIndex : account.changePublicKeyIndex
+        let parentPath = D.makeBip44Path(account.coinType, account.index, addressPath.isExternal)
+        let type = addressPath.isExternal ? D.ADDRESS_EXTERNAL : D.ADDRESS_CHANGE
+        await Promise.all(Array.from({length: newIndex - oldIndex},
+          (v, k) => oldIndex + k)
+          .map(async i => {
+            let address = await this._device.getAddress(i, parentPublicKey)
+            addresses.push({
+              address: address,
+              accountId: account.accountId,
+              coinType: account.coinType,
+              path: parentPath + '/' + i,
+              type: type,
+              txCount: 0,
+              balance: 0,
+              txs: []
+            })
+          }))
+        console.info('account index update', account, 'external', addressPath.isExternal, 'new index', account.externalPublicKeyIndex, 'new address', addresses)
+        await Promise.all(addresses.map(address => this._db.saveOrUpdateAddressInfo(address)))
+        // listen new addresses
+        this._network[account.coinType].listenAddresses(addresses.slice(oldIndex, newIndex), this._addressListener)
+        addressPath.isExternal ? account.externalPublicKeyIndex = newIndex : account.changePublicKeyIndex = newIndex
+        await this._device.updateIndex(account)
 
         // check utxo update. unspent can update to pending and spent, pending can update to spent. otherwise ignore
         let oldUtxos = await this._db.getUtxos({accountId: account.accountId})
-        if
+        utxos.filter(utxo => {
+          let oldUtxo = oldUtxos.find(oldUtxo => oldUtxo.txId === utxo.txId && oldUtxo.index === utxo.index)
+          if (!oldUtxo) return true
+          if (oldUtxo.spent === D.TX_UNSPENT) return true
+          if (oldUtxo.spent === D.TX_SPENT_PENDING) return utxo === D.TX_SPENT
+          return false
+        })
 
         await this._db.newTx(account, addressInfo, txInfo, utxos)
         this._listeners.forEach(listener => listener(D.ERROR_NO_ERROR, txInfo, account))
@@ -157,6 +147,7 @@ export default class CoinData {
     }
     await this._device.sync()
     await Promise.all(Object.entries(this._network).map(async ([coinType, network]) => {
+      // TODO ??? oneTime
       let addressInfos = await this._db.getAddressInfos({coinType: coinType, type: D.ADDRESS_EXTERNAL})
       network.listenAddresses(addressInfos, this._addressListener)
     }))
@@ -262,8 +253,9 @@ export default class CoinData {
     await this._network[coinType].sendTx(rawTx)
     await this._db.saveOrUpdateTxInfo(txInfo)
     this._network[coinType].listenTx(txInfo, this._txListener)
-    // ??? newTx?
-    this._listeners.forEach(listener => listener.callback(D.ERROR_NO_ERROR, txInfo))
+    // TODO ??? newTx?
+    this._db.newTx(account, null, txInfo, utxos)
+    this._listeners.forEach(listener => listener.callback(D.ERROR_NO_ERROR, txInfo, account))
   }
 
   getTxInfos (filter) {
@@ -334,8 +326,6 @@ export default class CoinData {
           coinType: D.COIN_BIT_COIN,
           path: [0x80000000, 0x8000002C, 0x80000000, 0x00000000, 0x00000000],
           type: D.ADDRESS_EXTERNAL,
-          txCount: 0,
-          balance: 0,
           txIds: []
         })
     ])

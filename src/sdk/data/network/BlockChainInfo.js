@@ -119,7 +119,7 @@ export default class BlockchainInfo extends ICoinNetwork {
         prevAddress: input.prev_out.addr,
         prevTxId: null, // blockchain.info don't have this field, need query tx raw hex
         prevOutIndex: input.prev_out.n,
-        prevScript: input.prev_out.script,
+        prevOutScript: input.prev_out.script,
         index: index++,
         value: input.prev_out.value
       }

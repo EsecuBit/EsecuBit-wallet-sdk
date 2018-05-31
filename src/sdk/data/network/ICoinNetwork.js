@@ -5,7 +5,7 @@ const TYPE_ADDRESS = 'address'
 const TYPE_TRANSACTION_INFO = 'transaction_info'
 // TODO check block height to restart request
 // seconds per request
-let BLOCK_HEIGHT_REQUEST_PERIOD = 120
+let BLOCK_HEIGHT_REQUEST_PERIOD = 60
 
 if (D.TEST_NETWORK_REQUEST) {
   BLOCK_HEIGHT_REQUEST_PERIOD = 20
@@ -135,6 +135,7 @@ export default class ICoinNetwork {
       txInfo: txInfo,
       response: null,
       currentBlock: -1,
+      nextTime: 0, // TODO check transaction from miners memory pool
       request: async function () {
         try {
           if (!this.response) this.response = await that.queryTx(this.txInfo.txId)
@@ -172,8 +173,6 @@ export default class ICoinNetwork {
     let checkNewTx = (response, addressInfo) => {
       let newTransaction = async (addressInfo, tx) => {
         console.info('newTransaction', addressInfo, tx)
-        // if tx.confirmations = 0 (not found)
-        if (tx.confirmations > 0) addressInfo.txs.push(tx.txId)
         let input = tx.inputs.find(input => addressInfo.address === input.address)
         let direction = input ? D.TX_DIRECTION_OUT : D.TX_DIRECTION_IN
         let txInfo = {
@@ -207,15 +206,11 @@ export default class ICoinNetwork {
 
         let spentInputs = tx.inputs.filter(input => addressInfo.address === input.prevAddress)
         if (spentInputs.length > 0) {
-          console.info('1', spentInputs)
           if (!spentInputs[0].prevTxId) {
-            console.info('2', spentInputs)
             let formatTx = await this.queryRawTx(txInfo.txId)
-            console.info('3', spentInputs, formatTx)
             spentInputs.forEach(input => {
               input.prevTxId = formatTx.in[input.index].hash
             })
-            console.info('4', spentInputs)
           }
           let spentUtxos = spentInputs.map(input => {
             return {
@@ -224,7 +219,7 @@ export default class ICoinNetwork {
               address: addressInfo.address,
               path: addressInfo.path,
               txId: input.prevTxId,
-              index: input.prevIndex,
+              index: input.prevOutIndex,
               script: input.prevOutScript,
               value: input.value,
               spent: tx.confirmations === 0 ? D.TX_SPENT_PENDING : D.TX_SPENT
@@ -237,7 +232,8 @@ export default class ICoinNetwork {
         callback(D.ERROR_NO_ERROR, addressInfo, txInfo, utxos)
       }
 
-      let newTxs = response.txs.filter(tx => !addressInfo.txs.some(aTx => aTx.txId === tx.txId))
+      let newTxs = response.txs.filter(tx => !addressInfo.txs.some(txId => txId === tx.txId))
+      newTxs.forEach(tx => { if (tx.confirmations > 0) addressInfo.txs.push(tx.txId) })
       // noinspection JSCheckFunctionSignatures
       newTxs.filter(tx => tx.hasDetails).forEach(tx => newTransaction(addressInfo, tx))
       newTxs.filter(tx => !tx.hasDetails).forEach(

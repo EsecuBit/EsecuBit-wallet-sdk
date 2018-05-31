@@ -49,8 +49,8 @@ const D = {
   TX_DIRECTION_OUT: 'out',
   TX_BTC_MATURE_CONFIRMATIONS: 6,
   TX_UNSPENT: 0,
-  TX_SPENT: 1,
-  TX_SPENT_PENDING: 2,
+  TX_SPENT_PENDING: 1,
+  TX_SPENT: 2,
 
   // fee type
   FEE_FAST: 'fast',
