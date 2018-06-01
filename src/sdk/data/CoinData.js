@@ -40,77 +40,15 @@ export default class CoinData {
      * 1. store/update new txInfo after filling "isMine" and "value" field
      * 2. store utxo, addressInfo, txInfo
      */
-    let busy = false
     this._addressListener = async (error, addressInfo, txInfo, utxos) => {
-      // eslint-disable-next-line
-      while (busy) {
-        await D.wait(5)
+      if (error !== D.ERROR_NO_ERROR) {
+        this._listeners.forEach(listener => listener(error, txInfo))
+        return
       }
-      busy = true
-      try {
-        if (error !== D.ERROR_NO_ERROR) {
-          this._listeners.forEach(listener => listener(error, txInfo))
-          return
-        }
-        let addressInfos = await this._db.getAddressInfos({accountId: addressInfo.accountId})
-        txInfo.inputs.forEach(input => { input['isMine'] = addressInfos.some(a => a.address === input.prevAddress) })
-        txInfo.outputs.forEach(output => { output['isMine'] = addressInfos.some(a => a.address === output.address) })
-        txInfo.value = 0
-        txInfo.value -= txInfo.inputs.reduce((sum, input) => sum + input.isMine ? input.value : 0, 0)
-        txInfo.value += txInfo.outputs.reduce((sum, output) => sum + output.isMine ? output.value : 0, 0)
 
-        // update account balance
-        let accounts = await this._db.getAccounts({accountId: addressInfo.accountId})
-        let account = accounts[0]
-        account.balance += txInfo.value
-
-        // update and addressIndex and listen new address
-        let addressPath = D.parseBip44Path(addressInfo.path)
-        let newIndex = addressPath.addressIndex + 1
-        let addresses = []
-        let parentPublicKey = addressPath.isExternal ? account.externalPublicKey : account.changePublicKey
-        let oldIndex = addressPath.isExternal ? account.externalPublicKeyIndex : account.changePublicKeyIndex
-        let parentPath = D.makeBip44Path(account.coinType, account.index, addressPath.isExternal)
-        let type = addressPath.isExternal ? D.ADDRESS_EXTERNAL : D.ADDRESS_CHANGE
-        await Promise.all(Array.from({length: newIndex - oldIndex},
-          (v, k) => oldIndex + k)
-          .map(async i => {
-            let address = await this._device.getAddress(i, parentPublicKey)
-            addresses.push({
-              address: address,
-              accountId: account.accountId,
-              coinType: account.coinType,
-              path: parentPath + '/' + i,
-              type: type,
-              txCount: 0,
-              balance: 0,
-              txs: []
-            })
-          }))
-        console.info('account index update', account, 'external', addressPath.isExternal, 'new index', account.externalPublicKeyIndex, 'new address', addresses)
-        await Promise.all(addresses.map(address => this._db.saveOrUpdateAddressInfo(address)))
-        // listen new addresses
-        this._network[account.coinType].listenAddresses(addresses.slice(oldIndex, newIndex), this._addressListener)
-        addressPath.isExternal ? account.externalPublicKeyIndex = newIndex : account.changePublicKeyIndex = newIndex
-        await this._device.updateIndex(account)
-
-        // check utxo update. unspent can update to pending and spent, pending can update to spent. otherwise ignore
-        let oldUtxos = await this._db.getUtxos({accountId: account.accountId})
-        utxos.filter(utxo => {
-          let oldUtxo = oldUtxos.find(oldUtxo => oldUtxo.txId === utxo.txId && oldUtxo.index === utxo.index)
-          if (!oldUtxo) return true
-          if (oldUtxo.spent === D.TX_UNSPENT) return true
-          if (oldUtxo.spent === D.TX_SPENT_PENDING) return utxo === D.TX_SPENT
-          return false
-        })
-
-        await this._db.newTx(account, addressInfo, txInfo, utxos)
-        this._listeners.forEach(listener => listener(D.ERROR_NO_ERROR, txInfo, account))
-      } catch (e) {
-        console.warn('error in address listener', e)
-        this._listeners.forEach(listener => listener(e))
-      }
-      busy = false
+      let accounts = await this._db.getAccounts({accountId: addressInfo.accountId})
+      let account = accounts[0]
+      await this._newTx(account, addressInfo, txInfo, utxos)
     }
   }
 
@@ -142,7 +80,7 @@ export default class CoinData {
         firstAccount.balance = 32000000
         await this._db.newAccount(firstAccount)
         console.info('TEST_DATA add test txInfo')
-        await this.initTestDbData(firstAccount.accountId)
+        await this._initTestDbData(firstAccount.accountId)
       }
     }
     await this._device.sync()
@@ -213,8 +151,6 @@ export default class CoinData {
             coinType: coinType,
             path: externalPath + '/' + k,
             type: D.ADDRESS_EXTERNAL,
-            txCount: 0,
-            balance: 0,
             txs: []
           })
           let changeAddress = await this._device.getAddress(k, newAccount.changePublicKey)
@@ -224,8 +160,6 @@ export default class CoinData {
             coinType: coinType,
             path: changePath + '/' + k,
             type: D.ADDRESS_CHANGE,
-            txCount: 0,
-            balance: 0,
             txs: []
           })
         }))
@@ -251,11 +185,12 @@ export default class CoinData {
   async sendTx (account, utxos, txInfo, rawTx) {
     let coinType = txInfo.coinType
     await this._network[coinType].sendTx(rawTx)
-    await this._db.saveOrUpdateTxInfo(txInfo)
-    this._network[coinType].listenTx(txInfo, this._txListener)
-    // TODO ??? newTx?
-    this._db.newTx(account, null, txInfo, utxos)
-    this._listeners.forEach(listener => listener.callback(D.ERROR_NO_ERROR, txInfo, account))
+
+    let addressInfos = await this._db.getAddressInfos({accountId: account.accountId})
+    utxos.map(utxo => {
+      let addressInfo = addressInfos.find(addressInfo => addressInfo.address === utxo.address)
+      return {addressInfo, utxo}
+    }).forEach(pair => this._newTx(account, pair.addressInfo, txInfo, pair.utxo))
   }
 
   getTxInfos (filter) {
@@ -275,10 +210,76 @@ export default class CoinData {
     this._listeners.push(callback)
   }
 
+  async _newTx (account, addressInfo, txInfo, utxos) {
+    // eslint-disable-next-line
+    while (this.busy) {
+      await D.wait(5)
+    }
+    this.busy = true
+    try {
+      let addressInfos = await this._db.getAddressInfos({accountId: account.accountId})
+      txInfo.inputs.forEach(input => { input['isMine'] = addressInfos.some(a => a.address === input.prevAddress) })
+      txInfo.outputs.forEach(output => { output['isMine'] = addressInfos.some(a => a.address === output.address) })
+      txInfo.value = 0
+      txInfo.value -= txInfo.inputs.reduce((sum, input) => sum + input.isMine ? input.value : 0, 0)
+      txInfo.value += txInfo.outputs.reduce((sum, output) => sum + output.isMine ? output.value : 0, 0)
+
+      // update account balance
+      account.balance += txInfo.value
+
+      // update and addressIndex and listen new address
+      let addressPath = D.parseBip44Path(addressInfo.path)
+      let newIndex = addressPath.addressIndex + 1
+      let addresses = []
+      let parentPublicKey = addressPath.isExternal ? account.externalPublicKey : account.changePublicKey
+      let oldIndex = addressPath.isExternal ? account.externalPublicKeyIndex : account.changePublicKeyIndex
+      let parentPath = D.makeBip44Path(account.coinType, account.index, addressPath.isExternal)
+      let type = addressPath.isExternal ? D.ADDRESS_EXTERNAL : D.ADDRESS_CHANGE
+      await Promise.all(Array.from({length: newIndex - oldIndex},
+        (v, k) => oldIndex + k)
+        .map(async i => {
+          let address = await this._device.getAddress(i, parentPublicKey)
+          addresses.push({
+            address: address,
+            accountId: account.accountId,
+            coinType: account.coinType,
+            path: parentPath + '/' + i,
+            type: type,
+            txCount: 0,
+            balance: 0,
+            txs: []
+          })
+        }))
+      console.info('account index update', account, 'external', addressPath.isExternal, 'new index', account.externalPublicKeyIndex, 'new address', addresses)
+      await Promise.all(addresses.map(address => this._db.saveOrUpdateAddressInfo(address)))
+      // listen new addresses
+      // this._network[account.coinType].listenAddresses(addresses.slice(oldIndex, newIndex), this._addressListener)
+      addressPath.isExternal ? account.externalPublicKeyIndex = newIndex : account.changePublicKeyIndex = newIndex
+      await this._device.updateIndex(account)
+
+      // check utxo update. unspent can update to pending and spent, pending can update to spent. otherwise ignore
+      let oldUtxos = await this._db.getUtxos({accountId: account.accountId})
+      utxos.filter(utxo => {
+        let oldUtxo = oldUtxos.find(oldUtxo => oldUtxo.txId === utxo.txId && oldUtxo.index === utxo.index)
+        if (!oldUtxo) return true
+        if (oldUtxo.spent === D.TX_UNSPENT) return true
+        if (oldUtxo.spent === D.TX_SPENT_PENDING) return utxo === D.TX_SPENT
+        return false
+      })
+
+      await this._db.newTx(account, addressInfo, txInfo, utxos)
+      this._listeners.forEach(listener => listener(D.ERROR_NO_ERROR, txInfo, account))
+    } catch (e) {
+      console.warn('error in address listener', e)
+      this._listeners.forEach(listener => listener(e))
+    }
+    this.busy = false
+  }
+
   /*
    * Test data when TEST_DATA=true
    */
-  async initTestDbData (accountId) {
+  async _initTestDbData (accountId) {
     console.info('initTestDbData')
     await Promise.all([
       this._db.saveOrUpdateTxInfo(
