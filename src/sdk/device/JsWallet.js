@@ -38,7 +38,7 @@ export default class JsWallet {
     callback(D.ERROR_NO_ERROR, D.STATUS_PLUG_IN)
   }
 
-  static async getWalletInfo () {
+  async getWalletInfo () {
     return [
       {name: 'COS Version', value: 1},
       {name: 'Firmware Version', value: 1}]

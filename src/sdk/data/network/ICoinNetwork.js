@@ -191,6 +191,14 @@ export default class ICoinNetwork {
     })
   }
 
+  /**
+   * get all the new transactions provided addresseses immediately
+   */
+  async checkAddresses (addressInfos) {
+    return Promise.all(this.generateAddressTasks(addressInfos).map(task => task.request()))
+      .then(blobs => blobs.reduce((array, item) => array.concat(item), []))
+  }
+
   generateAddressTasks (addressInfos) {
     let checkNewTx = async (response, addressInfo) => {
       let newTransaction = async (addressInfo, tx) => {

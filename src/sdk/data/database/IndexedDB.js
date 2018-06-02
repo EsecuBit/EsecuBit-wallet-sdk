@@ -118,7 +118,7 @@ export default class IndexedDB extends IDatabase {
         if (!db.objectStoreNames.contains('utxo')) {
           let utxo = db.createObjectStore('utxo', {keyPath: ['txId', 'index']})
           utxo.createIndex('accountId', 'accountId', {unique: false})
-          utxo.createIndex('accountId, spent', ['accountId, spent'], {unique: false})
+          utxo.createIndex('accountId, spent', ['accountId', 'spent'], {unique: false})
         }
       }
 
@@ -197,34 +197,37 @@ export default class IndexedDB extends IDatabase {
     // this._db && this._db.close()
   }
 
-  newAccount (account, addresseInfos = []) {
+  newAccount (account) {
     return new Promise((resolve, reject) => {
       if (this._db === null) {
         reject(D.ERROR_DATABASE_OPEN_FAILED)
         return
       }
 
-      let transaction = this._db.transaction(['account', 'addressInfo'], 'readwrite')
+      let transaction = this._db.transaction(['account'], 'readwrite')
       let request = transaction.objectStore('account').add(account)
-
-      let error = (e) => {
+      request.onsuccess = resolve
+      request.onerror = (e) => {
         console.warn('newAccount', e)
         reject(D.ERROR_DATABASE_EXEC_FAILED)
       }
-      request.onsuccess = async () => {
-        let promise = (address) => {
-          return new Promise((resolve, reject) => {
-            let request = transaction.objectStore('addressInfo').add(address)
-            request.onsuccess = resolve
-            request.onerror = reject
-          })
-        }
-        Promise.all(addresseInfos.map(address => promise(address))).then(() => resolve(account)).catch(ev => {
-          console.warn('newAccount addressInfos', ev)
-          reject(D.ERROR_DATABASE_EXEC_FAILED)
-        })
+    })
+  }
+
+  deleteAccount (account) {
+    return new Promise((resolve, reject) => {
+      if (this._db === null) {
+        reject(D.ERROR_DATABASE_OPEN_FAILED)
+        return
       }
-      request.onerror = error
+
+      let transaction = this._db.transaction(['account'], 'readwrite')
+      let request = transaction.objectStore('account').delete(account)
+      request.onsuccess = resolve
+      request.onerror = (e) => {
+        console.warn('deleteAccount', e)
+        reject(D.ERROR_DATABASE_EXEC_FAILED)
+      }
     })
   }
 
@@ -297,17 +300,17 @@ export default class IndexedDB extends IDatabase {
       }
 
       let total = 0
-      let array = []
+      let txInfos = []
       let startIndex = filter.startIndex || 0
       let endIndex = filter.endIndex || Number.MAX_SAFE_INTEGER
       request.onsuccess = (e) => {
         let cursor = e.target.result
         if (!cursor) {
-          resolve([total, array])
+          resolve({total, txInfos})
           return
         }
         if (total >= startIndex && total < endIndex) {
-          array.push(cursor.value)
+          txInfos.push(cursor.value)
         }
         total++
         cursor.continue()

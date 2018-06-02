@@ -22,6 +22,7 @@ const D = {
   ERROR_DATABASE_EXEC_FAILED: 202,
 
   ERROR_LAST_ACCOUNT_NO_TRANSACTION: 301,
+  ERROR_ACCOUNT_HAS_TRANSACTIONS: 302,
 
   ERROR_NETWORK_UNVAILABLE: 401,
   ERROR_NETWORK_NOT_INITIALIZED: 402,
@@ -57,21 +58,30 @@ const D = {
   FEE_NORMAL: 'normal',
   FEE_ECNOMIC: 'economy',
 
-  getFloatValue (coinType, intFee) {
-    switch (coinType) {
-      case D.COIN_BIT_COIN:
-      case D.COIN_BIT_COIN_TEST:
-        return Number(intFee / 100000000)
-      default:
-        throw D.ERROR_COIN_NOT_SUPPORTED
-    }
-  },
+  // value type
+  UNIT_BTC: 'btc',
+  UNIT_BTC_M: 'mbtc',
+  UNIT_BTC_SANTOSHI: 'santoshi',
 
-  getIntFee (coinType, floatFee) {
+  convertValue (coinType, fee, fromType, toType) {
+    let convertBtc = (fee, fromType, toType) => {
+      let santoshi
+      switch (fromType) {
+        case D.UNIT_BTC: { santoshi = fee * 100000000; break }
+        case D.UNIT_BTC_M: { santoshi = fee * 100000; break }
+        case D.UNIT_BTC_SANTOSHI: { santoshi = fee; break }
+        default: throw D.ERROR_UNKNOWN
+      }
+      switch (toType) {
+        case D.UNIT_BTC: return Number(santoshi / 100000000)
+        case D.UNIT_BTC_M: return Number(santoshi / 100000)
+        case D.UNIT_BTC_SANTOSHI: return Number(santoshi)
+      }
+    }
     switch (coinType) {
       case D.COIN_BIT_COIN:
       case D.COIN_BIT_COIN_TEST:
-        return Number(floatFee * 100000000)
+        return convertBtc(fee, fromType, toType)
       default:
         throw D.ERROR_COIN_NOT_SUPPORTED
     }

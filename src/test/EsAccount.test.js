@@ -21,7 +21,7 @@ describe('EsAccount', function () {
     await coinData.init(info)
     let accounts = await coinData.getAccounts()
     accounts.length.should.not.equal(0)
-    accounts[0].info.coinType.should.equal(D.COIN_BIT_COIN_TEST)
+    accounts[0].coinType.should.equal(D.COIN_BIT_COIN_TEST)
     account = accounts[0]
     let utxo = await coinData.getUtxos(account.accountId)
     utxo.length.should.not.equal(0)
@@ -33,8 +33,8 @@ describe('EsAccount', function () {
     total.should.above(0)
     txInfos.length.should.not.equal(0)
     txInfos.forEach(tx => {
-      tx.accountId.should.equal(account.info.accountId)
-      tx.coinType.should.equal(account.info.coinType)
+      tx.accountId.should.equal(account.accountId)
+      tx.coinType.should.equal(account.coinType)
       tx.txId.should.be.a('string').and.lengthOf(64)
       tx.version.should.above(0)
       tx.blockNumber.should.be.a('number')
