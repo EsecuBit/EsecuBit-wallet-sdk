@@ -1,10 +1,10 @@
 
 import chai from 'chai'
 import D from '../../../../sdk/D'
-import BitCoinEarn from '../../../../sdk/data/network/fee/BitcoinEarn'
+import BitCoinEarn from '../../../../sdk/data/network/fee/FeeBitCoinEarn'
 
 chai.should()
-describe('BitCoinEarn', function () {
+describe('FeeBitCoinEarn', function () {
   it('empty BitCoinEarn', function () {
     const bitCoinEarn = new BitCoinEarn()
     bitCoinEarn.fee.should.deep.equal({'fast': 100, 'normal': 50, 'economy': 20})

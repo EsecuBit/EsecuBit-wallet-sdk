@@ -2,6 +2,7 @@
 import D from '../D'
 import IndexedDB from './database/IndexedDB'
 import BlockChainInfo from './network/BlockChainInfo'
+import FeeBitCoinEarn from './network/fee/FeeBitCoinEarn'
 
 // TODO CoinData only manage data, don't handle data. leave it to EsAccount and EsWallet?
 export default class CoinData {
@@ -15,11 +16,13 @@ export default class CoinData {
     // TODO read provider from settings
     this._networkProvider = BlockChainInfo
     this._network = {}
-    if (D.TEST_MODE) {
-      this._network[D.COIN_BIT_COIN_TEST] = new this._networkProvider(D.COIN_BIT_COIN_TEST)
-    } else {
-      this._network[D.COIN_BIT_COIN] = new this._networkProvider(D.COIN_BIT_COIN)
-    }
+    this._network[D.COIN_BIT_COIN_TEST] = new this._networkProvider(D.COIN_BIT_COIN_TEST)
+    this._network[D.COIN_BIT_COIN] = new this._networkProvider(D.COIN_BIT_COIN)
+
+    this._networkFee = {}
+    let bitcoinFee = new FeeBitCoinEarn()
+    this._networkFee[D.COIN_BIT_COIN_TEST] = bitcoinFee
+    this._networkFee[D.COIN_BIT_COIN] = bitcoinFee
 
     this._listeners = []
   }
@@ -49,6 +52,33 @@ export default class CoinData {
     return this._db.getAccounts(filter)
   }
 
+  addListener (callback) {
+    let exists = this._listeners.some(listener => listener === callback)
+    if (exists) {
+      console.info('addTransactionListener already has this listener', callback)
+      return
+    }
+    this._listeners.push(callback)
+  }
+
+  removeListener (callback) {
+    this._listeners = this._listeners.filter(listener => listener !== callback)
+  }
+
+  async newAccount (coinType) {
+    let accountIndex = await await this._newAccountIndex(coinType)
+    if (accountIndex === -1) {
+      throw D.ERROR_LAST_ACCOUNT_NO_TRANSACTION
+    }
+
+    let account = await this._newAccount(coinType, accountIndex)
+    if (D.TEST_DATA && accountIndex === 0 && (coinType === D.COIN_BIT_COIN || coinType.D.COIN_BIT_COIN_TEST)) {
+      await this._initTestDbData(account)
+    }
+    await this._db.newAccount(account)
+    return account
+  }
+
   async _newAccount (coinType, accountIndex) {
     let makeId = function () {
       let text = ''
@@ -74,7 +104,7 @@ export default class CoinData {
    * according to BIP32, check whether the spec coinType has account or the last spec coinType account has transaction
    * @return index of new account, -1 if unavailable
    */
-  async newAccountIndex (coinType) {
+  async _newAccountIndex (coinType) {
     let accounts = await this._db.getAccounts()
 
     // check whether the last spec coinType account has transaction
@@ -101,20 +131,6 @@ export default class CoinData {
       return -1
     }
     return accountIndex
-  }
-
-  async newAccount (coinType) {
-    let accountIndex = await await this.newAccountIndex(coinType)
-    if (accountIndex === -1) {
-      throw D.ERROR_LAST_ACCOUNT_NO_TRANSACTION
-    }
-
-    let account = await this._newAccount(coinType, accountIndex)
-    if (D.TEST_DATA && accountIndex === 0 && (coinType === D.COIN_BIT_COIN || coinType.D.COIN_BIT_COIN_TEST)) {
-      await this._initTestDbData(account)
-    }
-    await this._db.newAccount(account)
-    return account
   }
 
   async deleteAccount (account) {
@@ -169,17 +185,14 @@ export default class CoinData {
     await this._network[account.coinType].sendTx(rawTx)
   }
 
-  addListener (callback) {
-    let exists = this._listeners.some(listener => listener === callback)
-    if (exists) {
-      console.info('addTransactionListener already has this listener', callback)
-      return
+  async getSuggestedFee (coinType) {
+    switch (coinType) {
+      case D.COIN_BIT_COIN:
+      case D.COIN_BIT_COIN_TEST:
+        return await this._networkFee[coinType].updateFee()
+      default:
+        throw D.ERROR_COIN_NOT_SUPPORTED
     }
-    this._listeners.push(callback)
-  }
-
-  removeListener (callback) {
-    this._listeners = this._listeners.filter(listener => listener !== callback)
   }
 
   /*

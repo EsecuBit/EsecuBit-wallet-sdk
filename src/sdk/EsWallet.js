@@ -163,7 +163,7 @@ export default class EsWallet {
   async availableNewAccountCoinTypes () {
     let availables = []
     for (let coinType of AVAILABLE_COIN_TYPES) {
-      if (this._coinData.newAccountIndex(coinType) >= 0) {
+      if (this._coinData._newAccountIndex(coinType) >= 0) {
         availables.push(coinType)
       }
     }

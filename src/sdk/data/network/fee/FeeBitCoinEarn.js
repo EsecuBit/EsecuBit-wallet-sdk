@@ -1,7 +1,7 @@
 
 import D from '../../../D'
 
-export default class BitCoinFeeEarn {
+export default class FeeBitCoinEarn {
   constructor (fee = {}) {
     this.fee = {} // santonshi per b
     this.fee[D.FEE_FAST] = fee[D.FEE_FAST] || 100
@@ -38,6 +38,15 @@ export default class BitCoinFeeEarn {
       })
     }
 
+    let timeLimitedUpdate = () => {
+      return new Promise((resolve, reject) => {
+        setTimeout(() => {
+          // TODO
+        }, 2000)
+      })
+    }
+
+    let finished = false
     /**
      * response
      *
@@ -52,5 +61,6 @@ export default class BitCoinFeeEarn {
     this.fee[D.FEE_ECNOMIC] = response.hourFee
     console.info('new fee', this.fee)
     return Object.assign(this.fee)
+    finished = true
   }
 }
