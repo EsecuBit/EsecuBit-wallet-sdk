@@ -6,11 +6,11 @@ const TYPE_TRANSACTION = 'transaction_info'
 // TODO check block height to restart request
 // seconds per request
 let BLOCK_HEIGHT_REQUEST_PERIOD = 60
-let TX_INCLUDED_REQUEST_PERIOD = 10
+let TX_INCLUDED_REQUEST_PERIOD = 20
 
 if (D.TEST_NETWORK_REQUEST) {
   BLOCK_HEIGHT_REQUEST_PERIOD = 20
-  TX_INCLUDED_REQUEST_PERIOD = 5
+  TX_INCLUDED_REQUEST_PERIOD = 10
 }
 
 export default class ICoinNetwork {
@@ -31,18 +31,10 @@ export default class ICoinNetwork {
     this._startQueue = true
     let queue = () => {
       for (let request of this._requestList) {
-        if (!request) {
-          // TODO one time
-          console.warn('a removed request')
-          continue
-        }
-        if (request.type === TYPE_TRANSACTION && !request.hasFound) {
-          if (new Date().getTime() > request.nextTime) {
-            this.nextTime = new Date().getTime() + TX_INCLUDED_REQUEST_PERIOD * 1000
-            request.request()
-          }
+        if (request.type === TYPE_TRANSACTION && new Date().getTime() > request.nextTime) {
+          request.nextTime = new Date().getTime() + TX_INCLUDED_REQUEST_PERIOD * 1000
+          request.request()
         } else if (request.currentBlock < this._blockHeight) {
-          ('2', request)
           request.currentBlock = this._blockHeight
           request.request()
           break
@@ -142,13 +134,13 @@ export default class ICoinNetwork {
     this._requestList.push({
       type: TYPE_TRANSACTION,
       txInfo: txInfo,
-      response: null,
+      hasRecord: false,
       currentBlock: -1,
       nextTime: 0,
-      hasFound: false,
       request: async function () {
+        let response
         try {
-          if (!this.response) this.response = await that.queryTx(this.txInfo.txId)
+          if (!this.hasRecord) response = await that.queryTx(this.txInfo.txId)
         } catch (e) {
           if (e === D.ERROR_TX_NOT_FOUND) {
             console.info('tx not found in network, continue. id: ', txInfo.txId)
@@ -156,14 +148,15 @@ export default class ICoinNetwork {
           }
           callback(e, this.txInfo)
         }
-        this.hasFound = true
-        let confirmations = this.response.confirmations === 0 ? 0 : this._blockHeight - this.response.blockNumber
+        let confirmations = response.blockNumber ? 0 : that._blockHeight - response.blockNumber
+
+        if (confirmations > 0) this.hasRecord = true
         if (confirmations >= D.TX_BTC_MATURE_CONFIRMATIONS) {
           console.info('confirmations enough, remove', this)
           remove(that._requestList, this)
         }
-        if (this.response.confirmations !== confirmations) {
-          this.response.confirmations = confirmations
+        if (confirmations !== confirmations) {
+          this.txInfo.confirmations = confirmations
           callback(D.ERROR_NO_ERROR, this.txInfo)
         }
       }
@@ -202,7 +195,6 @@ export default class ICoinNetwork {
   generateAddressTasks (addressInfos) {
     let checkNewTx = async (response, addressInfo) => {
       let newTransaction = async (addressInfo, tx) => {
-        console.info('newTransaction', addressInfo, tx)
         let input = tx.inputs.find(input => addressInfo.address === input.address)
         let direction = input ? D.TX_DIRECTION_OUT : D.TX_DIRECTION_IN
         let txInfo = {
@@ -229,7 +221,7 @@ export default class ICoinNetwork {
             index: output.index,
             script: output.script,
             value: output.value,
-            spent: D.TX_UNSPENT
+            spent: D.UTXO_UNSPENT
           }
         })
         utxos.push(...unspentUtxos)
@@ -252,7 +244,7 @@ export default class ICoinNetwork {
               index: input.prevOutIndex,
               script: input.prevOutScript,
               value: input.value,
-              spent: tx.confirmations === 0 ? D.TX_SPENT_PENDING : D.TX_SPENT
+              spent: tx.confirmations === 0 ? D.UTXO_SPENT_PENDING : D.UTXO_SPENT
             }
           })
           utxos.push(...spentUtxos)

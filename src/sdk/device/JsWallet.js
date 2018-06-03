@@ -4,10 +4,6 @@ import ecurve from 'ecurve'
 import bitcoin from 'bitcoinjs-lib'
 import D from '../D'
 
-// TODO remove when publish
-const TEST_SYNC_SEED = 'aa49342d805682f345135afcba79ffa7d50c2999944b91d88e01e1d38b80ca63'
-const TEST_TRANSACTION_SEED = 'aa49342d805682f345135afcba79ffa7d50c2999944b91d88e01e1d300000000'
-
 const NETWORK = D.TEST_MODE ? bitcoin.networks.testnet : bitcoin.networks.bitcoin
 
 export default class JsWallet {
@@ -16,16 +12,15 @@ export default class JsWallet {
       return JsWallet.prototype.Instance
     }
     JsWallet.prototype.Instance = this
-
-    this._walletId = D.TEST_WALLET_ID
   }
 
   init (initSeed) {
-    const DEFAULT_SEED = D.TEST_SYNC ? TEST_SYNC_SEED : TEST_TRANSACTION_SEED
+    const DEFAULT_SEED = D.TEST_SYNC ? D.TEST_SYNC_SEED : D.TEST_TRANSACTION_SEED
+    const WALLET_ID = D.TEST_SYNC ? D.TEST_SYNC_WALLET_ID : D.TEST_TRANSACTION_WALLET_ID
     let seed = initSeed || DEFAULT_SEED
     this._root = bitcoin.HDNode.fromSeedHex(seed, NETWORK)
 
-    return {walletId: this._walletId}
+    return {walletId: WALLET_ID}
   }
 
   async sync () {

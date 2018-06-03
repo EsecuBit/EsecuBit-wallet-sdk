@@ -24,7 +24,6 @@ export default class EsWallet {
   }
 
   constructor () {
-    console.info('constructor eswallet')
     if (EsWallet.prototype.Instance) {
       return EsWallet.prototype.Instance
     }
@@ -69,13 +68,10 @@ export default class EsWallet {
   }
 
   async _init () {
-    // TODO remove test
-    setInterval(() => console.log(new Date().getTime()), 1000)
-
     let info = await this._device.init()
     await this._coinData.init(info)
-    this._esAccounts = await this._coinData.getAccounts().map(account => new EsAccount(account, this._device, this._coinData))
-    await Promise.all(this._esAccounts.init())
+    this._esAccounts = (await this._coinData.getAccounts()).map(account => new EsAccount(account, this._device, this._coinData))
+    await Promise.all(this._esAccounts.map(esAccount => esAccount.init()))
   }
 
   // TODO some block may forked and became orphan in the future, some txs and utxos may be invalid
@@ -91,16 +87,17 @@ export default class EsWallet {
 
   async _recover (coinType) {
     while (true) {
-      let account
-      account = await this.newAccount(coinType, false)
+      let account = await this._coinData.newAccount(coinType)
       let esAccount = new EsAccount(account, this._device, this._coinData)
       await esAccount.init()
       await esAccount.sync()
       // new account has no transactions, recover finish
-      if (esAccount.getTxInfos().length === 0) {
+      if ((await esAccount.getTxInfos()).total === 0) {
+        console.info(esAccount.accountId, 'has no txInfo, will not recover, delete it')
         await esAccount.delete()
         break
       }
+      this._esAccounts.push(esAccount)
     }
   }
 
@@ -150,12 +147,12 @@ export default class EsWallet {
    * }
    * @returns {Promise<*>}
    */
-  getAccounts (filter) {
+  async getAccounts (filter) {
     return this._esAccounts
   }
 
-  async newAccount (deviceID, passPhraseID, coinType) {
-    let account = await this._coinData.newAccount(deviceID, passPhraseID, coinType)
+  async newAccount (coinType) {
+    let account = await this._coinData.newAccount(coinType)
     let esAccount = new EsAccount(account, this._device, this._coinData)
     await esAccount.init()
     this._esAccounts.push(esAccount)

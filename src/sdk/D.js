@@ -49,9 +49,9 @@ const D = {
   TX_DIRECTION_IN: 'in',
   TX_DIRECTION_OUT: 'out',
   TX_BTC_MATURE_CONFIRMATIONS: 6,
-  TX_UNSPENT: 0,
-  TX_SPENT_PENDING: 1,
-  TX_SPENT: 2,
+  UTXO_UNSPENT: 0,
+  UTXO_SPENT_PENDING: 1,
+  UTXO_SPENT: 2,
 
   // fee type
   FEE_FAST: 'fast',
@@ -127,22 +127,12 @@ const D = {
     }
   },
 
-  makeBip44Path (coinType, accountIndex, isExternal, addressIndex) {
+  makeBip44Path (coinType, accountIndex, type, addressIndex) {
     return "m/44'/" +
       D.getCoinIndex(coinType) + "'/" +
       accountIndex + "'/" +
-      (isExternal ? 0 : 1) +
-      (addressIndex ? ('/' + addressIndex) : '')
-  },
-
-  parseBip44Path (path, coinType) {
-    let splitPath = path.split('/')
-    return {
-      coinType: coinType,
-      accountIndex: parseInt(splitPath[3].slice(0, -1)),
-      isExternal: parseInt(splitPath[4]),
-      addressIndex: parseInt(splitPath[5])
-    }
+      (type === D.ADDRESS_EXTERNAL ? 0 : 1) +
+      (addressIndex === undefined ? '' : ('/' + addressIndex))
   },
 
   /**
@@ -161,12 +151,24 @@ const D = {
     return bitPony.tx.read(hexTx)
   },
 
+  /**
+   * shallow copy
+   * @param object
+   */
+  copy (object) {
+    return JSON.parse(JSON.stringify(object))
+  },
+
   // test
   TEST_MODE: true,
   TEST_DATA: false,
   TEST_NETWORK_REQUEST: false,
   TEST_JS_WALLET: true,
   TEST_SYNC: true,
-  TEST_WALLET_ID: 'BA3253876AED6BC22D4A6FF53D8406C6AD864195ED144AB5C87621B6C233B548'
+  // TODO remove when publish
+  TEST_SYNC_WALLET_ID: 'BA3253876AED6BC22D4A6FF53D8406C6AD864195ED144AB5C87621B6C233B548',
+  TEST_TRANSACTION_WALLET_ID: 'BA3253876AED6BC22D4A6FF53D8406C6AD864195ED144AB5C87621B600000000',
+  TEST_SYNC_SEED: 'aa49342d805682f345135afcba79ffa7d50c2999944b91d88e01e1d38b80ca63',
+  TEST_TRANSACTION_SEED: 'aa49342d805682f345135afcba79ffa7d50c2999944b91d88e01e1d300000000'
 }
 export default D

@@ -7,7 +7,7 @@ chai.should()
 describe('JsWallet', function () {
   this.timeout('10000')
   const jsWallet = new JsWallet()
-  D.TEST_SYNC = true
+  D.TEST_SYNC = false
 
   it('init', async () => {
     await jsWallet.init()
@@ -21,10 +21,10 @@ describe('JsWallet', function () {
   it('signTransaction', async () => {
     let response = await jsWallet.signTransaction({
       inputs: [{
-        prevAddress: 'mzkFNdNqZM6YN9r1STVMZeWvhCgfvqSfwR',
-        prevAddressPath: "m/44'/0'/0'/0/0",
-        prevTxId: '61d520ccb74288c96bc1a2b20ea1c0d5a704776dd0164a396efec3ea7040349d',
-        prevOutIndex: 0
+        address: 'mzkFNdNqZM6YN9r1STVMZeWvhCgfvqSfwR',
+        path: "m/44'/0'/0'/0/0",
+        txId: '61d520ccb74288c96bc1a2b20ea1c0d5a704776dd0164a396efec3ea7040349d',
+        index: 0
       }],
       outputs: [{
         address: 'mzkFNdNqZM6YN9r1STVMZeWvhCgfvqSfwR',
@@ -42,6 +42,7 @@ describe('JsWallet', function () {
     let publicKey4 = await jsWallet.getPublicKey("m/44'/0'/0'/0")
     let publicKey4to5 = await jsWallet.getPublicKey('100', publicKey4)
     publicKey5.should.deep.equal(publicKey4to5)
+    console.log('publicKey5', publicKey5)
   })
 
   it('deriveAddress', async () => {
@@ -49,5 +50,6 @@ describe('JsWallet', function () {
     let publicKey4 = await jsWallet.getPublicKey("m/44'/0'/0'/0")
     let address4to5 = await jsWallet.getAddress(100, publicKey4)
     address5.should.deep.equal(address4to5)
+    console.log('address5', address5)
   })
 })

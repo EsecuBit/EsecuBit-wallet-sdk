@@ -6,21 +6,35 @@ import IndexedDB from '../sdk/data/database/IndexedDB'
 
 chai.should()
 describe('EsWallet', function () {
-  this.timeout(30000)
+  this.timeout(60000)
   let esWallet = null
 
-  it('clearDatabase', async () => {
-    let indexedDB = new IndexedDB(D.TEST_WALLET_ID)
-    await indexedDB.init()
-    await indexedDB.clearDatabase()
+  it('availableCoinTypes', () => {
+    let availableCoinTypes = EsWallet.availableCoinTypes()
+    availableCoinTypes.length.should.equal(1)
   })
+
+  it('convertValue', () => {
+    let coinTypes = [D.COIN_BIT_COIN, D.COIN_BIT_COIN_TEST]
+    coinTypes.forEach(coinType => {
+      EsWallet.convertValue(coinType, 123456, D.UNIT_BTC_SANTOSHI, D.UNIT_BTC).should.equal(0.00123456)
+      EsWallet.convertValue(coinType, 123456, D.UNIT_BTC_SANTOSHI, D.UNIT_BTC_M).should.equal(1.23456)
+      EsWallet.convertValue(coinType, 123456, D.UNIT_BTC, D.UNIT_BTC_SANTOSHI).should.equal(12345600000000)
+      EsWallet.convertValue(coinType, 123456, D.UNIT_BTC_M, D.UNIT_BTC_SANTOSHI).should.equal(12345600000)
+    })
+  })
+
+  // it('clearDatabase', async () => {
+  //   let indexedDB = new IndexedDB(D.TEST_SYNC_WALLET_ID)
+  //   await indexedDB.init()
+  //   await indexedDB.clearDatabase()
+  // })
 
   // new EsWallet will have heavy work, so do the lazy work
   it('new wallet', async () => {
     esWallet = new EsWallet()
   })
 
-  // FIXME why still has new tx without deleting database?
   it('listenStatus', (done) => {
     const statusList = [D.STATUS_PLUG_IN, D.STATUS_INITIALIZING, D.STATUS_SYNCING, D.STATUS_SYNC_FINISH]
     let currentStatusIndex = 0
@@ -30,8 +44,14 @@ describe('EsWallet', function () {
     })
     esWallet.listenStatus((error, status) => {
       console.info('error, status', error, status)
-      error.should.equal(D.ERROR_NO_ERROR)
-      status.should.equal(statusList[currentStatusIndex])
+      if (error !== D.ERROR_NO_ERROR) {
+        done(error)
+        return
+      }
+      if (status !== statusList[currentStatusIndex]) {
+        done(status !== statusList[currentStatusIndex])
+        return
+      }
       currentStatusIndex++
       if (currentStatusIndex === statusList.length) {
         done()
@@ -44,8 +64,15 @@ describe('EsWallet', function () {
     accounts.length.should.equal(1)
   })
 
-  it('newAccounts', async () => {
-    // TODO test after finish sync
+  let availableNewAccountCoinTypes
+  it('availableNewAccountCoinTypes', async () => {
+    availableNewAccountCoinTypes = EsWallet.availableCoinTypes()
+    availableNewAccountCoinTypes.length.should.equal(1)
+  })
+
+  it('newAccountAndDelete', async () => {
+    let account = await esWallet.newAccount(availableNewAccountCoinTypes[0])
+    await account.delete()
   })
 
   it('getWalletInfo', async () => {

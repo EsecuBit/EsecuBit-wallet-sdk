@@ -11,7 +11,7 @@ describe('CoinData', function () {
   let coinData = new CoinData()
 
   it('clearDatabase', async () => {
-    let indexedDB = new IndexedDB(D.TEST_WALLET_ID)
+    let indexedDB = new IndexedDB(D.TEST_SYNC_WALLET_ID)
     await indexedDB.init()
     await indexedDB.clearDatabase()
   })
@@ -21,10 +21,10 @@ describe('CoinData', function () {
     await coinData.init(info)
   })
   it('init again', async () => {
-    await coinData.init({walletId: D.TEST_WALLET_ID})
+    await coinData.init({walletId: D.TEST_SYNC_WALLET_ID})
   })
   it('init again again', async () => {
-    await coinData.init({walletId: D.TEST_WALLET_ID})
+    await coinData.init({walletId: D.TEST_SYNC_WALLET_ID})
   })
 
   // it('sync', async () => {

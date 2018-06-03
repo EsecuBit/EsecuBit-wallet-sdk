@@ -2,8 +2,6 @@
 import D from '../D'
 import IndexedDB from './database/IndexedDB'
 import BlockChainInfo from './network/BlockChainInfo'
-import JsWallet from '../device/JsWallet'
-import CoreWallet from '../device/CoreWallet'
 
 // TODO CoinData only manage data, don't handle data. leave it to EsAccount and EsWallet?
 export default class CoinData {
@@ -14,7 +12,6 @@ export default class CoinData {
     CoinData.prototype.Instance = this
 
     this._initialized = false
-    this._device = D.TEST_JS_WALLET ? new JsWallet() : new CoreWallet()
     // TODO read provider from settings
     this._networkProvider = BlockChainInfo
     this._network = {}
@@ -70,12 +67,6 @@ export default class CoinData {
       index: accountIndex,
       balance: 0
     }
-    let externalPath = D.makeBip44Path(coinType, accountIndex, true)
-    let changePath = D.makeBip44Path(coinType, accountIndex, false)
-    account.externalPublicKey = await this._device.getPublicKey(externalPath)
-    account.externalPublicKeyIndex = 0
-    account.changePublicKey = await this._device.getPublicKey(changePath)
-    account.changePublicKeyIndex = 0
     console.info('newAccount', account)
     return account
   }
@@ -113,7 +104,7 @@ export default class CoinData {
     return accountIndex
   }
 
-  async newAccount (coinType, save = true) {
+  async newAccount (coinType) {
     let accountIndex = await await this.newAccountIndex(coinType)
     if (accountIndex === -1) {
       throw D.ERROR_LAST_ACCOUNT_NO_TRANSACTION
@@ -123,26 +114,30 @@ export default class CoinData {
     if (D.TEST_DATA && accountIndex === 0 && (coinType === D.COIN_BIT_COIN || coinType.D.COIN_BIT_COIN_TEST)) {
       await this._initTestDbData(account)
     }
-    if (save) await this._db.newAccount(account)
+    await this._db.newAccount(account)
     return account
   }
 
   async deleteAccount (account) {
-    let txInfos = this._db.getTxInfos({accountId: account.accountId})
-    if (txInfos.length !== 0) {
+    let {total} = await this._db.getTxInfos({accountId: account.accountId})
+    if (total !== 0) {
+      console.warn('attemp to delete a non-empty account', account)
       throw D.ERROR_ACCOUNT_HAS_TRANSACTIONS
     }
-    return this._db.deleteAccount(account)
-  }
-
-  async sendTx (account, utxos, txInfo, rawTx) {
-    let coinType = txInfo.coinType
-    await this._network[coinType].sendTx(rawTx)
+    await this._db.deleteAccount(account)
   }
 
   async saveOrUpdateTxInfo (txInfo) {
     await this._db.saveOrUpdateTxInfo(txInfo)
     this._listeners.forEach(listener => listener(D.ERROR_NO_ERROR, txInfo))
+  }
+
+  async newAddressInfos (account, addressInfos) {
+    await this._db.newAddressInfos(account, addressInfos)
+  }
+
+  getAddressInfos (filter) {
+    return this._db.getAddressInfos(filter)
   }
 
   getTxInfos (filter) {
@@ -158,12 +153,20 @@ export default class CoinData {
     this._listeners.forEach(listener => listener(D.ERROR_NO_ERROR, txInfo))
   }
 
-  checkAddresses (coinType) {
-    return this._network[coinType].checkAddresses(coinType)
+  checkAddresses (coinType, addressInfos) {
+    return this._network[coinType].checkAddresses(addressInfos)
   }
 
-  listenAddresses (coinType, callback) {
-    return this._db.listenAddresses(coinType, callback)
+  listenAddresses (coinType, addressInfos, callback) {
+    return this._network[coinType].listenAddresses(addressInfos, callback)
+  }
+
+  listenTx (coinType, txInfo, callback) {
+    return this._network[coinType].listenTx(txInfo, callback)
+  }
+
+  async sendTx (account, utxos, txInfo, rawTx) {
+    await this._network[account.coinType].sendTx(rawTx)
   }
 
   addListener (callback) {
@@ -176,13 +179,13 @@ export default class CoinData {
   }
 
   /*
-   * Test data when TEST_DATA=true
+   * Test data when TEST_DATA = true
    */
   async _initTestDbData (account) {
     console.info('TEST_DATA add test txInfo')
-    console.info('initTestDbData')
     account.balance = 32000000
     let accountId = account.accountId
+    // TODO update data
     await Promise.all([
       this._db.saveOrUpdateTxInfo(
         {
