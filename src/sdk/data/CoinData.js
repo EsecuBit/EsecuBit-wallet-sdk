@@ -26,12 +26,11 @@ export default class CoinData {
 
   async init (info) {
     try {
-      // TODO real with dependenices between device, coin data and wallet
       if (this._initialized) return
       this._db = new IndexedDB(info.walletId)
       let initList = []
       initList.push(this._db.init())
-      initList.concat(Object.values(this._network).map(network => network.init()))
+      initList.push(...Object.values(this._network).map(network => network.init()))
       await Promise.all(initList)
       this._initialized = true
     } catch (e) {
@@ -158,11 +157,12 @@ export default class CoinData {
   }
 
   listenAddresses (coinType, addressInfos, callback) {
+    console.info('listen addresses', addressInfos)
     return this._network[coinType].listenAddresses(addressInfos, callback)
   }
 
-  listenTx (coinType, txInfo, callback) {
-    return this._network[coinType].listenTx(txInfo, callback)
+  removeNetworkListener (coinType, callback) {
+    return this._network[coinType].removeListener(callback)
   }
 
   async sendTx (account, utxos, txInfo, rawTx) {
@@ -176,6 +176,10 @@ export default class CoinData {
       return
     }
     this._listeners.push(callback)
+  }
+
+  removeListener (callback) {
+    this._listeners = this._listeners.filter(listener => listener !== callback)
   }
 
   /*

@@ -25,7 +25,7 @@ export default class ICoinNetwork {
 
   async init () {
     this._blockHeight = await this.getBlockHeight()
-    console.info(this.coinType + ' current block height ' + this._blockHeight)
+    console.info(this.coinType, 'current block height', this._blockHeight)
 
     // start the request loop
     this._startQueue = true
@@ -132,6 +132,7 @@ export default class ICoinNetwork {
       }
     }
     this._requestList.push({
+      callback: callback,
       type: TYPE_TRANSACTION,
       txInfo: txInfo,
       hasRecord: false,
@@ -163,6 +164,10 @@ export default class ICoinNetwork {
     })
   }
 
+  removeListener(callback) {
+    this._requestList = this._requestList.filter(request => request.callback !== callback)
+  }
+
   /**
    * listen new transaction for provided addresses on new block generated
    */
@@ -170,6 +175,7 @@ export default class ICoinNetwork {
     let tasks = this.generateAddressTasks(addressInfos)
     tasks.forEach(task => {
       this._requestList.push({
+        callback: callback,
         type: TYPE_ADDRESS,
         currentBlock: -1,
         request: async () => {

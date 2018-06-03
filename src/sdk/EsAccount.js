@@ -18,6 +18,7 @@ export default class EsAccount {
     assign()
     this._device = device
     this._coinData = coinData
+    this._listenedTxs = []
 
     this._txListener = async (error, txInfo) => {
       if (error !== D.ERROR_NO_ERROR) {
@@ -66,12 +67,23 @@ export default class EsAccount {
       if (responses.length === 0) break
       checkAddressInfos = responses.reduce((array, response) => array.concat(response.newAddressInfos), [])
     }
-    let listenAddressInfos = this._getAddressInfos(0, this.externalPublicKeyIndex, D.ADDRESS_EXTERNAL)
+    // TODO listen external address only
+    let listenAddressInfos = [].concat(
+      this._getAddressInfos(0, this.externalPublicKeyIndex + 1, D.ADDRESS_EXTERNAL),
+      this._getAddressInfos(0, this.changePublicKeyIndex + 1, D.ADDRESS_CHANGE))
     if (listenAddressInfos.length !== 0) this._coinData.listenAddresses(this.coinType, listenAddressInfos, this._addressListener)
+
+    this.txInfos.filter(txInfo => txInfo.confirmations < D.TX_BTC_MATURE_CONFIRMATIONS)
+      .forEach(txInfo => {
+        this._listenedTxs.push(txInfo.txId)
+        this._coinData.listenTx(this.coinType, D.copy(txInfo), this._txListener)
+      })
   }
 
-  delete () {
-    return this._coinData.deleteAccount(this.toAccountInfo())
+  async delete () {
+    this._coinData.removeNetworkListener(this.coinType, this._txListener)
+    this._coinData.removeNetworkListener(this.coinType, this._addressListener)
+    await this._coinData.deleteAccount(this.toAccountInfo())
   }
 
   /**
@@ -92,10 +104,6 @@ export default class EsAccount {
     txInfo.value -= txInfo.inputs.reduce((sum, input) => sum + input.isMine ? input.value : 0, 0)
     txInfo.value += txInfo.outputs.reduce((sum, output) => sum + output.isMine ? output.value : 0, 0)
 
-    // update and addressIndex and listen new address
-    let newIndex = addressInfo.index + 1
-    let oldIndex = addressInfo.type === D.ADDRESS_EXTERNAL ? this.externalPublicKeyIndex : this.changePublicKeyIndex
-
     // check utxo update. unspent can update to pending and spent, pending can update to spent. otherwise ignore
     utxos = utxos.filter(utxo => {
       let oldUtxo = this.utxos.find(oldUtxo => oldUtxo.txId === utxo.txId && oldUtxo.index === utxo.index)
@@ -105,9 +113,11 @@ export default class EsAccount {
       return false
     })
 
-    await this._device.updateIndex(this)
-
+    // update and addressIndex and listen new address
+    let newIndex = addressInfo.index + 1
+    let oldIndex = addressInfo.type === D.ADDRESS_EXTERNAL ? this.externalPublicKeyIndex : this.changePublicKeyIndex
     addressInfo.type === D.ADDRESS_EXTERNAL ? this.externalPublicKeyIndex = newIndex : this.changePublicKeyIndex = newIndex
+    await this._device.updateIndex(this)
     let newAddressInfos = await this._checkAddressIndexAndGenerateNew()
     await this._coinData.newAddressInfos(this.toAccountInfo(), newAddressInfos)
     await this._coinData.newTx(this.toAccountInfo(), addressInfo, txInfo, utxos)
@@ -118,12 +128,15 @@ export default class EsAccount {
     this.utxos.push(...utxos)
 
     if (!isSyncing) {
-      let newListeneAddressInfos = this._getAddressInfos(oldIndex, newIndex, addressInfo.type)
+      let newListeneAddressInfos = this._getAddressInfos(oldIndex, newIndex + 1, addressInfo.type)
       if (newListeneAddressInfos.length !== 0) this._coinData.listenAddresses(this.coinType, newListeneAddressInfos, this._addressListener)
     }
     if (txInfo.confirmations < D.TX_BTC_MATURE_CONFIRMATIONS) {
       console.info('listen transaction status', txInfo)
-      this._coinData.listenTx(this.coinType, D.copy(txInfo), this._txListener)
+      if (!this._listenedTxs.some(tx => tx === txInfo.txId)) {
+        this._listenedTxs.push(txInfo.txId)
+        this._coinData.listenTx(this.coinType, D.copy(txInfo), this._txListener)
+      }
     }
 
     this.busy = false

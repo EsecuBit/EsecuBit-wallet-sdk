@@ -49,9 +49,9 @@ export default class IndexedDB extends IDatabase {
          *   index: 0,
          *   balance: long,
          *   externalPublicKey: string,
-         *   externalPublicKeyIndex: int,
+         *   externalPublicKeyIndex: int, // next external address index
          *   changePublicKey: string,
-         *   changePublicKeyIndex: int
+         *   changePublicKeyIndex: int // next change address index
          * }
          */
         if (!db.objectStoreNames.contains('account')) {
@@ -99,7 +99,6 @@ export default class IndexedDB extends IDatabase {
         if (!db.objectStoreNames.contains('addressInfo')) {
           let addressInfo = db.createObjectStore('addressInfo', {keyPath: 'address'})
           addressInfo.createIndex('accountId', 'accountId', {unique: false})
-          addressInfo.createIndex('coinType', 'coinType', {unique: false})
         }
 
         /**
@@ -366,11 +365,11 @@ export default class IndexedDB extends IDatabase {
       }
 
       let request
-      if (filter.coinType) {
+      if (filter.accountId) {
         request = this._db.transaction(['addressInfo'], 'readonly')
           .objectStore('addressInfo')
-          .index('coinType')
-          .getAll(filter.coinType)
+          .index('accountId')
+          .getAll(filter.accountId)
       } else {
         request = this._db.transaction(['addressInfo'], 'readonly')
           .objectStore('addressInfo')
@@ -404,7 +403,7 @@ export default class IndexedDB extends IDatabase {
         request = this._db.transaction(['utxo'], 'readonly')
           .objectStore('utxo')
           .index('accountId')
-          .getAll()
+          .getAll(filter.accountId)
       } else {
         request = this._db.transaction(['utxo'], 'readonly')
           .objectStore('utxo')

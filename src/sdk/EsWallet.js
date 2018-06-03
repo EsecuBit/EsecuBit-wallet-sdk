@@ -81,8 +81,9 @@ export default class EsWallet {
     if (this._esAccounts.length === 0) {
       console.info('no accounts, new wallet, start recovery')
       await this._recover(D.TEST_MODE ? D.COIN_BIT_COIN_TEST : D.COIN_BIT_COIN)
+    } else {
+      await Promise.all(this._esAccounts.map(esAccount => esAccount.sync()))
     }
-    await Promise.all(this._esAccounts.map(esAccount => esAccount.sync()))
   }
 
   async _recover (coinType) {

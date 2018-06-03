@@ -89,20 +89,20 @@ describe('EsAccount', function () {
     address.qrAddress.should.be.a('string')
   })
 
-  it('sendTx', async () => {
-    let prepareTx = await account.prepareTx({
-      feeRate: 10,
-      outputs: [{
-        address: 'mn4ddJmfccTr5rSp1LTknPpdKatiaivw2X',
-        value: 3000
-      }, {
-        address: 'mqjGANawowPiTDKKtuqdf7mqumWAoyHsdG',
-        value: 1456
-      }]
-    })
-    console.info('prepareTx', prepareTx)
-    let signedTx = await account.buildTx(prepareTx)
-    console.info('signedTx', signedTx)
-    await account.sendTx(signedTx, true)
-  })
+  // it('sendTx', async () => {
+  //   let prepareTx = await account.prepareTx({
+  //     feeRate: 10,
+  //     outputs: [{
+  //       address: 'mn4ddJmfccTr5rSp1LTknPpdKatiaivw2X',
+  //       value: 30000
+  //     }, {
+  //       address: 'mqjGANawowPiTDKKtuqdf7mqumWAoyHsdG',
+  //       value: 10000
+  //     }]
+  //   })
+  //   console.info('prepareTx', prepareTx)
+  //   let signedTx = await account.buildTx(prepareTx)
+  //   console.info('signedTx', signedTx)
+  //   await account.sendTx(signedTx, false)
+  // })
 })
