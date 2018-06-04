@@ -6,7 +6,7 @@ import CoinData from './data/CoinData'
 import EsAccount from './EsAccount'
 
 // TODO surrounded with try catch
-const AVAILABLE_COIN_TYPES = [D.TEST_MODE ? D.COIN_BIT_COIN : D.COIN_BIT_COIN_TEST]
+const AVAILABLE_COIN_TYPES = [D.TEST_MODE ? D.COIN_BIT_COIN_TEST : D.COIN_BIT_COIN]
 export default class EsWallet {
   /**
    * get support coin types

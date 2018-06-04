@@ -20,6 +20,8 @@ export default class JsWallet {
     let seed = initSeed || DEFAULT_SEED
     this._root = bitcoin.HDNode.fromSeedHex(seed, NETWORK)
 
+    console.log('seed', seed)
+    console.log('walletId', WALLET_ID)
     return {walletId: WALLET_ID}
   }
 

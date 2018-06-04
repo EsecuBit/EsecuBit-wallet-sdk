@@ -1,8 +1,8 @@
 
 import chai from 'chai'
-import EsWallet from '../sdk/EsWallet'
 import D from '../sdk/D'
-import IndexedDB from '../sdk/data/database/IndexedDB'
+import EsWallet from '../sdk/EsWallet'
+import JsWallet from '../sdk/device/JsWallet'
 
 chai.should()
 describe('EsWallet', function () {
@@ -32,6 +32,7 @@ describe('EsWallet', function () {
 
   // new EsWallet will have heavy work, so do the lazy work
   it('new wallet', async () => {
+    D.TEST_SYNC = true
     esWallet = new EsWallet()
   })
 
@@ -61,7 +62,7 @@ describe('EsWallet', function () {
 
   it('getAccounts', async () => {
     let accounts = await esWallet.getAccounts()
-    accounts.length.should.equal(1)
+    accounts.length.should.equal(2)
   })
 
   let availableNewAccountCoinTypes

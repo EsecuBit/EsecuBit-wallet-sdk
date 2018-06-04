@@ -149,14 +149,14 @@ export default class ICoinNetwork {
           }
           callback(e, this.txInfo)
         }
-        let confirmations = response.blockNumber ? 0 : that._blockHeight - response.blockNumber
+        let confirmations = response.blockNumber ? that._blockHeight - response.blockNumber : 0
 
         if (confirmations > 0) this.hasRecord = true
         if (confirmations >= D.TX_BTC_MATURE_CONFIRMATIONS) {
           console.info('confirmations enough, remove', this)
           remove(that._requestList, this)
         }
-        if (confirmations !== confirmations) {
+        if (this.txInfo.confirmations !== confirmations) {
           this.txInfo.confirmations = confirmations
           callback(D.ERROR_NO_ERROR, this.txInfo)
         }

@@ -139,6 +139,7 @@ export default class CoinData {
       console.warn('attemp to delete a non-empty account', account)
       throw D.ERROR_ACCOUNT_HAS_TRANSACTIONS
     }
+    console.info('delete account', account)
     await this._db.deleteAccount(account)
   }
 
@@ -177,6 +178,11 @@ export default class CoinData {
     return this._network[coinType].listenAddresses(addressInfos, callback)
   }
 
+  listenTx (coinType, txInfo, callback) {
+    console.info('listen txInfo', txInfo)
+    return this._network[coinType].listenTx(txInfo, callback)
+  }
+
   removeNetworkListener (coinType, callback) {
     return this._network[coinType].removeListener(callback)
   }
@@ -189,7 +195,7 @@ export default class CoinData {
     switch (coinType) {
       case D.COIN_BIT_COIN:
       case D.COIN_BIT_COIN_TEST:
-        return await this._networkFee[coinType].updateFee()
+        return this._networkFee[coinType].updateFee()
       default:
         throw D.ERROR_COIN_NOT_SUPPORTED
     }
