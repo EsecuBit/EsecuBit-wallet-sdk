@@ -89,6 +89,13 @@ describe('EsAccount', function () {
     address.qrAddress.should.be.a('string')
   })
 
+  it('getSuggestedFee', () => {
+    let fee = account.getSuggestedFee()
+    fee[D.FEE_ECNOMIC].should.above(0)
+    fee[D.FEE_NORMAL].should.at.least(fee[D.FEE_ECNOMIC])
+    fee[D.FEE_FAST].should.at.least(fee[D.FEE_NORMAL])
+  })
+
   // it('sendTx', async () => {
   //   let prepareTx = await account.prepareTx({
   //     feeRate: 10,

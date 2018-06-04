@@ -2,7 +2,6 @@
 import chai from 'chai'
 import D from '../sdk/D'
 import EsWallet from '../sdk/EsWallet'
-import JsWallet from '../sdk/device/JsWallet'
 
 chai.should()
 describe('EsWallet', function () {

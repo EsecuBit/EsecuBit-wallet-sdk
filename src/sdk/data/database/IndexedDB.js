@@ -2,7 +2,7 @@
 import IDatabase from './IDatabase'
 import D from '../../D'
 
-const DB_VERSION = 3
+const DB_VERSION = 4
 export default class IndexedDB extends IDatabase {
   constructor (walletId) {
     super()
@@ -119,6 +119,17 @@ export default class IndexedDB extends IDatabase {
           let utxo = db.createObjectStore('utxo', {keyPath: ['txId', 'index']})
           utxo.createIndex('accountId', 'accountId', {unique: false})
           utxo.createIndex('accountId, spent', ['accountId', 'spent'], {unique: false})
+        }
+
+        /**
+         * fee:
+         * {
+         *   coinType: string,
+         *   fee: object // (bitcoin: {fast: int, normal: int, ecnomic: int})
+         * }
+         */
+        if (!db.objectStoreNames.contains('fee')) {
+          db.createObjectStore('fee', {keyPath: 'coinType'})
         }
       }
 
@@ -249,9 +260,7 @@ export default class IndexedDB extends IDatabase {
           .getAll()
       }
 
-      request.onsuccess = (e) => {
-        resolve(e.target.result)
-      }
+      request.onsuccess = (e) => resolve(e.target.result)
       request.onerror = (e) => {
         console.warn('getAccounts', e)
         reject(D.ERROR_DATABASE_EXEC_FAILED)
@@ -376,9 +385,7 @@ export default class IndexedDB extends IDatabase {
           .getAll()
       }
 
-      request.onsuccess = (e) => {
-        resolve(e.target.result)
-      }
+      request.onsuccess = (e) => resolve(e.target.result)
       request.onerror = (e) => {
         console.warn('getAddressInfos', e)
         reject(D.ERROR_DATABASE_EXEC_FAILED)
@@ -410,9 +417,7 @@ export default class IndexedDB extends IDatabase {
           .getAll()
       }
 
-      request.onsuccess = (e) => {
-        resolve(e.target.result)
-      }
+      request.onsuccess = (e) => resolve(e.target.result)
       request.onerror = (e) => {
         console.warn('getAccounts', e)
         reject(D.ERROR_DATABASE_EXEC_FAILED)
@@ -467,6 +472,40 @@ export default class IndexedDB extends IDatabase {
           console.warn('newTx', ev)
           reject(D.ERROR_DATABASE_EXEC_FAILED)
         })
+    })
+  }
+
+  getFee (coinType) {
+    return new Promise((resolve, reject) => {
+      if (this._db === null) {
+        reject(D.ERROR_DATABASE_OPEN_FAILED)
+        return
+      }
+
+      let transaction = this._db.transaction(['fee'], 'readonly')
+      let request = transaction.objectStore('fee').get(coinType)
+      request.onsuccess = (e) => resolve(e.target.result)
+      request.onerror = (e) => {
+        console.warn('getFee', e)
+        reject(D.ERROR_DATABASE_EXEC_FAILED)
+      }
+    })
+  }
+
+  saveOfUpdateFee (fee) {
+    return new Promise((resolve, reject) => {
+      if (this._db === null) {
+        reject(D.ERROR_DATABASE_OPEN_FAILED)
+        return
+      }
+
+      let transaction = this._db.transaction(['fee'], 'readwrite')
+      let request = transaction.objectStore('fee').put(fee)
+      request.onsuccess = resolve
+      request.onerror = (e) => {
+        console.warn('saveOfUpdateFee', e)
+        reject(D.ERROR_DATABASE_EXEC_FAILED)
+      }
     })
   }
 }

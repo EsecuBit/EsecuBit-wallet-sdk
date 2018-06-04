@@ -20,9 +20,8 @@ export default class CoinData {
     this._network[D.COIN_BIT_COIN] = new this._networkProvider(D.COIN_BIT_COIN)
 
     this._networkFee = {}
-    let bitcoinFee = new FeeBitCoinEarn()
-    this._networkFee[D.COIN_BIT_COIN_TEST] = bitcoinFee
-    this._networkFee[D.COIN_BIT_COIN] = bitcoinFee
+    this._networkFee[D.COIN_BIT_COIN_TEST] = null
+    this._networkFee[D.COIN_BIT_COIN] = null
 
     this._listeners = []
   }
@@ -31,10 +30,18 @@ export default class CoinData {
     try {
       if (this._initialized) return
       this._db = new IndexedDB(info.walletId)
-      let initList = []
-      initList.push(this._db.init())
-      initList.push(...Object.values(this._network).map(network => network.init()))
-      await Promise.all(initList)
+      // db
+      await this._db.init()
+      // network
+      await Promise.all(Object.values(this._network).map(network => network.init()))
+      // fee
+      await Promise.all(Object.keys(this._networkFee).map(async coinType => {
+        let fee = await this._db.getFee(coinType)
+        fee = fee || {}
+        this._networkFee[coinType] = new FeeBitCoinEarn(fee.fee)
+        this._networkFee[coinType].onUpdateFee = (fee) => this._db.saveOfUpdateFee({coinType, fee})
+      }))
+
       this._initialized = true
     } catch (e) {
       console.info(e)
@@ -191,11 +198,11 @@ export default class CoinData {
     await this._network[account.coinType].sendTx(rawTx)
   }
 
-  async getSuggestedFee (coinType) {
+  getSuggestedFee (coinType) {
     switch (coinType) {
       case D.COIN_BIT_COIN:
       case D.COIN_BIT_COIN_TEST:
-        return this._networkFee[coinType].updateFee()
+        return this._networkFee[coinType].getCurrentFee()
       default:
         throw D.ERROR_COIN_NOT_SUPPORTED
     }

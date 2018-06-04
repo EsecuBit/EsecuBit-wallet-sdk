@@ -56,7 +56,7 @@ export default class EsAccount {
   // TODO judge compress uncompress public key
   async sync () {
     let newAddressInfos = await this._checkAddressIndexAndGenerateNew()
-    await this._coinData.newAddressInfos(this.toAccountInfo(), newAddressInfos)
+    await this._coinData.newAddressInfos(this._toAccountInfo(), newAddressInfos)
 
     let checkAddressInfos = this.addressInfos
     while (true) {
@@ -83,7 +83,7 @@ export default class EsAccount {
   async delete () {
     this._coinData.removeNetworkListener(this.coinType, this._txListener)
     this._coinData.removeNetworkListener(this.coinType, this._addressListener)
-    await this._coinData.deleteAccount(this.toAccountInfo())
+    await this._coinData.deleteAccount(this._toAccountInfo())
   }
 
   /**
@@ -119,8 +119,8 @@ export default class EsAccount {
     addressInfo.type === D.ADDRESS_EXTERNAL ? this.externalPublicKeyIndex = newIndex : this.changePublicKeyIndex = newIndex
     await this._device.updateIndex(this)
     let newAddressInfos = await this._checkAddressIndexAndGenerateNew()
-    await this._coinData.newAddressInfos(this.toAccountInfo(), newAddressInfos)
-    await this._coinData.newTx(this.toAccountInfo(), addressInfo, txInfo, utxos)
+    await this._coinData.newAddressInfos(this._toAccountInfo(), newAddressInfos)
+    await this._coinData.newTx(this._toAccountInfo(), addressInfo, txInfo, utxos)
 
     // update account info
     this.balance += txInfo.value
@@ -197,7 +197,7 @@ export default class EsAccount {
     return addressInfos
   }
 
-  toAccountInfo () {
+  _toAccountInfo () {
     return {
       accountId: this.accountId,
       label: this.label,
@@ -232,6 +232,10 @@ export default class EsAccount {
         throw D.ERROR_COIN_NOT_SUPPORTED
     }
     return {address: address, qrAddress: prefix + address}
+  }
+
+  getSuggestedFee() {
+    return this._coinData.getSuggestedFee(this.coinType)
   }
 
   /**
@@ -359,7 +363,7 @@ export default class EsAccount {
    */
   async sendTx (signedTx, test = false) {
     // broadcast transaction to network
-    if (!test) await this._coinData.sendTx(this.toAccountInfo(), signedTx.utxos, signedTx.txInfo, signedTx.hex)
+    if (!test) await this._coinData.sendTx(this._toAccountInfo(), signedTx.utxos, signedTx.txInfo, signedTx.hex)
     // change utxo spent status from unspent to spent pending
     signedTx.utxos.forEach(utxo => { utxo.spent = D.UTXO_SPENT_PENDING })
     signedTx.utxos.map(utxo => {
