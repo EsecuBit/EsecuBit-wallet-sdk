@@ -86,6 +86,14 @@ export default class EsAccount {
     await this._coinData.deleteAccount(this._toAccountInfo())
   }
 
+  async rename (newName) {
+    newName = newName || this.label
+    let oldAccountInfo = this._toAccountInfo()
+    oldAccountInfo.label = newName
+    await this._coinData.renameAccount(oldAccountInfo)
+    this.label = newName
+  }
+
   /**
    * handle when new transaction comes:
    * 1. store/update new txInfo after filling "isMine" and "value" field

@@ -83,6 +83,28 @@ describe('EsAccount', function () {
     })
   })
 
+  it('rename', async () => {
+    let oldName = account.label
+    let newName = 'This is a test account name'
+    await account.rename(newName)
+    account.label.should.not.equal(oldName)
+    account.label.should.equal(newName)
+
+    let reloadAccount = (await esWallet.getAccounts()).find(a => a.accountId === account.accountId)
+    reloadAccount.should.not.equal(undefined)
+    reloadAccount.label.should.not.equal(oldName)
+    reloadAccount.label.should.equal(newName)
+
+    await account.rename(oldName)
+    account.label.should.not.equal(newName)
+    account.label.should.equal(oldName)
+
+    reloadAccount = (await esWallet.getAccounts()).find(a => a.accountId === account.accountId)
+    reloadAccount.should.not.equal(undefined)
+    reloadAccount.label.should.not.equal(newName)
+    reloadAccount.label.should.equal(oldName)
+  })
+
   it('getAddress', async () => {
     let address = await account.getAddress()
     address.address.should.be.a('string')
@@ -91,6 +113,7 @@ describe('EsAccount', function () {
 
   it('getSuggestedFee', () => {
     let fee = account.getSuggestedFee()
+    console.info('suggested fee', fee)
     fee[D.FEE_ECNOMIC].should.above(0)
     fee[D.FEE_NORMAL].should.at.least(fee[D.FEE_ECNOMIC])
     fee[D.FEE_FAST].should.at.least(fee[D.FEE_NORMAL])

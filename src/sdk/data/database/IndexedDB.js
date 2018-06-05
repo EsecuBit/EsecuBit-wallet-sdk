@@ -268,6 +268,36 @@ export default class IndexedDB extends IDatabase {
     })
   }
 
+  renameAccount (account) {
+    return new Promise((resolve, reject) => {
+      if (this._db === null) {
+        reject(D.ERROR_DATABASE_OPEN_FAILED)
+        return
+      }
+
+      let request = this._db.transaction(['account'], 'readwrite')
+        .objectStore('account')
+        .get(account.accountId)
+
+      let error = e => {
+        console.warn('renameAccount', e)
+        reject(D.ERROR_DATABASE_EXEC_FAILED)
+      }
+
+      request.onsuccess = e => {
+        let oldAccount = e.target.result
+        oldAccount.label = account.label
+
+        let request = this._db.transaction(['account'], 'readwrite')
+          .objectStore('account')
+          .put(oldAccount)
+        request.onsuccess = e => resolve(e.target.result)
+        request.onerror = error
+      }
+      request.onerror = error
+    })
+  }
+
   saveOrUpdateTxInfo (txInfo) {
     return new Promise((resolve, reject) => {
       if (this._db === null) {

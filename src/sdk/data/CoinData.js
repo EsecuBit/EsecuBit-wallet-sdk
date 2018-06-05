@@ -56,7 +56,7 @@ export default class CoinData {
   }
 
   async getAccounts (filter = {}) {
-    return this._db.getAccounts(filter)
+    return (await this._db.getAccounts(filter)).sort((a, b) => a.index - b.index)
   }
 
   addListener (callback) {
@@ -148,6 +148,10 @@ export default class CoinData {
     }
     console.info('delete account', account)
     await this._db.deleteAccount(account)
+  }
+
+  async renameAccount (account) {
+    this._db.renameAccount(account)
   }
 
   async saveOrUpdateTxInfo (txInfo) {
