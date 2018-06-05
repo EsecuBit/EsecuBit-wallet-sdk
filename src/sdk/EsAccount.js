@@ -242,7 +242,7 @@ export default class EsAccount {
     return {address: address, qrAddress: prefix + address}
   }
 
-  getSuggestedFee() {
+  getSuggestedFee () {
     return this._coinData.getSuggestedFee(this.coinType)
   }
 

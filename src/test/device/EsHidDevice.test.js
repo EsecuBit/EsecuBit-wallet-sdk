@@ -1,8 +1,8 @@
 
 import D from '../../sdk/D'
-import EsHidDevice from '../../sdk/device/EsHidDevice'
+import ChromeUsbDevice from '../../sdk/device/ChromeUsbDevice'
 
-const esHidDevice = new EsHidDevice()
+const esHidDevice = new ChromeUsbDevice()
 esHidDevice.listenPlug(function (error, isPlugIn) {
   console.info('error ' + error + ', isPlugIn: ' + isPlugIn)
 

@@ -1,7 +1,7 @@
 
 import D from '../D'
 import MockDevice from './MockDevice'
-import EsHidDevice from './EsHidDevice'
+import ChromeUsbDevice from './ChromeUsbDevice'
 
 export default class CoreWallet {
   constructor () {
@@ -10,7 +10,7 @@ export default class CoreWallet {
     }
     CoreWallet.prototype.Instance = this
 
-    this._deviceTrue = new EsHidDevice()
+    this._deviceTrue = new ChromeUsbDevice()
     this._device = new MockDevice()
     this._walletId = 'defaultId'
   }

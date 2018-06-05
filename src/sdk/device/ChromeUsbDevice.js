@@ -11,8 +11,7 @@
 import D from '../D'
 import IEsDevice from './IEsDevice'
 
-// TODO ask level 3 path publickey to get multi level 5 address
-export default class EsHidDevice extends IEsDevice {
+export default class ChromeUsbDevice extends IEsDevice {
   constructor () {
     super()
     this._deviceId = null
@@ -20,7 +19,7 @@ export default class EsHidDevice extends IEsDevice {
     this._listener = null
 
     if (!chrome || !chrome.usb) {
-      console.warn('EsHidDevice not in chrome app env, exit')
+      console.warn('chrome.usb not in chrome app env, exit')
       return
     }
 

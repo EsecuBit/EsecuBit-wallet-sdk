@@ -22,13 +22,16 @@
          {
              "usbDevices": [
                   // Excelsecu
-                  {
-                    "vendorId": 7848,   // 0x1ea8
-                    "productId": 49413  // 0xc105
-                  },
                {
-                 "vendorId": 2341,   // 0x0925
-                 "productId": 36891  // 0x901B
+                 "vendorId": 7848,   // 0x1ea8
+                 "productId": 49413  // 0xc105
+               },
+               {
+                 "vendorId": 7848,   // 0x1ea8
+                 "productId": 49204  // 0xc034
+               },
+               {
+
                }
                  // Trezor
 //                  {

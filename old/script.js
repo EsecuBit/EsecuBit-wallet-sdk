@@ -1,7 +1,7 @@
 
 
 var MY_HID_VENDOR_ID  = 7848;
-var MY_HID_PRODUCT_ID = 49189;
+var MY_HID_PRODUCT_ID = 49204;
 // var MY_HID_PRODUCT_ID = 1;
 // var MY_HID_VENDOR_ID  = 21324;
 var _deviceId = null;
