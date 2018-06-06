@@ -254,6 +254,11 @@ export default class IndexedDB extends IDatabase {
         request = this._db.transaction(['account'], 'readonly')
           .objectStore('account')
           .getAll(filter.accountId)
+      } else if (filter.coinType) {
+        request = this._db.transaction(['account'], 'readonly')
+          .objectStore('account')
+          .index('coinType')
+          .getAll(filter.coinType)
       } else {
         request = this._db.transaction(['account'], 'readonly')
           .objectStore('account')

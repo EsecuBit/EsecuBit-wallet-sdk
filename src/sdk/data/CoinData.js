@@ -112,32 +112,26 @@ export default class CoinData {
    * @return index of new account, -1 if unavailable
    */
   async _newAccountIndex (coinType) {
-    let accounts = await this._db.getAccounts()
+    let accounts = await this._db.getAccounts({coinType})
 
     // check whether the last spec coinType account has transaction
-    let lastAccount = null
-    let accountIndex = 0
+    let lastAccount = accounts && accounts[0]
     for (let account of accounts) {
-      if (account.coinType === coinType) {
+      if (lastAccount.index < account.index) {
         lastAccount = account
-        accountIndex++
       }
     }
 
-    // TODO check whether lastAccount is the last account created
     if (lastAccount === null) {
       return 0
     }
-    let {total} = await this._db.getTxInfos(
-      {
-        accountId: lastAccount.accountId,
-        startIndex: 0,
-        endIndex: 1
-      })
-    if (total === 0) {
-      return -1
-    }
-    return accountIndex
+    let {total} = await this._db.getTxInfos({
+      accountId: lastAccount.accountId,
+      startIndex: 0,
+      endIndex: 1
+    })
+    if (total === 0) return -1
+    return lastAccount.index + 1
   }
 
   async deleteAccount (account) {

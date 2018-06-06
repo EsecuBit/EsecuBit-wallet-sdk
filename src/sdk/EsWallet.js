@@ -5,7 +5,6 @@ import CoreWallet from './device/CoreWallet'
 import CoinData from './data/CoinData'
 import EsAccount from './EsAccount'
 
-// TODO surrounded with try catch
 const AVAILABLE_COIN_TYPES = [D.TEST_MODE ? D.COIN_BIT_COIN_TEST : D.COIN_BIT_COIN]
 export default class EsWallet {
   /**
@@ -163,7 +162,7 @@ export default class EsWallet {
   async availableNewAccountCoinTypes () {
     let availables = []
     for (let coinType of AVAILABLE_COIN_TYPES) {
-      if (this._coinData._newAccountIndex(coinType) >= 0) {
+      if ((await this._coinData._newAccountIndex(coinType)) >= 0) {
         availables.push(coinType)
       }
     }

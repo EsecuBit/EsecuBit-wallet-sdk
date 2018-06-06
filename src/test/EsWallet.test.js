@@ -66,12 +66,14 @@ describe('EsWallet', function () {
 
   let availableNewAccountCoinTypes
   it('availableNewAccountCoinTypes', async () => {
-    availableNewAccountCoinTypes = EsWallet.availableCoinTypes()
+    availableNewAccountCoinTypes = await esWallet.availableNewAccountCoinTypes()
     availableNewAccountCoinTypes.length.should.equal(1)
   })
 
   it('newAccountAndDelete', async () => {
     let account = await esWallet.newAccount(availableNewAccountCoinTypes[0])
+    availableNewAccountCoinTypes = await esWallet.availableNewAccountCoinTypes()
+    availableNewAccountCoinTypes.length.should.equal(0)
     await account.delete()
   })
 

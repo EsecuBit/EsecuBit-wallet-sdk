@@ -3,7 +3,7 @@ import D from '../../../D'
 
 let UPDATE_DURATION = 30 * 60 * 1000
 if (D.TEST_NETWORK_REQUEST) {
-  UPDATE_DURATION = 30 * 1000
+  UPDATE_DURATION = 60 * 1000
 }
 
 export default class FeeBitCoinEarn {
@@ -31,7 +31,7 @@ export default class FeeBitCoinEarn {
     const url = 'https://bitcoinfees.earn.com/api/v1/fees/recommended'
     let get = (url) => {
       return new Promise((resolve, reject) => {
-        console.info('get', url)
+        console.debug('get', url)
         let xmlhttp = new XMLHttpRequest()
         xmlhttp.onreadystatechange = () => {
           if (xmlhttp.readyState === 4) {
@@ -69,7 +69,7 @@ export default class FeeBitCoinEarn {
     fee[D.FEE_FAST] = response.fastestFee
     fee[D.FEE_NORMAL] = response.halfHourFee
     fee[D.FEE_ECNOMIC] = response.hourFee
-    console.info('update fee succeed', 'old fee', this.fee, 'new fee', fee)
+    console.debug('update fee succeed', 'old fee', this.fee, 'new fee', fee)
     this.fee = D.copy(fee)
     this.onUpdateFee(fee)
     return fee

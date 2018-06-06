@@ -51,6 +51,7 @@ export default class EsAccount {
     this.addressInfos = await this._coinData.getAddressInfos({accountId})
     this.txInfos = (await this._coinData.getTxInfos({accountId})).txInfos
     this.utxos = await this._coinData.getUtxos({accountId})
+    await this._checkAddressIndexAndGenerateNew()
   }
 
   // TODO judge compress uncompress public key
