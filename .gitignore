@@ -1,8 +1,8 @@
 .idea/workspace.xml
 .DS_Store
-*~
 node_modules
-*.log
-dist
 bundle.js
 main.js
+*.log
+dist
+*~

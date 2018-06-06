@@ -1,8 +1,37 @@
-var webpack = require("webpack");
-var webpackBase = require("./webpack.config.base.js");
+const UglifyJSPlugin = require('uglifyjs-webpack-plugin')
+const path = require('path')
 
-var cfg = Object.assign(webpackBase, {
-  devtool: "cheap-module-eval-source-map"
-});
+module.exports = {
+  module: {
+    rules: [
+      {
+        test: /\.js$/,
+        exclude: /node_modules/,
+        loader: 'babel-loader',
 
-module.exports = cfg;
+        options: {
+          presets: ['env']
+        }
+      },
+    ]
+  },
+
+  devtool: 'cheap-module-eval-source-map',
+  devServer: {
+    contentBase: 'test',
+    historyApiFallback: true,
+    inline: true
+  },
+
+  plugins: [
+    new UglifyJSPlugin()
+  ],
+  entry: ['babel-polyfill', path.resolve(__dirname, 'src/index.js')],
+
+  output: {
+    filename: 'bundle.js',
+    path: path.resolve(__dirname, 'test')
+  },
+
+  mode: 'production'
+}
