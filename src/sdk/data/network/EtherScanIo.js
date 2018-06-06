@@ -1,75 +1,41 @@
 
-import ICoinNetwork from './ICoinNetwork'
 import D from '../../D'
+import ICoinNetwork from './ICoinNetwork'
 
-const TEST_URL = 'https://testnet.blockchain.info'
-const MAIN_URL = 'https://blockchain.info'
+const TEST_URL = 'https://api-ropsten.etherscan.io/api'
+const MAIN_URL = 'https://api.etherscan.io'
 
-export default class BlockchainInfo extends ICoinNetwork {
+export default class EtherScanIo extends ICoinNetwork {
   constructor (coinType) {
     super(coinType)
     // noinspection JSUnusedGlobalSymbols
-    this._supportMultiAddresses = true
+    this._supportMultiAddresses = false
     this.coinType = coinType
   }
 
   async init () {
     switch (this.coinType) {
-      case D.COIN_BIT_COIN:
+      case D.COIN_ETH:
         this._apiUrl = MAIN_URL
         break
-      case D.COIN_BIT_COIN_TEST:
+      case D.COIN_ETH_TEST_ROPSTEN:
         this._apiUrl = TEST_URL
         break
       default:
         throw D.ERROR_COIN_NOT_SUPPORTED
     }
     return super.init()
-  }
-
-  get (url) {
-    return new Promise((resolve, reject) => {
-      console.debug('get', url)
-      let xmlhttp = new XMLHttpRequest()
-      xmlhttp.onreadystatechange = () => {
-        if (xmlhttp.readyState === 4) {
-          if (xmlhttp.status === 200) {
-            try {
-              resolve(JSON.parse(xmlhttp.responseText))
-            } catch (e) {
-              resolve({response: xmlhttp.responseText})
-            }
-          } else if (xmlhttp.status === 500) {
-            let response = xmlhttp.responseText
-            switch (response) {
-              case 'Transaction not found':
-                reject(D.ERROR_TX_NOT_FOUND)
-                return
-              default:
-                console.warn('BlockChainInfo get', xmlhttp)
-                reject(D.ERROR_NETWORK_PROVIDER_ERROR)
-            }
-          } else {
-            console.warn(url, xmlhttp)
-            reject(D.ERROR_NETWORK_UNVAILABLE)
-          }
-        }
-      }
-      xmlhttp.open('GET', url, true)
-      xmlhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded')
-      xmlhttp.send()
-    })
-  }
+  }// https://api-ropsten.etherscan.io/api?module=proxy&action=eth_blockNumber&apikey=YourApiKeyToken
 
   async getBlockHeight () {
-    return parseInt(await this.get([this._apiUrl, 'q', 'getblockcount?cors=true'].join('/')))
+    let response = await this.get(this._apiUrl + '?module=proxy&action=eth_blockNumber')
+    return parseInt(response.result)
   }
 
-  async queryAddresses (addresses) {
-    let response = await this.get(this._apiUrl + '/multiaddr?cors=true&active=' + addresses.join('|'))
+  async queryAddress (address) {
+    let response = await this.get(this._apiUrl + 'module=account&action=txlist&address=' + address)
     let addressInfos = []
-    // TODO
-    response.addresses.forEach(rAddress => {
+    for (let rAddress of response.addresses) {
       let exist = (io) => {
         let address = io.addr || io.prev_out.addr
         return address === rAddress.address
@@ -78,11 +44,10 @@ export default class BlockchainInfo extends ICoinNetwork {
       info.address = rAddress.address
       info.txCount = rAddress.n_tx
       info.txs = response.txs
-      // TODO flatmap
         .filter(rTx => rTx.inputs.some(exist) || rTx.out.some(exist))
         .map(rTx => this.wrapTx(rTx))
       addressInfos.push(info)
-    })
+    }
     return addressInfos
   }
 
@@ -135,4 +100,3 @@ export default class BlockchainInfo extends ICoinNetwork {
     return tx
   }
 }
-BlockchainInfo.provider = 'blockchain.info'

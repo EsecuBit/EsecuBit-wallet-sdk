@@ -39,7 +39,7 @@ const D = {
   COIN_BIT_COIN: 'bitcoin',
   COIN_BIT_COIN_TEST: 'bitcoin_test',
   COIN_ETH: 'ethernet',
-  COIN_ETH_TEST: 'ethernet_test',
+  COIN_ETH_TEST_ROPSTEN: 'ethernet_test_repsten',
 
   // BIP44
   ADDRESS_EXTERNAL: 'external',
