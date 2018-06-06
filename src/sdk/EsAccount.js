@@ -56,7 +56,7 @@ export default class EsAccount {
 
   // TODO judge compress uncompress public key
   async sync () {
-    let newAddressInfos = await this._checkAddressIndexAndGenerateNew()
+    let newAddressInfos = await this._checkAddressIndexAndGenerateNew(true)
     await this._coinData.newAddressInfos(this._toAccountInfo(), newAddressInfos)
 
     let checkAddressInfos = this.addressInfos
@@ -127,7 +127,7 @@ export default class EsAccount {
     let oldIndex = addressInfo.type === D.ADDRESS_EXTERNAL ? this.externalPublicKeyIndex : this.changePublicKeyIndex
     addressInfo.type === D.ADDRESS_EXTERNAL ? this.externalPublicKeyIndex = newIndex : this.changePublicKeyIndex = newIndex
     await this._device.updateIndex(this)
-    let newAddressInfos = await this._checkAddressIndexAndGenerateNew()
+    let newAddressInfos = await this._checkAddressIndexAndGenerateNew(isSyncing)
     await this._coinData.newAddressInfos(this._toAccountInfo(), newAddressInfos)
     await this._coinData.newTx(this._toAccountInfo(), addressInfo, txInfo, utxos)
 
@@ -156,7 +156,7 @@ export default class EsAccount {
    * check address index and genreate new necessary addressInfos
    * @private
    */
-  async _checkAddressIndexAndGenerateNew () {
+  async _checkAddressIndexAndGenerateNew (sync = false) {
     let checkAndGenerate = (type) => {
       let isExternal = type === D.ADDRESS_EXTERNAL
       let publicKey = isExternal ? this.externalPublicKey : this.changePublicKey
@@ -165,11 +165,12 @@ export default class EsAccount {
         .reduce((max, addressInfo) => Math.max(max, addressInfo.index), -1)
       let nextIndex = maxIndex + 1
 
+      sync ? index += 20 : index += 1
       nextIndex = nextIndex > index + 20 ? index + 20 : nextIndex
-      if (index + 19 > maxIndex) {
-        console.info(this.accountId, 'generating', type, 'addressInfos, from', nextIndex, 'to', index + 20)
+      if (index > nextIndex) {
+        console.info(this.accountId, 'generating', type, 'addressInfos, from', nextIndex, 'to', index)
       }
-      return Promise.all(Array.from({length: index + 20 - nextIndex}, (v, k) => nextIndex + k).map(async i => {
+      return Promise.all(Array.from({length: index - nextIndex}, (v, k) => nextIndex + k).map(async i => {
         let address = await this._device.getAddress(i, publicKey)
         return {
           address: address,

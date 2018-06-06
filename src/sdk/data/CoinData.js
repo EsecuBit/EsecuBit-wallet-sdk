@@ -111,7 +111,9 @@ export default class CoinData {
     let accounts = await this._db.getAccounts({coinType})
 
     // check whether the last spec coinType account has transaction
-    let lastAccount = accounts.reduce((lastAccount, account) => lastAccount.index < account.index, accounts[0])
+    let lastAccount = accounts.reduce(
+      (lastAccount, account) => lastAccount.index > account.index ? lastAccount : account,
+      accounts[0])
     if (!lastAccount) return 0
 
     let {total} = await this._db.getTxInfos({
