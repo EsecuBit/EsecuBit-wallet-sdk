@@ -2,4 +2,5 @@
 /config/
 /dist/
 /node_modules/
+/webpack/*.js
 /*.js

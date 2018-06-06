@@ -74,9 +74,7 @@ export default class CoinData {
 
   async newAccount (coinType) {
     let accountIndex = await await this._newAccountIndex(coinType)
-    if (accountIndex === -1) {
-      throw D.ERROR_LAST_ACCOUNT_NO_TRANSACTION
-    }
+    if (accountIndex === -1) throw D.ERROR_LAST_ACCOUNT_NO_TRANSACTION
 
     let account = await this._newAccount(coinType, accountIndex)
     if (D.TEST_DATA && accountIndex === 0 && (coinType === D.COIN_BIT_COIN || coinType.D.COIN_BIT_COIN_TEST)) {
@@ -87,12 +85,10 @@ export default class CoinData {
   }
 
   async _newAccount (coinType, accountIndex) {
-    let makeId = function () {
+    let makeId = () => {
       let text = ''
       const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-      for (let i = 0; i < 32; i++) {
-        text += possible.charAt(Math.floor(Math.random() * possible.length))
-      }
+      for (let i = 0; i < 32; i++) text += possible.charAt(Math.floor(Math.random() * possible.length))
       return text
     }
 
@@ -115,16 +111,9 @@ export default class CoinData {
     let accounts = await this._db.getAccounts({coinType})
 
     // check whether the last spec coinType account has transaction
-    let lastAccount = accounts && accounts[0]
-    for (let account of accounts) {
-      if (lastAccount.index < account.index) {
-        lastAccount = account
-      }
-    }
+    let lastAccount = accounts.reduce((lastAccount, account) => lastAccount.index < account.index, accounts[0])
+    if (!lastAccount) return 0
 
-    if (lastAccount === null) {
-      return 0
-    }
     let {total} = await this._db.getTxInfos({
       accountId: lastAccount.accountId,
       startIndex: 0,
