@@ -5,7 +5,7 @@
     "version": "0.0.1",
     "app": {
         "background": {
-            "scripts": ["background.js"]
+            "scripts": ["old/background.js"]
         }
     },
     "icons": { 
