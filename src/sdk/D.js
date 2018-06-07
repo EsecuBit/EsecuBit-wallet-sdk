@@ -74,12 +74,12 @@ const D = {
   SUPPORT_LEGAL_CURRENCY: ['CNY', 'USD', 'EUR', 'JPY'],
 
   convertValue (coinType, value, fromType, toType) {
-    let convertBtc = (fee, fromType, toType) => {
+    let convertBtc = (value, fromType, toType) => {
       let santoshi
       switch (fromType) {
-        case D.UNIT_BTC: { santoshi = fee * 100000000; break }
-        case D.UNIT_BTC_M: { santoshi = fee * 100000; break }
-        case D.UNIT_BTC_SANTOSHI: { santoshi = fee; break }
+        case D.UNIT_BTC: { santoshi = value * 100000000; break }
+        case D.UNIT_BTC_M: { santoshi = value * 100000; break }
+        case D.UNIT_BTC_SANTOSHI: { santoshi = value; break }
         default: throw D.ERROR_UNKNOWN
       }
       switch (toType) {
@@ -88,17 +88,17 @@ const D = {
         case D.UNIT_BTC_SANTOSHI: return Number(santoshi)
       }
     }
-    let convertEth = (fee, fromType, toType) => {
-      let wei = new BigNumber(1)
+    let convertEth = (value, fromType, toType) => {
+      let wei
       switch (fromType) {
-        case D.UNIT_ETH: { wei = fee * 100000000; break }
-        case D.UNIT_ETH_GWEI: { wei = fee * 100000; break }
-        case D.UNIT_ETH_WEI: { wei = fee; break }
+        case D.UNIT_ETH: { wei = value * 1000000000000000000; break }
+        case D.UNIT_ETH_GWEI: { wei = value * 1000000000; break }
+        case D.UNIT_ETH_WEI: { wei = value; break }
         default: throw D.ERROR_UNKNOWN
       }
       switch (toType) {
-        case D.UNIT_ETH: return Number(wei / 100000000)
-        case D.UNIT_ETH_GWEI: return Number(wei / 100000)
+        case D.UNIT_ETH: return Number(wei / 1000000000000000000)
+        case D.UNIT_ETH_GWEI: return Number(wei / 1000000000)
         case D.UNIT_ETH_WEI: return Number(wei)
       }
     }
@@ -147,7 +147,7 @@ const D = {
       case D.COIN_BIT_COIN_TEST:
         return 0
       case D.COIN_ETH:
-      case D.COIN_ETH_TEST:
+      case D.COIN_ETH_TEST_ROPSTEN:
         return 60
       default:
         throw D.ERROR_COIN_NOT_SUPPORTED

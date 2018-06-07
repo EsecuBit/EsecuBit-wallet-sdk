@@ -164,7 +164,7 @@ export default class ICoinNetwork {
     })
   }
 
-  removeListener(callback) {
+  removeListener (callback) {
     this._requestList = this._requestList.filter(request => request.callback !== callback)
   }
 

@@ -6,7 +6,7 @@ import IndexedDB from '../sdk/data/database/IndexedDB'
 
 chai.should()
 describe('EsWallet', function () {
-  this.timeout(60000)
+  this.timeout(100000)
   let esWallet = null
 
   it('availableCoinTypes', () => {
@@ -78,19 +78,26 @@ describe('EsWallet', function () {
   it('convertValue', () => {
     let coinTypes = D.TEST_MODE ? D.SUPPORT_TEST_COIN_TYPES : D.SUPPORT_COIN_TYPES
     coinTypes.forEach(coinType => {
-      esWallet.convertValue(coinType, 123456, D.UNIT_BTC_SANTOSHI, D.UNIT_BTC).should.equal(0.00123456)
-      esWallet.convertValue(coinType, 123456, D.UNIT_BTC_SANTOSHI, D.UNIT_BTC_M).should.equal(1.23456)
-      esWallet.convertValue(coinType, 123456, D.UNIT_BTC, D.UNIT_BTC_SANTOSHI).should.equal(12345600000000)
-      esWallet.convertValue(coinType, 123456, D.UNIT_BTC_M, D.UNIT_BTC_SANTOSHI).should.equal(12345600000)
-
-      console.log('1', esWallet.convertValue(coinType, 123456, D.UNIT_BTC, D.UNIT_USD))
-      console.log('2', esWallet.convertValue(coinType, 123456, D.UNIT_BTC_M, D.UNIT_CNY))
-      console.log('3', esWallet.convertValue(coinType, 123456, D.UNIT_ETH, D.UNIT_USD))
-      console.log('4', esWallet.convertValue(coinType, 123456, D.UNIT_ETH_GWEI, D.UNIT_CNY))
-      console.log('11', esWallet.convertValue(coinType, 123456, D.UNIT_USD, D.UNIT_BTC))
-      console.log('12', esWallet.convertValue(coinType, 123456, D.UNIT_CNY, D.UNIT_BTC_M))
-      console.log('13', esWallet.convertValue(coinType, 123456, D.UNIT_USD, D.UNIT_ETH))
-      console.log('14', esWallet.convertValue(coinType, 123456, D.UNIT_CNY, D.UNIT_ETH_GWEI))
+      if (coinType.includes('bitcoin')) {
+        esWallet.convertValue(coinType, 123456, D.UNIT_BTC_SANTOSHI, D.UNIT_BTC).should.equal(0.00123456)
+        esWallet.convertValue(coinType, 123456, D.UNIT_BTC_SANTOSHI, D.UNIT_BTC_M).should.equal(1.23456)
+        esWallet.convertValue(coinType, 123456, D.UNIT_BTC, D.UNIT_BTC_SANTOSHI).should.equal(12345600000000)
+        esWallet.convertValue(coinType, 123456, D.UNIT_BTC_M, D.UNIT_BTC_SANTOSHI).should.equal(12345600000)
+        esWallet.convertValue(coinType, 123456, D.UNIT_BTC, D.UNIT_USD)
+        esWallet.convertValue(coinType, 123456, D.UNIT_BTC_M, D.UNIT_CNY)
+        esWallet.convertValue(coinType, 123456, D.UNIT_BTC_SANTOSHI, D.UNIT_EUR)
+        esWallet.convertValue(coinType, 123456, D.UNIT_USD, D.UNIT_BTC)
+        esWallet.convertValue(coinType, 123456, D.UNIT_CNY, D.UNIT_BTC_M)
+        esWallet.convertValue(coinType, 123456, D.UNIT_EUR, D.UNIT_BTC_SANTOSHI)
+      }
+      if (coinType.includes('ethernet')) {
+        esWallet.convertValue(coinType, 123456, D.UNIT_ETH, D.UNIT_USD)
+        esWallet.convertValue(coinType, 123456, D.UNIT_ETH_GWEI, D.UNIT_CNY)
+        esWallet.convertValue(coinType, 123456, D.UNIT_ETH_WEI, D.UNIT_JPY)
+        esWallet.convertValue(coinType, 123456, D.UNIT_USD, D.UNIT_ETH)
+        esWallet.convertValue(coinType, 123456, D.UNIT_CNY, D.UNIT_ETH_GWEI)
+        esWallet.convertValue(coinType, 123456, D.UNIT_JPY, D.UNIT_ETH_WEI)
+      }
     })
   })
 })
