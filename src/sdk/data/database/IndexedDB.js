@@ -2,7 +2,7 @@
 import IDatabase from './IDatabase'
 import D from '../../D'
 
-const DB_VERSION = 4
+const DB_VERSION = 5
 export default class IndexedDB extends IDatabase {
   constructor (walletId) {
     super()
@@ -130,6 +130,18 @@ export default class IndexedDB extends IDatabase {
          */
         if (!db.objectStoreNames.contains('fee')) {
           db.createObjectStore('fee', {keyPath: 'coinType'})
+        }
+
+        /**
+         * exchange:
+         * {
+         *   coinType: string,
+         *   unit: string,
+         *   exchange: object // (bitcoin: {USD: float, EUR: float, JPY: float, CNY: float})
+         * }
+         */
+        if (!db.objectStoreNames.contains('exchange')) {
+          db.createObjectStore('exchange', {keyPath: 'coinType'})
         }
       }
 
@@ -552,6 +564,40 @@ export default class IndexedDB extends IDatabase {
       request.onsuccess = resolve
       request.onerror = (e) => {
         console.warn('saveOfUpdateFee', e)
+        reject(D.ERROR_DATABASE_EXEC_FAILED)
+      }
+    })
+  }
+
+  getExchange (coinType) {
+    return new Promise((resolve, reject) => {
+      if (this._db === null) {
+        reject(D.ERROR_DATABASE_OPEN_FAILED)
+        return
+      }
+
+      let transaction = this._db.transaction(['exchange'], 'readonly')
+      let request = transaction.objectStore('exchange').get(coinType)
+      request.onsuccess = (e) => resolve(e.target.result)
+      request.onerror = (e) => {
+        console.warn('getExchange', e)
+        reject(D.ERROR_DATABASE_EXEC_FAILED)
+      }
+    })
+  }
+
+  saveOfUpdateExchange (exchange) {
+    return new Promise((resolve, reject) => {
+      if (this._db === null) {
+        reject(D.ERROR_DATABASE_OPEN_FAILED)
+        return
+      }
+
+      let transaction = this._db.transaction(['exchange'], 'readwrite')
+      let request = transaction.objectStore('exchange').put(exchange)
+      request.onsuccess = resolve
+      request.onerror = (e) => {
+        console.warn('saveOfUpdateExchange', e)
         reject(D.ERROR_DATABASE_EXEC_FAILED)
       }
     })

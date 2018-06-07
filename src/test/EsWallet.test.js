@@ -11,24 +11,14 @@ describe('EsWallet', function () {
 
   it('availableCoinTypes', () => {
     let availableCoinTypes = EsWallet.availableCoinTypes()
-    availableCoinTypes.length.should.equal(1)
+    availableCoinTypes.length.should.equal(2)
   })
 
-  it('convertValue', () => {
-    let coinTypes = [D.COIN_BIT_COIN, D.COIN_BIT_COIN_TEST]
-    coinTypes.forEach(coinType => {
-      EsWallet.convertValue(coinType, 123456, D.UNIT_BTC_SANTOSHI, D.UNIT_BTC).should.equal(0.00123456)
-      EsWallet.convertValue(coinType, 123456, D.UNIT_BTC_SANTOSHI, D.UNIT_BTC_M).should.equal(1.23456)
-      EsWallet.convertValue(coinType, 123456, D.UNIT_BTC, D.UNIT_BTC_SANTOSHI).should.equal(12345600000000)
-      EsWallet.convertValue(coinType, 123456, D.UNIT_BTC_M, D.UNIT_BTC_SANTOSHI).should.equal(12345600000)
-    })
-  })
-
-  it('clearDatabase', async () => {
-    let indexedDB = new IndexedDB(D.TEST_SYNC_WALLET_ID)
-    await indexedDB.init()
-    await indexedDB.clearDatabase()
-  })
+  // it('clearDatabase', async () => {
+  //   let indexedDB = new IndexedDB(D.TEST_SYNC_WALLET_ID)
+  //   await indexedDB.init()
+  //   await indexedDB.clearDatabase()
+  // })
 
   // new EsWallet will have heavy work, so do the lazy work
   it('new wallet', async () => {
@@ -46,6 +36,7 @@ describe('EsWallet', function () {
     esWallet.listenStatus((error, status) => {
       console.info('error, status', error, status)
       if (error !== D.ERROR_NO_ERROR) {
+        console.warn('found error', error)
         done(error)
         return
       }
@@ -65,21 +56,41 @@ describe('EsWallet', function () {
     accounts.length.should.equal(2)
   })
 
-  let availableNewAccountCoinTypes
+  let availableNewAccountCoinType
   it('availableNewAccountCoinTypes', async () => {
-    availableNewAccountCoinTypes = await esWallet.availableNewAccountCoinTypes()
-    availableNewAccountCoinTypes.length.should.equal(1)
+    let availableNewAccountCoinTypes = await esWallet.availableNewAccountCoinTypes()
+    availableNewAccountCoinTypes.length.should.equal(2)
+    availableNewAccountCoinType = availableNewAccountCoinTypes.find(coinType => coinType.includes('bitcoin'))
   })
 
   it('newAccountAndDelete', async () => {
-    let account = await esWallet.newAccount(availableNewAccountCoinTypes[0])
-    availableNewAccountCoinTypes = await esWallet.availableNewAccountCoinTypes()
-    availableNewAccountCoinTypes.length.should.equal(0)
+    let account = await esWallet.newAccount(availableNewAccountCoinType)
+    let availableNewAccountCoinTypes = await esWallet.availableNewAccountCoinTypes()
+    availableNewAccountCoinTypes.length.should.equal(1)
     await account.delete()
   })
 
   it('getWalletInfo', async () => {
     let info = esWallet.getWalletInfo()
     info.should.not.equal(undefined)
+  })
+
+  it('convertValue', () => {
+    let coinTypes = D.TEST_MODE ? D.SUPPORT_TEST_COIN_TYPES : D.SUPPORT_COIN_TYPES
+    coinTypes.forEach(coinType => {
+      esWallet.convertValue(coinType, 123456, D.UNIT_BTC_SANTOSHI, D.UNIT_BTC).should.equal(0.00123456)
+      esWallet.convertValue(coinType, 123456, D.UNIT_BTC_SANTOSHI, D.UNIT_BTC_M).should.equal(1.23456)
+      esWallet.convertValue(coinType, 123456, D.UNIT_BTC, D.UNIT_BTC_SANTOSHI).should.equal(12345600000000)
+      esWallet.convertValue(coinType, 123456, D.UNIT_BTC_M, D.UNIT_BTC_SANTOSHI).should.equal(12345600000)
+
+      console.log('1', esWallet.convertValue(coinType, 123456, D.UNIT_BTC, D.UNIT_USD))
+      console.log('2', esWallet.convertValue(coinType, 123456, D.UNIT_BTC_M, D.UNIT_CNY))
+      console.log('3', esWallet.convertValue(coinType, 123456, D.UNIT_ETH, D.UNIT_USD))
+      console.log('4', esWallet.convertValue(coinType, 123456, D.UNIT_ETH_GWEI, D.UNIT_CNY))
+      console.log('11', esWallet.convertValue(coinType, 123456, D.UNIT_USD, D.UNIT_BTC))
+      console.log('12', esWallet.convertValue(coinType, 123456, D.UNIT_CNY, D.UNIT_BTC_M))
+      console.log('13', esWallet.convertValue(coinType, 123456, D.UNIT_USD, D.UNIT_ETH))
+      console.log('14', esWallet.convertValue(coinType, 123456, D.UNIT_CNY, D.UNIT_ETH_GWEI))
+    })
   })
 })

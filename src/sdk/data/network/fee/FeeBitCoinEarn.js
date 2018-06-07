@@ -7,17 +7,27 @@ if (D.TEST_NETWORK_REQUEST) {
 }
 
 export default class FeeBitCoinEarn {
-  constructor (fee = {}) {
-    this.fee = {} // santonshi per b
-    this.fee[D.FEE_FAST] = fee[D.FEE_FAST] || 100
-    this.fee[D.FEE_NORMAL] = fee[D.FEE_NORMAL] || 50
-    this.fee[D.FEE_ECNOMIC] = fee[D.FEE_ECNOMIC] || 20
+  constructor (fee) {
+    switch (fee.coinType) {
+      case D.COIN_BIT_COIN:
+      case D.COIN_BIT_COIN_TEST:
+        this.coinType = fee.coinType
+        break
+      default:
+        throw D.ERROR_COIN_NOT_SUPPORTED
+    }
+
+    if (!fee.fee) {
+      fee.fee = {}
+      fee.fee[D.FEE_FAST] = 100
+      fee.fee[D.FEE_NORMAL] = 50
+      fee.fee[D.FEE_ECNOMIC] = 20
+    }
+    this.fee = D.copy(fee) // santonshi per b
 
     // noinspection JSIgnoredPromiseFromCall
     this.updateFee()
-    setInterval(() => {
-      this.updateFee().catch(e => console.warn(e))
-    }, UPDATE_DURATION)
+    setInterval(() => this.updateFee().catch(e => console.warn(e)), UPDATE_DURATION)
   }
 
   onUpdateFee () {
@@ -65,13 +75,12 @@ export default class FeeBitCoinEarn {
      * @param response.hourFee    Suggested fee(santonshi per b) to confirmed in 6 blocks.
      */
     let response = await get(url)
-    let fee = {}
-    fee[D.FEE_FAST] = response.fastestFee
-    fee[D.FEE_NORMAL] = response.halfHourFee
-    fee[D.FEE_ECNOMIC] = response.hourFee
+    let fee = D.copy(this.fee)
+    fee.fee[D.FEE_FAST] = response.fastestFee
+    fee.fee[D.FEE_NORMAL] = response.halfHourFee
+    fee.fee[D.FEE_ECNOMIC] = response.hourFee
     console.debug('update fee succeed', 'old fee', this.fee, 'new fee', fee)
     this.fee = D.copy(fee)
     this.onUpdateFee(fee)
-    return fee
   }
 }

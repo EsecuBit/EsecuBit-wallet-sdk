@@ -3,6 +3,7 @@ import D from '../D'
 import IndexedDB from './database/IndexedDB'
 import BlockChainInfo from './network/BlockChainInfo'
 import FeeBitCoinEarn from './network/fee/FeeBitCoinEarn'
+import ExchangeCryptoCompareCom from "./network/exchange/ExchangeCryptoCompareCom";
 
 // TODO CoinData only manage data, don't handle data. leave it to EsAccount and EsWallet?
 export default class CoinData {
@@ -13,15 +14,14 @@ export default class CoinData {
     CoinData.prototype.Instance = this
 
     this._initialized = false
+
+    const COIN_TYPES = D.TEST_MODE ? D.SUPPORT_TEST_COIN_TYPES : D.SUPPORT_COIN_TYPES
     // TODO read provider from settings
     this._networkProvider = BlockChainInfo
-    this._network = {}
-    this._network[D.COIN_BIT_COIN_TEST] = new this._networkProvider(D.COIN_BIT_COIN_TEST)
-    this._network[D.COIN_BIT_COIN] = new this._networkProvider(D.COIN_BIT_COIN)
-
-    this._networkFee = {}
-    this._networkFee[D.COIN_BIT_COIN_TEST] = null
-    this._networkFee[D.COIN_BIT_COIN] = null
+    // TODO support eth
+    this._network = COIN_TYPES.filter(coinType => coinType.includes('bitcoin')).reduce((obj, coinType) => (obj[coinType] = new this._networkProvider(coinType)) && obj, {})
+    this._networkFee = COIN_TYPES.reduce((obj, coinType) => (obj[coinType] = null) || obj, {})
+    this._exchange = COIN_TYPES.reduce((obj, coinType) => (obj[coinType] = null) || obj, {})
 
     this._listeners = []
   }
@@ -37,14 +37,24 @@ export default class CoinData {
       // fee
       await Promise.all(Object.keys(this._networkFee).map(async coinType => {
         let fee = await this._db.getFee(coinType)
-        fee = fee || {}
-        this._networkFee[coinType] = new FeeBitCoinEarn(fee.fee)
-        this._networkFee[coinType].onUpdateFee = (fee) => this._db.saveOfUpdateFee({coinType, fee})
+        fee = fee || {coinType}
+        // TODO support eth
+        if (coinType.includes('bitcoin')) {
+          this._networkFee[coinType] = new FeeBitCoinEarn(fee)
+          this._networkFee[coinType].onUpdateFee = (fee) => this._db.saveOfUpdateFee(fee)
+        }
+      }))
+      // exchange
+      await Promise.all(Object.keys(this._exchange).map(async coinType => {
+        let exchange = await this._db.getExchange(coinType)
+        exchange = exchange || {coinType}
+        this._exchange[coinType] = new ExchangeCryptoCompareCom(exchange)
+        this._exchange[coinType].onUpdateExchange = (fee) => this._db.saveOfUpdateExchange(fee)
       }))
 
       this._initialized = true
     } catch (e) {
-      console.info(e)
+      console.warn(e)
       throw D.ERROR_UNKNOWN
     }
   }
@@ -82,6 +92,27 @@ export default class CoinData {
     }
     await this._db.newAccount(account)
     return account
+  }
+
+  convertValue (coinType, value, fromType, toType) {
+    let fromLegal = D.SUPPORT_LEGAL_CURRENCY.includes(fromType)
+    let toLegal = D.SUPPORT_LEGAL_CURRENCY.includes(toType)
+    // not support convertion between legal currency
+    if (fromLegal && toLegal) {
+      throw D.ERROR_COIN_NOT_SUPPORTED
+    } else if (fromLegal) {
+      let exchange = this._exchange[coinType].getCurrentExchange()
+      let rRate = exchange.exchange[fromType]
+      let unitValue = D.convertValue(coinType, value, toType, exchange.unit)
+      return rRate && (unitValue / rRate)
+    } else if (toLegal) {
+      let exchange = this._exchange[coinType].getCurrentExchange()
+      let rate = exchange.exchange[toType]
+      let unitValue = value * rate
+      return D.convertValue(coinType, unitValue, toType, exchange.unit)
+    } else {
+      return D.convertValue(coinType, value, fromType, toType)
+    }
   }
 
   async _newAccount (coinType, accountIndex) {
@@ -167,6 +198,7 @@ export default class CoinData {
   }
 
   checkAddresses (coinType, addressInfos) {
+    console.log('1', coinType)
     return this._network[coinType].checkAddresses(addressInfos)
   }
 

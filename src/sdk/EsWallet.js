@@ -5,21 +5,17 @@ import CoreWallet from './device/CoreWallet'
 import CoinData from './data/CoinData'
 import EsAccount from './EsAccount'
 
-const AVAILABLE_COIN_TYPES = [D.TEST_MODE ? D.COIN_BIT_COIN_TEST : D.COIN_BIT_COIN]
 export default class EsWallet {
   /**
    * get support coin types
    * @returns {*[]}
    */
   static availableCoinTypes () {
-    return AVAILABLE_COIN_TYPES
+    return D.copy(D.TEST_MODE ? D.SUPPORT_TEST_COIN_TYPES : D.SUPPORT_COIN_TYPES)
   }
 
-  /**
-   * convert coin value
-   */
-  static convertValue (coinType, fee, fromType, toType) {
-    return D.convertValue(coinType, fee, fromType, toType)
+  static availableLegalCurrency () {
+    return D.copy(D.SUPPORT_LEGAL_CURRENCY)
   }
 
   constructor () {
@@ -160,6 +156,7 @@ export default class EsWallet {
   }
 
   async availableNewAccountCoinTypes () {
+    const AVAILABLE_COIN_TYPES = D.TEST_MODE ? D.SUPPORT_TEST_COIN_TYPES : D.SUPPORT_COIN_TYPES
     let availables = []
     for (let coinType of AVAILABLE_COIN_TYPES) {
       if ((await this._coinData._newAccountIndex(coinType)) >= 0) {
@@ -171,5 +168,12 @@ export default class EsWallet {
 
   getWalletInfo () {
     return this._device.getWalletInfo()
+  }
+
+  /**
+   * convert coin value
+   */
+  convertValue (coinType, value, fromUnit, toUnit) {
+    return this._coinData.convertValue(coinType, value, fromUnit, toUnit)
   }
 }

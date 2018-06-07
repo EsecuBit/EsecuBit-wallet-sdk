@@ -40,6 +40,8 @@ const D = {
   COIN_BIT_COIN_TEST: 'bitcoin_test',
   COIN_ETH: 'ethernet',
   COIN_ETH_TEST_ROPSTEN: 'ethernet_test_repsten',
+  SUPPORT_COIN_TYPES: ['bitcoin', 'ethernet'],
+  SUPPORT_TEST_COIN_TYPES: ['bitcoin_test', 'ethernet_test_repsten'],
 
   // BIP44
   ADDRESS_EXTERNAL: 'external',
@@ -59,11 +61,19 @@ const D = {
   FEE_ECNOMIC: 'economy',
 
   // value type
-  UNIT_BTC: 'btc',
-  UNIT_BTC_M: 'mbtc',
+  UNIT_BTC: 'BTC',
+  UNIT_BTC_M: 'mBTC',
   UNIT_BTC_SANTOSHI: 'santoshi',
+  UNIT_ETH: 'Ether',
+  UNIT_ETH_GWEI: 'GWei',
+  UNIT_ETH_WEI: 'Wei',
+  UNIT_CNY: 'CNY',
+  UNIT_USD: 'USD',
+  UNIT_EUR: 'EUR',
+  UNIT_JPY: 'JPY',
+  SUPPORT_LEGAL_CURRENCY: ['CNY', 'USD', 'EUR', 'JPY'],
 
-  convertValue (coinType, fee, fromType, toType) {
+  convertValue (coinType, value, fromType, toType) {
     let convertBtc = (fee, fromType, toType) => {
       let santoshi
       switch (fromType) {
@@ -81,7 +91,7 @@ const D = {
     switch (coinType) {
       case D.COIN_BIT_COIN:
       case D.COIN_BIT_COIN_TEST:
-        return convertBtc(fee, fromType, toType)
+        return convertBtc(value, fromType, toType)
       default:
         throw D.ERROR_COIN_NOT_SUPPORTED
     }
