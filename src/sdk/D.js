@@ -88,10 +88,27 @@ const D = {
         case D.UNIT_BTC_SANTOSHI: return Number(santoshi)
       }
     }
+    let convertEth = (fee, fromType, toType) => {
+      let wei = new BigNumber(1)
+      switch (fromType) {
+        case D.UNIT_ETH: { wei = fee * 100000000; break }
+        case D.UNIT_ETH_GWEI: { wei = fee * 100000; break }
+        case D.UNIT_ETH_WEI: { wei = fee; break }
+        default: throw D.ERROR_UNKNOWN
+      }
+      switch (toType) {
+        case D.UNIT_ETH: return Number(wei / 100000000)
+        case D.UNIT_ETH_GWEI: return Number(wei / 100000)
+        case D.UNIT_ETH_WEI: return Number(wei)
+      }
+    }
     switch (coinType) {
       case D.COIN_BIT_COIN:
       case D.COIN_BIT_COIN_TEST:
         return convertBtc(value, fromType, toType)
+      case D.COIN_ETH:
+      case D.COIN_ETH_TEST_ROPSTEN:
+        return convertEth(value, fromType, toType)
       default:
         throw D.ERROR_COIN_NOT_SUPPORTED
     }

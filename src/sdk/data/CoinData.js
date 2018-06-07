@@ -97,6 +97,7 @@ export default class CoinData {
   convertValue (coinType, value, fromType, toType) {
     let fromLegal = D.SUPPORT_LEGAL_CURRENCY.includes(fromType)
     let toLegal = D.SUPPORT_LEGAL_CURRENCY.includes(toType)
+    console.log(fromType, toType, fromLegal, toLegal)
     // not support convertion between legal currency
     if (fromLegal && toLegal) {
       throw D.ERROR_COIN_NOT_SUPPORTED
@@ -108,8 +109,8 @@ export default class CoinData {
     } else if (toLegal) {
       let exchange = this._exchange[coinType].getCurrentExchange()
       let rate = exchange.exchange[toType]
-      let unitValue = value * rate
-      return D.convertValue(coinType, unitValue, toType, exchange.unit)
+      let unitValue = D.convertValue(coinType, value, fromType, exchange.unit)
+      return unitValue * rate
     } else {
       return D.convertValue(coinType, value, fromType, toType)
     }
@@ -198,7 +199,6 @@ export default class CoinData {
   }
 
   checkAddresses (coinType, addressInfos) {
-    console.log('1', coinType)
     return this._network[coinType].checkAddresses(addressInfos)
   }
 
