@@ -67,23 +67,17 @@ export default class BlockchainInfo extends ICoinNetwork {
 
   async queryAddresses (addresses) {
     let response = await this.get(this._apiUrl + '/multiaddr?cors=true&active=' + addresses.join('|'))
-    let addressInfos = []
-    // TODO
-    response.addresses.forEach(rAddress => {
-      let exist = (io) => {
-        let address = io.addr || io.prev_out.addr
-        return address === rAddress.address
+    let exist = (rTx, address) => {
+      return rTx.inputs.map(input => input.prev_out.addr).includes(address) ||
+        rTx.out.map(output => output.addr).includes(address)
+    }
+    return response.addresses.map(rAddress => {
+      return {
+        address: rAddress.address,
+        txCount: rAddress.n_tx,
+        txs: response.txs.filter(rTx => exist(rTx, rAddress.address)).map(rTx => this.wrapTx(rTx))
       }
-      let info = {}
-      info.address = rAddress.address
-      info.txCount = rAddress.n_tx
-      info.txs = response.txs
-      // TODO flatmap
-        .filter(rTx => rTx.inputs.some(exist) || rTx.out.some(exist))
-        .map(rTx => this.wrapTx(rTx))
-      addressInfos.push(info)
     })
-    return addressInfos
   }
 
   async queryTx (txId) {
