@@ -225,20 +225,33 @@ export default class IndexedDB extends IDatabase {
     })
   }
 
-  deleteAccount (account) {
+  deleteAccount (account, addressInfos) {
     return new Promise((resolve, reject) => {
       if (this._db === null) {
         reject(D.ERROR_DATABASE_OPEN_FAILED)
         return
       }
 
-      let transaction = this._db.transaction(['account'], 'readwrite')
-      let request = transaction.objectStore('account').delete(account.accountId)
-      request.onsuccess = resolve
-      request.onerror = (e) => {
-        console.warn('deleteAccount', e)
-        reject(D.ERROR_DATABASE_EXEC_FAILED)
+      let transaction = this._db.transaction(['account', 'addressInfo'], 'readwrite')
+      let accountRequest = () => {
+        return new Promise((resolve, reject) => {
+          let request = transaction.objectStore('account').delete(account.accountId)
+          request.onsuccess = resolve
+          request.onerror = reject
+        })
       }
+      let addressInfosRequest = () => {
+        return Promise.all(addressInfos.map(addressInfo => new Promise((resolve, reject) => {
+          let request = transaction.objectStore('addressInfo').delete(addressInfo.address)
+          request.onsuccess = resolve
+          request.onerror = reject
+        })))
+      }
+
+      accountRequest().then(addressInfosRequest).then(resolve).catch(e => {
+        console.warn('newAddressInfos', e)
+        reject(D.ERROR_DATABASE_EXEC_FAILED)
+      })
     })
   }
 

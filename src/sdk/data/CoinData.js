@@ -127,12 +127,13 @@ export default class CoinData {
 
   async deleteAccount (account) {
     let {total} = await this._db.getTxInfos({accountId: account.accountId})
+    let addressInfos = await this._db.getAddressInfos({accountId: account.accountId})
     if (total !== 0) {
       console.warn('attemp to delete a non-empty account', account)
       throw D.ERROR_ACCOUNT_HAS_TRANSACTIONS
     }
     console.info('delete account', account)
-    await this._db.deleteAccount(account)
+    await this._db.deleteAccount(account, addressInfos)
   }
 
   async renameAccount (account) {

@@ -2,6 +2,7 @@
 import chai from 'chai'
 import D from '../sdk/D'
 import EsWallet from '../sdk/EsWallet'
+import IndexedDB from '../sdk/data/database/IndexedDB'
 
 chai.should()
 describe('EsWallet', function () {
@@ -23,11 +24,11 @@ describe('EsWallet', function () {
     })
   })
 
-  // it('clearDatabase', async () => {
-  //   let indexedDB = new IndexedDB(D.TEST_SYNC_WALLET_ID)
-  //   await indexedDB.init()
-  //   await indexedDB.clearDatabase()
-  // })
+  it('clearDatabase', async () => {
+    let indexedDB = new IndexedDB(D.TEST_SYNC_WALLET_ID)
+    await indexedDB.init()
+    await indexedDB.clearDatabase()
+  })
 
   // new EsWallet will have heavy work, so do the lazy work
   it('new wallet', async () => {
