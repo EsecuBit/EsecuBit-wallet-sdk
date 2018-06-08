@@ -4,7 +4,7 @@ import D from '../sdk/D'
 import EsWallet from '../sdk/EsWallet'
 
 chai.should()
-describe('EsAccount', function () {
+describe('BtcAccount', function () {
   this.timeout(60000)
   let esWallet
 

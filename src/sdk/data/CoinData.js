@@ -5,7 +5,7 @@ import BlockChainInfo from './network/BlockChainInfo'
 import FeeBitCoinEarn from './network/fee/FeeBitCoinEarn'
 import ExchangeCryptoCompareCom from "./network/exchange/ExchangeCryptoCompareCom";
 
-// TODO CoinData only manage data, don't handle data. leave it to EsAccount and EsWallet?
+// TODO CoinData only manage data, don't handle data. leave it to BtcAccount and EsWallet?
 export default class CoinData {
   constructor () {
     if (CoinData.prototype.Instance) {
@@ -15,7 +15,7 @@ export default class CoinData {
 
     this._initialized = false
 
-    const COIN_TYPES = D.TEST_MODE ? D.SUPPORT_TEST_COIN_TYPES : D.SUPPORT_COIN_TYPES
+    const COIN_TYPES = D.TEST_MODE ? D.SUPPORTED_TEST_COIN_TYPES : D.SUPPORTED_COIN_TYPES
     // TODO read provider from settings
     this._networkProvider = BlockChainInfo
     // TODO support eth
@@ -82,6 +82,7 @@ export default class CoinData {
     this._listeners = this._listeners.filter(listener => listener !== callback)
   }
 
+  // TODO other eth wallet account rules
   async newAccount (coinType) {
     let accountIndex = await await this._newAccountIndex(coinType)
     if (accountIndex === -1) throw D.ERROR_LAST_ACCOUNT_NO_TRANSACTION
@@ -92,27 +93,6 @@ export default class CoinData {
     }
     await this._db.newAccount(account)
     return account
-  }
-
-  convertValue (coinType, value, fromType, toType) {
-    let fromLegal = D.SUPPORT_LEGAL_CURRENCY.includes(fromType)
-    let toLegal = D.SUPPORT_LEGAL_CURRENCY.includes(toType)
-    // not support convertion between legal currency
-    if (fromLegal && toLegal) {
-      throw D.ERROR_COIN_NOT_SUPPORTED
-    } else if (fromLegal) {
-      let exchange = this._exchange[coinType].getCurrentExchange()
-      let rRate = exchange.exchange[fromType]
-      let unitValue = D.convertValue(coinType, value, toType, exchange.unit)
-      return rRate && (unitValue / rRate)
-    } else if (toLegal) {
-      let exchange = this._exchange[coinType].getCurrentExchange()
-      let rate = exchange.exchange[toType]
-      let unitValue = D.convertValue(coinType, value, fromType, exchange.unit)
-      return unitValue * rate
-    } else {
-      return D.convertValue(coinType, value, fromType, toType)
-    }
   }
 
   async _newAccount (coinType, accountIndex) {
@@ -226,6 +206,28 @@ export default class CoinData {
         return this._networkFee[coinType].getCurrentFee()
       default:
         throw D.ERROR_COIN_NOT_SUPPORTED
+    }
+  }
+
+  convertValue (coinType, value, fromType, toType) {
+    let fromLegal = D.SUPPORTED_LEGAL_CURRENCY.includes(fromType)
+    let toLegal = D.SUPPORTED_LEGAL_CURRENCY.includes(toType)
+    console.log(fromType, toType, fromLegal, toLegal)
+    // not support convertion between legal currency
+    if (fromLegal && toLegal) {
+      throw D.ERROR_COIN_NOT_SUPPORTED
+    } else if (fromLegal) {
+      let exchange = this._exchange[coinType].getCurrentExchange()
+      let rRate = exchange.exchange[fromType]
+      let unitValue = D.convertValue(coinType, value, toType, exchange.unit)
+      return rRate && (unitValue / rRate)
+    } else if (toLegal) {
+      let exchange = this._exchange[coinType].getCurrentExchange()
+      let rate = exchange.exchange[toType]
+      let unitValue = D.convertValue(coinType, value, fromType, exchange.unit)
+      return unitValue * rate
+    } else {
+      return D.convertValue(coinType, value, fromType, toType)
     }
   }
 

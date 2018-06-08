@@ -40,8 +40,8 @@ const D = {
   COIN_BIT_COIN_TEST: 'bitcoin_test',
   COIN_ETH: 'ethernet',
   COIN_ETH_TEST_ROPSTEN: 'ethernet_test_repsten',
-  SUPPORT_COIN_TYPES: ['bitcoin', 'ethernet'],
-  SUPPORT_TEST_COIN_TYPES: ['bitcoin_test', 'ethernet_test_repsten'],
+  SUPPORTED_COIN_TYPES: ['bitcoin', 'ethernet'],
+  SUPPORTED_TEST_COIN_TYPES: ['bitcoin_test', 'ethernet_test_repsten'],
 
   // BIP44
   ADDRESS_EXTERNAL: 'external',
@@ -51,6 +51,7 @@ const D = {
   TX_DIRECTION_IN: 'in',
   TX_DIRECTION_OUT: 'out',
   TX_BTC_MATURE_CONFIRMATIONS: 6,
+  TX_ETH_MATURE_CONFIRMATIONS: 6,
   UTXO_UNSPENT: 0,
   UTXO_SPENT_PENDING: 1,
   UTXO_SPENT: 2,
@@ -71,7 +72,7 @@ const D = {
   UNIT_USD: 'USD',
   UNIT_EUR: 'EUR',
   UNIT_JPY: 'JPY',
-  SUPPORT_LEGAL_CURRENCY: ['CNY', 'USD', 'EUR', 'JPY'],
+  SUPPORTED_LEGAL_CURRENCY: ['CNY', 'USD', 'EUR', 'JPY'],
 
   convertValue (coinType, value, fromType, toType) {
     let convertBtc = (value, fromType, toType) => {

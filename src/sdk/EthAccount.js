@@ -1,8 +1,7 @@
 
 import D from './D'
-import CoinData from './data/CoinData'
 
-export default class EsAccount {
+export default class EthAccount {
   constructor (info, device, coinData) {
     let assign = () => {
       this.accountId = info.accountId
@@ -12,17 +11,14 @@ export default class EsAccount {
       this.balance = info.balance
       this.externalPublicKey = info.externalPublicKey
       this.externalPublicKeyIndex = info.externalPublicKeyIndex
-      this.changePublicKey = info.changePublicKey
-      this.changePublicKeyIndex = info.changePublicKeyIndex
     }
     assign()
     this._device = device
     this._coinData = coinData
-    this._listenedTxs = []
 
     this._txListener = async (error, txInfo) => {
       if (error !== D.ERROR_NO_ERROR) {
-        console.warn('EsAccount txListener', error)
+        console.warn('BtcAccount txListener', error)
         return
       }
       console.info('newTransaction status', txInfo)
@@ -38,7 +34,7 @@ export default class EsAccount {
 
     this._addressListener = async (error, addressInfo, txInfo, utxos) => {
       if (error !== D.ERROR_NO_ERROR) {
-        console.warn('EsAccount addressListener', error)
+        console.warn('BtcAccount addressListener', error)
         return
       }
       console.info('newTransaction', addressInfo, addressInfo, txInfo, utxos)
@@ -50,36 +46,30 @@ export default class EsAccount {
     let accountId = this.accountId
     this.addressInfos = await this._coinData.getAddressInfos({accountId})
     this.txInfos = (await this._coinData.getTxInfos({accountId})).txInfos
-    this.utxos = await this._coinData.getUtxos({accountId})
-    let newAddressInfos = await this._checkAddressIndexAndGenerateNew()
-    await this._coinData.newAddressInfos(this._toAccountInfo(), newAddressInfos)
+    if (!this.addressInfos.length) {
+      let path = D.makeBip44Path(this.coinType, this.index, D.ADDRESS_EXTERNAL, 0)
+      let address = await this._device.getAddress(path)
+      let addressInfo = {
+        address: address,
+        accountId: this.accountId,
+        coinType: this.coinType,
+        path: path,
+        type: D.ADDRESS_EXTERNAL,
+        index: 0,
+        txs: []
+      }
+      this._coinData.newAddressInfos(this._toAccountInfo(), [addressInfo])
+    }
   }
 
-  // TODO judge compress uncompress public key
   async sync () {
-    let newAddressInfos = await this._checkAddressIndexAndGenerateNew(true)
-    await this._coinData.newAddressInfos(this._toAccountInfo(), newAddressInfos)
+    // find out all the transactions
+    let blobs = await this._coinData.checkAddresses(this.coinType, this.addressInfos)
+    await Promise.all(blobs.map(blob => this._handleNewTx(blob.addressInfo, blob.txInfo, blob.utxos, true)))
+    this._coinData.listenAddresses(this.coinType, D.copy(this.addressInfos), this._addressListener)
 
-    let checkAddressInfos = this.addressInfos
-    while (true) {
-      // find out all the transactions
-      let blobs = await this._coinData.checkAddresses(this.coinType, checkAddressInfos)
-      let responses = await Promise.all(blobs.map(blob => this._handleNewTx(blob.addressInfo, blob.txInfo, blob.utxos, true)))
-      // no new transactions, sync finish
-      if (responses.length === 0) break
-      checkAddressInfos = responses.reduce((array, response) => array.concat(response.newAddressInfos), [])
-    }
-    // TODO listen external address only
-    let listenAddressInfos = [].concat(
-      this._getAddressInfos(0, this.externalPublicKeyIndex + 1, D.ADDRESS_EXTERNAL),
-      this._getAddressInfos(0, this.changePublicKeyIndex + 1, D.ADDRESS_CHANGE))
-    if (listenAddressInfos.length !== 0) this._coinData.listenAddresses(this.coinType, listenAddressInfos, this._addressListener)
-
-    this.txInfos.filter(txInfo => txInfo.confirmations < D.TX_BTC_MATURE_CONFIRMATIONS)
-      .forEach(txInfo => {
-        this._listenedTxs.push(txInfo.txId)
-        this._coinData.listenTx(this.coinType, D.copy(txInfo), this._txListener)
-      })
+    this.txInfos.filter(txInfo => txInfo.confirmations < D.TX_ETH_MATURE_CONFIRMATIONS)
+      .forEach(txInfo => this._coinData.listenTx(this.coinType, D.copy(txInfo), this._txListener))
   }
 
   async delete () {
@@ -101,7 +91,7 @@ export default class EsAccount {
    * 1. store/update new txInfo after filling "isMine" and "value" field
    * 2. store utxo, addressInfo, txInfo
    */
-  async _handleNewTx (addressInfo, txInfo, utxos, isSyncing = false) {
+  async _handleNewTx (addressInfo, txInfo) {
     // async operation may lead to disorder. so we need a simple lock
     // eslint-disable-next-line
     while (this.busy) {
@@ -114,34 +104,11 @@ export default class EsAccount {
     txInfo.value -= txInfo.inputs.reduce((sum, input) => sum + input.isMine ? input.value : 0, 0)
     txInfo.value += txInfo.outputs.reduce((sum, output) => sum + output.isMine ? output.value : 0, 0)
 
-    // check utxo update. unspent can update to pending and spent, pending can update to spent. otherwise ignore
-    utxos = utxos.filter(utxo => {
-      let oldUtxo = this.utxos.find(oldUtxo => oldUtxo.txId === utxo.txId && oldUtxo.index === utxo.index)
-      if (!oldUtxo) return true
-      if (oldUtxo.spent === D.UTXO_UNSPENT) return true
-      if (oldUtxo.spent === D.UTXO_SPENT_PENDING) return utxo === D.UTXO_SPENT
-      return false
-    })
-
-    // update and addressIndex and listen new address
-    let newIndex = addressInfo.index + 1
-    let oldIndex = addressInfo.type === D.ADDRESS_EXTERNAL ? this.externalPublicKeyIndex : this.changePublicKeyIndex
-    addressInfo.type === D.ADDRESS_EXTERNAL ? this.externalPublicKeyIndex = newIndex : this.changePublicKeyIndex = newIndex
-    await this._device.updateIndex(this)
-    let newAddressInfos = await this._checkAddressIndexAndGenerateNew(isSyncing)
-    await this._coinData.newAddressInfos(this._toAccountInfo(), newAddressInfos)
-    await this._coinData.newTx(this._toAccountInfo(), addressInfo, txInfo, utxos)
-
     // update account info
     this.balance += txInfo.value
     this.txInfos.push(D.copy(txInfo))
-    this.utxos.push(...utxos)
 
-    if (!isSyncing) {
-      let newListeneAddressInfos = this._getAddressInfos(oldIndex, newIndex + 1, addressInfo.type)
-      if (newListeneAddressInfos.length !== 0) this._coinData.listenAddresses(this.coinType, newListeneAddressInfos, this._addressListener)
-    }
-    if (txInfo.confirmations < D.TX_BTC_MATURE_CONFIRMATIONS) {
+    if (txInfo.confirmations < D.TX_ETH_MATURE_CONFIRMATIONS) {
       console.info('listen transaction status', txInfo)
       if (!this._listenedTxs.some(tx => tx === txInfo.txId)) {
         this._listenedTxs.push(txInfo.txId)
@@ -150,62 +117,6 @@ export default class EsAccount {
     }
 
     this.busy = false
-    return {addressInfo, txInfo, utxos, newAddressInfos}
-  }
-
-  /**
-   * check address index and genreate new necessary addressInfos
-   * @private
-   */
-  async _checkAddressIndexAndGenerateNew (sync = false) {
-    let checkAndGenerate = (type) => {
-      let isExternal = type === D.ADDRESS_EXTERNAL
-      let publicKey = isExternal ? this.externalPublicKey : this.changePublicKey
-      let index = isExternal ? this.externalPublicKeyIndex : this.changePublicKeyIndex
-      let maxIndex = this.addressInfos.filter(addressInfo => addressInfo.type === type)
-        .reduce((max, addressInfo) => Math.max(max, addressInfo.index), -1)
-      let nextIndex = maxIndex + 1
-
-      sync ? index += 20 : index += 1
-      nextIndex = nextIndex > index + 20 ? index + 20 : nextIndex
-      if (index > nextIndex) {
-        console.info(this.accountId, 'generating', type, 'addressInfos, from', nextIndex, 'to', index)
-      }
-      return Promise.all(Array.from({length: index - nextIndex}, (v, k) => nextIndex + k).map(async i => {
-        let address = await this._device.getAddress(i, publicKey)
-        return {
-          address: address,
-          accountId: this.accountId,
-          coinType: this.coinType,
-          path: D.makeBip44Path(this.coinType, this.index, type, i),
-          type: type,
-          index: i,
-          txs: []
-        }
-      }))
-    }
-
-    if (!this.externalPublicKey) {
-      let externalPath = D.makeBip44Path(this.coinType, this.index, D.ADDRESS_EXTERNAL)
-      this.externalPublicKey = await this._device.getPublicKey(externalPath)
-      this.externalPublicKeyIndex = 0
-    }
-
-    if (!this.changePublicKey) {
-      let changePath = D.makeBip44Path(this.coinType, this.index, D.ADDRESS_CHANGE)
-      this.changePublicKey = await this._device.getPublicKey(changePath)
-      this.changePublicKeyIndex = 0
-    }
-
-    let newAddresseInfos = [].concat(await checkAndGenerate(D.ADDRESS_EXTERNAL), await checkAndGenerate(D.ADDRESS_CHANGE))
-    this.addressInfos.push(...newAddresseInfos)
-    return newAddresseInfos
-  }
-
-  _getAddressInfos (startIndex, stopIndex, type, copy = true) {
-    let addressInfos = this.addressInfos.filter(a => a.type === type && a.index >= startIndex && a.index < stopIndex)
-    if (copy) addressInfos = addressInfos.map(addressInfo => D.copy(addressInfo))
-    return addressInfos
   }
 
   _toAccountInfo () {
@@ -214,11 +125,7 @@ export default class EsAccount {
       label: this.label,
       coinType: this.coinType,
       index: this.index,
-      balance: this.balance,
-      externalPublicKey: this.externalPublicKey,
-      externalPublicKeyIndex: this.externalPublicKeyIndex,
-      changePublicKey: this.changePublicKey,
-      changePublicKeyIndex: this.changePublicKeyIndex
+      balance: this.balance
     }
   }
 
@@ -232,12 +139,17 @@ export default class EsAccount {
   }
 
   async getAddress () {
-    let address = await this._device.getAddress(this.externalPublicKeyIndex, this.externalPublicKey)
+    let path = D.makeBip44Path(this.coinType, this.index, 0, 0)
+    let address = await this._device.getAddress(path)
     let prefix
     switch (this.coinType) {
       case D.COIN_BIT_COIN:
       case D.COIN_BIT_COIN_TEST:
         prefix = 'bitcoin:'
+        break
+      case D.COIN_ETH:
+      case D.COIN_ETH_TEST_ROPSTEN:
+        prefix = 'eth:'
         break
       default:
         throw D.ERROR_COIN_NOT_SUPPORTED
@@ -272,6 +184,7 @@ export default class EsAccount {
    * }
    */
   async prepareTx (details) {
+    // TODO
     if (this.coinType !== D.COIN_BIT_COIN && this.coinType !== D.COIN_BIT_COIN_TEST) throw D.ERROR_COIN_NOT_SUPPORTED
 
     let getEnoughUtxo = (total) => {
@@ -290,7 +203,7 @@ export default class EsAccount {
       return {newTotal, willSpentUtxos}
     }
 
-    // copy utxos for avoiding utxos of EsAccount change
+    // copy utxos for avoiding utxos of BtcAccount change
     let utxos = this.utxos.filter(utxo => utxo.spent === D.UTXO_UNSPENT).map(utxo => D.copy(utxo))
     let total = utxos.reduce((sum, utxo) => sum + utxo.value, 0)
     let fee = details.feeRate
@@ -323,6 +236,7 @@ export default class EsAccount {
    * @see prepareTx
    */
   async buildTx (prepareTx) {
+    // TODO
     let totalOut = prepareTx.outputs.reduce((sum, output) => sum + output.value, 0)
     if (totalOut + prepareTx.fee !== prepareTx.total) throw D.ERROR_UNKNOWN
     let totalIn = prepareTx.utxos.reduce((sum, utxo) => sum + utxo.value, 0)
@@ -353,7 +267,6 @@ export default class EsAccount {
           value: utxo.value
         }
       }),
-      // TODO output has self address
       outputs: prepareTx.outputs.map(output => {
         return {
           address: output.address,
@@ -373,6 +286,7 @@ export default class EsAccount {
    * @see signedTx
    */
   async sendTx (signedTx, test = false) {
+    // TODO
     // broadcast transaction to network
     if (!test) await this._coinData.sendTx(this._toAccountInfo(), signedTx.utxos, signedTx.txInfo, signedTx.hex)
     // change utxo spent status from unspent to spent pending
@@ -381,44 +295,5 @@ export default class EsAccount {
       let addressInfo = this.addressInfos.find(addressInfo => addressInfo.address === utxo.address)
       return {addressInfo, utxo}
     }).forEach(pair => this._handleNewTx(pair.addressInfo, signedTx.txInfo, [pair.utxo]))
-  }
-
-  /**
-   * @deprecated
-   */
-  sendBitCoin (transaction, callback) {
-    let enc = new TextEncoder()
-    console.dir(enc)
-
-    let total = transaction.out + transaction.fee
-    let totalString = CoinData.getFloatFee(total) + ' BTC'
-    let apdu = ''
-    let hexChars = '0123456789ABCDEF'
-    apdu += hexChars[totalString.length >> 4] + hexChars[totalString.length % 0x10] + D.arrayBufferToHex(enc.encode(totalString))
-    console.info(apdu)
-    apdu += '01'
-    console.info(apdu)
-    apdu += hexChars[transaction.addresses[0].length >> 4] + hexChars[transaction.addresses[0].length % 0x10] + D.arrayBufferToHex(enc.encode(transaction.addresses[0]))
-    console.info(apdu)
-    apdu = hexChars[parseInt(apdu.length / 2) % 0x10] + apdu
-    apdu = hexChars[parseInt(apdu.length / 2) >> 4] + apdu
-    apdu = '00780000' + apdu
-    console.info(apdu)
-
-    // var ok = "007800002E09302e303132204254430122314d6459433232476d6a7032656a5670437879596a66795762514359544768477138"
-    let response = this._device.sendHexApduTrue(apdu, callback)
-    let data = new Uint8Array(response)
-    let intArray = new Uint8Array(new Array(2))
-    intArray[0] = data[3]
-    intArray[1] = data[4]
-    console.info('data ' + D.arrayBufferToHex(response))
-    console.info('data ' + D.arrayBufferToHex(data))
-    console.info('sw ' + D.arrayBufferToHex(intArray))
-    let sw = D.arrayBufferToHex(intArray)
-
-    if (sw === '6FFA') {
-      this._device.sendBitCoin(transaction, callback)
-    }
-    callback(sw === '9000' ? D.ERROR_NO_ERROR : D.ERROR_USER_CANCEL)
   }
 }

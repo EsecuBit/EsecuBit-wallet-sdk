@@ -34,7 +34,7 @@ export default class ExchangeCryptoCompareCom {
     this.exchange = D.copy(exchange)
     this.exchange.unit = UNITS[exchange.coinType]
     this.exchange.exchange = exchange.exchange ||
-      D.SUPPORT_LEGAL_CURRENCY.reduce((obj, currency) => (obj[currency] = 0) || obj, {})
+      D.SUPPORTED_LEGAL_CURRENCY.reduce((obj, currency) => (obj[currency] = 0) || obj, {})
     this.requestCoin = REQUEST_COINS[exchange.coinType]
 
     // noinspection JSIgnoredPromiseFromCall

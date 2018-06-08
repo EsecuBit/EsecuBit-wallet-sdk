@@ -9,8 +9,8 @@ describe('EsWallet', function () {
   this.timeout(100000)
   let esWallet = null
 
-  it('availableCoinTypes', () => {
-    let availableCoinTypes = EsWallet.availableCoinTypes()
+  it('supportedCoinTypes', () => {
+    let availableCoinTypes = EsWallet.supportedCoinTypes()
     availableCoinTypes.length.should.equal(2)
   })
 
@@ -76,7 +76,7 @@ describe('EsWallet', function () {
   })
 
   it('convertValue', () => {
-    let coinTypes = D.TEST_MODE ? D.SUPPORT_TEST_COIN_TYPES : D.SUPPORT_COIN_TYPES
+    let coinTypes = D.TEST_MODE ? D.SUPPORTED_TEST_COIN_TYPES : D.SUPPORTED_COIN_TYPES
     coinTypes.forEach(coinType => {
       if (coinType.includes('bitcoin')) {
         esWallet.convertValue(coinType, 123456, D.UNIT_BTC_SANTOSHI, D.UNIT_BTC).should.equal(0.00123456)

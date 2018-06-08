@@ -62,7 +62,7 @@ export default class EtherScanIo extends ICoinNetwork {
   }
 
   async sendTx (rawTransaction) {
-    // TODO uncomment after testing EsAccount
+    // TODO uncomment after testing BtcAccount
     let response = await this.post([this._apiUrl, 'pushtx'].join('/'), 'tx=' + rawTransaction)
     // TODO wrap
     return response
