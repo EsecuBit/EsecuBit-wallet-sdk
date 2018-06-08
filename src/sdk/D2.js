@@ -3,76 +3,101 @@ import bitPony from 'bitpony'
 
 const D = {
   // listen status
-  STATUS_PLUG_IN: 1,
-  STATUS_INITIALIZING: 2,
-  STATUS_SYNCING: 3,
-  STATUS_SYNC_FINISH: 10,
-  STATUS_PLUG_OUT: 99,
+  status: {
+    plugIn: 1,
+    initializing: 2,
+    syncing: 3,
+    syncFinish: 10,
+    plugOut: 99
+  },
 
-  // error code
-  ERROR_NO_ERROR: 0,
-  ERROR_USER_CANCEL: 1,
+  error: {
+    succeed: 0,
+    userCancel: 1,
 
-  ERROR_NO_DEVICE: 101,
-  ERROR_DEVICE_COMM: 102,
-  ERROR_DEVICE_CONNECT_FAILED: 103,
-  ERROR_DEVICE_DERIVE_LARGER_THAN_N: 104,
+    noDevice: 101,
+    deviceComm: 102,
+    deviceConnectFailed: 103,
+    // TODO test
+    deviceDeriveLargerThanN: 104,
 
-  ERROR_DATABASE_OPEN_FAILED: 201,
-  ERROR_DATABASE_EXEC_FAILED: 202,
+    databaseOpenFailed: 201,
+    databaseExecFailed: 202,
 
-  ERROR_LAST_ACCOUNT_NO_TRANSACTION: 301,
-  ERROR_ACCOUNT_HAS_TRANSACTIONS: 302,
+    lastAccountNoTransaction: 301,
+    accountHasTransactions: 302,
 
-  ERROR_NETWORK_UNVAILABLE: 401,
-  ERROR_NETWORK_NOT_INITIALIZED: 402,
-  ERROR_NETWORK_PROVIDER_ERROR: 403,
+    networkUnvailable: 401,
+    networkNotInitialized: 402,
+    networkProviderError: 403,
 
-  ERROR_TX_NOT_ENOUGH_VALUE: 501,
-  ERROR_TX_NOT_FOUND: 502,
+    txNotEnoughValue: 501,
+    txNotFound: 502,
 
-  ERROR_NOT_IMPLEMENTED: 10000,
-  ERROR_UNKNOWN: 10001,
-  ERROR_COIN_NOT_SUPPORTED: 10002,
+    notImplemented: 10000,
+    unknown: 10001,
+    coinNotSupported: 10002
+  },
 
-  // coin type
-  COIN_BIT_COIN: 'bitcoin',
-  COIN_BIT_COIN_TEST: 'bitcoin_test',
-  COIN_ETH: 'ethernet',
-  COIN_ETH_TEST_ROPSTEN: 'ethernet_test_repsten',
-  SUPPORTED_COIN_TYPES: ['bitcoin', 'ethernet'],
-  SUPPORTED_TEST_COIN_TYPES: ['bitcoin_test', 'ethernet_test_repsten'],
+  coin: {
+    main: {
+      bitcoin: 'bitcoin',
+      eth: 'ethernet'
+    },
+    test: {
+      bitcoinTestnet3: 'bitcoin_testnet3',
+      ethRopsten: 'ethernet_repsten'
+    }
+  },
 
-  // BIP44
-  ADDRESS_EXTERNAL: 'external',
-  ADDRESS_CHANGE: 'change',
+  address: {
+    external: 'external',
+    change: 'change'
+  },
 
-  // transaction
-  TX_DIRECTION_IN: 'in',
-  TX_DIRECTION_OUT: 'out',
-  TX_BTC_MATURE_CONFIRMATIONS: 6,
-  TX_ETH_MATURE_CONFIRMATIONS: 6,
-  UTXO_UNSPENT: 0,
-  UTXO_SPENT_PENDING: 1,
-  UTXO_SPENT: 2,
+  tx: {
+    direction: {
+      in: 'in',
+      out: 'out'
+    },
+    matureConfirmations: {
+      btc: 6,
+      eth: 6
+    }
+  },
 
-  // fee type
-  FEE_FAST: 'fast',
-  FEE_NORMAL: 'normal',
-  FEE_ECNOMIC: 'economy',
+  utxo: {
+    status: {
+      unspent: 0,
+      spent_pending: 1,
+      spent: 2
+    }
+  },
 
-  // value type
-  UNIT_BTC: 'BTC',
-  UNIT_BTC_M: 'mBTC',
-  UNIT_BTC_SANTOSHI: 'santoshi',
-  UNIT_ETH: 'Ether',
-  UNIT_ETH_GWEI: 'GWei',
-  UNIT_ETH_WEI: 'Wei',
-  UNIT_CNY: 'CNY',
-  UNIT_USD: 'USD',
-  UNIT_EUR: 'EUR',
-  UNIT_JPY: 'JPY',
-  SUPPORTED_LEGAL_CURRENCY: ['CNY', 'USD', 'EUR', 'JPY'],
+  fee: {
+    fast: 'fast',
+    normal: 'normal',
+    ecnomic: 'economy'
+  },
+
+  unit: {
+    btc: {
+      BTC: 'BTC',
+      mBTC: 'mBTC',
+      santoshi: 'santoshi'
+    },
+    eth: {
+      eth: 'ether',
+      gwei: 'gwei',
+      wei: 'wei'
+    },
+    legal: {
+      cny: 'CNY',
+      usd: 'USD',
+      eur: 'EUR',
+      jpy: 'JPY'
+    }
+  },
 
   convertValue (coinType, value, fromType, toType) {
     let convertBtc = (fee, fromType, toType) => {
@@ -90,18 +115,7 @@ const D = {
       }
     }
     let convertEth = (fee, fromType, toType) => {
-      let wei = new BigNumber(1)
-      switch (fromType) {
-        case D.UNIT_ETH: { wei = fee * 100000000; break }
-        case D.UNIT_ETH_GWEI: { wei = fee * 100000; break }
-        case D.UNIT_ETH_WEI: { wei = fee; break }
-        default: throw D.ERROR_UNKNOWN
-      }
-      switch (toType) {
-        case D.UNIT_ETH: return Number(wei / 100000000)
-        case D.UNIT_ETH_GWEI: return Number(wei / 100000)
-        case D.UNIT_ETH_WEI: return Number(wei)
-      }
+      // TODO
     }
     switch (coinType) {
       case D.COIN_BIT_COIN:
@@ -187,16 +201,17 @@ const D = {
     return JSON.parse(JSON.stringify(object))
   },
 
-  // test
-  TEST_MODE: true,
-  TEST_DATA: false,
-  TEST_NETWORK_REQUEST: true,
-  TEST_JS_WALLET: true,
-  TEST_SYNC: false,
-  // TODO remove when publish
-  TEST_SYNC_WALLET_ID: 'BA3253876AED6BC22D4A6FF53D8406C6AD864195ED144AB5C87621B6C233B548',
-  TEST_TRANSACTION_WALLET_ID: 'BA3253876AED6BC22D4A6FF53D8406C6AD864195ED144AB5C87621B600000000',
-  TEST_SYNC_SEED: 'aa49342d805682f345135afcba79ffa7d50c2999944b91d88e01e1d38b80ca63',
-  TEST_TRANSACTION_SEED: 'aa49342d805682f345135afcba79ffa7d50c2999944b91d88e01e1d300000000'
+  test: {
+    mode: true,
+    data: false,
+    network_request: true,
+    js_wallet: true,
+    sync: false,
+    // TODO remove when publish
+    sync_wallet_id: 'ba3253876aed6bc22d4a6ff53d8406c6ad864195ed144ab5c87621b6c233b548',
+    transaction_wallet_id: 'ba3253876aed6bc22d4a6ff53d8406c6ad864195ed144ab5c87621b600000000',
+    sync_seed: 'aa49342d805682f345135afcba79ffa7d50c2999944b91d88e01e1d38b80ca63',
+    transaction_seed: 'aa49342d805682f345135afcba79ffa7d50c2999944b91d88e01e1d300000000'
+  }
 }
 export default D

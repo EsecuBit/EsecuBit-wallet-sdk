@@ -3,19 +3,20 @@ import D from './D'
 import JsWallet from './device/JsWallet'
 import CoreWallet from './device/CoreWallet'
 import CoinData from './data/CoinData'
-import EsAccount from './EsAccount'
+import BtcAccount from './BtcAccount'
+import EthAccount from './EthAccount'
 
 export default class EsWallet {
   /**
    * get support coin types
    * @returns {*[]}
    */
-  static availableCoinTypes () {
-    return D.copy(D.TEST_MODE ? D.SUPPORT_TEST_COIN_TYPES : D.SUPPORT_COIN_TYPES)
+  static supportedCoinTypes () {
+    return D.copy(D.TEST_MODE ? D.SUPPORTED_TEST_COIN_TYPES : D.SUPPORTED_COIN_TYPES)
   }
 
-  static availableLegalCurrency () {
-    return D.copy(D.SUPPORT_LEGAL_CURRENCY)
+  static supportedLegalCurrency () {
+    return D.copy(D.SUPPORTED_LEGAL_CURRENCY)
   }
 
   constructor () {
@@ -65,7 +66,13 @@ export default class EsWallet {
   async _init () {
     let info = await this._device.init()
     await this._coinData.init(info)
-    this._esAccounts = (await this._coinData.getAccounts()).map(account => new EsAccount(account, this._device, this._coinData))
+    this._esAccounts = (await this._coinData.getAccounts()).map(account => {
+      if (account.coinType === D.COIN_ETH || account.coinType === D.COIN_ETH_TEST_ROPSTEN) {
+        return new EthAccount(account, this._device, this._coinData)
+      } else {
+        return new BtcAccount(account, this._device, this._coinData)
+      }
+    })
     await Promise.all(this._esAccounts.map(esAccount => esAccount.init()))
   }
 
@@ -84,7 +91,7 @@ export default class EsWallet {
   async _recover (coinType) {
     while (true) {
       let account = await this._coinData.newAccount(coinType)
-      let esAccount = new EsAccount(account, this._device, this._coinData)
+      let esAccount = new BtcAccount(account, this._device, this._coinData)
       await esAccount.init()
       await esAccount.sync()
       // new account has no transactions, recover finish
@@ -149,14 +156,14 @@ export default class EsWallet {
 
   async newAccount (coinType) {
     let account = await this._coinData.newAccount(coinType)
-    let esAccount = new EsAccount(account, this._device, this._coinData)
+    let esAccount = new BtcAccount(account, this._device, this._coinData)
     await esAccount.init()
     this._esAccounts.push(esAccount)
     return esAccount
   }
 
   async availableNewAccountCoinTypes () {
-    const AVAILABLE_COIN_TYPES = D.TEST_MODE ? D.SUPPORT_TEST_COIN_TYPES : D.SUPPORT_COIN_TYPES
+    const AVAILABLE_COIN_TYPES = D.TEST_MODE ? D.SUPPORTED_TEST_COIN_TYPES : D.SUPPORTED_COIN_TYPES
     let availables = []
     for (let coinType of AVAILABLE_COIN_TYPES) {
       if ((await this._coinData._newAccountIndex(coinType)) >= 0) {

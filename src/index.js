@@ -17,4 +17,4 @@
 
 // main class
 import './test/EsWallet.test'
-// import './test/EsAccount.test'
+// import './test/BtcAccount.test'
