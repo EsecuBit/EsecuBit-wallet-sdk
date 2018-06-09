@@ -212,7 +212,6 @@ export default class CoinData {
   convertValue (coinType, value, fromType, toType) {
     let fromLegal = D.SUPPORTED_LEGAL_CURRENCY.includes(fromType)
     let toLegal = D.SUPPORTED_LEGAL_CURRENCY.includes(toType)
-    console.log(fromType, toType, fromLegal, toLegal)
     // not support convertion between legal currency
     if (fromLegal && toLegal) {
       throw D.ERROR_COIN_NOT_SUPPORTED

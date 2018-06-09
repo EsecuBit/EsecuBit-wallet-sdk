@@ -119,20 +119,20 @@ describe('BtcAccount', function () {
     fee[D.FEE_FAST].should.at.least(fee[D.FEE_NORMAL])
   })
 
-  // it('sendTx', async () => {
-  //   let prepareTx = await account.prepareTx({
-  //     feeRate: 10,
-  //     outputs: [{
-  //       address: 'mn4ddJmfccTr5rSp1LTknPpdKatiaivw2X',
-  //       value: 30000
-  //     }, {
-  //       address: 'mqjGANawowPiTDKKtuqdf7mqumWAoyHsdG',
-  //       value: 10000
-  //     }]
-  //   })
-  //   console.info('prepareTx', prepareTx)
-  //   let signedTx = await account.buildTx(prepareTx)
-  //   console.info('signedTx', signedTx)
-  //   await account.sendTx(signedTx, false)
-  // })
+  it('sendTx', async () => {
+    let prepareTx = await account.prepareTx({
+      feeRate: 10,
+      outputs: [{
+        address: 'mn4ddJmfccTr5rSp1LTknPpdKatiaivw2X',
+        value: 30000
+      }, {
+        address: 'mqjGANawowPiTDKKtuqdf7mqumWAoyHsdG',
+        value: 10000
+      }]
+    })
+    console.info('prepareTx', prepareTx)
+    let signedTx = await account.buildTx(prepareTx)
+    console.info('signedTx', signedTx)
+    // await account.sendTx(signedTx)
+  })
 })

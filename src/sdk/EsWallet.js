@@ -43,6 +43,7 @@ export default class EsWallet {
           await this._init()
         } catch (e) {
           this._callback && this._callback(e, this._status)
+          return
         }
         if (this._status === D.STATUS_PLUG_OUT) return
 
@@ -52,6 +53,7 @@ export default class EsWallet {
           await this._sync()
         } catch (e) {
           this._callback && this._callback(e, this._status)
+          return
         }
         if (this._status === D.STATUS_PLUG_OUT) return
 

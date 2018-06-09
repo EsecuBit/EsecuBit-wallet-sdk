@@ -14,11 +14,11 @@ describe('EsWallet', function () {
     availableCoinTypes.length.should.equal(2)
   })
 
-  // it('clearDatabase', async () => {
-  //   let indexedDB = new IndexedDB(D.TEST_SYNC_WALLET_ID)
-  //   await indexedDB.init()
-  //   await indexedDB.clearDatabase()
-  // })
+  it('clearDatabase', async () => {
+    let indexedDB = new IndexedDB(D.TEST_SYNC_WALLET_ID)
+    await indexedDB.init()
+    await indexedDB.clearDatabase()
+  })
 
   // new EsWallet will have heavy work, so do the lazy work
   it('new wallet', async () => {

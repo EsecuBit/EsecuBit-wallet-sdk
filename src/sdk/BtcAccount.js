@@ -157,8 +157,9 @@ export default class BtcAccount {
    * @private
    */
   async _checkAddressIndexAndGenerateNew (sync = false) {
-    let checkAndGenerate = async type => {
+    let checkAndGenerate = async (type) => {
       let isExternal = type === D.ADDRESS_EXTERNAL
+      let publicKey = isExternal ? this.externalPublicKey : this.changePublicKey
       let index = isExternal ? this.externalPublicKeyIndex : this.changePublicKeyIndex
       let maxIndex = this.addressInfos.filter(addressInfo => addressInfo.type === type)
         .reduce((max, addressInfo) => Math.max(max, addressInfo.index), -1)
@@ -166,23 +167,26 @@ export default class BtcAccount {
 
       sync ? index += 20 : index += 1
       nextIndex = nextIndex > index + 20 ? index + 20 : nextIndex
-      newAddresseInfos = await Promise.all(Array.from({length: index - nextIndex}, (v, k) => k).map(async i => {
-        let address = await this._getAddressFromDevice(type, true)
-        let index = isExternal ? this.externalPublicKeyIndex : this.changePublicKeyIndex
-        return {
-          address: address,
-          accountId: this.accountId,
-          coinType: this.coinType,
-          path: D.makeBip44Path(this.coinType, this.index, type, index),
-          type: type,
-          index: index,
-          txs: []
+      if (index > nextIndex) {
+        console.info(this.accountId, 'generating', type, 'addressInfos, from', nextIndex, 'to', index)
+      }
+      return (await Promise.all(Array.from({length: index - nextIndex}, (v, k) => nextIndex + k).map(async i => {
+        try {
+          let address = await this._device.getAddress(i, publicKey)
+          return {
+            address: address,
+            accountId: this.accountId,
+            coinType: this.coinType,
+            path: D.makeBip44Path(this.coinType, this.index, type, i),
+            type: type,
+            index: i,
+            txs: []
+          }
+        } catch (e) {
+          if (e === D.ERROR_DEVICE_DERIVE_LARGER_THAN_N) return null
+          throw e
         }
-      }))
-      let newIndex = isExternal ? this.externalPublicKeyIndex : this.changePublicKeyIndex
-      if (newIndex > nextIndex) console.info(this.accountId, 'generating', type, 'addressInfos, from', nextIndex, 'to', newIndex)
-      // TODO test
-      return newAddresseInfos
+      }))).filter(addressInfo => addressInfo !== null)
     }
 
     if (!this.externalPublicKey) {
@@ -231,14 +235,27 @@ export default class BtcAccount {
     }
   }
 
+  async getAddress () {
+    let address = await this._getAddressFromDeviceRetry(D.ADDRESS_EXTERNAL)
+    let prefix
+    switch (this.coinType) {
+      case D.COIN_BIT_COIN:
+      case D.COIN_BIT_COIN_TEST:
+        prefix = 'bitcoin:'
+        break
+      default:
+        throw D.ERROR_COIN_NOT_SUPPORTED
+    }
+    return {address: address, qrAddress: prefix + address}
+  }
+
   /**
    * get address from device, and update public key index
    * index + 1 and retry when got ERROR_DEVICE_DERIVE_LARGER_THAN_N
    */
-  async _getAddressFromDevice (type, forceNext = false) {
+  async _getAddressFromDeviceRetry (type) {
     let publicKey = type === D.ADDRESS_EXTERNAL ? this.externalPublicKey : this.changePublicKey
     let index = type === D.ADDRESS_EXTERNAL ? this.externalPublicKeyIndex : this.changePublicKeyIndex
-    if (forceNext) index++
     let address
     while (true) {
       try {
@@ -253,24 +270,7 @@ export default class BtcAccount {
       }
       break
     }
-    if (forceNext) {
-      type === D.ADDRESS_EXTERNAL ? this.externalPublicKeyIndex = index : this.changePublicKeyIndex = index
-    }
     return address
-  }
-
-  async getAddress () {
-    let address = await this._getAddressFromDevice(D.ADDRESS_EXTERNAL)
-    let prefix
-    switch (this.coinType) {
-      case D.COIN_BIT_COIN:
-      case D.COIN_BIT_COIN_TEST:
-        prefix = 'bitcoin:'
-        break
-      default:
-        throw D.ERROR_COIN_NOT_SUPPORTED
-    }
-    return {address: address, qrAddress: prefix + address}
   }
 
   getSuggestedFee () {
@@ -356,7 +356,7 @@ export default class BtcAccount {
     let totalIn = prepareTx.utxos.reduce((sum, utxo) => sum + utxo.value, 0)
     if (totalIn < prepareTx.total) throw D.ERROR_TX_NOT_ENOUGH_VALUE
 
-    let changeAddress = await this._getAddressFromDevice(D.ADDRESS_CHANGE)
+    let changeAddress = await this._getAddressFromDeviceRetry(D.ADDRESS_CHANGE)
     let value = totalIn - prepareTx.total
     let rawTx = {
       inputs: prepareTx.utxos,
