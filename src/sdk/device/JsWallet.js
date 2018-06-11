@@ -1,7 +1,8 @@
-// powered by bitcoin-js
+// powered by bitcoin-js and web3
 
 import ecurve from 'ecurve'
 import bitcoin from 'bitcoinjs-lib'
+import web3 from 'web3'
 import D from '../D'
 
 const NETWORK = D.TEST_MODE ? bitcoin.networks.testnet : bitcoin.networks.bitcoin
@@ -69,9 +70,32 @@ export default class JsWallet {
     return {publicKey, chainCode}
   }
 
-  async getAddress (addressPath, pPublicKey) {
-    let node = await this._derive(addressPath, pPublicKey)
-    return node.getAddress()
+  async getAddress (coinType, addressPath, pPublicKey) {
+    let bBitcoin = async () => {
+      let node = await this._derive(addressPath, pPublicKey)
+      return node.getAddress()
+    }
+
+    let ethereum = async () => {
+      let node = await this._derive(addressPath, pPublicKey)
+      let uncompressedPublicKey = node.keyPair.Q.getEncoded(false)
+      let withoutHead = new Uint8Array(D.hexToArrayBuffer(D.arrayBufferToHex(uncompressedPublicKey).slice(2)))
+      // noinspection JSCheckFunctionSignatures
+      let hash = web3.utils.keccak256(withoutHead)
+      return '0x' + hash.slice(-40)
+    }
+
+    switch (coinType) {
+      case D.COIN_BIT_COIN:
+      case D.COIN_BIT_COIN_TEST:
+        return bBitcoin()
+      case D.COIN_ETH:
+      case D.COIN_ETH_TEST_ROPSTEN:
+        return ethereum()
+      default:
+        console.log('1')
+        throw D.ERROR_COIN_NOT_SUPPORTED
+    }
   }
 
   async publicKeyToAddress (publicKey) {
@@ -84,6 +108,7 @@ export default class JsWallet {
 
   /**
    * tx:
+   * bitcoin:
    * {
    *   inputs: [{
    *     address: base58 string,
@@ -96,28 +121,50 @@ export default class JsWallet {
    *     address: base58 string,
    *     value: long
    *   }]
+   *
+   * eth:
+   * // TODO finish
    */
-  async signTransaction (tx) {
-    try {
-      let txb = new bitcoin.TransactionBuilder(NETWORK)
-      txb.setVersion(1)
-      for (let input of tx.inputs) {
-        txb.addInput(input.txId, input.index)
+  async signTransaction (coinType, tx) {
+    let bBitcoin = () => {
+      try {
+        let txb = new bitcoin.TransactionBuilder(NETWORK)
+        txb.setVersion(1)
+        for (let input of tx.inputs) {
+          txb.addInput(input.txId, input.index)
+        }
+        for (let output of tx.outputs) {
+          txb.addOutput(output.address, output.value)
+        }
+        let i = 0
+        for (let input of tx.inputs) {
+          let key = this._root.derivePath(input.path)
+          txb.sign(i, key)
+          i++
+        }
+        let transaction = txb.build()
+        return {id: transaction.getId(), hex: transaction.toHex()}
+      } catch (e) {
+        console.warn(e)
+        throw D.ERROR_UNKNOWN
       }
-      for (let output of tx.outputs) {
-        txb.addOutput(output.address, output.value)
-      }
-      let i = 0
-      for (let input of tx.inputs) {
-        let key = this._root.derivePath(input.path)
-        txb.sign(i, key)
-        i++
-      }
-      let transaction = txb.build()
-      return {id: transaction.getId(), hex: transaction.toHex()}
-    } catch (e) {
-      console.warn(e)
-      throw D.ERROR_UNKNOWN
+    }
+
+    let ethereum = () => {
+      // TODO finish
+      throw D.ERROR_NOT_IMPLEMENTED
+    }
+
+    switch (coinType) {
+      case D.COIN_BIT_COIN:
+      case D.COIN_BIT_COIN_TEST:
+        return bBitcoin()
+      case D.COIN_ETH:
+      case D.COIN_ETH_TEST_ROPSTEN:
+        return ethereum()
+      default:
+        console.log('2')
+        throw D.ERROR_COIN_NOT_SUPPORTED
     }
   }
 }
