@@ -90,10 +90,9 @@ export default class JsWallet {
       case D.COIN_BIT_COIN_TEST:
         return bBitcoin()
       case D.COIN_ETH:
-      case D.COIN_ETH_TEST_ROPSTEN:
+      case D.COIN_ETH_TEST_RINKEBY:
         return ethereum()
       default:
-        console.log('1')
         throw D.ERROR_COIN_NOT_SUPPORTED
     }
   }
@@ -160,7 +159,7 @@ export default class JsWallet {
       case D.COIN_BIT_COIN_TEST:
         return bBitcoin()
       case D.COIN_ETH:
-      case D.COIN_ETH_TEST_ROPSTEN:
+      case D.COIN_ETH_TEST_RINKEBY:
         return ethereum()
       default:
         console.log('2')

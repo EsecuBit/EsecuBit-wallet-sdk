@@ -313,15 +313,28 @@ export default class ICoinNetwork {
   /**
    *
    * @return tx
+   * bitcoin:
    * {
    *    txId: string,
    *    version: int,
    *    blockNumber: int,
    *    confirmations: int,
-   *    time: long,
+   *    time: long,         // mills
    *    hasDetails: bool,   // for queryAddress only, whether the tx has inputs and outputs. e.g. blockchain.info -> true, chain.so -> false
-   *    intputs: [{prevAddress, value(bitcoin -> santoshi)}],
-   *    outputs: [{address, value(bitcoin -> santoshi)}, index, script]
+   *    intputs: [{prevAddress, value(santoshi)}],
+   *    outputs: [{address, value(santoshi)}, index, script]
+   * }
+   * eth:
+   * {
+   *    txId: string,
+   *    blockNumber: int,
+   *    confirmations: int,
+   *    time: long,
+   *    hasDetails: bool,
+   *    intputs: [{prevAddress, value(wei)}], // tx.from, always length = 1
+   *    outputs: [{address, value(wei)}], // tx.to, always length = 1
+   *    gas: long, // wei
+   *    gasPrice: long // wei
    * }
    *
    */

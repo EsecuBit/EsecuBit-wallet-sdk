@@ -64,23 +64,7 @@ describe('JsWallet Ethernum', function () {
   })
 
   it('getAddress', async () => {
-    let address = await jsWallet.getAddress(D.COIN_ETH_TEST_ROPSTEN, "m/44'/60'/0'/0/0")
+    let address = await jsWallet.getAddress(D.COIN_ETH_TEST_RINKEBY, "m/44'/60'/0'/0/0")
     address.should.equal('0x79c744891902a0319b1322787190efaba5dbea72')
   })
-
-  // it('derivePublicKey', async () => {
-  //   let publicKey5 = await jsWallet.getPublicKey("m/44'/60'/0'/0/100")
-  //   let publicKey4 = await jsWallet.getPublicKey("m/44'/60'/0'/0")
-  //   let publicKey4to5 = await jsWallet.getPublicKey(100, publicKey4)
-  //   publicKey5.should.deep.equal(publicKey4to5)
-  //   console.log('publicKey5', publicKey5)
-  // })
-  //
-  // it('deriveAddress', async () => {
-  //   let address5 = await jsWallet.getAddress("m/44'/60'/0'/0/100")
-  //   let publicKey4 = await jsWallet.getPublicKey("m/44'/60'/0'/0")
-  //   let address4to5 = await jsWallet.getAddress(D.COIN_ETH_TEST_ROPSTEN, 100, publicKey4)
-  //   address5.should.deep.equal(address4to5)
-  //   console.log('address5', address5)
-  // })
 })
