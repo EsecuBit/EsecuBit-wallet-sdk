@@ -122,7 +122,7 @@ const D = {
       case D.COIN_BIT_COIN_TEST:
         return convertBtc(value, fromType, toType)
       case D.COIN_ETH:
-      case D.COIN_ETH_TEST_ROPSTEN:
+      case D.COIN_ETH_TEST_RINKEBY:
         return convertEth(value, fromType, toType)
       default:
         throw D.ERROR_COIN_NOT_SUPPORTED

@@ -90,11 +90,8 @@ export default class BlockchainInfo extends ICoinNetwork {
     return D.parseRawTx(response.response)
   }
 
-  async sendTx (rawTransaction) {
-    // TODO uncomment after testing BtcAccount
-    let response = await this.post([this._apiUrl, 'pushtx'].join('/'), 'tx=' + rawTransaction)
-    // TODO wrap
-    return response
+  sendTx (rawTransaction) {
+    return this.post([this._apiUrl, 'pushtx'].join('/'), 'tx=' + rawTransaction)
   }
 
   wrapTx (rTx) {

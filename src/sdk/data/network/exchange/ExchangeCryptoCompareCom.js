@@ -10,13 +10,13 @@ const UNITS = {}
 UNITS[D.COIN_BIT_COIN] = D.UNIT_BTC
 UNITS[D.COIN_BIT_COIN_TEST] = D.UNIT_BTC
 UNITS[D.COIN_ETH] = D.UNIT_ETH
-UNITS[D.COIN_ETH_TEST_ROPSTEN] = D.UNIT_ETH
+UNITS[D.COIN_ETH_TEST_RINKEBY] = D.UNIT_ETH
 
 const REQUEST_COINS = {}
 REQUEST_COINS[D.COIN_BIT_COIN] = 'BTC'
 REQUEST_COINS[D.COIN_BIT_COIN_TEST] = 'BTC'
 REQUEST_COINS[D.COIN_ETH] = 'ETH'
-REQUEST_COINS[D.COIN_ETH_TEST_ROPSTEN] = 'ETH'
+REQUEST_COINS[D.COIN_ETH_TEST_RINKEBY] = 'ETH'
 
 export default class ExchangeCryptoCompareCom {
   constructor (exchange) {
@@ -24,7 +24,7 @@ export default class ExchangeCryptoCompareCom {
       case D.COIN_BIT_COIN:
       case D.COIN_BIT_COIN_TEST:
       case D.COIN_ETH:
-      case D.COIN_ETH_TEST_ROPSTEN:
+      case D.COIN_ETH_TEST_RINKEBY:
         this.coinType = exchange.coinType
         break
       default:

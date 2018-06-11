@@ -69,7 +69,7 @@ export default class EsWallet {
     let info = await this._device.init()
     await this._coinData.init(info)
     this._esAccounts = (await this._coinData.getAccounts()).map(account => {
-      if (account.coinType === D.COIN_ETH || account.coinType === D.COIN_ETH_TEST_ROPSTEN) {
+      if (account.coinType === D.COIN_ETH || account.coinType === D.COIN_ETH_TEST_RINKEBY) {
         return new EthAccount(account, this._device, this._coinData)
       } else {
         return new BtcAccount(account, this._device, this._coinData)

@@ -13,8 +13,9 @@
 // import './test/data/network/fee/BitcoinEarn.test'
 // import './test/data/network/ChainSo.test'
 // import './test/data/network/BlockChainInfo.test'
+import './test/data/network/EtherScanIo.test'
 // import './test/data/CoinData.test'
 
 // main class
-import './test/EsWallet.test'
+// import './test/EsWallet.test'
 // import './test/BtcAccount.test'

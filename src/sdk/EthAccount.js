@@ -148,7 +148,7 @@ export default class EthAccount {
         prefix = 'bitcoin:'
         break
       case D.COIN_ETH:
-      case D.COIN_ETH_TEST_ROPSTEN:
+      case D.COIN_ETH_TEST_RINKEBY:
         prefix = 'eth:'
         break
       default:

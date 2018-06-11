@@ -39,7 +39,7 @@ const D = {
   COIN_BIT_COIN: 'bitcoin',
   COIN_BIT_COIN_TEST: 'bitcoin_test',
   COIN_ETH: 'ethernet',
-  COIN_ETH_TEST_ROPSTEN: 'ethernet_test_repsten',
+  COIN_ETH_TEST_RINKEBY: 'ethernet_test_rinkeby',
   SUPPORTED_COIN_TYPES: ['bitcoin', 'ethernet'],
   SUPPORTED_TEST_COIN_TYPES: ['bitcoin_test', 'ethernet_test_repsten'],
 
@@ -108,7 +108,7 @@ const D = {
       case D.COIN_BIT_COIN_TEST:
         return convertBtc(value, fromType, toType)
       case D.COIN_ETH:
-      case D.COIN_ETH_TEST_ROPSTEN:
+      case D.COIN_ETH_TEST_RINKEBY:
         return convertEth(value, fromType, toType)
       default:
         throw D.ERROR_COIN_NOT_SUPPORTED
@@ -148,7 +148,7 @@ const D = {
       case D.COIN_BIT_COIN_TEST:
         return 0
       case D.COIN_ETH:
-      case D.COIN_ETH_TEST_ROPSTEN:
+      case D.COIN_ETH_TEST_RINKEBY:
         return 60
       default:
         throw D.ERROR_COIN_NOT_SUPPORTED
