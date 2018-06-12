@@ -7,7 +7,7 @@ export default class IndexedDB extends IDatabase {
   constructor (walletId) {
     super()
     if (IndexedDB.pool[walletId]) {
-      console.info('return exists instance', IndexedDB.pool[walletId])
+      console.log('return exists instance', IndexedDB.pool[walletId])
       return IndexedDB.pool[walletId]
     }
     IndexedDB.pool[walletId] = this
@@ -37,7 +37,7 @@ export default class IndexedDB extends IDatabase {
 
       let openRequest = indexedDB.open(this._walletId, DB_VERSION)
       openRequest.onupgradeneeded = (e) => {
-        console.info('indexedDB upgrading...')
+        console.log('indexedDB upgrading...')
         let db = e.target.result
 
         /**
@@ -146,7 +146,7 @@ export default class IndexedDB extends IDatabase {
       }
 
       openRequest.onsuccess = (e) => {
-        console.info('indexedDB open success!')
+        console.log('indexedDB open success!')
         this._db = e.target.result
         this._finished++ || resolve()
       }
@@ -196,11 +196,11 @@ export default class IndexedDB extends IDatabase {
       let finished = false
       let deleteRequest = indexedDB.deleteDatabase(this._walletId)
       deleteRequest.onsuccess = () => {
-        console.info('indexedDB delete succeed')
+        console.log('indexedDB delete succeed')
         finished++ || resolve()
       }
       deleteRequest.onerror = (ev) => {
-        console.info('indexedDB delete failed', ev)
+        console.log('indexedDB delete failed', ev)
         finished++ || reject(D.ERROR_DATABASE_OPEN_FAILED)
       }
 
@@ -385,7 +385,7 @@ export default class IndexedDB extends IDatabase {
         cursor.continue()
       }
       request.onerror = (e) => {
-        console.info('getTxInfos', e)
+        console.log('getTxInfos', e)
         reject(D.ERROR_DATABASE_EXEC_FAILED)
       }
     })

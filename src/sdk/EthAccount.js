@@ -21,7 +21,7 @@ export default class EthAccount {
         console.warn('BtcAccount txListener', error)
         return
       }
-      console.info('newTransaction status', txInfo)
+      console.log('newTransaction status', txInfo)
       let index = this.txInfos.findIndex(t => t.txId === txInfo.txId)
       if (index === -1) {
         console.warn('this should not happen, add it')
@@ -37,7 +37,7 @@ export default class EthAccount {
         console.warn('BtcAccount addressListener', error)
         return
       }
-      console.info('newTransaction', addressInfo, addressInfo, txInfo, utxos)
+      console.log('newTransaction', addressInfo, addressInfo, txInfo, utxos)
       await this._handleNewTx(addressInfo, txInfo, utxos)
     }
   }
@@ -109,7 +109,7 @@ export default class EthAccount {
     this.txInfos.push(D.copy(txInfo))
 
     if (txInfo.confirmations < D.TX_ETH_MATURE_CONFIRMATIONS) {
-      console.info('listen transaction status', txInfo)
+      console.log('listen transaction status', txInfo)
       if (!this._listenedTxs.some(tx => tx === txInfo.txId)) {
         this._listenedTxs.push(txInfo.txId)
         this._coinData.listenTx(this.coinType, D.copy(txInfo), this._txListener)
@@ -249,7 +249,7 @@ export default class EthAccount {
       outputs: prepareTx.outputs
     }
     rawTx.outputs.push({address: changeAddress, value: value})
-    console.info(rawTx)
+    console.log(rawTx)
     let signedTx = await this._device.signTransaction(rawTx)
     let txInfo = {
       accountId: this.accountId,

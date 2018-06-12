@@ -83,7 +83,7 @@ export default class EsWallet {
     await this._device.sync()
 
     if (this._esAccounts.length === 0) {
-      console.info('no accounts, new wallet, start recovery')
+      console.log('no accounts, new wallet, start recovery')
       await this._recover(D.TEST_MODE ? D.COIN_BIT_COIN_TEST : D.COIN_BIT_COIN)
     } else {
       await Promise.all(this._esAccounts.map(esAccount => esAccount.sync()))
@@ -94,14 +94,11 @@ export default class EsWallet {
     while (true) {
       let account = await this._coinData.newAccount(coinType)
       let esAccount = new BtcAccount(account, this._device, this._coinData)
-      console.log('11')
       await esAccount.init()
-      console.log('22')
       await esAccount.sync()
-      console.log('33')
       // new account has no transactions, recover finish
       if ((await esAccount.getTxInfos()).total === 0) {
-        console.info(esAccount.accountId, 'has no txInfo, will not recover, delete it')
+        console.log(esAccount.accountId, 'has no txInfo, will not recover, delete it')
         await esAccount.delete()
         break
       }

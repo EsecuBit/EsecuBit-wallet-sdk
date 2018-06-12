@@ -4,25 +4,25 @@ import ChromeUsbDevice from '../../sdk/device/ChromeUsbDevice'
 
 const esHidDevice = new ChromeUsbDevice()
 esHidDevice.listenPlug(function (error, isPlugIn) {
-  console.info('error ' + error + ', isPlugIn: ' + isPlugIn)
+  console.log('error ' + error + ', isPlugIn: ' + isPlugIn)
 
   if (isPlugIn) {
     // var apdu = '007800002E09302e303132204254430122314d6459433232476d6a7032656a5670437879596a66795762514359544768477138'
-    // console.info('test send ' + apdu)
+    // console.log('test send ' + apdu)
     // device.sendAndReceive(hexToArrayBuffer(apdu), function (error, receive) {
     //   if (error !== D.ERROR_NO_ERROR) {
     //     return
     //   }
-    //   console.info('test receive ' + arrayBufferToHex(receive))
+    //   console.log('test receive ' + arrayBufferToHex(receive))
     // })
 
     // var apdu = '8033000007ba050000000000'
-    // console.info('test send ' + apdu)
+    // console.log('test send ' + apdu)
     // device.sendAndReceive(hexToArrayBuffer(apdu), function (error, receive) {
     //   if (error !== D.ERROR_NO_ERROR) {
     //     return
     //   }
-    //   console.info('test receive ' + arrayBufferToHex(receive))
+    //   console.log('test receive ' + arrayBufferToHex(receive))
     // })
   }
 })
@@ -31,12 +31,12 @@ var x = document.getElementById("submit")
 x.onclick = doit
 function doit() {
   var apdu = '007800002E09302e303132204254430122314d6459433232476d6a7032656a5670437879596a66795762514359544768477138'
-  console.info('test send ' + apdu)
+  console.log('test send ' + apdu)
   esHidDevice.sendAndReceive(hexToArrayBuffer(apdu), function (error, receive) {
     if (error !== D.ERROR_NO_ERROR) {
       return
     }
-    console.info('test receive ' + arrayBufferToHex(receive))
+    console.log('test receive ' + arrayBufferToHex(receive))
   })
 }
 

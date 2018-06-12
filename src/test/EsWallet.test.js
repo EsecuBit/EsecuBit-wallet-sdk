@@ -14,11 +14,11 @@ describe('EsWallet', function () {
     availableCoinTypes.length.should.equal(2)
   })
 
-  it('clearDatabase', async () => {
-    let indexedDB = new IndexedDB(D.TEST_SYNC_WALLET_ID)
-    await indexedDB.init()
-    await indexedDB.clearDatabase()
-  })
+  // it('clearDatabase', async () => {
+  //   let indexedDB = new IndexedDB(D.TEST_SYNC_WALLET_ID)
+  //   await indexedDB.init()
+  //   await indexedDB.clearDatabase()
+  // })
 
   // new EsWallet will have heavy work, so do the lazy work
   it('new wallet', async () => {
@@ -31,10 +31,10 @@ describe('EsWallet', function () {
     let currentStatusIndex = 0
 
     esWallet.listenTxInfo((error, txInfo) => {
-      console.info('detect new tx', error, txInfo)
+      console.log('detect new tx', error, txInfo)
     })
     esWallet.listenStatus((error, status) => {
-      console.info('error, status', error, status)
+      console.log('error, status', error, status)
       if (error !== D.ERROR_NO_ERROR) {
         console.warn('found error', error)
         done(error)

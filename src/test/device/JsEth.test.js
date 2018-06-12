@@ -12,14 +12,14 @@
 //   const page = await instance.createPage()
 //   //页面指向的是哪个一个url
 //   await page.on('onResourceRequested', function(requestData) {
-//     console.info('Requesting', requestData.url)
+//     console.log('Requesting', requestData.url)
 //   })
 //   //得到打开该页面的状态码
 //   const status = await page.open('https://stackoverflow.com/')
-//   console.info(status)
+//   console.log(status)
 // //输出该页面的内容
 //   const content = await page.property('content')
-//   console.info(content)
+//   console.log(content)
 //   //输出内容
 //   //退出该phantom实例
 //   await instance.exit()
@@ -39,7 +39,7 @@
 
 const Web3 = require('web3')
 if (typeof web3 !== 'undefined') {
-  console.info('already has web3')
+  console.log('already has web3')
   web3 = new Web3(web3.currentProvider)
 } else {
   // set the provider you want from Web3.providers
@@ -47,7 +47,7 @@ if (typeof web3 !== 'undefined') {
   console.warn('no web3 instance')
 }
 
-console.info(web3.version)
+console.log(web3.version)
 
 // messageHash:'0x7dbc5644b83abd32d014d170ba9bdc855c126328c0cb41af0ed6422bef0bb32e'
 // r:'0x2580390416fe8c951e8e0b12b349ce9a530f67f2cabb88ab70378789a83bbd4b'
@@ -62,9 +62,9 @@ console.info(web3.version)
 // chainId:'0'
 
 const account = web3.eth.accounts.create()
-console.info(account)
-web3.eth.getTransactionCount(account.address).then(console.info)
-web3.eth.net.getId().then(console.info)
+console.log(account)
+web3.eth.getTransactionCount(account.address).then(console.log)
+web3.eth.net.getId().then(console.log)
 
 account.signTransaction({
   nonce: '1000',
@@ -74,5 +74,5 @@ account.signTransaction({
   value: '1000000000000000000',
   data: ''
 }, function (error, response) {
-  console.info('error:', error, 'response:', response)
+  console.log('error:', error, 'response:', response)
 })

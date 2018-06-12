@@ -4,6 +4,8 @@ import IndexedDB from './database/IndexedDB'
 import BlockChainInfo from './network/BlockChainInfo'
 import FeeBitCoinEarn from './network/fee/FeeBitCoinEarn'
 import ExchangeCryptoCompareCom from './network/exchange/ExchangeCryptoCompareCom'
+import EthGasStationInfo from './network/fee/EthGasStationInfo'
+import EtherScanIo from './network/EtherScanIo'
 
 // TODO CoinData only manage data, don't handle data. leave it to BtcAccount and EsWallet?
 export default class CoinData {
@@ -16,10 +18,16 @@ export default class CoinData {
     this._initialized = false
 
     const COIN_TYPES = D.TEST_MODE ? D.SUPPORTED_TEST_COIN_TYPES : D.SUPPORTED_COIN_TYPES
-    // TODO read provider from settings
-    this._networkProvider = BlockChainInfo
-    // TODO support eth
-    this._network = COIN_TYPES.filter(coinType => coinType.includes('bitcoin')).reduce((obj, coinType) => (obj[coinType] = new this._networkProvider(coinType)) && obj, {})
+    this._network = COIN_TYPES.reduce((obj, coinType) => {
+      // TODO read provider from settings
+      if (coinType.includes('bitcoin')) {
+        obj[coinType] = new BlockChainInfo(coinType)
+      }
+      if (coinType.includes('ethereum')) {
+        obj[coinType] = new EtherScanIo(coinType)
+      }
+      return obj
+    }, {})
     this._networkFee = COIN_TYPES.reduce((obj, coinType) => (obj[coinType] = null) || obj, {})
     this._exchange = COIN_TYPES.reduce((obj, coinType) => (obj[coinType] = null) || obj, {})
 
@@ -38,9 +46,12 @@ export default class CoinData {
       await Promise.all(Object.keys(this._networkFee).map(async coinType => {
         let fee = await this._db.getFee(coinType)
         fee = fee || {coinType}
-        // TODO support eth
         if (coinType.includes('bitcoin')) {
           this._networkFee[coinType] = new FeeBitCoinEarn(fee)
+          this._networkFee[coinType].onUpdateFee = (fee) => this._db.saveOfUpdateFee(fee)
+        }
+        if (coinType.includes('ethereum')) {
+          this._networkFee[coinType] = new EthGasStationInfo(fee)
           this._networkFee[coinType].onUpdateFee = (fee) => this._db.saveOfUpdateFee(fee)
         }
       }))
@@ -72,7 +83,7 @@ export default class CoinData {
   addListener (callback) {
     let exists = this._listeners.some(listener => listener === callback)
     if (exists) {
-      console.info('addTransactionListener already has this listener', callback)
+      console.log('addTransactionListener already has this listener', callback)
       return
     }
     this._listeners.push(callback)
@@ -82,7 +93,6 @@ export default class CoinData {
     this._listeners = this._listeners.filter(listener => listener !== callback)
   }
 
-  // TODO other eth wallet account rules
   async newAccount (coinType) {
     let accountIndex = await await this._newAccountIndex(coinType)
     if (accountIndex === -1) throw D.ERROR_LAST_ACCOUNT_NO_TRANSACTION
@@ -110,7 +120,7 @@ export default class CoinData {
       index: accountIndex,
       balance: 0
     }
-    console.info('newAccount', account)
+    console.log('newAccount', account)
     return account
   }
 
@@ -143,7 +153,7 @@ export default class CoinData {
       console.warn('attemp to delete a non-empty account', account)
       throw D.ERROR_ACCOUNT_HAS_TRANSACTIONS
     }
-    console.info('delete account', account)
+    console.log('delete account', account)
     await this._db.deleteAccount(account, addressInfos)
   }
 
@@ -182,12 +192,12 @@ export default class CoinData {
   }
 
   listenAddresses (coinType, addressInfos, callback) {
-    console.info('listen addresses', addressInfos)
+    console.log('listen addresses', addressInfos)
     return this._network[coinType].listenAddresses(addressInfos, callback)
   }
 
   listenTx (coinType, txInfo, callback) {
-    console.info('listen txInfo', txInfo)
+    console.log('listen txInfo', txInfo)
     return this._network[coinType].listenTx(txInfo, callback)
   }
 
@@ -234,7 +244,7 @@ export default class CoinData {
    * Test data when TEST_DATA = true
    */
   async _initTestDbData (account) {
-    console.info('TEST_DATA add test txInfo')
+    console.log('TEST_DATA add test txInfo')
     account.balance = 32000000
     let accountId = account.accountId
     // TODO update data

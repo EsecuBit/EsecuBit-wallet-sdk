@@ -4,7 +4,7 @@
 
 
 function click(e) {
-  console.info(e.target.id);
+  console.log(e.target.id);
   chrome.tabs.executeScript(null,
       {code:"document.body.style.backgroundColor='" + e.target.id + "'"});
   window.close();

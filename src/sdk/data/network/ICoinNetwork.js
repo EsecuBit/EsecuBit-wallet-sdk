@@ -25,7 +25,7 @@ export default class ICoinNetwork {
 
   async init () {
     this._blockHeight = await this.getBlockHeight()
-    console.info(this.coinType, 'current block height', this._blockHeight)
+    console.log(this.coinType, 'current block height', this._blockHeight)
 
     // start the request loop
     this._startQueue = true
@@ -144,7 +144,7 @@ export default class ICoinNetwork {
           if (!this.hasRecord) response = await that.queryTx(this.txInfo.txId)
         } catch (e) {
           if (e === D.ERROR_TX_NOT_FOUND) {
-            console.info('tx not found in network, continue. id: ', txInfo.txId)
+            console.log('tx not found in network, continue. id: ', txInfo.txId)
             return
           }
           callback(e, this.txInfo)
@@ -153,7 +153,7 @@ export default class ICoinNetwork {
 
         if (confirmations > 0) this.hasRecord = true
         if (confirmations >= D.TX_BTC_MATURE_CONFIRMATIONS) {
-          console.info('confirmations enough, remove', this)
+          console.log('confirmations enough, remove', this)
           remove(that._requestList, this)
         }
         if (this.txInfo.confirmations !== confirmations) {

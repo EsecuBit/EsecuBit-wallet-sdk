@@ -24,7 +24,7 @@ export default class BtcAccount {
         console.warn('BtcAccount txListener', error)
         return
       }
-      console.info('newTransaction status', txInfo)
+      console.log('newTransaction status', txInfo)
       let index = this.txInfos.findIndex(t => t.txId === txInfo.txId)
       if (index === -1) {
         console.warn('this should not happen, add it')
@@ -40,22 +40,18 @@ export default class BtcAccount {
         console.warn('BtcAccount addressListener', error)
         return
       }
-      console.info('newTransaction', addressInfo, addressInfo, txInfo, utxos)
+      console.log('newTransaction', addressInfo, addressInfo, txInfo, utxos)
       await this._handleNewTx(addressInfo, txInfo, utxos)
     }
   }
 
   async init () {
-    console.log('1')
     let accountId = this.accountId
     this.addressInfos = await this._coinData.getAddressInfos({accountId})
     this.txInfos = (await this._coinData.getTxInfos({accountId})).txInfos
     this.utxos = await this._coinData.getUtxos({accountId})
-    console.log('2')
     let newAddressInfos = await this._checkAddressIndexAndGenerateNew()
-    console.log('3')
     await this._coinData.newAddressInfos(this._toAccountInfo(), newAddressInfos)
-    console.log('4')
   }
 
   // TODO judge compress uncompress public key
@@ -145,7 +141,7 @@ export default class BtcAccount {
       if (newListeneAddressInfos.length !== 0) this._coinData.listenAddresses(this.coinType, newListeneAddressInfos, this._addressListener)
     }
     if (txInfo.confirmations < D.TX_BTC_MATURE_CONFIRMATIONS) {
-      console.info('listen transaction status', txInfo)
+      console.log('listen transaction status', txInfo)
       if (!this._listenedTxs.some(tx => tx === txInfo.txId)) {
         this._listenedTxs.push(txInfo.txId)
         this._coinData.listenTx(this.coinType, D.copy(txInfo), this._txListener)
@@ -172,7 +168,7 @@ export default class BtcAccount {
       sync ? index += 20 : index += 1
       nextIndex = nextIndex > index + 20 ? index + 20 : nextIndex
       if (index > nextIndex) {
-        console.info(this.accountId, 'generating', type, 'addressInfos, from', nextIndex, 'to', index)
+        console.log(this.accountId, 'generating', type, 'addressInfos, from', nextIndex, 'to', index)
       }
       return (await Promise.all(Array.from({length: index - nextIndex}, (v, k) => nextIndex + k).map(async i => {
         try {
@@ -367,7 +363,7 @@ export default class BtcAccount {
       outputs: prepareTx.outputs
     }
     rawTx.outputs.push({address: changeAddress, value: value})
-    console.info(rawTx)
+    console.log(rawTx)
     let signedTx = await this._device.signTransaction(rawTx)
     let txInfo = {
       accountId: this.accountId,
@@ -426,15 +422,15 @@ export default class BtcAccount {
     let apdu = ''
     let hexChars = '0123456789ABCDEF'
     apdu += hexChars[totalString.length >> 4] + hexChars[totalString.length % 0x10] + D.arrayBufferToHex(enc.encode(totalString))
-    console.info(apdu)
+    console.log(apdu)
     apdu += '01'
-    console.info(apdu)
+    console.log(apdu)
     apdu += hexChars[transaction.addresses[0].length >> 4] + hexChars[transaction.addresses[0].length % 0x10] + D.arrayBufferToHex(enc.encode(transaction.addresses[0]))
-    console.info(apdu)
+    console.log(apdu)
     apdu = hexChars[parseInt(apdu.length / 2) % 0x10] + apdu
     apdu = hexChars[parseInt(apdu.length / 2) >> 4] + apdu
     apdu = '00780000' + apdu
-    console.info(apdu)
+    console.log(apdu)
 
     // var ok = "007800002E09302e303132204254430122314d6459433232476d6a7032656a5670437879596a66795762514359544768477138"
     let response = this._device.sendHexApduTrue(apdu, callback)
@@ -442,9 +438,9 @@ export default class BtcAccount {
     let intArray = new Uint8Array(new Array(2))
     intArray[0] = data[3]
     intArray[1] = data[4]
-    console.info('data ' + D.arrayBufferToHex(response))
-    console.info('data ' + D.arrayBufferToHex(data))
-    console.info('sw ' + D.arrayBufferToHex(intArray))
+    console.log('data ' + D.arrayBufferToHex(response))
+    console.log('data ' + D.arrayBufferToHex(data))
+    console.log('sw ' + D.arrayBufferToHex(intArray))
     let sw = D.arrayBufferToHex(intArray)
 
     if (sw === '6FFA') {

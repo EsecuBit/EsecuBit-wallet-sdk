@@ -38,10 +38,10 @@ const D = {
   // coin type
   COIN_BIT_COIN: 'bitcoin',
   COIN_BIT_COIN_TEST: 'bitcoin_test',
-  COIN_ETH: 'ethernet',
-  COIN_ETH_TEST_RINKEBY: 'ethernet_test_rinkeby',
-  SUPPORTED_COIN_TYPES: ['bitcoin', 'ethernet'],
-  SUPPORTED_TEST_COIN_TYPES: ['bitcoin_test', 'ethernet_test_rinkeby'],
+  COIN_ETH: 'ethereum',
+  COIN_ETH_TEST_RINKEBY: 'ethereum_test_rinkeby',
+  SUPPORTED_COIN_TYPES: ['bitcoin', 'ethereum'],
+  SUPPORTED_TEST_COIN_TYPES: ['bitcoin_test', 'ethereum_test_rinkeby'],
 
   // BIP44
   ADDRESS_EXTERNAL: 'external',

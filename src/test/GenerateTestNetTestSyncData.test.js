@@ -133,20 +133,20 @@ describe('Generate Testnet Test Sync Data', function () {
     changeAddress1.should.equal(this.changeAddress1)
     changeAddress21.should.equal(this.changeAddress21)
 
-    console.info('externalAddress0', externalAddress0)
-    console.info('externalAddress4', externalAddress4)
-    console.info('externalAddress24', externalAddress24)
-    console.info('externalAddress44', externalAddress44)
-    console.info('account2ExternalAddress2', account2ExternalAddress2)
+    console.log('externalAddress0', externalAddress0)
+    console.log('externalAddress4', externalAddress4)
+    console.log('externalAddress24', externalAddress24)
+    console.log('externalAddress44', externalAddress44)
+    console.log('account2ExternalAddress2', account2ExternalAddress2)
 
-    console.info('changeAddress0', changeAddress0)
-    console.info('changeAddress1', changeAddress1)
-    console.info('changeAddress21', changeAddress21)
+    console.log('changeAddress0', changeAddress0)
+    console.log('changeAddress1', changeAddress1)
+    console.log('changeAddress21', changeAddress21)
 
-    console.info('otherAddress0', otherAddress0)
-    console.info('otherAddress1', otherAddress1)
-    console.info('otherAddress2', otherAddress2)
-    console.info('account2OtherAddress4', account2OtherAddress4)
+    console.log('otherAddress0', otherAddress0)
+    console.log('otherAddress1', otherAddress1)
+    console.log('otherAddress2', otherAddress2)
+    console.log('account2OtherAddress4', account2OtherAddress4)
   })
 
   it('generateTx2', async () => {
@@ -164,7 +164,7 @@ describe('Generate Testnet Test Sync Data', function () {
       }]
     })
     transaction2.should.deep.equal(this.transaction2)
-    console.info('transaction2', transaction2)
+    console.log('transaction2', transaction2)
   })
 
   it('generateTx3', async () => {
@@ -185,7 +185,7 @@ describe('Generate Testnet Test Sync Data', function () {
       }]
     })
     transaction3.should.deep.equal(this.transaction3)
-    console.info('transaction3', transaction3)
+    console.log('transaction3', transaction3)
   })
 
   it('generateTx4', async () => {
@@ -206,7 +206,7 @@ describe('Generate Testnet Test Sync Data', function () {
       }]
     })
     transaction4.should.deep.equal(this.transaction4)
-    console.info('transaction4', transaction4)
+    console.log('transaction4', transaction4)
   })
 
   it('generateTx5', async () => {
@@ -232,7 +232,7 @@ describe('Generate Testnet Test Sync Data', function () {
       }]
     })
     transaction5.should.deep.equal(this.transaction5)
-    console.info('transaction5', transaction5)
+    console.log('transaction5', transaction5)
   })
 
   it('generateTx7', async () => {
@@ -250,7 +250,7 @@ describe('Generate Testnet Test Sync Data', function () {
       }]
     })
     transaction7.should.deep.equal(this.transaction7)
-    console.info('transaction7', transaction7)
+    console.log('transaction7', transaction7)
   })
 
   it('generateTx8', async () => {
@@ -268,7 +268,7 @@ describe('Generate Testnet Test Sync Data', function () {
       }]
     })
     transaction8.should.deep.equal(this.transaction8)
-    console.info('transaction8', transaction8)
+    console.log('transaction8', transaction8)
   })
 
   it('generateTx10', async () => {
@@ -286,11 +286,11 @@ describe('Generate Testnet Test Sync Data', function () {
       }]
     })
     transaction10.should.deep.equal(this.transaction10)
-    console.info('transaction10', transaction10)
+    console.log('transaction10', transaction10)
 
     // let network = new BlockChainInfo(D.COIN_BIT_COIN_TEST)
     // await network.init()
     // let response = await network.sendTx(transaction10.hex)
-    // console.info('response', response)
+    // console.log('response', response)
   })
 })
