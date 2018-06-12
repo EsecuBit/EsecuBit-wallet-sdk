@@ -12,11 +12,11 @@ export default class EsWallet {
    * @returns {*[]}
    */
   static supportedCoinTypes () {
-    return D.copy(D.TEST_MODE ? D.SUPPORTED_TEST_COIN_TYPES : D.SUPPORTED_COIN_TYPES)
+    return D.suppertedCoinTypes()
   }
 
   static supportedLegalCurrency () {
-    return D.copy(D.SUPPORTED_LEGAL_CURRENCY)
+    return D.suppertedLegals()
   }
 
   constructor () {
@@ -25,40 +25,40 @@ export default class EsWallet {
     }
     EsWallet.prototype.Instance = this
 
-    this._device = D.TEST_JS_WALLET ? new JsWallet() : new CoreWallet()
+    this._device = D.test.jsWallet ? new JsWallet() : new CoreWallet()
     this._coinData = new CoinData()
-    this._status = D.STATUS_PLUG_OUT
+    this._status = D.status.plugOut
     this._callback = null
     this._device.listenPlug(async (error, plugStatus) => {
       this._status = plugStatus
-      if (error !== D.ERROR_NO_ERROR) {
+      if (error !== D.error.succeed) {
         this._callback && this._callback(error, this._status)
         return
       }
-      this._callback && this._callback(D.ERROR_NO_ERROR, this._status)
-      if (this._status === D.STATUS_PLUG_IN) {
-        this._status = D.STATUS_INITIALIZING
-        this._callback && this._callback(D.ERROR_NO_ERROR, this._status)
+      this._callback && this._callback(D.error.succeed, this._status)
+      if (this._status === D.status.plugIn) {
+        this._status = D.status.initializing
+        this._callback && this._callback(D.error.succeed, this._status)
         try {
           await this._init()
         } catch (e) {
           this._callback && this._callback(e, this._status)
           return
         }
-        if (this._status === D.STATUS_PLUG_OUT) return
+        if (this._status === D.status.plugOut) return
 
-        this._status = D.STATUS_SYNCING
-        this._callback && this._callback(D.ERROR_NO_ERROR, this._status)
+        this._status = D.status.syncing
+        this._callback && this._callback(D.error.succeed, this._status)
         try {
           await this._sync()
         } catch (e) {
           this._callback && this._callback(e, this._status)
           return
         }
-        if (this._status === D.STATUS_PLUG_OUT) return
+        if (this._status === D.status.plugOut) return
 
-        this._status = D.STATUS_SYNC_FINISH
-        this._callback && this._callback(D.ERROR_NO_ERROR, this._status)
+        this._status = D.status.syncFinish
+        this._callback && this._callback(D.error.succeed, this._status)
       } else {
         this._release()
       }
@@ -69,7 +69,7 @@ export default class EsWallet {
     let info = await this._device.init()
     await this._coinData.init(info)
     this._esAccounts = (await this._coinData.getAccounts()).map(account => {
-      if (account.coinType === D.COIN_ETH || account.coinType === D.COIN_ETH_TEST_RINKEBY) {
+      if (account.coinType === D.coin.main.eth || account.coinType === D.coin.test.ethRinkeby) {
         return new EthAccount(account, this._device, this._coinData)
       } else {
         return new BtcAccount(account, this._device, this._coinData)
@@ -84,11 +84,7 @@ export default class EsWallet {
 
     if (this._esAccounts.length === 0) {
       console.log('no accounts, new wallet, start recovery')
-      if (D.TEST_RECOVER_ETH) {
-        await this._recover(D.TEST_MODE ? D.COIN_ETH_TEST_RINKEBY : D.COIN_ETH)
-      } else {
-        await this._recover(D.TEST_MODE ? D.COIN_BIT_COIN_TEST : D.COIN_BIT_COIN)
-      }
+      await Promise.all(D.recoverCoinTypes().map(coinType => this._recover(coinType)))
     } else {
       await Promise.all(this._esAccounts.map(esAccount => esAccount.sync()))
     }
@@ -98,10 +94,12 @@ export default class EsWallet {
     while (true) {
       let account = await this._coinData.newAccount(coinType)
       let esAccount
-      if (coinType.includes('bitcoin')) {
+      if (coinType.includes('btc')) {
         esAccount = new BtcAccount(account, this._device, this._coinData)
-      } else if (coinType.includes('ethereum')) {
+      } else if (coinType.includes('eth')) {
         esAccount = new EthAccount(account, this._device, this._coinData)
+      } else {
+        throw D.error.coinNotSupported
       }
       await esAccount.init()
       await esAccount.sync()
@@ -124,25 +122,25 @@ export default class EsWallet {
   listenStatus (callback) {
     this._callback = callback
     switch (this._status) {
-      case D.STATUS_PLUG_IN:
-        callback(D.ERROR_NO_ERROR, D.STATUS_PLUG_IN)
+      case D.status.plugIn:
+        callback(D.error.succeed, D.status.plugIn)
         break
-      case D.STATUS_INITIALIZING:
-        callback(D.ERROR_NO_ERROR, D.STATUS_PLUG_IN)
-        callback(D.ERROR_NO_ERROR, D.STATUS_INITIALIZING)
+      case D.status.initializing:
+        callback(D.error.succeed, D.status.plugIn)
+        callback(D.error.succeed, D.status.initializing)
         break
-      case D.STATUS_SYNCING:
-        callback(D.ERROR_NO_ERROR, D.STATUS_PLUG_IN)
-        callback(D.ERROR_NO_ERROR, D.STATUS_INITIALIZING)
-        callback(D.ERROR_NO_ERROR, D.STATUS_SYNCING)
+      case D.status.syncing:
+        callback(D.error.succeed, D.status.plugIn)
+        callback(D.error.succeed, D.status.initializing)
+        callback(D.error.succeed, D.status.syncing)
         break
-      case D.STATUS_SYNC_FINISH:
-        callback(D.ERROR_NO_ERROR, D.STATUS_PLUG_IN)
-        callback(D.ERROR_NO_ERROR, D.STATUS_INITIALIZING)
-        callback(D.ERROR_NO_ERROR, D.STATUS_SYNCING)
-        callback(D.ERROR_NO_ERROR, D.STATUS_SYNC_FINISH)
+      case D.status.syncFinish:
+        callback(D.error.succeed, D.status.plugIn)
+        callback(D.error.succeed, D.status.initializing)
+        callback(D.error.succeed, D.status.syncing)
+        callback(D.error.succeed, D.status.syncFinish)
         break
-      case D.STATUS_PLUG_OUT:
+      case D.status.plugOut:
       default:
     }
   }
@@ -176,9 +174,8 @@ export default class EsWallet {
   }
 
   async availableNewAccountCoinTypes () {
-    const AVAILABLE_COIN_TYPES = D.TEST_MODE ? D.SUPPORTED_TEST_COIN_TYPES : D.SUPPORTED_COIN_TYPES
     let availables = []
-    for (let coinType of AVAILABLE_COIN_TYPES) {
+    for (let coinType of D.suppertedCoinTypes()) {
       if ((await this._coinData._newAccountIndex(coinType)) >= 0) {
         availables.push(coinType)
       }

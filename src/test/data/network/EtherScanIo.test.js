@@ -6,7 +6,7 @@ import EtherScanIo from '../../../sdk/data/network/EtherScanIo'
 chai.should()
 describe('Network BlockChainInfo Bitcoin', function () {
   this.timeout(3000)
-  const etherScanIo = new EtherScanIo(D.COIN_ETH_TEST_RINKEBY)
+  const etherScanIo = new EtherScanIo(D.coin.test.ethRinkeby)
 
   it('init network', async () => {
     let response = await etherScanIo.init()

@@ -7,7 +7,7 @@ import BlockChainInfo from '../sdk/data/network/BlockChainInfo'
 chai.should()
 describe('Generate Testnet Test Sync Data', function () {
   this.timeout('1000000')
-  D.TEST_SYNC = true
+  D.test.sync = true
   const jsWallet = new JsWallet()
 
   // account 1
@@ -98,14 +98,14 @@ describe('Generate Testnet Test Sync Data', function () {
   this.changeAddress21 = 'n2QUFCMrJ9jPqSbmpD9jkDLEs3GHBmQthE' // 5650000 -> 19061110
 
   it('generateAddress', async () => {
-    D.TEST_SYNC = false
+    D.test.sync = false
     await jsWallet.init()
     let otherAddress0 = await jsWallet.getAddress("m/44'/0'/0'/0/0")
     let otherAddress1 = await jsWallet.getAddress("m/44'/0'/0'/0/1")
     let otherAddress2 = await jsWallet.getAddress("m/44'/0'/0'/0/2")
     let account2OtherAddress4 = await jsWallet.getAddress("m/44'/0'/1'/0/4")
 
-    D.TEST_SYNC = true
+    D.test.sync = true
     await jsWallet.init()
     let externalAddress0 = await jsWallet.getAddress("m/44'/0'/0'/0/0")
     let externalAddress4 = await jsWallet.getAddress("m/44'/0'/0'/0/4")
@@ -288,7 +288,7 @@ describe('Generate Testnet Test Sync Data', function () {
     transaction10.should.deep.equal(this.transaction10)
     console.log('transaction10', transaction10)
 
-    // let network = new BlockChainInfo(D.COIN_BIT_COIN_TEST)
+    // let network = new BlockChainInfo(D.coin.test.btcTestNet3)
     // await network.init()
     // let response = await network.sendTx(transaction10.hex)
     // console.log('response', response)

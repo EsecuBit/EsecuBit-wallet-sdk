@@ -6,7 +6,7 @@ import ChainSo from '../../../sdk/data/network/ChainSo'
 chai.should()
 describe('Network ChainSo Bitcoin', function () {
   this.timeout(5000)
-  const chainSo = new ChainSo(D.COIN_BIT_COIN_TEST)
+  const chainSo = new ChainSo(D.coin.test.btcTestNet3)
 
   // server limit
   it('init network', async () => {

@@ -4,12 +4,12 @@ import D from '../../../sdk/D'
 import IndexedDB from '../../../sdk/data/database/IndexedDB'
 
 chai.should()
-const indexedDB = new IndexedDB(D.TEST_SYNC_WALLET_ID)
+const indexedDB = new IndexedDB(D.test.syncWalletId)
 describe('IndexedDB', function () {
   let account1 = {
     accountId: '123',
     label: 'Account#1',
-    coinType: D.COIN_BIT_COIN,
+    coinType: D.coin.main.btc,
     balance: 0
   }
 
@@ -21,7 +21,7 @@ describe('IndexedDB', function () {
     blockNumber: 10000,
     confirmations: 100,
     time: 222,
-    direction: D.TX_DIRECTION_IN,
+    direction: D.tx.direction.in,
     inputs: [{
       prevAddress: 'aaa',
       isMine: false,
@@ -38,9 +38,9 @@ describe('IndexedDB', function () {
   let addressInfo = {
     address: txInfo.outputs[0].address,
     accountId: account1.accountId,
-    coinType: D.COIN_BIT_COIN,
+    coinType: D.coin.main.btc,
     path: "m/0'/44'/0'/0/0",
-    type: D.ADDRESS_EXTERNAL,
+    type: D.address.external,
     txCount: 1,
     balance: txInfo.outputs[0].value,
     txIds: [txInfo.txId]
@@ -83,26 +83,26 @@ describe('IndexedDB', function () {
   })
 
   it('saveAccount2WithSameId', async () => {
-    let error = D.ERROR_NO_ERROR
+    let error = D.error.succeed
     try {
       let account1 = {
         accountId: '123',
         label: 'Account#2',
-        coinType: D.COIN_BIT_COIN,
+        coinType: D.coin.main.btc,
         balance: 0
       }
       await indexedDB.newAccount(account1)
     } catch (e) {
       error = e
     }
-    error.should.equal(D.ERROR_DATABASE_EXEC_FAILED)
+    error.should.equal(D.error.databaseExecFailed)
   })
 
   it('saveAccount2WithDifferentId', async () => {
     let account2 = {
       accountId: '456',
       label: 'Account#2',
-      coinType: D.COIN_BIT_COIN,
+      coinType: D.coin.main.btc,
       balance: 0
     }
     let account = await indexedDB.newAccount(account2)

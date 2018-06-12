@@ -3,10 +3,10 @@ import D from '../D'
 
 export default class IEsDevice {
   async listenPlug (callback) {
-    throw D.ERROR_NOT_IMPLEMENTED
+    throw D.error.notImplemented
   }
 
   async sendAndReceive (apdu) {
-    throw D.ERROR_NOT_IMPLEMENTED
+    throw D.error.notImplemented
   }
 }

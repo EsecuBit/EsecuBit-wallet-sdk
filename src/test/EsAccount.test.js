@@ -15,12 +15,12 @@ describe('BtcAccount', function () {
 
   // new EsWallet will have heavy work, so do the lazy work
   it('new wallet', async () => {
-    D.TEST_SYNC = false
+    D.test.sync = false
     esWallet = new EsWallet()
   })
 
   it('listenStatus', (done) => {
-    const statusList = [D.STATUS_PLUG_IN, D.STATUS_INITIALIZING, D.STATUS_SYNCING, D.STATUS_SYNC_FINISH]
+    const statusList = [D.status.plugIn, D.status.initializing, D.status.syncing, D.status.syncFinish]
     let currentStatusIndex = 0
 
     esWallet.listenTxInfo((error, txInfo) => {
@@ -28,7 +28,7 @@ describe('BtcAccount', function () {
     })
     esWallet.listenStatus((error, status) => {
       console.log('error, status', error, status)
-      if (error !== D.ERROR_NO_ERROR) {
+      if (error !== D.error.succeed) {
         done(error)
         return
       }
@@ -47,7 +47,7 @@ describe('BtcAccount', function () {
   it('checkAccount', async () => {
     let accounts = await esWallet.getAccounts()
     accounts.length.should.not.equal(0)
-    accounts[0].coinType.should.equal(D.COIN_BIT_COIN_TEST)
+    accounts[0].coinType.should.equal(D.coin.test.btcTestNet3)
     account = accounts[0]
     account.utxos.length.should.above(0)
     account.addressInfos.length.should.above(0)
@@ -66,7 +66,7 @@ describe('BtcAccount', function () {
       tx.blockNumber.should.be.a('number')
       tx.confirmations.should.be.a('number')
       tx.time.should.be.a('number')
-      tx.direction.should.be.oneOf([D.TX_DIRECTION_IN, D.TX_DIRECTION_OUT])
+      tx.direction.should.be.oneOf([D.tx.direction.in, D.tx.direction.out])
       tx.inputs.should.lengthOf.above(0)
       tx.outputs.should.lengthOf.above(0)
       tx.value.should.not.equal(0)
@@ -114,9 +114,9 @@ describe('BtcAccount', function () {
   it('getSuggestedFee', () => {
     let fee = account.getSuggestedFee()
     console.log('suggested fee', fee)
-    fee[D.FEE_ECNOMIC].should.above(0)
-    fee[D.FEE_NORMAL].should.at.least(fee[D.FEE_ECNOMIC])
-    fee[D.FEE_FAST].should.at.least(fee[D.FEE_NORMAL])
+    fee[D.fee.economic].should.above(0)
+    fee[D.fee.normal].should.at.least(fee[D.fee.economic])
+    fee[D.fee.fast].should.at.least(fee[D.fee.normal])
   })
 
   it('sendTx', async () => {

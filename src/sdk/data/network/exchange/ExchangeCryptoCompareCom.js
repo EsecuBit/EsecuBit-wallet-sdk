@@ -2,39 +2,39 @@
 import D from '../../../D'
 
 let UPDATE_DURATION = 30 * 60 * 1000
-if (D.TEST_NETWORK_REQUEST) {
+if (D.test.networkRequest) {
   UPDATE_DURATION = 60 * 1000
 }
 
 const UNITS = {}
-UNITS[D.COIN_BIT_COIN] = D.UNIT_BTC
-UNITS[D.COIN_BIT_COIN_TEST] = D.UNIT_BTC
-UNITS[D.COIN_ETH] = D.UNIT_ETH
-UNITS[D.COIN_ETH_TEST_RINKEBY] = D.UNIT_ETH
+UNITS[D.coin.main.btc] = D.unit.btc.BTC
+UNITS[D.coin.test.btcTestNet3] = D.unit.btc.BTC
+UNITS[D.coin.main.eth] = D.unit.eth.Ether
+UNITS[D.coin.test.ethRinkeby] = D.unit.eth.Ether
 
 const REQUEST_COINS = {}
-REQUEST_COINS[D.COIN_BIT_COIN] = 'BTC'
-REQUEST_COINS[D.COIN_BIT_COIN_TEST] = 'BTC'
-REQUEST_COINS[D.COIN_ETH] = 'ETH'
-REQUEST_COINS[D.COIN_ETH_TEST_RINKEBY] = 'ETH'
+REQUEST_COINS[D.coin.main.btc] = 'btc.BTC'
+REQUEST_COINS[D.coin.test.btcTestNet3] = 'btc.BTC'
+REQUEST_COINS[D.coin.main.eth] = 'main.eth'
+REQUEST_COINS[D.coin.test.ethRinkeby] = 'main.eth'
 
 export default class ExchangeCryptoCompareCom {
   constructor (exchange) {
     switch (exchange.coinType) {
-      case D.COIN_BIT_COIN:
-      case D.COIN_BIT_COIN_TEST:
-      case D.COIN_ETH:
-      case D.COIN_ETH_TEST_RINKEBY:
+      case D.coin.main.btc:
+      case D.coin.test.btcTestNet3:
+      case D.coin.main.eth:
+      case D.coin.test.ethRinkeby:
         this.coinType = exchange.coinType
         break
       default:
-        throw D.ERROR_COIN_NOT_SUPPORTED
+        throw D.error.coinNotSupported
     }
 
     this.exchange = D.copy(exchange)
     this.exchange.unit = UNITS[exchange.coinType]
     this.exchange.exchange = exchange.exchange ||
-      D.SUPPORTED_LEGAL_CURRENCY.reduce((obj, currency) => (obj[currency] = 0) || obj, {})
+      D.suppertedLegals().reduce((obj, currency) => (obj[currency] = 0) || obj, {})
     this.requestCoin = REQUEST_COINS[exchange.coinType]
 
     // noinspection JSIgnoredPromiseFromCall
@@ -50,7 +50,7 @@ export default class ExchangeCryptoCompareCom {
   }
 
   async updateExchange () {
-    const url = 'https://min-api.cryptocompare.com/data/price?fsym=' + this.requestCoin + '&tsyms=USD,JPY,EUR,CNY'
+    const url = 'https://min-api.cryptocompare.com/data/price?fsym=' + this.requestCoin + '&tsyms=USD,JPY,EUR,legal.CNY'
     let get = (url) => {
       return new Promise((resolve, reject) => {
         console.debug('get', url)
@@ -62,14 +62,14 @@ export default class ExchangeCryptoCompareCom {
                 resolve(JSON.parse(xmlhttp.responseText))
               } catch (e) {
                 console.warn(e)
-                reject(D.ERROR_NETWORK_PROVIDER_ERROR)
+                reject(D.error.networkProviderError)
               }
             } else if (xmlhttp.status === 500) {
               console.warn(url, xmlhttp.status)
-              reject(D.ERROR_NETWORK_PROVIDER_ERROR)
+              reject(D.error.networkProviderError)
             } else {
               console.warn(url, xmlhttp.status)
-              reject(D.ERROR_NETWORK_UNVAILABLE)
+              reject(D.error.networkUnVailable)
             }
           }
         }
@@ -85,7 +85,7 @@ export default class ExchangeCryptoCompareCom {
      * "USD": float,
      * "JPY": float,
      * "EUR": float,
-     * "CNY": float,
+     * "legal.CNY": float,
      *}
      */
     let response = await get(url)

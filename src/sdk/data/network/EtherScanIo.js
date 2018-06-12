@@ -2,8 +2,8 @@
 import D from '../../D'
 import ICoinNetwork from './ICoinNetwork'
 
-const TEST_RINKEBY_URL = 'https://api-rinkeby.etherscan.io/api'
-const MAIN_URL = 'https://api.etherscan.io'
+const testRinkebyUrl = 'https://api-rinkeby.etherscan.io/api'
+const mainUrl = 'https://api.etherscan.io/api'
 
 export default class EtherScanIo extends ICoinNetwork {
   constructor (coinType) {
@@ -13,14 +13,14 @@ export default class EtherScanIo extends ICoinNetwork {
 
   async init () {
     switch (this.coinType) {
-      case D.COIN_ETH:
-        this._apiUrl = MAIN_URL
+      case D.coin.main.eth:
+        this._apiUrl = mainUrl
         break
-      case D.COIN_ETH_TEST_RINKEBY:
-        this._apiUrl = TEST_RINKEBY_URL
+      case D.coin.test.ethRinkeby:
+        this._apiUrl = testRinkebyUrl
         break
       default:
-        throw D.ERROR_COIN_NOT_SUPPORTED
+        throw D.error.coinNotSupported
     }
     return super.init()
   }
@@ -29,11 +29,11 @@ export default class EtherScanIo extends ICoinNetwork {
     let response = await super.get(url)
     if (response.error) {
       console.warn('etherscan.io get error', response.error)
-      throw D.ERROR_NETWORK_PROVIDER_ERROR
+      throw D.error.networkProviderError
     }
     if (!response.result) {
       console.warn('etherscan.io get result null', response)
-      throw D.ERROR_NETWORK_PROVIDER_ERROR
+      throw D.error.networkProviderError
     }
     return response.result
   }

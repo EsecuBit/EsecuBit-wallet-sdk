@@ -17,9 +17,9 @@ export default class MockDevice extends IEsDevice {
   }
   listenPlug (callback) {
     setTimeout(() => {
-      callback(D.ERROR_NO_ERROR, D.STATUS_PLUG_IN)
+      callback(D.error.succeed, D.status.plugIn)
       // setTimeout(function () {
-      //   callback(D.ERROR_NO_ERROR, D.STATUS_PLUG_IN)
+      //   callback(D.error.succeed, D.status.plugIn)
       // }, 2000)
     }, 500)
   }
@@ -37,6 +37,6 @@ export default class MockDevice extends IEsDevice {
     if (D.arrayBufferToHex(apdu) === '0023010000') {
       return D.hexToArrayBuffer(ADDRESSES[++this.currentAddressIndex % ADDRESSES.length])
     }
-    throw D.ERROR_DEVICE_COMM
+    throw D.error.deviceComm
   }
 }

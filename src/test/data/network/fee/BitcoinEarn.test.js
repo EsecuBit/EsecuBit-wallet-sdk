@@ -20,12 +20,12 @@ describe('FeeBitCoinEarn', function () {
     let response = await bitCoinEarn.updateFee()
     console.log(response)
     bitCoinEarn.fee.should.deep.equal(response)
-    bitCoinEarn.fee[D.FEE_FAST].should.not.equal(0)
-    bitCoinEarn.fee[D.FEE_NORMAL].should.not.equal(0)
-    bitCoinEarn.fee[D.FEE_ECNOMIC].should.not.equal(0)
+    bitCoinEarn.fee[D.fee.fast].should.not.equal(0)
+    bitCoinEarn.fee[D.fee.normal].should.not.equal(0)
+    bitCoinEarn.fee[D.fee.economic].should.not.equal(0)
     // noinspection JSUnresolvedFunction
-    bitCoinEarn.fee[D.FEE_FAST].should.at.least(bitCoinEarn.fee[D.FEE_NORMAL])
+    bitCoinEarn.fee[D.fee.fast].should.at.least(bitCoinEarn.fee[D.fee.normal])
     // noinspection JSUnresolvedFunction
-    bitCoinEarn.fee[D.FEE_NORMAL].should.at.least(bitCoinEarn.fee[D.FEE_ECNOMIC])
+    bitCoinEarn.fee[D.fee.normal].should.at.least(bitCoinEarn.fee[D.fee.economic])
   })
 })

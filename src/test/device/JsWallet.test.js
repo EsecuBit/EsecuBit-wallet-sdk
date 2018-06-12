@@ -4,8 +4,8 @@ import D from '../../sdk/D'
 import JsWallet from '../../sdk/device/JsWallet'
 
 chai.should()
-D.TEST_SYNC = true
-D.TEST_MODE = true
+D.test.sync = true
+D.test.mode = true
 describe('JsWallet Bitcoin', function () {
   this.timeout('10000')
   const jsWallet = new JsWallet()
@@ -15,12 +15,12 @@ describe('JsWallet Bitcoin', function () {
   })
 
   it('getAddress', async () => {
-    let address = await jsWallet.getAddress(D.COIN_BIT_COIN_TEST, "m/44'/0'/0'/0/0")
+    let address = await jsWallet.getAddress(D.coin.test.btcTestNet3, "m/44'/0'/0'/0/0")
     address.should.equal('mzkFNdNqZM6YN9r1STVMZeWvhCgfvqSfwR')
   })
 
   it('signTransaction', async () => {
-    let response = await jsWallet.signTransaction(D.COIN_BIT_COIN_TEST, {
+    let response = await jsWallet.signTransaction(D.coin.test.btcTestNet3, {
       inputs: [{
         address: 'mzkFNdNqZM6YN9r1STVMZeWvhCgfvqSfwR',
         path: "m/44'/0'/0'/0/0",
@@ -47,9 +47,9 @@ describe('JsWallet Bitcoin', function () {
   })
 
   it('deriveAddress', async () => {
-    let address5 = await jsWallet.getAddress(D.COIN_BIT_COIN_TEST, "m/44'/0'/0'/0/100")
+    let address5 = await jsWallet.getAddress(D.coin.test.btcTestNet3, "m/44'/0'/0'/0/100")
     let publicKey4 = await jsWallet.getPublicKey("m/44'/0'/0'/0")
-    let address4to5 = await jsWallet.getAddress(D.COIN_BIT_COIN_TEST, 100, publicKey4)
+    let address4to5 = await jsWallet.getAddress(D.coin.test.btcTestNet3, 100, publicKey4)
     address5.should.deep.equal(address4to5)
     console.log('address5', address5)
   })
@@ -64,7 +64,7 @@ describe('JsWallet Ethernum', function () {
   })
 
   it('getAddress', async () => {
-    let address = await jsWallet.getAddress(D.COIN_ETH_TEST_RINKEBY, "m/44'/60'/0'/0/0")
+    let address = await jsWallet.getAddress(D.coin.test.ethRinkeby, "m/44'/60'/0'/0/0")
     address.should.equal('0x79c744891902a0319b1322787190efaba5dbea72')
   })
 })

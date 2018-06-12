@@ -8,7 +8,7 @@
  * {
  * "status" : "success",
  * "data" : {
- *   "network" : "BTC",
+ *   "network" : "btc.BTC",
  *   "address" : "1F1tAaz5x1HUXrCNLbtMDqcw6o5GNn4xqX",
  *   "balance" : "18.27406441",
  *   "received_value" : "29677.07906441",
@@ -59,7 +59,7 @@ export default class ChainSo extends ICoinNetwork {
     let response = await super.get(url)
     if (response.status !== 'success') {
       console.warn('chainso request failed', url, response)
-      throw D.ERROR_NETWORK_PROVIDER_ERROR
+      throw D.error.networkProviderError
     }
     return response.data
   }
@@ -67,19 +67,19 @@ export default class ChainSo extends ICoinNetwork {
   async init () {
     await super.init()
     switch (this.coinType) {
-      case D.COIN_BIT_COIN:
+      case D.coin.main.btc:
         this._coinTypeStr = 'BTC'
         break
-      case D.COIN_BIT_COIN_TEST:
+      case D.coin.test.btcTestNet3:
         this._coinTypeStr = 'BTCTEST'
         break
       default:
-        throw D.ERROR_COIN_NOT_SUPPORTED
+        throw D.error.coinNotSupported
     }
 
     // TODO slow down the request speed
     // this.get([this._apiUrl, 'get_info', this._coinTypeStr].join('/'), callback, function (response) {
-    //   callback(D.ERROR_NO_ERROR, response)
+    //   callback(D.error.succeed, response)
     // })
   }
 
@@ -103,14 +103,14 @@ export default class ChainSo extends ICoinNetwork {
     for (let input of response.inputs) {
       txInfo.inputs.push({
         prevAddress: input.address,
-        value: D.convertValue(this.coinType, input.value, D.UNIT_BTC, D.UNIT_BTC_SANTOSHI)
+        value: D.convertValue(this.coinType, input.value, D.unit.btc.BTC, D.unit.btc.santoshi)
       })
     }
     txInfo.outputs = []
     for (let output of response.outputs) {
       txInfo.outputs.push({
         address: output.address,
-        value: D.convertValue(this.coinType, output.value, D.UNIT_BTC, D.UNIT_BTC_SANTOSHI),
+        value: D.convertValue(this.coinType, output.value, D.unit.btc.BTC, D.unit.btc.santoshi),
         index: output.output_no,
         script: output.script_hex
       })

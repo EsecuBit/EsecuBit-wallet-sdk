@@ -2,27 +2,27 @@
 import D from '../../../D'
 
 let UPDATE_DURATION = 30 * 60 * 1000
-if (D.TEST_NETWORK_REQUEST) {
+if (D.test.networkRequest) {
   UPDATE_DURATION = 60 * 1000
 }
 
 export default class EthGasStationInfo {
   constructor (fee) {
     switch (fee.coinType) {
-      case D.COIN_ETH:
-      case D.COIN_ETH_TEST_RINKEBY:
+      case D.coin.main.eth:
+      case D.coin.test.ethRinkeby:
         this.coinType = fee.coinType
         break
       default:
-        throw D.ERROR_COIN_NOT_SUPPORTED
+        throw D.error.coinNotSupported
     }
 
     if (!fee.fee) {
       fee.fee = {}
-      fee.fee[D.FEE_FASTEST] = 10 * 1000000000
-      fee.fee[D.FEE_FAST] = 4 * 1000000000
-      fee.fee[D.FEE_NORMAL] = 2 * 1000000000
-      fee.fee[D.FEE_ECNOMIC] = 1000000000
+      fee.fee[D.fee.fastest] = 10 * 1000000000
+      fee.fee[D.fee.fast] = 4 * 1000000000
+      fee.fee[D.fee.normal] = 2 * 1000000000
+      fee.fee[D.fee.economic] = 1000000000
     }
     this.fee = D.copy(fee) // santonshi per b
 
@@ -51,14 +51,14 @@ export default class EthGasStationInfo {
                 resolve(JSON.parse(xmlhttp.responseText))
               } catch (e) {
                 console.warn(e)
-                reject(D.ERROR_NETWORK_PROVIDER_ERROR)
+                reject(D.error.networkProviderError)
               }
             } else if (xmlhttp.status === 500) {
               console.warn(url, xmlhttp.status)
-              reject(D.ERROR_NETWORK_PROVIDER_ERROR)
+              reject(D.error.networkProviderError)
             } else {
               console.warn(url, xmlhttp.status)
-              reject(D.ERROR_NETWORK_UNVAILABLE)
+              reject(D.error.networkUnVailable)
             }
           }
         }
@@ -78,9 +78,9 @@ export default class EthGasStationInfo {
      */
     let response = await get(url)
     let fee = D.copy(this.fee)
-    fee.fee[D.FEE_FAST] = response.fast * 100000000
-    fee.fee[D.FEE_NORMAL] = response.average * 100000000
-    fee.fee[D.FEE_ECNOMIC] = response.safeLow * 100000000
+    fee.fee[D.fee.fast] = response.fast * 100000000
+    fee.fee[D.fee.normal] = response.average * 100000000
+    fee.fee[D.fee.economic] = response.safeLow * 100000000
     console.debug('update fee succeed', 'old fee', this.fee, 'new fee', fee)
     this.fee = D.copy(fee)
     this.onUpdateFee(fee)

@@ -17,7 +17,7 @@ export default class EthAccount {
     this._coinData = coinData
 
     this._txListener = async (error, txInfo) => {
-      if (error !== D.ERROR_NO_ERROR) {
+      if (error !== D.error.succeed) {
         console.warn('BtcAccount txListener', error)
         return
       }
@@ -33,7 +33,7 @@ export default class EthAccount {
     }
 
     this._addressListener = async (error, addressInfo, txInfo, utxos) => {
-      if (error !== D.ERROR_NO_ERROR) {
+      if (error !== D.error.succeed) {
         console.warn('BtcAccount addressListener', error)
         return
       }
@@ -47,14 +47,14 @@ export default class EthAccount {
     this.addressInfos = await this._coinData.getAddressInfos({accountId})
     this.txInfos = (await this._coinData.getTxInfos({accountId})).txInfos
     if (!this.addressInfos.length) {
-      let path = D.makeBip44Path(this.coinType, this.index, D.ADDRESS_EXTERNAL, 0)
+      let path = D.makeBip44Path(this.coinType, this.index, D.address.external, 0)
       let address = await this._device.getAddress(this.coinType, path)
       let addressInfo = {
         address: address,
         accountId: this.accountId,
         coinType: this.coinType,
         path: path,
-        type: D.ADDRESS_EXTERNAL,
+        type: D.address.external,
         index: 0,
         txs: []
       }
@@ -69,7 +69,7 @@ export default class EthAccount {
     await Promise.all(blobs.map(blob => this._handleNewTx(blob.addressInfo, blob.txInfo, blob.utxos, true)))
     this._coinData.listenAddresses(this.coinType, D.copy(this.addressInfos), this._addressListener)
 
-    this.txInfos.filter(txInfo => txInfo.confirmations < D.TX_ETH_MATURE_CONFIRMATIONS)
+    this.txInfos.filter(txInfo => txInfo.confirmations < D.tx.matureConfirms.eth)
       .forEach(txInfo => this._coinData.listenTx(this.coinType, D.copy(txInfo), this._txListener))
   }
 
@@ -111,7 +111,7 @@ export default class EthAccount {
 
     await this._coinData.newTx(this._toAccountInfo(), addressInfo, txInfo, [])
 
-    if (txInfo.confirmations < D.TX_ETH_MATURE_CONFIRMATIONS) {
+    if (txInfo.confirmations < D.tx.matureConfirms.eth) {
       console.log('listen transaction status', txInfo)
       if (!this._listenedTxs.some(tx => tx === txInfo.txId)) {
         this._listenedTxs.push(txInfo.txId)
@@ -146,49 +146,49 @@ export default class EthAccount {
     let address = await this._device.getAddress(this.coinType, path)
     let prefix
     switch (this.coinType) {
-      case D.COIN_BIT_COIN:
-      case D.COIN_BIT_COIN_TEST:
-        prefix = 'bitcoin:'
+      case D.coin.main.btc:
+      case D.coin.test.btcTestNet3:
+        prefix = 'btc:'
         break
-      case D.COIN_ETH:
-      case D.COIN_ETH_TEST_RINKEBY:
+      case D.coin.main.eth:
+      case D.coin.test.ethRinkeby:
         prefix = 'eth:'
         break
       default:
-        throw D.ERROR_COIN_NOT_SUPPORTED
+        throw D.error.coinNotSupported
     }
     return {address: address, qrAddress: prefix + address}
   }
 
   getSuggestedFee () {
-    return this._coinData.getSuggestedFee(this.coinType)
+    return this._coinData.getSuggestedFee(this.coinType).fee
   }
 
   /**
    *
    * @param details
    * {
-   *   feeRate: long (bitcoin -> santoshi) per byte,
+   *   feeRate: long (btc -> santoshi) per byte,
    *   outputs: [{
    *     address: base58 string,
-   *     value: long (bitcoin -> santoshi)
+   *     value: long (btc -> santoshi)
    *   }]
    * }
    * @returns {Promise<prepareTx>}
    * {
-   *   total: long (bitcoin -> santoshi)
-   *   fee: long (bitcoin -> santoshi)
-   *   feeRate: long (bitcoin -> santoshi) per byte,
+   *   total: long (btc -> santoshi)
+   *   fee: long (btc -> santoshi)
+   *   feeRate: long (btc -> santoshi) per byte,
    *   utxos: utxo array,
    *   outputs: [{
    *     address: base58 string,
-   *     value: long (bitcoin -> santoshi)
+   *     value: long (btc -> santoshi)
    *   }]
    * }
    */
   async prepareTx (details) {
     // TODO
-    if (this.coinType !== D.COIN_BIT_COIN && this.coinType !== D.COIN_BIT_COIN_TEST) throw D.ERROR_COIN_NOT_SUPPORTED
+    if (this.coinType !== D.coin.main.btc && this.coinType !== D.coin.test.btcTestNet3) throw D.error.coinNotSupported
 
     let getEnoughUtxo = (total) => {
       let willSpentUtxos = []
@@ -201,13 +201,13 @@ export default class EthAccount {
         }
       }
       if (newTotal <= total) {
-        throw D.ERROR_TX_NOT_ENOUGH_VALUE
+        throw D.error.txNotEnoughValue
       }
       return {newTotal, willSpentUtxos}
     }
 
     // copy utxos for avoiding utxos of BtcAccount change
-    let utxos = this.utxos.filter(utxo => utxo.spent === D.UTXO_UNSPENT).map(utxo => D.copy(utxo))
+    let utxos = this.utxos.filter(utxo => utxo.spent === D.utxo.status.unspent).map(utxo => D.copy(utxo))
     let total = utxos.reduce((sum, utxo) => sum + utxo.value, 0)
     let fee = details.feeRate
     let totalOut = details.outputs.reduce((sum, output) => sum + output.value, 0)
@@ -215,7 +215,7 @@ export default class EthAccount {
     let calculateFee = (utxos, outputs) => (utxos.length * 180 + 34 * outputs.length + 34 + 10) * details.feeRate
     let result
     while (true) {
-      if (total < fee + totalOut) throw D.ERROR_TX_NOT_ENOUGH_VALUE
+      if (total < fee + totalOut) throw D.error.txNotEnoughValue
       result = getEnoughUtxo(totalOut + fee)
       // new fee calculated
       fee = calculateFee(result.willSpentUtxos, details.outputs)
@@ -241,9 +241,9 @@ export default class EthAccount {
   async buildTx (prepareTx) {
     // TODO
     let totalOut = prepareTx.outputs.reduce((sum, output) => sum + output.value, 0)
-    if (totalOut + prepareTx.fee !== prepareTx.total) throw D.ERROR_UNKNOWN
+    if (totalOut + prepareTx.fee !== prepareTx.total) throw D.error.unknown
     let totalIn = prepareTx.utxos.reduce((sum, utxo) => sum + utxo.value, 0)
-    if (totalIn < prepareTx.total) throw D.ERROR_TX_NOT_ENOUGH_VALUE
+    if (totalIn < prepareTx.total) throw D.error.txNotEnoughValue
 
     let changeAddress = await this._device.getAddress(this.coinType, this.changePublicKeyIndex, this.changePublicKey)
     let value = totalIn - prepareTx.total
@@ -262,7 +262,7 @@ export default class EthAccount {
       blockNumber: -1,
       confirmations: -1,
       time: new Date().getTime(),
-      direction: D.TX_DIRECTION_OUT,
+      direction: D.tx.direction.out,
       inputs: prepareTx.utxos.map(utxo => {
         return {
           prevAddress: utxo.address,
@@ -293,7 +293,7 @@ export default class EthAccount {
     // broadcast transaction to network
     if (!test) await this._coinData.sendTx(this._toAccountInfo(), signedTx.utxos, signedTx.txInfo, signedTx.hex)
     // change utxo spent status from unspent to spent pending
-    signedTx.utxos.forEach(utxo => { utxo.spent = D.UTXO_SPENT_PENDING })
+    signedTx.utxos.forEach(utxo => { utxo.spent = D.utxo.status.pending })
     signedTx.utxos.map(utxo => {
       let addressInfo = this.addressInfos.find(addressInfo => addressInfo.address === utxo.address)
       return {addressInfo, utxo}

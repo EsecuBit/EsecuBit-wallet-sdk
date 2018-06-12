@@ -47,7 +47,7 @@ export default class CoreWallet {
   }
 
   async verifyPin () {
-    throw D.ERROR_DEVICE_COMM
+    throw D.error.deviceComm
   }
 
   async getAddress (addressParams) {

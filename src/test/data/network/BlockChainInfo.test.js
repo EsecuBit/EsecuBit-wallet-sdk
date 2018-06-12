@@ -6,7 +6,7 @@ import BlockchainInfo from '../../../sdk/data/network/BlockChainInfo'
 chai.should()
 describe('Network BlockChainInfo Bitcoin', function () {
   this.timeout(3000)
-  const blockchainInfo = new BlockchainInfo(D.COIN_BIT_COIN_TEST)
+  const blockchainInfo = new BlockchainInfo(D.coin.test.btcTestNet3)
 
   it('init network', async () => {
     let response = await blockchainInfo.init()
@@ -14,13 +14,13 @@ describe('Network BlockChainInfo Bitcoin', function () {
   })
 
   it('query address', async () => {
-    let e = D.ERROR_NO_ERROR
+    let e = D.error.succeed
     try {
       await blockchainInfo.queryAddress('mu7QFoRttcxmJLedCuznEtVXCVZofCPkp8')
     } catch (error) {
       e = error
     }
-    e.should.equal(D.ERROR_NOT_IMPLEMENTED)
+    e.should.equal(D.error.notImplemented)
   })
 
   it('query addresses', async () => {
