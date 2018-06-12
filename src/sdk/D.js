@@ -26,7 +26,7 @@ const D = {
     lastAccountNoTransaction: 301,
     accountHasTransactions: 302,
 
-    networkUnvailable: 401,
+    networkUnavailable: 401,
     networkNotInitialized: 402,
     networkProviderError: 403,
 

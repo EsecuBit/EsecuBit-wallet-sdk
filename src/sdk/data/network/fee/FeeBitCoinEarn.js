@@ -57,7 +57,7 @@ export default class FeeBitCoinEarn {
               reject(D.error.networkProviderError)
             } else {
               console.warn(url, xmlhttp.status)
-              reject(D.error.networkUnVailable)
+              reject(D.error.networkUnavailable)
             }
           }
         }

@@ -82,7 +82,7 @@ export default class ICoinNetwork {
             reject(D.error.networkProviderError)
           } else {
             console.warn(url, xmlhttp)
-            reject(D.error.networkUnVailable)
+            reject(D.error.networkUnavailable)
           }
         }
       }
@@ -109,7 +109,7 @@ export default class ICoinNetwork {
             reject(D.error.networkProviderError)
           } else {
             console.warn(url, xmlhttp)
-            reject(D.error.networkUnVailable)
+            reject(D.error.networkUnavailable)
           }
         }
       }

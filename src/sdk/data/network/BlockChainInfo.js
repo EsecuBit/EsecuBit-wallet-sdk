@@ -51,7 +51,7 @@ export default class BlockchainInfo extends ICoinNetwork {
             }
           } else {
             console.warn(url, xmlhttp)
-            reject(D.error.networkUnVailable)
+            reject(D.error.networkUnavailable)
           }
         }
       }
