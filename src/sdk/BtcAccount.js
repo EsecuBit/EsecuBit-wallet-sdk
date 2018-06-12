@@ -122,6 +122,11 @@ export default class BtcAccount {
       return false
     })
 
+    // update account info
+    this.balance += txInfo.value
+    this.txInfos.push(D.copy(txInfo))
+    this.utxos.push(...utxos)
+
     // update and addressIndex and listen new address
     let newIndex = addressInfo.index + 1
     let oldIndex = addressInfo.type === D.ADDRESS_EXTERNAL ? this.externalPublicKeyIndex : this.changePublicKeyIndex
@@ -130,11 +135,6 @@ export default class BtcAccount {
     let newAddressInfos = await this._checkAddressIndexAndGenerateNew(isSyncing)
     await this._coinData.newAddressInfos(this._toAccountInfo(), newAddressInfos)
     await this._coinData.newTx(this._toAccountInfo(), addressInfo, txInfo, utxos)
-
-    // update account info
-    this.balance += txInfo.value
-    this.txInfos.push(D.copy(txInfo))
-    this.utxos.push(...utxos)
 
     if (!isSyncing) {
       let newListeneAddressInfos = this._getAddressInfos(oldIndex, newIndex + 1, addressInfo.type)
@@ -259,7 +259,7 @@ export default class BtcAccount {
     let address
     while (true) {
       try {
-        address = await this._device.getAddress(index, publicKey)
+        address = await this._device.getAddress(this.coinType, index, publicKey)
       } catch (e) {
         if (e === D.ERROR_DEVICE_DERIVE_LARGER_THAN_N) {
           index++

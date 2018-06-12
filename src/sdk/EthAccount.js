@@ -48,7 +48,7 @@ export default class EthAccount {
     this.txInfos = (await this._coinData.getTxInfos({accountId})).txInfos
     if (!this.addressInfos.length) {
       let path = D.makeBip44Path(this.coinType, this.index, D.ADDRESS_EXTERNAL, 0)
-      let address = await this._device.getAddress(path)
+      let address = await this._device.getAddress(this.coinType, path)
       let addressInfo = {
         address: address,
         accountId: this.accountId,
@@ -58,6 +58,7 @@ export default class EthAccount {
         index: 0,
         txs: []
       }
+      this.addressInfos.push(addressInfo)
       this._coinData.newAddressInfos(this._toAccountInfo(), [addressInfo])
     }
   }
@@ -108,6 +109,8 @@ export default class EthAccount {
     this.balance += txInfo.value
     this.txInfos.push(D.copy(txInfo))
 
+    await this._coinData.newTx(this._toAccountInfo(), addressInfo, txInfo, [])
+
     if (txInfo.confirmations < D.TX_ETH_MATURE_CONFIRMATIONS) {
       console.log('listen transaction status', txInfo)
       if (!this._listenedTxs.some(tx => tx === txInfo.txId)) {
@@ -140,7 +143,7 @@ export default class EthAccount {
 
   async getAddress () {
     let path = D.makeBip44Path(this.coinType, this.index, 0, 0)
-    let address = await this._device.getAddress(path)
+    let address = await this._device.getAddress(this.coinType, path)
     let prefix
     switch (this.coinType) {
       case D.COIN_BIT_COIN:
@@ -242,7 +245,7 @@ export default class EthAccount {
     let totalIn = prepareTx.utxos.reduce((sum, utxo) => sum + utxo.value, 0)
     if (totalIn < prepareTx.total) throw D.ERROR_TX_NOT_ENOUGH_VALUE
 
-    let changeAddress = await this._device.getAddress(this.changePublicKeyIndex, this.changePublicKey)
+    let changeAddress = await this._device.getAddress(this.coinType, this.changePublicKeyIndex, this.changePublicKey)
     let value = totalIn - prepareTx.total
     let rawTx = {
       inputs: prepareTx.utxos,

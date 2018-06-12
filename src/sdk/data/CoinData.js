@@ -22,8 +22,7 @@ export default class CoinData {
       // TODO read provider from settings
       if (coinType.includes('bitcoin')) {
         obj[coinType] = new BlockChainInfo(coinType)
-      }
-      if (coinType.includes('ethereum')) {
+      } else if (coinType.includes('ethereum')) {
         obj[coinType] = new EtherScanIo(coinType)
       }
       return obj
@@ -49,8 +48,7 @@ export default class CoinData {
         if (coinType.includes('bitcoin')) {
           this._networkFee[coinType] = new FeeBitCoinEarn(fee)
           this._networkFee[coinType].onUpdateFee = (fee) => this._db.saveOfUpdateFee(fee)
-        }
-        if (coinType.includes('ethereum')) {
+        } else if (coinType.includes('ethereum')) {
           this._networkFee[coinType] = new EthGasStationInfo(fee)
           this._networkFee[coinType].onUpdateFee = (fee) => this._db.saveOfUpdateFee(fee)
         }
@@ -162,6 +160,7 @@ export default class CoinData {
   }
 
   async saveOrUpdateTxInfo (txInfo) {
+    console.log('yeah', txInfo)
     await this._db.saveOrUpdateTxInfo(txInfo)
     this._listeners.forEach(listener => listener(D.ERROR_NO_ERROR, txInfo))
   }

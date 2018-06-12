@@ -84,7 +84,11 @@ export default class EsWallet {
 
     if (this._esAccounts.length === 0) {
       console.log('no accounts, new wallet, start recovery')
-      await this._recover(D.TEST_MODE ? D.COIN_BIT_COIN_TEST : D.COIN_BIT_COIN)
+      if (D.TEST_RECOVER_ETH) {
+        await this._recover(D.TEST_MODE ? D.COIN_ETH_TEST_RINKEBY : D.COIN_ETH)
+      } else {
+        await this._recover(D.TEST_MODE ? D.COIN_BIT_COIN_TEST : D.COIN_BIT_COIN)
+      }
     } else {
       await Promise.all(this._esAccounts.map(esAccount => esAccount.sync()))
     }
@@ -93,13 +97,20 @@ export default class EsWallet {
   async _recover (coinType) {
     while (true) {
       let account = await this._coinData.newAccount(coinType)
-      let esAccount = new BtcAccount(account, this._device, this._coinData)
+      let esAccount
+      if (coinType.includes('bitcoin')) {
+        esAccount = new BtcAccount(account, this._device, this._coinData)
+      } else if (coinType.includes('ethereum')) {
+        esAccount = new EthAccount(account, this._device, this._coinData)
+      }
       await esAccount.init()
       await esAccount.sync()
       // new account has no transactions, recover finish
       if ((await esAccount.getTxInfos()).total === 0) {
-        console.log(esAccount.accountId, 'has no txInfo, will not recover, delete it')
-        await esAccount.delete()
+        if (esAccount.index !== 0) {
+          console.log(esAccount.accountId, 'has no txInfo, will not recover, delete it')
+          await esAccount.delete()
+        }
         break
       }
       this._esAccounts.push(esAccount)

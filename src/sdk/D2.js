@@ -206,6 +206,7 @@ const D = {
     network_request: true,
     js_wallet: true,
     sync: false,
+    recover_eth: false,
     // TODO remove when publish
     sync_wallet_id: 'ba3253876aed6bc22d4a6ff53d8406c6ad864195ed144ab5c87621b6c233b548',
     transaction_wallet_id: 'ba3253876aed6bc22d4a6ff53d8406c6ad864195ed144ab5c87621b600000000',
