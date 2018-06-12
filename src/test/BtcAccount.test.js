@@ -13,7 +13,7 @@ describe('BtcAccount', function () {
     console.log(tx)
   })
 
-  // new EsWallet will have heavy work, so do the lazy work
+  // new EsWallet will trigger heavy work, so make it lazy
   it('new wallet', async () => {
     D.test.sync = false
     esWallet = new EsWallet()
@@ -47,10 +47,12 @@ describe('BtcAccount', function () {
   it('checkAccount', async () => {
     let accounts = await esWallet.getAccounts()
     accounts.length.should.not.equal(0)
-    accounts[0].coinType.should.equal(D.coin.test.btcTestNet3)
-    account = accounts[0]
+    let btcAccount = accounts.find(account => account.coinType === D.coin.test.btcTestNet3)
+    btcAccount.should.not.equal(undefined)
+    account = btcAccount
     account.utxos.length.should.above(0)
     account.addressInfos.length.should.above(0)
+    account.txInfos.length.should.above(0)
     account.balance.should.above(0)
   })
 

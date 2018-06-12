@@ -162,7 +162,6 @@ export default class JsWallet {
       case D.coin.test.ethRinkeby:
         return eth()
       default:
-        console.log('2')
         throw D.error.coinNotSupported
     }
   }

@@ -35,6 +35,6 @@ describe('Network BlockChainInfo Bitcoin', function () {
   it('query transaction', async () => {
     let txInfo = await etherScanIo.queryTx('0xf44a36b20ba14a2e9c4ea141a7090e26a7a71b7a6e1e26568dd321ff180aff30')
     // TODO not stable
-    console.log('2', JSON.stringify(txInfo))
+    console.log('txInfo', JSON.stringify(txInfo))
   })
 })

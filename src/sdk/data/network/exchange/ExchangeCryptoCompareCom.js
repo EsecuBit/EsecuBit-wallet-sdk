@@ -13,10 +13,10 @@ UNITS[D.coin.main.eth] = D.unit.eth.Ether
 UNITS[D.coin.test.ethRinkeby] = D.unit.eth.Ether
 
 const REQUEST_COINS = {}
-REQUEST_COINS[D.coin.main.btc] = 'btc.BTC'
-REQUEST_COINS[D.coin.test.btcTestNet3] = 'btc.BTC'
-REQUEST_COINS[D.coin.main.eth] = 'main.eth'
-REQUEST_COINS[D.coin.test.ethRinkeby] = 'main.eth'
+REQUEST_COINS[D.coin.main.btc] = 'BTC'
+REQUEST_COINS[D.coin.test.btcTestNet3] = 'BTC'
+REQUEST_COINS[D.coin.main.eth] = 'ETH'
+REQUEST_COINS[D.coin.test.ethRinkeby] = 'ETH'
 
 export default class ExchangeCryptoCompareCom {
   constructor (exchange) {

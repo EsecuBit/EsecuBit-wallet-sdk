@@ -20,7 +20,7 @@ describe('EsWallet', function () {
   //   await indexedDB.clearDatabase()
   // })
 
-  // new EsWallet will have heavy work, so do the lazy work
+  // new EsWallet will trigger heavy work, so make it lazy
   it('new wallet', async () => {
     D.test.sync = true
     esWallet = new EsWallet()
