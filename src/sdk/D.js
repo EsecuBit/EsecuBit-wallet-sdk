@@ -41,7 +41,7 @@ const D = {
   COIN_ETH: 'ethernet',
   COIN_ETH_TEST_RINKEBY: 'ethernet_test_rinkeby',
   SUPPORTED_COIN_TYPES: ['bitcoin', 'ethernet'],
-  SUPPORTED_TEST_COIN_TYPES: ['bitcoin_test', 'ethernet_test_repsten'],
+  SUPPORTED_TEST_COIN_TYPES: ['bitcoin_test', 'ethernet_test_rinkeby'],
 
   // BIP44
   ADDRESS_EXTERNAL: 'external',
@@ -57,6 +57,7 @@ const D = {
   UTXO_SPENT: 2,
 
   // fee type
+  FEE_FASTEST: 'fastest',
   FEE_FAST: 'fast',
   FEE_NORMAL: 'normal',
   FEE_ECNOMIC: 'economy',
@@ -175,7 +176,7 @@ const D = {
    *   lock_time: long
    * }
    */
-  parseRawTx (hexTx) {
+  parseBitcoinRawTx (hexTx) {
     return bitPony.tx.read(hexTx)
   },
 

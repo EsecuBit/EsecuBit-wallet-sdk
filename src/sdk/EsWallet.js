@@ -94,8 +94,11 @@ export default class EsWallet {
     while (true) {
       let account = await this._coinData.newAccount(coinType)
       let esAccount = new BtcAccount(account, this._device, this._coinData)
+      console.log('11')
       await esAccount.init()
+      console.log('22')
       await esAccount.sync()
+      console.log('33')
       // new account has no transactions, recover finish
       if ((await esAccount.getTxInfos()).total === 0) {
         console.info(esAccount.accountId, 'has no txInfo, will not recover, delete it')

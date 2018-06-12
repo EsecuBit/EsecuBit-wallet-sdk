@@ -3,7 +3,7 @@ import D from '../D'
 import IndexedDB from './database/IndexedDB'
 import BlockChainInfo from './network/BlockChainInfo'
 import FeeBitCoinEarn from './network/fee/FeeBitCoinEarn'
-import ExchangeCryptoCompareCom from "./network/exchange/ExchangeCryptoCompareCom";
+import ExchangeCryptoCompareCom from './network/exchange/ExchangeCryptoCompareCom'
 
 // TODO CoinData only manage data, don't handle data. leave it to BtcAccount and EsWallet?
 export default class CoinData {

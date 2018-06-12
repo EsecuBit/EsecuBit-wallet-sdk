@@ -18,7 +18,6 @@ const D = {
     noDevice: 101,
     deviceComm: 102,
     deviceConnectFailed: 103,
-    // TODO test
     deviceDeriveLargerThanN: 104,
 
     databaseOpenFailed: 201,
@@ -189,7 +188,7 @@ const D = {
    *   lock_time: long
    * }
    */
-  parseRawTx (hexTx) {
+  parseBitcoinRawTx (hexTx) {
     return bitPony.tx.read(hexTx)
   },
 

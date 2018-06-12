@@ -46,12 +46,16 @@ export default class BtcAccount {
   }
 
   async init () {
+    console.log('1')
     let accountId = this.accountId
     this.addressInfos = await this._coinData.getAddressInfos({accountId})
     this.txInfos = (await this._coinData.getTxInfos({accountId})).txInfos
     this.utxos = await this._coinData.getUtxos({accountId})
+    console.log('2')
     let newAddressInfos = await this._checkAddressIndexAndGenerateNew()
+    console.log('3')
     await this._coinData.newAddressInfos(this._toAccountInfo(), newAddressInfos)
+    console.log('4')
   }
 
   // TODO judge compress uncompress public key
@@ -172,7 +176,7 @@ export default class BtcAccount {
       }
       return (await Promise.all(Array.from({length: index - nextIndex}, (v, k) => nextIndex + k).map(async i => {
         try {
-          let address = await this._device.getAddress(i, publicKey)
+          let address = await this._device.getAddress(this.coinType, i, publicKey)
           return {
             address: address,
             accountId: this.accountId,

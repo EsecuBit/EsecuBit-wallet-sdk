@@ -87,7 +87,7 @@ export default class BlockchainInfo extends ICoinNetwork {
 
   async queryRawTx (txId) {
     let response = await this.get([this._apiUrl, 'rawtx', txId].join('/') + '?cors=true&format=hex')
-    return D.parseRawTx(response.response)
+    return D.parseBitcoinRawTx(response.response)
   }
 
   sendTx (rawTransaction) {
