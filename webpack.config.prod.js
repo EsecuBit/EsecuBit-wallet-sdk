@@ -6,6 +6,7 @@ let cfg = Object.assign(webpackBase, {
   plugins: [
     new UglifyJSPlugin()
   ],
+  mode: 'production'
 });
 
 module.exports = cfg;

@@ -108,6 +108,8 @@ export default class EsWallet {
         if (esAccount.index !== 0) {
           console.log(esAccount.accountId, 'has no txInfo, will not recover, delete it')
           await esAccount.delete()
+        } else {
+          this._esAccounts.push(esAccount)
         }
         break
       }

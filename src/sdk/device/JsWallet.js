@@ -3,6 +3,7 @@
 import ecurve from 'ecurve'
 import bitcoin from 'bitcoinjs-lib'
 import web3 from 'web3'
+import rlp from 'rlp'
 import D from '../D'
 
 export default class JsWallet {
@@ -123,7 +124,7 @@ export default class JsWallet {
    * }
    *
    * eth:
-   * [nonce, gasprice, startgas, to, value, data, r, s, v]
+   * [nonce, gasprice, startgas, to, value, data, v, r, s]
    * {
    *   input: {
    *     address: 0x string,
@@ -139,8 +140,8 @@ export default class JsWallet {
    *   data: hex string,
    * }
    */
-  async signTransaction (coinType, tx) {
-    let btc = () => {
+  signTransaction (coinType, tx) {
+    let btc = async () => {
       try {
         let txb = new bitcoin.TransactionBuilder(this.btcNetwork)
         txb.setVersion(1)
@@ -164,15 +165,26 @@ export default class JsWallet {
       }
     }
 
-    let eth = () => {
+    let eth = async () => {
       const chainIds = {}
       chainIds[D.coin.main.eth] = 1
       chainIds[D.coin.test.ethRinkeby] = 4
       let chainId = chainIds[coinType]
       if (!chainId) throw D.error.coinNotSupported
-      let unsignedTx = [tx.nonce, tx.gasPrice, tx.startGas, tx.output.address, tx.output.value, tx.data, chainId * 2 + 35, 0, 0]
-      // sign
-      throw D.error.notImplemented
+
+      let unsignedTx = [tx.nonce, tx.gasPrice, tx.startGas, tx.output.address, tx.output.value, tx.data, chainId, 0, 0]
+      let rlpUnsignedTx = rlp.encode(unsignedTx)
+      // noinspection JSCheckFunctionSignatures
+      let rlpHash = web3.utils.keccak256(rlpUnsignedTx)
+      console.log('rlpHash', rlpHash)
+      let node = await this._derive(tx.input.path)
+      let signData = node.sign(Buffer.from(D.toBuffer(rlpHash.slice(2))))
+      console.log('signData', signData)
+
+      let signedTx = [tx.nonce, tx.gasPrice, tx.startGas, tx.output.address, tx.output.value, tx.data,
+        chainId * 2 + 35, '0x' + signData.r.toHex(), '0x' + signData.s.toHex()]
+      console.log('signedTx', signedTx)
+      return rlp.encode(signedTx)
     }
 
     switch (coinType) {

@@ -22,7 +22,6 @@ module.exports = {
     inline: true
   },
 
-  plugins: [],
   entry: ['babel-polyfill', path.resolve(__dirname, 'src/index.js')],
 
   output: {
@@ -30,5 +29,5 @@ module.exports = {
     path: path.resolve(__dirname, 'test')
   },
 
-  mode: 'production'
+  mode: 'development'
 }

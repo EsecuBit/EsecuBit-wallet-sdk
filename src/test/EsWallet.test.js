@@ -89,7 +89,7 @@ describe('EsWallet', function () {
         esWallet.convertValue(coinType, 123456, D.unit.legal.CNY, D.unit.btc.mBTC)
         esWallet.convertValue(coinType, 123456, D.unit.legal.EUR, D.unit.btc.santoshi)
       }
-      if (coinType.includes('ethernet')) {
+      if (coinType.includes('eth')) {
         esWallet.convertValue(coinType, 123456, D.unit.eth.Ether, D.unit.legal.USD)
         esWallet.convertValue(coinType, 123456, D.unit.eth.GWei, D.unit.legal.CNY)
         esWallet.convertValue(coinType, 123456, D.unit.eth.Wei, D.unit.legal.JPY)
