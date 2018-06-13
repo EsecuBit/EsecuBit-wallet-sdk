@@ -8,7 +8,7 @@ describe('Network BlockChainInfo Bitcoin', function () {
   this.timeout(3000)
   const blockchainInfo = new BlockchainInfo(D.coin.test.btcTestNet3)
 
-  it('init network', async () => {
+  it('init btcNetwork', async () => {
     let response = await blockchainInfo.init()
     response.should.not.equal(undefined)
   })

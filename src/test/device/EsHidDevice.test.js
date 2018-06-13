@@ -9,20 +9,20 @@ esHidDevice.listenPlug(function (error, isPlugIn) {
   if (isPlugIn) {
     // var apdu = '007800002E09302e303132204254430122314d6459433232476d6a7032656a5670437879596a66795762514359544768477138'
     // console.log('test send ' + apdu)
-    // device.sendAndReceive(hexToArrayBuffer(apdu), function (error, receive) {
+    // device.sendAndReceive(toBuffer(apdu), function (error, receive) {
     //   if (error !== D.error.succeed) {
     //     return
     //   }
-    //   console.log('test receive ' + arrayBufferToHex(receive))
+    //   console.log('test receive ' + toHex(receive))
     // })
 
     // var apdu = '8033000007ba050000000000'
     // console.log('test send ' + apdu)
-    // device.sendAndReceive(hexToArrayBuffer(apdu), function (error, receive) {
+    // device.sendAndReceive(toBuffer(apdu), function (error, receive) {
     //   if (error !== D.error.succeed) {
     //     return
     //   }
-    //   console.log('test receive ' + arrayBufferToHex(receive))
+    //   console.log('test receive ' + toHex(receive))
     // })
   }
 })

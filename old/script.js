@@ -216,7 +216,7 @@ document.getElementById('button').addEventListener('click', function() {
 document.getElementById('button2').addEventListener('click', function() {
   requestPermission(function() {
     console.log('ok!');
-    // send(hexToArrayBuffer('0204048033000004bd02000000000000'));
+    // send(toBuffer('0204048033000004bd02000000000000'));
     receive2();
   });
 });

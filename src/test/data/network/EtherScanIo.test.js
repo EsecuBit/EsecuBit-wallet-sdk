@@ -8,7 +8,7 @@ describe('Network BlockChainInfo Bitcoin', function () {
   this.timeout(3000)
   const etherScanIo = new EtherScanIo(D.coin.test.ethRinkeby)
 
-  it('init network', async () => {
+  it('init btcNetwork', async () => {
     let response = await etherScanIo.init()
     response.should.not.equal(undefined)
   })

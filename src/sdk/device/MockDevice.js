@@ -25,17 +25,17 @@ export default class MockDevice extends IEsDevice {
   }
 
   async sendAndReceive (apdu) {
-    if (D.arrayBufferToHex(apdu) === '0003000000') {
-      return D.hexToArrayBuffer('010100')
+    if (D.toHex(apdu) === '0003000000') {
+      return D.toBuffer('010100')
     }
-    if (D.arrayBufferToHex(apdu) === '00FF000000') {
-      return D.hexToArrayBuffer('010102')
+    if (D.toHex(apdu) === '00FF000000') {
+      return D.toBuffer('010102')
     }
-    if (D.arrayBufferToHex(apdu) === '0023000000') {
-      return D.hexToArrayBuffer(ADDRESSES[this.currentAddressIndex])
+    if (D.toHex(apdu) === '0023000000') {
+      return D.toBuffer(ADDRESSES[this.currentAddressIndex])
     }
-    if (D.arrayBufferToHex(apdu) === '0023010000') {
-      return D.hexToArrayBuffer(ADDRESSES[++this.currentAddressIndex % ADDRESSES.length])
+    if (D.toHex(apdu) === '0023010000') {
+      return D.toBuffer(ADDRESSES[++this.currentAddressIndex % ADDRESSES.length])
     }
     throw D.error.deviceComm
   }

@@ -9,7 +9,7 @@ describe('Network ChainSo Bitcoin', function () {
   const chainSo = new ChainSo(D.coin.test.btcTestNet3)
 
   // server limit
-  it('init network', async () => {
+  it('init btcNetwork', async () => {
     await chainSo.init()
   })
 

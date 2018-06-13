@@ -157,7 +157,7 @@ const D = {
     return new Promise(resolve => setTimeout(resolve, timeMill))
   },
 
-  arrayBufferToHex (array) {
+  toHex (array) {
     const hexChars = '0123456789ABCDEF'
     let hexString = new Array(array.byteLength * 2)
     let intArray = new Uint8Array(array)
@@ -169,7 +169,7 @@ const D = {
     return hexString.join('')
   },
 
-  hexToArrayBuffer (hex) {
+  toBuffer (hex) {
     const hexChars = '0123456789ABCDEFabcdef'
     let result = new ArrayBuffer(hex.length / 2)
     let res = new Uint8Array(result)

@@ -394,13 +394,13 @@ export default class BtcAccount {
   }
 
   /**
-   * broadcast transaction to network
+   * broadcast transaction to btcNetwork
    * @param signedTx
-   * @param test won't broadcast to network if true
+   * @param test won't broadcast to btcNetwork if true
    * @see signedTx
    */
   async sendTx (signedTx, test = false) {
-    // broadcast transaction to network
+    // broadcast transaction to btcNetwork
     if (!test) await this._coinData.sendTx(this._toAccountInfo(), signedTx.utxos, signedTx.txInfo, signedTx.hex)
     // change utxo spent status from unspent to spent pending
     signedTx.utxos.forEach(utxo => { utxo.spent = D.utxo.status.pending })
@@ -421,11 +421,11 @@ export default class BtcAccount {
     let totalString = D.convertValue(this.coinType, total, D.unit.btc.santoshi, D.unit.btc.BTC) + ' btc.BTC'
     let apdu = ''
     let hexChars = '0123456789ABCDEF'
-    apdu += hexChars[totalString.length >> 4] + hexChars[totalString.length % 0x10] + D.arrayBufferToHex(enc.encode(totalString))
+    apdu += hexChars[totalString.length >> 4] + hexChars[totalString.length % 0x10] + D.toHex(enc.encode(totalString))
     console.log(apdu)
     apdu += '01'
     console.log(apdu)
-    apdu += hexChars[transaction.addresses[0].length >> 4] + hexChars[transaction.addresses[0].length % 0x10] + D.arrayBufferToHex(enc.encode(transaction.addresses[0]))
+    apdu += hexChars[transaction.addresses[0].length >> 4] + hexChars[transaction.addresses[0].length % 0x10] + D.toHex(enc.encode(transaction.addresses[0]))
     console.log(apdu)
     apdu = hexChars[parseInt(apdu.length / 2) % 0x10] + apdu
     apdu = hexChars[parseInt(apdu.length / 2) >> 4] + apdu
@@ -438,10 +438,10 @@ export default class BtcAccount {
     let intArray = new Uint8Array(new Array(2))
     intArray[0] = data[3]
     intArray[1] = data[4]
-    console.log('data ' + D.arrayBufferToHex(response))
-    console.log('data ' + D.arrayBufferToHex(data))
-    console.log('sw ' + D.arrayBufferToHex(intArray))
-    let sw = D.arrayBufferToHex(intArray)
+    console.log('data ' + D.toHex(response))
+    console.log('data ' + D.toHex(data))
+    console.log('sw ' + D.toHex(intArray))
+    let sw = D.toHex(intArray)
 
     if (sw === '6FFA') {
       this._device.sendBitCoin(transaction, callback)

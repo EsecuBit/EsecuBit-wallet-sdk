@@ -288,9 +288,9 @@ describe('Generate Testnet Test Sync Data', function () {
     transaction10.should.deep.equal(this.transaction10)
     console.log('transaction10', transaction10)
 
-    // let network = new BlockChainInfo(D.coin.test.btcTestNet3)
-    // await network.init()
-    // let response = await network.sendTx(transaction10.hex)
+    // let btcNetwork = new BlockChainInfo(D.coin.test.btcTestNet3)
+    // await btcNetwork.init()
+    // let response = await btcNetwork.sendTx(transaction10.hex)
     // console.log('response', response)
   })
 })

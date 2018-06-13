@@ -93,7 +93,7 @@ export default class ChromeHidDevice extends IEsDevice {
             console.warn('receive error: ' + chrome.runtime.lastError.message)
             reject(D.error.deviceComm)
           }
-          console.log('receive got ', D.arrayBufferToHex(data))
+          console.log('receive got ', D.toHex(data))
           resolve(ChromeHidDevice.HidUnpackResponse(data))
         })
       })

@@ -45,7 +45,7 @@ export default class ChromeUsbDevice extends IEsDevice {
         //       // return
         //     }
         //     console.log('Claimed')
-        //     that.sendAndReceive(hexToArrayBuffer('030604803300000ABD080000000000000000000000000000'), function () {
+        //     that.sendAndReceive(toBuffer('030604803300000ABD080000000000000000000000000000'), function () {
         //
         //     })
         //     if (that._listener !== null) {
@@ -139,7 +139,7 @@ export default class ChromeUsbDevice extends IEsDevice {
           }
 
           console.log('send got ' + info.data.byteLength + ' bytes:')
-          console.log(D.arrayBufferToHex(info.data))
+          console.log(D.toHex(info.data))
           resolve()
           // for (i = 0; i < 64; i++) {
           //   package[i] = 0
@@ -170,7 +170,7 @@ export default class ChromeUsbDevice extends IEsDevice {
           //   }
           //
           //   console.log('send got ' + info.data.byteLength + ' bytes:')
-          //   console.log(arrayBufferToHex(info.data))
+          //   console.log(toHex(info.data))
           //   receive(callback)
           // })
         })
@@ -212,7 +212,7 @@ export default class ChromeUsbDevice extends IEsDevice {
             }
 
             console.log('receive got ' + info.data.byteLength + ' bytes:')
-            console.log(D.arrayBufferToHex(info.data))
+            console.log(D.toHex(info.data))
             resolve(info.data)
           })
         })

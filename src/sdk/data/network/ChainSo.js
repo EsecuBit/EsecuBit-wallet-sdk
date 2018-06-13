@@ -8,7 +8,7 @@
  * {
  * "status" : "success",
  * "data" : {
- *   "network" : "btc.BTC",
+ *   "btcNetwork" : "btc.BTC",
  *   "address" : "1F1tAaz5x1HUXrCNLbtMDqcw6o5GNn4xqX",
  *   "balance" : "18.27406441",
  *   "received_value" : "29677.07906441",

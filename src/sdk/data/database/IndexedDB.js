@@ -67,7 +67,7 @@ export default class IndexedDB extends IDatabase {
          *   txId: string,
          *   version: int,
          *   blockNumber: int,
-         *   confirmations: int, // -1: not found in network, 0: found in miner's memory pool. other: confirmations
+         *   confirmations: int, // -1: not found in btcNetwork, 0: found in miner's memory pool. other: confirmations
          *                  just for showing the status. won't active update after confirmations >= D.TRANSACTION_##coin.TYPE##_MATURE_CONFIRMATIONS
          *   time: long,
          *   direction: D.tx.direction.in / D.tx.direction.out,

@@ -10,7 +10,7 @@ describe('EthAccount', function () {
 
   // new EsWallet will trigger heavy work, so make it lazy
   it('new wallet', async () => {
-    D.test.sync = false
+    D.test.sync = true
     esWallet = new EsWallet()
   })
 
@@ -43,9 +43,9 @@ describe('EthAccount', function () {
     let accounts = await esWallet.getAccounts()
     accounts.length.should.not.equal(0)
     let ethAccount = accounts.find(account => account.coinType === D.coin.test.ethRinkeby)
-    ethAccount.should.be.ok()
+    ethAccount.should.not.equal(undefined)
     account = ethAccount
-    account.utxos.length.should.above(0)
+    account.txInfos.length.should.above(0)
     account.addressInfos.length.should.above(0)
     account.balance.should.above(0)
   })
@@ -58,14 +58,13 @@ describe('EthAccount', function () {
       console.log('tx', tx)
       tx.accountId.should.equal(account.accountId)
       tx.coinType.should.equal(account.coinType)
-      tx.txId.should.be.a('string').and.lengthOf(64)
-      tx.version.should.above(0)
+      tx.txId.should.be.a('string').and.lengthOf(66)
       tx.blockNumber.should.be.a('number')
       tx.confirmations.should.be.a('number')
       tx.time.should.be.a('number')
       tx.direction.should.be.oneOf([D.tx.direction.in, D.tx.direction.out])
-      tx.inputs.should.lengthOf.above(0)
-      tx.outputs.should.lengthOf.above(0)
+      tx.inputs.should.lengthOf(1)
+      tx.outputs.should.lengthOf(1)
       tx.value.should.not.equal(0)
       tx.inputs.forEach(input => {
         input.prevAddress.should.be.a('string')

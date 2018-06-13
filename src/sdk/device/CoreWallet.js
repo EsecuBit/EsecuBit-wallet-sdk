@@ -34,8 +34,8 @@ export default class CoreWallet {
     let cosVersion = await this._getCosVersion()
     let firmwareVersion = await this._getFirmwareVersion()
     return [
-      {name: 'COS Version', value: D.arrayBufferToHex(cosVersion)},
-      {name: 'Firmware Version', value: D.arrayBufferToHex(firmwareVersion)}]
+      {name: 'COS Version', value: D.toHex(cosVersion)},
+      {name: 'Firmware Version', value: D.toHex(firmwareVersion)}]
   }
 
   _getFirmwareVersion () {
@@ -63,10 +63,10 @@ export default class CoreWallet {
   }
 
   sendHexApdu (apdu) {
-    return this._device.sendAndReceive(D.hexToArrayBuffer(apdu))
+    return this._device.sendAndReceive(D.toBuffer(apdu))
   }
 
   sendHexApduTrue (apdu) {
-    return this._deviceTrue.sendAndReceive(D.hexToArrayBuffer(apdu))
+    return this._deviceTrue.sendAndReceive(D.toBuffer(apdu))
   }
 }

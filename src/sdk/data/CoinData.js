@@ -39,7 +39,7 @@ export default class CoinData {
       this._db = new IndexedDB(info.walletId)
       // db
       await this._db.init()
-      // network
+      // btcNetwork
       await Promise.all(Object.values(this._network).map(network => network.init()))
       // fee
       await Promise.all(Object.keys(this._networkFee).map(async coinType => {
@@ -209,13 +209,10 @@ export default class CoinData {
   }
 
   getSuggestedFee (coinType) {
-    switch (coinType) {
-      case D.coin.main.btc:
-      case D.coin.test.btcTestNet3:
-        return this._networkFee[coinType].getCurrentFee()
-      default:
-        throw D.error.coinNotSupported
+    if (!D.suppertedCoinTypes().includes(coinType)) {
+      throw D.error.coinNotSupported
     }
+    return this._networkFee[coinType].getCurrentFee()
   }
 
   convertValue (coinType, value, fromType, toType) {

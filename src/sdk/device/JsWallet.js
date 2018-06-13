@@ -14,13 +14,13 @@ export default class JsWallet {
   }
 
   init (initSeed) {
-    const network = D.test.mode ? bitcoin.networks.testnet : bitcoin.networks.btc
+    const btcNetwork = D.test.mode ? bitcoin.networks.testnet : bitcoin.networks.btc
     const defaultSeed = D.test.sync ? D.test.syncSeed : D.test.txSeed
     const walletId = D.test.sync ? D.test.syncWalletId : D.test.txWalletId
 
     let seed = initSeed || defaultSeed
-    this.network = network
-    this._root = bitcoin.HDNode.fromSeedHex(seed, network)
+    this.btcNetwork = btcNetwork
+    this._root = bitcoin.HDNode.fromSeedHex(seed, btcNetwork)
     console.log('seed', seed)
     console.log('walletId', walletId)
     return {walletId: walletId}
@@ -51,9 +51,9 @@ export default class JsWallet {
         const ECPair = bitcoin.ECPair
         const HDNode = bitcoin.HDNode
         let curve = ecurve.getCurveByName('secp256k1')
-        let Q = ecurve.Point.decodeFrom(curve, Buffer.from(D.hexToArrayBuffer(pPublicKey.publicKey)))
-        let pChainCode = Buffer.from(D.hexToArrayBuffer(pPublicKey.chainCode))
-        let keyPair = new ECPair(null, Q, {network: this.network})
+        let Q = ecurve.Point.decodeFrom(curve, Buffer.from(D.toBuffer(pPublicKey.publicKey)))
+        let pChainCode = Buffer.from(D.toBuffer(pPublicKey.chainCode))
+        let keyPair = new ECPair(null, Q, {network: this.btcNetwork})
         node = new HDNode(keyPair, pChainCode)
       }
       return node.derivePath(path)
@@ -65,8 +65,8 @@ export default class JsWallet {
 
   async getPublicKey (publicKeyPath, pPublicKey) {
     let node = await this._derive(publicKeyPath, pPublicKey)
-    let publicKey = D.arrayBufferToHex(node.getPublicKeyBuffer())
-    let chainCode = D.arrayBufferToHex(node.chainCode)
+    let publicKey = D.toHex(node.getPublicKeyBuffer())
+    let chainCode = D.toHex(node.chainCode)
     return {publicKey, chainCode}
   }
 
@@ -79,7 +79,7 @@ export default class JsWallet {
     let eth = async () => {
       let node = await this._derive(addressPath, pPublicKey)
       let uncompressedPublicKey = node.keyPair.Q.getEncoded(false)
-      let withoutHead = new Uint8Array(D.hexToArrayBuffer(D.arrayBufferToHex(uncompressedPublicKey).slice(2)))
+      let withoutHead = new Uint8Array(D.toBuffer(D.toHex(uncompressedPublicKey).slice(2)))
       // noinspection JSCheckFunctionSignatures
       let hash = web3.utils.keccak256(withoutHead)
       return '0x' + hash.slice(-40)
@@ -100,8 +100,8 @@ export default class JsWallet {
   async publicKeyToAddress (publicKey) {
     const ECPair = bitcoin.ECPair
     let curve = ecurve.getCurveByName('secp256k1')
-    let Q = ecurve.Point.decodeFrom(curve, Buffer.from(D.hexToArrayBuffer(publicKey)))
-    let keyPair = new ECPair(null, Q, {network: this.network})
+    let Q = ecurve.Point.decodeFrom(curve, Buffer.from(D.toBuffer(publicKey)))
+    let keyPair = new ECPair(null, Q, {network: this.btcNetwork})
     return keyPair.getAddress()
   }
 
@@ -113,21 +113,36 @@ export default class JsWallet {
    *     address: base58 string,
    *     path: string,
    *     txId: hex string,
-   *     index: int,
+   *     index: number,
    *     script: string,
    *   }],
    *   outputs: [{
    *     address: base58 string,
-   *     value: long
+   *     value: number
    *   }]
+   * }
    *
    * eth:
-   * // TODO finish
+   * [nonce, gasprice, startgas, to, value, data, r, s, v]
+   * {
+   *   input: {
+   *     address: 0x string,
+   *     path: string,
+   *   ],
+   *   output: {
+   *     address: 0x string,
+   *     value: number
+   *   },
+   *   nonce: number,
+   *   gasPrice: number,
+   *   startGas: number,
+   *   data: hex string,
+   * }
    */
   async signTransaction (coinType, tx) {
     let btc = () => {
       try {
-        let txb = new bitcoin.TransactionBuilder(this.network)
+        let txb = new bitcoin.TransactionBuilder(this.btcNetwork)
         txb.setVersion(1)
         for (let input of tx.inputs) {
           txb.addInput(input.txId, input.index)
@@ -150,7 +165,13 @@ export default class JsWallet {
     }
 
     let eth = () => {
-      // TODO finish
+      const chainIds = {}
+      chainIds[D.coin.main.eth] = 1
+      chainIds[D.coin.test.ethRinkeby] = 4
+      let chainId = chainIds[coinType]
+      if (!chainId) throw D.error.coinNotSupported
+      let unsignedTx = [tx.nonce, tx.gasPrice, tx.startGas, tx.output.address, tx.output.value, tx.data, chainId * 2 + 35, 0, 0]
+      // sign
       throw D.error.notImplemented
     }
 

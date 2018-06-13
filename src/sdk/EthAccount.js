@@ -283,14 +283,14 @@ export default class EthAccount {
   }
 
   /**
-   * broadcast transaction to network
+   * broadcast transaction to btcNetwork
    * @param signedTx
-   * @param test won't broadcast to network if true
+   * @param test won't broadcast to btcNetwork if true
    * @see signedTx
    */
   async sendTx (signedTx, test = false) {
     // TODO
-    // broadcast transaction to network
+    // broadcast transaction to btcNetwork
     if (!test) await this._coinData.sendTx(this._toAccountInfo(), signedTx.utxos, signedTx.txInfo, signedTx.hex)
     // change utxo spent status from unspent to spent pending
     signedTx.utxos.forEach(utxo => { utxo.spent = D.utxo.status.pending })
