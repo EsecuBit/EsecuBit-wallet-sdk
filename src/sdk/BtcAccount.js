@@ -364,7 +364,7 @@ export default class BtcAccount {
     }
     rawTx.outputs.push({address: changeAddress, value: value})
     console.log(rawTx)
-    let signedTx = await this._device.signTransaction(rawTx)
+    let signedTx = await this._device.signTransaction(this.coinType, rawTx)
     let txInfo = {
       accountId: this.accountId,
       coinType: this.coinType,

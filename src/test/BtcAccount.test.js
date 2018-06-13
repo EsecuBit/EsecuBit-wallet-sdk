@@ -57,7 +57,7 @@ describe('BtcAccount', function () {
   })
 
   it('getTxInfos', async () => {
-    let {total, txInfos} = await account.getTxInfos(0, 100)
+    let {total, txInfos} = await account.getTxInfos()
     total.should.above(0)
     txInfos.length.should.not.equal(0)
     txInfos.forEach(tx => {
@@ -75,12 +75,12 @@ describe('BtcAccount', function () {
       tx.inputs.forEach(input => {
         input.prevAddress.should.be.a('string')
         input.isMine.should.be.a('boolean')
-        input.value.should.above(0)
+        input.value.should.be.a('number')
       })
       tx.outputs.forEach(output => {
         output.address.should.be.a('string')
         output.isMine.should.be.a('boolean')
-        output.value.should.above(0)
+        output.value.should.be.a('number')
       })
     })
   })
