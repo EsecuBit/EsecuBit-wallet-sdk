@@ -15,9 +15,13 @@
     "babel-preset-es2015": "^6.24.1",
     "babel-preset-stage-0": "^6.24.1",
     "babelify": "^8.0.0",
+    "bigi": "^1.4.2",
     "bip39": "^2.5.0",
+    "bitcoinjs-lib": "^3.3.2",
     "chai": "^4.1.2",
+    "create-hmac": "^1.1.7",
     "css-loader": "^0.28.11",
+    "ecurve": "^1.0.6",
     "eslint": "^4.19.1",
     "eslint-config-standard": "^11.0.0",
     "eslint-friendly-formatter": "^4.0.1",
@@ -50,9 +54,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "bitcoinjs-lib": "^3.3.2",
     "bitpony": "0.0.1",
-    "ecurve": "^1.0.6",
     "npm": "^6.0.1",
     "rlp": "^2.0.0"
   }

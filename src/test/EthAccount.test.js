@@ -3,11 +3,13 @@ import chai from 'chai'
 import D from '../sdk/D'
 import EsWallet from '../sdk/EsWallet'
 import JsWallet from "../sdk/device/JsWallet";
+import Web3 from 'web3'
 
 chai.should()
 describe('EthAccount', function () {
   this.timeout(60000)
   let esWallet
+  D.test.sync = true
 
   // new EsWallet will trigger heavy work, so make it lazy
   // it('new wallet', async () => {
@@ -115,35 +117,28 @@ describe('EthAccount', function () {
   //   fee[D.fee.normal].should.at.least(fee[D.fee.economic])
   //   fee[D.fee.fast].should.at.least(fee[D.fee.normal])
   // })
-  //
-  // it('sendTx', async () => {
-  //   let prepareTx = await account.prepareTx({
-  //     feeRate: 10,
-  //     outputs: [{
-  //       address: 'mn4ddJmfccTr5rSp1LTknPpdKatiaivw2X',
-  //       value: 30000
-  //     }, {
-  //       address: 'mqjGANawowPiTDKKtuqdf7mqumWAoyHsdG',
-  //       value: 10000
-  //     }]
-  //   })
-  //   console.log('prepareTx', prepareTx)
-  //   let signedTx = await account.buildTx(prepareTx)
-  //   console.log('signedTx', signedTx)
-  //   // await account.sendTx(signedTx)
-  // })
 
   it('sendTx', async () => {
     let jsWallet = new JsWallet()
     await jsWallet.init()
-    let response = await jsWallet.signTransaction(D.coin.test.ethRinkeby, {
-      input: {address: '0x1212121212121212121212121212121212121212', path: "m/44'/60'/0'/0'/0'"},
-      output: {address: '0x3535353535353535353535353535353535353535', value: 1000000000000000000},
-      nonce: 9,
-      gasPrice: 20000000000,
-      startGas: 21000,
-      data: ''
-    })
-    console.log('rlp', D.toHex(response))
+    let path = "m/44'/60'/0'/0/0"
+    let address = await jsWallet.getAddress(D.coin.test.ethRinkeby, path)
+    address.should.equal('0x79c744891902a0319b1322787190efaba5dbea72')
+    for (let nonce = 100; nonce < 103; nonce++) {
+      let response = await jsWallet.signTransaction(D.coin.test.ethRinkeby, {
+        input: {address: address, path: path},
+        output: {address: '0x79c744891902a0319b1322787190efaba5dbea72', value: 10000000000000000},
+        nonce: nonce,
+        gasPrice: 2000000000,
+        startGas: 210000,
+        data: ''
+      })
+      console.log('rlp', D.toHex(response))
+
+      let web3 = new Web3()
+      let verifyAddress = web3.eth.accounts.recoverTransaction('0x' + D.toHex(response).toLowerCase())
+      console.log('nonce', nonce, (verifyAddress.toLowerCase() === address ? 'ok' : 'not ok'))
+      console.log('address', verifyAddress)
+    }
   })
 })

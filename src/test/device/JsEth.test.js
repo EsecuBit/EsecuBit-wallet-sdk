@@ -39,12 +39,12 @@
 
 const Web3 = require('web3')
 if (typeof web3 !== 'undefined') {
-  console.log('already has web3')
+  console.log('already has Web3')
   web3 = new Web3(web3.currentProvider)
 } else {
   // set the provider you want from Web3.providers
-  // web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:7545'))
-  console.warn('no web3 instance')
+  // Web3 = new Web3(new Web3.providers.HttpProvider('http://localhost:7545'))
+  console.warn('no Web3 instance')
 }
 
 console.log(web3.version)
