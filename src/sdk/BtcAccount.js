@@ -281,21 +281,21 @@ export default class BtcAccount {
    *
    * @param details
    * {
-   *   feeRate: long (btc -> santoshi) per byte,
+   *   feeRate: long (santoshi),
    *   outputs: [{
    *     address: base58 string,
-   *     value: long (btc -> santoshi)
+   *     value: long (santoshi)
    *   }]
    * }
    * @returns {Promise<prepareTx>}
    * {
-   *   total: long (btc -> santoshi)
-   *   fee: long (btc -> santoshi)
-   *   feeRate: long (btc -> santoshi) per byte,
+   *   total: long (santoshi)
+   *   fee: long (santoshi)
+   *   feeRate: long (santoshi),
    *   utxos: utxo array,
    *   outputs: [{
    *     address: base58 string,
-   *     value: long (btc -> santoshi)
+   *     value: long (santoshi)
    *   }]
    * }
    */
@@ -313,7 +313,7 @@ export default class BtcAccount {
         }
       }
       if (newTotal <= total) {
-        throw D.error.txNotEnoughValue
+        throw D.error.balanceNotEnough
       }
       return {newTotal, willSpentUtxos}
     }
@@ -327,7 +327,7 @@ export default class BtcAccount {
     let calculateFee = (utxos, outputs) => (utxos.length * 180 + 34 * outputs.length + 34 + 10) * details.feeRate
     let result
     while (true) {
-      if (total < fee + totalOut) throw D.error.txNotEnoughValue
+      if (total < fee + totalOut) throw D.error.balanceNotEnough
       result = getEnoughUtxo(totalOut + fee)
       // new fee calculated
       fee = calculateFee(result.willSpentUtxos, details.outputs)
@@ -347,14 +347,14 @@ export default class BtcAccount {
   /**
    * use the result of prepareTx to make transaction
    * @param prepareTx
-   * @returns {Promise<{txInfo, hex}>}
+   * @returns {Promise<{txInfo, utxos, hex}>}
    * @see prepareTx
    */
   async buildTx (prepareTx) {
     let totalOut = prepareTx.outputs.reduce((sum, output) => sum + output.value, 0)
     if (totalOut + prepareTx.fee !== prepareTx.total) throw D.error.unknown
     let totalIn = prepareTx.utxos.reduce((sum, utxo) => sum + utxo.value, 0)
-    if (totalIn < prepareTx.total) throw D.error.txNotEnoughValue
+    if (totalIn < prepareTx.total) throw D.error.balanceNotEnough
 
     let changeAddress = await this._getAddressFromDeviceRetry(D.address.change)
     let value = totalIn - prepareTx.total
@@ -374,6 +374,7 @@ export default class BtcAccount {
       confirmations: -1,
       time: new Date().getTime(),
       direction: D.tx.direction.out,
+      value: prepareTx.total,
       inputs: prepareTx.utxos.map(utxo => {
         return {
           prevAddress: utxo.address,
@@ -387,8 +388,7 @@ export default class BtcAccount {
           isMine: output.address === changeAddress,
           value: output.value
         }
-      }),
-      value: prepareTx.total
+      })
     }
     return {txInfo: txInfo, utxos: prepareTx.utxos, hex: signedTx.hex}
   }
@@ -400,7 +400,7 @@ export default class BtcAccount {
    * @see signedTx
    */
   async sendTx (signedTx, test = false) {
-    // broadcast transaction to btcNetwork
+    // broadcast transaction to network
     if (!test) await this._coinData.sendTx(this._toAccountInfo(), signedTx.utxos, signedTx.txInfo, signedTx.hex)
     // change utxo spent status from unspent to spent pending
     signedTx.utxos.forEach(utxo => { utxo.spent = D.utxo.status.pending })

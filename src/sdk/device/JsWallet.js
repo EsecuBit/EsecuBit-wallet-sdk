@@ -280,7 +280,15 @@ export default class JsWallet {
 
       let signedTx = [tx.nonce, tx.gasPrice, tx.startGas, tx.output.address, tx.output.value, tx.data, v, r, s]
       console.log('signedTx', signedTx)
-      return rlp.encode(signedTx)
+
+      let rawTx = D.toHex(rlp.encode(signedTx)).toLowerCase()
+      // noinspection JSCheckFunctionSignatures
+      let txId = Web3.utils.keccak256(rlpUnsignedTx)
+      console.log('signed', txId, rawTx)
+      return {
+        id: txId,
+        hex: rawTx
+      }
     }
 
     switch (coinType) {

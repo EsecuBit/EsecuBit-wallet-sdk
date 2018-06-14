@@ -168,118 +168,98 @@ export default class EthAccount {
    *
    * @param details
    * {
-   *   feeRate: long (btc -> santoshi) per byte,
-   *   outputs: [{
-   *     address: base58 string,
-   *     value: long (btc -> santoshi)
+   *   feeRate: number (Wei),
+   *   outputs: [{    // only the first output will be used
+   *     address: hex string,
+   *     value: number (Wei)
    *   }]
+   *   data: hex string (optional)
    * }
    * @returns {Promise<prepareTx>}
    * {
-   *   total: long (btc -> santoshi)
-   *   fee: long (btc -> santoshi)
-   *   feeRate: long (btc -> santoshi) per byte,
-   *   utxos: utxo array,
-   *   outputs: [{
-   *     address: base58 string,
-   *     value: long (btc -> santoshi)
-   *   }]
+   *   total: number (Wei)
+   *   fee: number (Wei)
+   *   gasPrice: number (Wei)
+   *   startGas: number (Wei)
+   *   nonce: number
+   *   intput: addressInfo
+   *   output: {
+   *     address: hex string,
+   *     value: number (Wei)
+   *   }
+   *   data: hex string
    * }
    */
   async prepareTx (details) {
-    // TODO
-    if (this.coinType !== D.coin.main.btc && this.coinType !== D.coin.test.btcTestNet3) throw D.error.coinNotSupported
+    if (!this.coinType.includes('eth')) throw D.error.coinNotSupported
+    if (details.data) throw D.error.notImplemented
 
-    let getEnoughUtxo = (total) => {
-      let willSpentUtxos = []
-      let newTotal = 0
-      for (let utxo of utxos) {
-        newTotal += utxo.value
-        willSpentUtxos.push(utxo)
-        if (newTotal > total) {
-          break
-        }
+    let estimateGas = (details) => {
+      if (!details.data) {
+        return 21000
       }
-      if (newTotal <= total) {
-        throw D.error.txNotEnoughValue
-      }
-      return {newTotal, willSpentUtxos}
+      throw D.error.notImplemented
     }
 
-    // copy utxos for avoiding utxos of BtcAccount change
-    let utxos = this.utxos.filter(utxo => utxo.spent === D.utxo.status.unspent).map(utxo => D.copy(utxo))
-    let total = utxos.reduce((sum, utxo) => sum + utxo.value, 0)
-    let fee = details.feeRate
-    let totalOut = details.outputs.reduce((sum, output) => sum + output.value, 0)
-    // calculate the fee using uncompressed public key
-    let calculateFee = (utxos, outputs) => (utxos.length * 180 + 34 * outputs.length + 34 + 10) * details.feeRate
-    let result
-    while (true) {
-      if (total < fee + totalOut) throw D.error.txNotEnoughValue
-      result = getEnoughUtxo(totalOut + fee)
-      // new fee calculated
-      fee = calculateFee(result.willSpentUtxos, details.outputs)
-      if (result.newTotal > totalOut + fee) {
-        return {
-          feeRate: details.feeRate,
-          outputs: details.outputs,
-          fee: fee,
-          total: totalOut + fee,
-          utxos: result.willSpentUtxos
-        }
-      }
-      // new fee + total out is larger than new total, calculate again
+    // TODO later support data
+    let input = this.addressInfos[0]
+    let startGas = estimateGas(details)
+    let gasPrice = details.feeRate
+    let nonce = this.txInfos.filter(txInfo => txInfo.direction === D.tx.direction.out).length
+    let fee = startGas * gasPrice
+    let total = fee + details.outputs[0].value
+    if (total > this.balance) throw D.error.balanceNotEnough
+
+    return {
+      total: total,
+      fee: fee,
+      gasPrice: gasPrice,
+      startGas: startGas,
+      nonce: nonce,
+      input: D.copy(input),
+      output: D.copy(details.outputs[0]),
+      data: details.data ? details.data : '0x'
     }
   }
 
   /**
    * use the result of prepareTx to make transaction
    * @param prepareTx
-   * @returns {Promise<{txInfo, hex}>}
+   * @returns {Promise<{txInfo, addressInfo, hex}>}
    * @see prepareTx
    */
   async buildTx (prepareTx) {
-    // TODO
-    let totalOut = prepareTx.outputs.reduce((sum, output) => sum + output.value, 0)
-    if (totalOut + prepareTx.fee !== prepareTx.total) throw D.error.unknown
-    let totalIn = prepareTx.utxos.reduce((sum, utxo) => sum + utxo.value, 0)
-    if (totalIn < prepareTx.total) throw D.error.txNotEnoughValue
-
-    let changeAddress = await this._device.getAddress(this.coinType, this.changePublicKeyIndex, this.changePublicKey)
-    let value = totalIn - prepareTx.total
-    let rawTx = {
-      inputs: prepareTx.utxos,
-      outputs: prepareTx.outputs
-    }
-    rawTx.outputs.push({address: changeAddress, value: value})
-    console.log(rawTx)
-    let signedTx = await this._device.signTransaction(rawTx)
-    let txInfo = {
-      accountId: this.accountId,
-      coinType: this.coinType,
-      txId: signedTx.id,
-      version: 1,
-      blockNumber: -1,
-      confirmations: -1,
-      time: new Date().getTime(),
-      direction: D.tx.direction.out,
-      inputs: prepareTx.utxos.map(utxo => {
-        return {
-          prevAddress: utxo.address,
+    let signedTx = await this._device.signTransaction(this.coinType, {
+      input: {address: prepareTx.input.address, path: prepareTx.input.path},
+      output: {address: prepareTx.output.address, value: prepareTx.output.value},
+      nonce: prepareTx.nonce,
+      gasPrice: prepareTx.gasPrice,
+      startGas: prepareTx.startGas,
+      data: prepareTx.data
+    })
+    return {
+      txInfo: {
+        accountId: this.accountId,
+        coinType: this.coinType,
+        txId: signedTx.id,
+        blockNumber: -1,
+        confirmations: -1,
+        time: new Date().getTime(),
+        direction: D.tx.direction.out,
+        inputs: [{
+          prevAddress: prepareTx.input.address,
           isMine: true,
-          value: utxo.value
-        }
-      }),
-      outputs: prepareTx.outputs.map(output => {
-        return {
-          address: output.address,
-          isMine: output.address === changeAddress,
-          value: output.value
-        }
-      }),
-      value: prepareTx.total
+          value: prepareTx.output.value
+        }],
+        outputs: [{
+          address: prepareTx.output.address,
+          isMine: false,
+          value: prepareTx.output.value
+        }]
+      },
+      addressInfo: prepareTx.input,
+      hex: signedTx.hex
     }
-    return {txInfo: txInfo, utxos: prepareTx.utxos, hex: signedTx.hex}
   }
 
   /**
@@ -289,14 +269,8 @@ export default class EthAccount {
    * @see signedTx
    */
   async sendTx (signedTx, test = false) {
-    // TODO
-    // broadcast transaction to btcNetwork
-    if (!test) await this._coinData.sendTx(this._toAccountInfo(), signedTx.utxos, signedTx.txInfo, signedTx.hex)
-    // change utxo spent status from unspent to spent pending
-    signedTx.utxos.forEach(utxo => { utxo.spent = D.utxo.status.pending })
-    signedTx.utxos.map(utxo => {
-      let addressInfo = this.addressInfos.find(addressInfo => addressInfo.address === utxo.address)
-      return {addressInfo, utxo}
-    }).forEach(pair => this._handleNewTx(pair.addressInfo, signedTx.txInfo, [pair.utxo]))
+    // broadcast transaction to network
+    if (!test) await this._coinData.sendTx(this._toAccountInfo(), [], signedTx.txInfo, signedTx.hex)
+    await this._handleNewTx(signedTx.addressInfo, signedTx.txInfo, [])
   }
 }

@@ -30,7 +30,7 @@ const D = {
     networkNotInitialized: 402,
     networkProviderError: 403,
 
-    txNotEnoughValue: 501,
+    balanceNotEnough: 501,
     txNotFound: 502,
 
     notImplemented: 10000,
@@ -77,7 +77,7 @@ const D = {
     fastest: 'fastest',
     fast: 'fast',
     normal: 'normal',
-    ecnomic: 'economy'
+    economic: 'economic'
   },
 
   unit: {
