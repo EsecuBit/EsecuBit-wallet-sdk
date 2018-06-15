@@ -126,8 +126,7 @@ const D = {
   },
 
   recoverCoinTypes () {
-    // return D.suppertedCoinTypes()
-    return [D.coin.test.ethRinkeby]
+    return D.suppertedCoinTypes()
   },
 
   convertValue (coinType, value, fromType, toType) {
