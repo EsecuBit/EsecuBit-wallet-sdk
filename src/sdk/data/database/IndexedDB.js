@@ -190,6 +190,7 @@ export default class IndexedDB extends IDatabase {
     })
   }
 
+  // noinspection JSUnusedGlobalSymbols
   deleteDatabase () {
     this._db = null
     return new Promise((resolve, reject) => {

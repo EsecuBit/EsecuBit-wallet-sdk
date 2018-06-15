@@ -2,8 +2,8 @@
 import D from '../../D'
 import ICoinNetwork from './ICoinNetwork'
 
-const testRinkebyUrl = 'https://api-rinkeby.etherscan.io/api'
-const mainUrl = 'https://api.etherscan.io/api'
+const testRinkebyUrl = 'https://api-rinkeby.etherscan.io'
+const mainUrl = 'https://api.etherscan.io'
 
 export default class EtherScanIo extends ICoinNetwork {
   constructor (coinType) {
@@ -38,13 +38,22 @@ export default class EtherScanIo extends ICoinNetwork {
     return response.result
   }
 
+  getTxLink (txInfo) {
+    let urls = {}
+    urls[D.coin.main.eth] = 'https://etherscan.io/tx/'
+    urls[D.coin.test.ethRinkeby] = 'https://rinkeby.etherscan.io/tx/'
+    let url = urls[txInfo.coinType]
+    if (!url) throw D.error.coinNotSupported
+    return url + txInfo.txId
+  }
+
   async getBlockHeight () {
-    let response = await this.get(this._apiUrl + '?module=proxy&action=eth_blockNumber')
+    let response = await this.get(this._apiUrl + '/api?module=proxy&action=eth_blockNumber')
     return parseInt(response)
   }
 
   async queryAddress (address) {
-    let response = await this.get(this._apiUrl + '?module=account&action=txlist&address=' + address)
+    let response = await this.get(this._apiUrl + '/api?module=account&action=txlist&address=' + address)
     return {
       address: address,
       txCount: response.length,
@@ -53,12 +62,12 @@ export default class EtherScanIo extends ICoinNetwork {
   }
 
   async queryTx (txId) {
-    let response = await this.get(this._apiUrl + '?module=proxy&action=eth_getTransactionByHash&txhash=' + txId)
+    let response = await this.get(this._apiUrl + '/api?module=proxy&action=eth_getTransactionByHash&txhash=' + txId)
     return this.wrapTx(response)
   }
 
   async sendTx (rawTransaction) {
-    return this.post(this._apiUrl + '?module=proxy&action=eth_sendRawTransaction&hex=' + rawTransaction)
+    return this.post(this._apiUrl + '/api?module=proxy&action=eth_sendRawTransaction&hex=' + rawTransaction)
   }
 
   wrapTx (rTx) {
@@ -83,3 +92,4 @@ export default class EtherScanIo extends ICoinNetwork {
     return tx
   }
 }
+EtherScanIo.provider = 'etherscan.io'

@@ -2,8 +2,6 @@
 import chai from 'chai'
 import D from '../sdk/D'
 import EsWallet from '../sdk/EsWallet'
-import JsWallet from '../sdk/device/JsWallet'
-import Web3 from 'web3'
 
 chai.should()
 describe('EthAccount', function () {
@@ -13,6 +11,7 @@ describe('EthAccount', function () {
   // new EsWallet will trigger heavy work, so make it lazy
   it('new wallet', async () => {
     D.test.sync = true
+    D.test.mode = true
     esWallet = new EsWallet()
   })
 
@@ -26,6 +25,7 @@ describe('EthAccount', function () {
     esWallet.listenStatus((error, status) => {
       console.log('error, status', error, status)
       if (error !== D.error.succeed) {
+        console.warn('error, status', error, status)
         done(error)
         return
       }
@@ -55,7 +55,7 @@ describe('EthAccount', function () {
   it('getTxInfos', async () => {
     let {total, txInfos} = await account.getTxInfos(0, 100)
     total.should.above(0)
-    txInfos.length.should.not.equal(0)
+    txInfos.length.should.above(0)
     txInfos.forEach(tx => {
       tx.accountId.should.equal(account.accountId)
       tx.coinType.should.equal(account.coinType)
@@ -66,7 +66,8 @@ describe('EthAccount', function () {
       tx.direction.should.be.oneOf([D.tx.direction.in, D.tx.direction.out])
       tx.inputs.should.lengthOf(1)
       tx.outputs.should.lengthOf(1)
-      tx.value.should.not.equal(0)
+      tx.value.should.be.a('number')
+      tx.link.should.equal('https://rinkeby.etherscan.io/tx/' + tx.txId)
       tx.inputs.forEach(input => {
         input.prevAddress.should.be.a('string')
         input.isMine.should.be.a('boolean')
@@ -125,7 +126,7 @@ describe('EthAccount', function () {
       console.log('prepareTx', prepareTx)
       let signedTx = await account.buildTx(prepareTx)
       console.log('signedTx', signedTx)
-      await account.sendTx(signedTx, true)
+      // await account.sendTx(signedTx, true)
     }
   })
 })

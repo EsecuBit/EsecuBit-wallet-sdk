@@ -61,6 +61,10 @@ export default class BlockchainInfo extends ICoinNetwork {
     })
   }
 
+  getTxLink (txInfo) {
+    return [this._apiUrl, 'tx', txInfo.txId].join('/')
+  }
+
   async getBlockHeight () {
     return parseInt(await this.get([this._apiUrl, 'q', 'getblockcount?cors=true'].join('/')))
   }

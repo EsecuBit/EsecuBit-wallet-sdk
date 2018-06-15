@@ -108,15 +108,13 @@ export default class EthAccount {
     // update account info
     this.balance += txInfo.value
     this.txInfos.push(D.copy(txInfo))
+    this.addressInfos.find(a => a.address === addressInfo.address).txs = D.copy(addressInfo.txs)
 
     await this._coinData.newTx(this._toAccountInfo(), addressInfo, txInfo, [])
 
     if (txInfo.confirmations < D.tx.matureConfirms.eth) {
       console.log('listen transaction status', txInfo)
-      if (!this._listenedTxs.some(tx => tx === txInfo.txId)) {
-        this._listenedTxs.push(txInfo.txId)
-        this._coinData.listenTx(this.coinType, D.copy(txInfo), this._txListener)
-      }
+      this._coinData.listenTx(this.coinType, D.copy(txInfo), this._txListener)
     }
 
     this.busy = false

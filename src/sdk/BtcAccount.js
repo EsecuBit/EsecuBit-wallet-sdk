@@ -126,6 +126,7 @@ export default class BtcAccount {
     this.balance += txInfo.value
     this.txInfos.push(D.copy(txInfo))
     this.utxos.push(...utxos)
+    this.addressInfos.find(a => a.address === addressInfo.address).txs = D.copy(addressInfo.txs)
 
     // update and addressIndex and listen new address
     let newIndex = addressInfo.index + 1

@@ -173,8 +173,10 @@ export default class CoinData {
     return this._db.getAddressInfos(filter)
   }
 
-  getTxInfos (filter) {
-    return this._db.getTxInfos(filter)
+  async getTxInfos (filter) {
+    let txInfos = await this._db.getTxInfos(filter)
+    txInfos.txInfos.forEach(txInfo => (txInfo.link = this._network[txInfo.coinType].getTxLink(txInfo)))
+    return txInfos
   }
 
   getUtxos (filter) {

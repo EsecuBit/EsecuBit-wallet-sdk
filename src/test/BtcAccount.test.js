@@ -29,6 +29,7 @@ describe('BtcAccount', function () {
     esWallet.listenStatus((error, status) => {
       console.log('error, status', error, status)
       if (error !== D.error.succeed) {
+        console.warn('error, status', error, status)
         done(error)
         return
       }

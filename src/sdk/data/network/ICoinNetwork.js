@@ -147,6 +147,7 @@ export default class ICoinNetwork {
             return
           }
           callback(e, this.txInfo)
+          return
         }
         let confirmations = response.blockNumber ? that._blockHeight - response.blockNumber : 0
 
@@ -284,6 +285,10 @@ export default class ICoinNetwork {
         }}
       })
     }
+  }
+
+  getTxLink (txInfo) {
+    throw D.error.notImplemented
   }
 
   /**
