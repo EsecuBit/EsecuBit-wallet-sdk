@@ -20,9 +20,9 @@ export default class CoinData {
     const coinTypes = D.suppertedCoinTypes()
     this._network = coinTypes.reduce((obj, coinType) => {
       // TODO read provider from settings
-      if (coinType.includes('btc')) {
+      if (D.isBtc(coinType)) {
         obj[coinType] = new BlockChainInfo(coinType)
-      } else if (coinType.includes('eth')) {
+      } else if (D.isEth(coinType)) {
         obj[coinType] = new EtherScanIo(coinType)
       }
       return obj
@@ -45,10 +45,10 @@ export default class CoinData {
       await Promise.all(Object.keys(this._networkFee).map(async coinType => {
         let fee = await this._db.getFee(coinType)
         fee = fee || {coinType}
-        if (coinType.includes('btc')) {
+        if (D.isBtc(coinType)) {
           this._networkFee[coinType] = new FeeBitCoinEarn(fee)
           this._networkFee[coinType].onUpdateFee = (fee) => this._db.saveOfUpdateFee(fee)
-        } else if (coinType.includes('eth')) {
+        } else if (D.isEth(coinType)) {
           this._networkFee[coinType] = new EthGasStationInfo(fee)
           this._networkFee[coinType].onUpdateFee = (fee) => this._db.saveOfUpdateFee(fee)
         }
@@ -160,7 +160,6 @@ export default class CoinData {
   }
 
   async saveOrUpdateTxInfo (txInfo) {
-    console.log('yeah', txInfo)
     await this._db.saveOrUpdateTxInfo(txInfo)
     this._listeners.forEach(listener => listener(D.error.succeed, txInfo))
   }

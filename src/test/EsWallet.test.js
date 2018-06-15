@@ -60,7 +60,7 @@ describe('EsWallet', function () {
   it('availableNewAccountCoinTypes', async () => {
     let availableNewAccountCoinTypes = await esWallet.availableNewAccountCoinTypes()
     availableNewAccountCoinTypes.length.should.equal(2)
-    availableNewAccountCoinType = availableNewAccountCoinTypes.find(coinType => coinType.includes('btc'))
+    availableNewAccountCoinType = availableNewAccountCoinTypes.find(coinType => D.isBtc(coinType))
   })
 
   it('newAccountAndDelete', async () => {
@@ -77,7 +77,7 @@ describe('EsWallet', function () {
 
   it('convertValue', () => {
     D.suppertedCoinTypes().forEach(coinType => {
-      if (coinType.includes('btc')) {
+      if (D.isBtc(coinType)) {
         esWallet.convertValue(coinType, 123456, D.unit.btc.santoshi, D.unit.btc.BTC).should.equal(0.00123456)
         esWallet.convertValue(coinType, 123456, D.unit.btc.santoshi, D.unit.btc.mBTC).should.equal(1.23456)
         esWallet.convertValue(coinType, 123456, D.unit.btc.BTC, D.unit.btc.santoshi).should.equal(12345600000000)
@@ -89,7 +89,7 @@ describe('EsWallet', function () {
         esWallet.convertValue(coinType, 123456, D.unit.legal.CNY, D.unit.btc.mBTC)
         esWallet.convertValue(coinType, 123456, D.unit.legal.EUR, D.unit.btc.santoshi)
       }
-      if (coinType.includes('eth')) {
+      if (D.isEth(coinType)) {
         esWallet.convertValue(coinType, 123456, D.unit.eth.Ether, D.unit.legal.USD)
         esWallet.convertValue(coinType, 123456, D.unit.eth.GWei, D.unit.legal.CNY)
         esWallet.convertValue(coinType, 123456, D.unit.eth.Wei, D.unit.legal.JPY)

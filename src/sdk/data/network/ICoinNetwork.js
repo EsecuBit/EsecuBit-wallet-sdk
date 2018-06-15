@@ -201,8 +201,18 @@ export default class ICoinNetwork {
   generateAddressTasks (addressInfos) {
     let checkNewTx = async (response, addressInfo) => {
       let newTransaction = async (addressInfo, tx) => {
-        let input = tx.inputs.find(input => addressInfo.address === input.address)
+        console.log('here', tx.inputs.find(input => addressInfo.address === input.prevAddress), tx)
+        let input = tx.inputs.find(input => addressInfo.address === input.prevAddress)
         let direction = input ? D.tx.direction.out : D.tx.direction.in
+
+        let fee = 0
+        if (D.isEth(this.coinType)) {
+          fee = tx.gas * tx.gasPrice
+        } else {
+          fee += tx.inputs.reduce((sum, input) => sum + input.value, 0)
+          fee -= tx.outputs.reduce((sum, output) => sum + output.value, 0)
+        }
+
         let txInfo = {
           accountId: addressInfo.accountId,
           coinType: addressInfo.coinType,
@@ -212,6 +222,7 @@ export default class ICoinNetwork {
           confirmations: tx.confirmations,
           time: tx.time,
           direction: direction,
+          fee: fee,
           inputs: tx.inputs,
           outputs: tx.outputs
         }
@@ -234,7 +245,8 @@ export default class ICoinNetwork {
 
         let spentInputs = tx.inputs.filter(input => addressInfo.address === input.prevAddress)
         if (spentInputs.length > 0) {
-          if (!spentInputs[0].prevTxId) {
+          if (D.isBtc(this.coinType) && !spentInputs[0].prevTxId) {
+            // TODO queryRawTx request speed
             let formatTx = await this.queryRawTx(txInfo.txId)
             spentInputs.forEach(input => {
               input.prevTxId = formatTx.in[input.index].hash
@@ -258,7 +270,6 @@ export default class ICoinNetwork {
         return {addressInfo, txInfo, utxos}
       }
 
-      // TODO test address1 + address1 => address1 + address1
       let newTxs = response.txs.filter(tx => !addressInfo.txs.some(txId => txId === tx.txId))
       newTxs.forEach(tx => addressInfo.txs.push(tx.txId))
       return Promise.all(newTxs.map(async tx => {

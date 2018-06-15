@@ -94,15 +94,16 @@ export default class EsWallet {
     while (true) {
       let account = await this._coinData.newAccount(coinType)
       let esAccount
-      if (coinType.includes('btc')) {
+      if (D.isBtc(coinType)) {
         esAccount = new BtcAccount(account, this._device, this._coinData)
-      } else if (coinType.includes('eth')) {
+      } else if (D.isEth(coinType)) {
         esAccount = new EthAccount(account, this._device, this._coinData)
       } else {
         throw D.error.coinNotSupported
       }
       await esAccount.init()
       await esAccount.sync()
+      console.log('here', (await esAccount.getTxInfos()))
       // new account has no transactions, recover finish
       if ((await esAccount.getTxInfos()).total === 0) {
         if (esAccount.index !== 0) {

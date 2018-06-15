@@ -18,7 +18,7 @@ export default class EthAccount {
 
     this._txListener = async (error, txInfo) => {
       if (error !== D.error.succeed) {
-        console.warn('BtcAccount txListener', error)
+        console.warn('EthAccount txListener', error)
         return
       }
       console.log('newTransaction status', txInfo)
@@ -66,7 +66,7 @@ export default class EthAccount {
   async sync () {
     // find out all the transactions
     let blobs = await this._coinData.checkAddresses(this.coinType, this.addressInfos)
-    await Promise.all(blobs.map(blob => this._handleNewTx(blob.addressInfo, blob.txInfo, blob.utxos, true)))
+    await Promise.all(blobs.map(blob => this._handleNewTx(blob.addressInfo, blob.txInfo, blob.utxos)))
     this._coinData.listenAddresses(this.coinType, D.copy(this.addressInfos), this._addressListener)
 
     this.txInfos.filter(txInfo => txInfo.confirmations < D.tx.matureConfirms.eth)
@@ -131,12 +131,8 @@ export default class EthAccount {
   }
 
   async getTxInfos (startIndex, endIndex) {
-    startIndex = startIndex || 0
-    endIndex = endIndex || this.txInfos.length
-    return {
-      total: this.txInfos.length,
-      txInfos: this.txInfos.slice(startIndex, endIndex)
-    }
+    let accountId = this.accountId
+    return this._coinData.getTxInfos({accountId, startIndex, endIndex})
   }
 
   async getAddress () {
@@ -189,7 +185,7 @@ export default class EthAccount {
    * }
    */
   async prepareTx (details) {
-    if (!this.coinType.includes('eth')) throw D.error.coinNotSupported
+    if (!D.isEth(this.coinType)) throw D.error.coinNotSupported
     if (details.data) throw D.error.notImplemented
 
     let estimateGas = (details) => {

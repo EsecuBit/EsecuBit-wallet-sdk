@@ -61,6 +61,7 @@ export default class IndexedDB extends IDatabase {
 
         /**
          * txInfo:
+         * btc：
          * {
          *   accountId: string,
          *   coinType: string,
@@ -69,11 +70,30 @@ export default class IndexedDB extends IDatabase {
          *   blockNumber: int,
          *   confirmations: int, // -1: not found in btcNetwork, 0: found in miner's memory pool. other: confirmations
          *                  just for showing the status. won't active update after confirmations >= D.TRANSACTION_##coin.TYPE##_MATURE_CONFIRMATIONS
-         *   time: long,
+         *   time: number,
          *   direction: D.tx.direction.in / D.tx.direction.out,
          *   inputs: [{prevAddress, prevOutIndex, index, value, isMine}, ...]
          *   outputs: [{address, index, value, isMine}, ...]
-         *   value: long (btc -> santoshi) // value that shows the account balance changes, calculated by inputs and outputs
+         *   value: number (btc -> santoshi) // value that shows the account balance changes, calculated by inputs and outputs
+         * }
+         *
+         * eth：
+         * {
+         *   accountId: string,
+         *   coinType: string,
+         *   txId: string,
+         *   version: number,
+         *   blockNumber: number,
+         *   confirmations: number, // -1: not found in btcNetwork, 0: found in miner's memory pool. other: confirmations
+         *                  just for showing the status. won't active update after confirmations >= D.TRANSACTION_##coin.TYPE##_MATURE_CONFIRMATIONS
+         *   time: number,
+         *   direction: D.tx.direction.in / D.tx.direction.out,
+         *   inputs: [{prevAddress, prevOutIndex, index, value, isMine}, ...]
+         *   outputs: [{address, index, value, isMine}, ...]
+         *   value: number (btc -> santoshi) // value that shows the account balance changes, calculated by inputs and outputs
+         *   gas: number,
+         *   gasPrice: number,
+         *   fee: gas * gasPrice
          * }
          */
         // TODO createIndex when upgrade?

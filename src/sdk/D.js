@@ -99,6 +99,14 @@ const D = {
     }
   },
 
+  isBtc (coinType) {
+    return coinType.includes('btc')
+  },
+
+  isEth (coinType) {
+    return coinType.includes('eth')
+  },
+
   suppertedLegals () {
     return Object.values(this.unit.legal)
   },
@@ -107,9 +115,8 @@ const D = {
     return Object.values(D.test.mode ? D.coin.test : D.coin.main)
   },
 
-  // TODO let user select
   recoverCoinTypes () {
-    return [D.coin.test.btcTestNet3, D.coin.test.ethRinkeby]
+    return D.suppertedCoinTypes()
   },
 
   convertValue (coinType, value, fromType, toType) {
@@ -158,7 +165,6 @@ const D = {
   },
 
   toHex (array) {
-    console.warn(array)
     const hexChars = '0123456789ABCDEF'
     let hexString = new Array(array.byteLength * 2)
     let intArray = new Uint8Array(array)

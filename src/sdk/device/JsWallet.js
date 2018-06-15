@@ -259,12 +259,9 @@ export default class JsWallet {
           // noinspection RedundantIfStatementJS
           if (s.signum() === 0) return false
 
-          console.log('r.y', Q.affineY.toHex())
-          console.log('generateK', odd, s.toHex())
           if (s.compareTo(N_OVER_TWO) > 0) {
             s = n.subtract(s)
             odd = odd ? 0 : 1
-            console.log('sub', s.toHex())
           }
 
           return true
@@ -279,12 +276,10 @@ export default class JsWallet {
       let [v, r, s] = sign(Buffer.from(D.toBuffer(rlpHash.slice(2))), node.keyPair.d)
 
       let signedTx = [tx.nonce, tx.gasPrice, tx.startGas, tx.output.address, tx.output.value, tx.data, v, r, s]
-      console.log('signedTx', signedTx)
 
       let rawTx = D.toHex(rlp.encode(signedTx)).toLowerCase()
       // noinspection JSCheckFunctionSignatures
-      let txId = Web3.utils.keccak256(rlpUnsignedTx)
-      console.log('signed', txId, rawTx)
+      let txId = Web3.utils.keccak256(rlp.encode(signedTx))
       return {
         id: txId,
         hex: rawTx
