@@ -2,16 +2,16 @@
 import chai from 'chai'
 import D from '../../sdk/D'
 import JsWallet from '../../sdk/device/JsWallet'
-import Web3 from "web3/index";
+import Web3 from 'web3'
 
 chai.should()
-D.test.sync = true
-D.test.mode = true
 describe('JsWallet Bitcoin', function () {
   this.timeout('10000')
   const jsWallet = new JsWallet()
 
   it('init', async () => {
+    D.test.sync = true
+    D.test.mode = true
     await jsWallet.init()
   })
 
@@ -44,7 +44,6 @@ describe('JsWallet Bitcoin', function () {
     let publicKey4 = await jsWallet.getPublicKey("m/44'/0'/0'/0")
     let publicKey4to5 = await jsWallet.getPublicKey(100, publicKey4)
     publicKey5.should.deep.equal(publicKey4to5)
-    console.log('publicKey5', publicKey5)
   })
 
   it('deriveAddress', async () => {
@@ -52,7 +51,6 @@ describe('JsWallet Bitcoin', function () {
     let publicKey4 = await jsWallet.getPublicKey("m/44'/0'/0'/0")
     let address4to5 = await jsWallet.getAddress(D.coin.test.btcTestNet3, 100, publicKey4)
     address5.should.deep.equal(address4to5)
-    console.log('address5', address5)
   })
 })
 
@@ -67,6 +65,7 @@ describe('JsWallet Ethernum', function () {
   it('getAddress', async () => {
     let address = await jsWallet.getAddress(D.coin.test.ethRinkeby, "m/44'/60'/0'/0/0")
     address.should.equal('0x79c744891902a0319b1322787190efaba5dbea72')
+    D.test.sync = false
   })
 
   it('signTransaction', async () => {
@@ -82,10 +81,10 @@ describe('JsWallet Ethernum', function () {
         startGas: 210000,
         data: ''
       })
-      console.log('rlp', D.toHex(response).toLowerCase())
+      console.log('rlp', response)
 
       let web3 = new Web3()
-      let verifyAddress = web3.eth.accounts.recoverTransaction('0x' + D.toHex(response).toLowerCase())
+      let verifyAddress = web3.eth.accounts.recoverTransaction('0x' + response.hex).toLowerCase()
       console.log('nonce', nonce, (verifyAddress.toLowerCase() === address ? 'ok' : 'not ok'))
       console.log('address', verifyAddress)
       address.should.equal(verifyAddress)

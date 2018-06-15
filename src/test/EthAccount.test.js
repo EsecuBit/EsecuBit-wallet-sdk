@@ -120,13 +120,13 @@ describe('EthAccount', function () {
   it('sendTx', async () => {
     for (let nonce = 0; nonce < 1; nonce++) {
       let prepareTx = await account.prepareTx({
-        feeRate: 2000000000,
-        outputs: [{address: '0x79c744891902a0319b1322787190efaba5dbea72', value: 10000000000000000}]
+        feeRate: 1000000000,
+        outputs: [{address: '0x5c69f6b7a38ca89d5dd48a7f21be5f1030760891', value: 32000000000000000}]
       })
       console.log('prepareTx', prepareTx)
       let signedTx = await account.buildTx(prepareTx)
       console.log('signedTx', signedTx)
-      // await account.sendTx(signedTx, true)
+      await account.sendTx(signedTx)
     }
   })
 })

@@ -8,7 +8,7 @@
 // import './test/GenerateTestNetTestSyncData.test'
 
 // component
-// import './test/device/JsWallet.test'
+import './test/device/JsWallet.test'
 // import './test/data/database/IndexedDB.test'
 // import './test/data/btcNetwork/fee/BitcoinEarn.test'
 // import './test/data/btcNetwork/ChainSo.test'
@@ -19,4 +19,4 @@
 // main class
 // import './test/EsWallet.test'
 // import './test/BtcAccount.test'
-import './test/EthAccount.test'
+// import './test/EthAccount.test'

@@ -27,12 +27,27 @@ export default class EtherScanIo extends ICoinNetwork {
 
   async get (url) {
     let response = await super.get(url)
+    console.debug('hi get etherscan.io', response)
     if (response.error) {
       console.warn('etherscan.io get error', response.error)
       throw D.error.networkProviderError
     }
     if (!response.result) {
       console.warn('etherscan.io get result null', response)
+      throw D.error.networkProviderError
+    }
+    return response.result
+  }
+
+  async post (url, args) {
+    let response = await super.post(url, args)
+    console.debug('hi post etherscan.io', response)
+    if (response.error) {
+      console.warn('etherscan.io post error', response.error)
+      throw D.error.networkProviderError
+    }
+    if (!response.result) {
+      console.warn('etherscan.io post result null', response)
       throw D.error.networkProviderError
     }
     return response.result
@@ -67,7 +82,7 @@ export default class EtherScanIo extends ICoinNetwork {
   }
 
   async sendTx (rawTransaction) {
-    return this.post(this._apiUrl + '/api?module=proxy&action=eth_sendRawTransaction&hex=' + rawTransaction)
+    return this.post(this._apiUrl + '/api?module=proxy&action=eth_sendRawTransaction', 'hex=' + rawTransaction)
   }
 
   wrapTx (rTx) {

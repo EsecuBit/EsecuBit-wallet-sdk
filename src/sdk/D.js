@@ -158,6 +158,7 @@ const D = {
   },
 
   toHex (array) {
+    console.warn(array)
     const hexChars = '0123456789ABCDEF'
     let hexString = new Array(array.byteLength * 2)
     let intArray = new Uint8Array(array)
