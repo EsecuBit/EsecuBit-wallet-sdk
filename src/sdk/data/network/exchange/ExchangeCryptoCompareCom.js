@@ -1,7 +1,7 @@
 
 import D from '../../../D'
 
-let UPDATE_DURATION = 30 * 60 * 1000
+let UPDATE_DURATION = 10 * 60 * 1000
 if (D.test.networkRequest) {
   UPDATE_DURATION = 60 * 1000
 }

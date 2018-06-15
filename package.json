@@ -44,7 +44,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "npm run server",
     "build": "npx webpack --config webpack.config.js",
-    "server": "npx webpack-dev-server --progress --open --config webpack.config.dev.js"
+    "server": "npx webpack-dev-server --no-inline --progress --open --config webpack.config.dev.js"
   },
   "repository": {
     "type": "git",

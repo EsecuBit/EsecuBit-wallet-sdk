@@ -74,7 +74,7 @@ export default class BtcAccount {
       this._getAddressInfos(0, this.changePublicKeyIndex + 1, D.address.change))
     if (listenAddressInfos.length !== 0) this._coinData.listenAddresses(this.coinType, listenAddressInfos, this._addressListener)
 
-    this.txInfos.filter(txInfo => txInfo.confirmations < D.tx.matureConfirms.btc)
+    this.txInfos.filter(txInfo => txInfo.confirmations < D.tx.getMatureConfirms(this.coinType))
       .forEach(txInfo => {
         this._listenedTxs.push(txInfo.txId)
         this._coinData.listenTx(this.coinType, D.copy(txInfo), this._txListener)
@@ -141,8 +141,7 @@ export default class BtcAccount {
       let newListeneAddressInfos = this._getAddressInfos(oldIndex, newIndex + 1, addressInfo.type)
       if (newListeneAddressInfos.length !== 0) this._coinData.listenAddresses(this.coinType, newListeneAddressInfos, this._addressListener)
     }
-    if (txInfo.confirmations < D.tx.matureConfirms.btc) {
-      console.log('listen transaction status', txInfo)
+    if (txInfo.confirmations < D.tx.getMatureConfirms(this.coinType)) {
       if (!this._listenedTxs.some(tx => tx === txInfo.txId)) {
         this._listenedTxs.push(txInfo.txId)
         this._coinData.listenTx(this.coinType, D.copy(txInfo), this._txListener)

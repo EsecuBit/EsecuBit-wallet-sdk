@@ -2,7 +2,7 @@
 import bitPony from 'bitpony'
 
 const D = {
-  // listen status
+  // wallet status
   status: {
     plugIn: 1,
     initializing: 2,
@@ -62,6 +62,16 @@ const D = {
     matureConfirms: {
       btc: 6,
       eth: 6
+    },
+
+    getMatureConfirms (coinType) {
+      if (D.isBtc(coinType)) {
+        return D.tx.matureConfirms.btc
+      } else if (D.isEth(coinType)) {
+        return D.tx.matureConfirms.eth
+      } else {
+        throw D.error.coinNotSupported
+      }
     }
   },
 
@@ -116,7 +126,8 @@ const D = {
   },
 
   recoverCoinTypes () {
-    return D.suppertedCoinTypes()
+    // return D.suppertedCoinTypes()
+    return [D.coin.test.ethRinkeby]
   },
 
   convertValue (coinType, value, fromType, toType) {

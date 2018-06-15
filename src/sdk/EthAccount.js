@@ -15,6 +15,7 @@ export default class EthAccount {
     assign()
     this._device = device
     this._coinData = coinData
+    this._listenedTxs = []
 
     this._txListener = async (error, txInfo) => {
       if (error !== D.error.succeed) {
@@ -27,9 +28,9 @@ export default class EthAccount {
         console.warn('this should not happen, add it')
         this.txInfos.push(txInfo)
       } else {
-        this.txInfos[index] = txInfo
+        this.txInfos[index] = D.copy(txInfo)
       }
-      await this._coinData.saveOrUpdateTxInfo(txInfo)
+      await this._coinData.saveOrUpdateTxInfo(D.copy(txInfo))
     }
 
     this._addressListener = async (error, addressInfo, txInfo, utxos) => {
@@ -37,7 +38,7 @@ export default class EthAccount {
         console.warn('BtcAccount addressListener', error)
         return
       }
-      console.log('newTransaction', addressInfo, addressInfo, txInfo, utxos)
+      console.log('newTransaction', addressInfo, txInfo, utxos)
       await this._handleNewTx(addressInfo, txInfo, utxos)
     }
   }
@@ -69,8 +70,11 @@ export default class EthAccount {
     await Promise.all(blobs.map(blob => this._handleNewTx(blob.addressInfo, blob.txInfo, blob.utxos)))
     this._coinData.listenAddresses(this.coinType, D.copy(this.addressInfos), this._addressListener)
 
-    this.txInfos.filter(txInfo => txInfo.confirmations < D.tx.matureConfirms.eth)
-      .forEach(txInfo => this._coinData.listenTx(this.coinType, D.copy(txInfo), this._txListener))
+    this.txInfos.filter(txInfo => txInfo.confirmations < D.tx.getMatureConfirms(this.coinType))
+      .forEach(txInfo => {
+        this._listenedTxs.push(txInfo.txId)
+        this._coinData.listenTx(this.coinType, D.copy(txInfo), this._txListener)
+      })
   }
 
   async delete () {
@@ -112,9 +116,11 @@ export default class EthAccount {
 
     await this._coinData.newTx(this._toAccountInfo(), addressInfo, txInfo, [])
 
-    if (txInfo.confirmations < D.tx.matureConfirms.eth) {
-      console.log('listen transaction status', txInfo)
-      this._coinData.listenTx(this.coinType, D.copy(txInfo), this._txListener)
+    if (txInfo.confirmations < D.tx.getMatureConfirms(this.coinType)) {
+      if (!this._listenedTxs.some(tx => tx === txInfo.txId)) {
+        this._listenedTxs.push(txInfo.txId)
+        this._coinData.listenTx(this.coinType, D.copy(txInfo), this._txListener)
+      }
     }
 
     this.busy = false

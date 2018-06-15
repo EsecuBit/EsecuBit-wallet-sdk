@@ -103,7 +103,6 @@ export default class EsWallet {
       }
       await esAccount.init()
       await esAccount.sync()
-      console.log('here', (await esAccount.getTxInfos()))
       // new account has no transactions, recover finish
       if ((await esAccount.getTxInfos()).total === 0) {
         if (esAccount.index !== 0) {

@@ -4,14 +4,6 @@ import D from '../../D'
 const typeAddress = 'address'
 const typeTx = 'tx'
 
-// seconds per request
-let blockHeightRequestPeriod = 60
-let txIncludedRequestPeriod = 20
-if (D.test.networkRequest) {
-  blockHeightRequestPeriod = 20
-  txIncludedRequestPeriod = 10
-}
-
 export default class ICoinNetwork {
   constructor (coinType) {
     this.coinType = coinType
@@ -28,6 +20,7 @@ export default class ICoinNetwork {
 
     // start the request loop
     this._startQueue = true
+    let {txIncludedRequestPeriod} = this.getRequestPeroid()
     let queue = () => {
       for (let request of this._requestList) {
         if (request.type === typeTx && new Date().getTime() > request.nextTime) {
@@ -46,6 +39,7 @@ export default class ICoinNetwork {
     setTimeout(queue, 0)
 
     // start the blockHeight loop
+    let {blockHeightRequestPeriod} = this.getRequestPeroid()
     let blockHeightRequest = async () => {
       let newBlockHeight = await this.getBlockHeight()
       if (newBlockHeight !== this._blockHeight) {
@@ -120,6 +114,36 @@ export default class ICoinNetwork {
   }
 
   /**
+   * returns the network request speed. unit: seconds per request
+   * @returns {{blockHeightRequestPeriod: number, txIncludedRequestPeriod: number}}
+   */
+  getRequestPeroid () {
+    if (!D.isBtc(this.coinType) && !D.isEth(this.coinType)) throw D.error.coinNotSupported
+    let blockHeightRequestPeriod = 60
+    let txIncludedRequestPeriod = 60
+    if (D.test.mode) {
+      if (D.isBtc(this.coinType)) {
+        blockHeightRequestPeriod = 20
+        txIncludedRequestPeriod = 10
+      } else if (D.isEth(this.coinType)) {
+        blockHeightRequestPeriod = 10
+        // eth is quick enough that not need tx included request
+        txIncludedRequestPeriod = Number.MAX_SAFE_INTEGER
+      }
+    } else {
+      if (D.isBtc(this.coinType)) {
+        blockHeightRequestPeriod = 60
+        txIncludedRequestPeriod = 30
+      } else if (D.isEth(this.coinType)) {
+        blockHeightRequestPeriod = 10
+        // eth is quick enough that not need tx included request
+        txIncludedRequestPeriod = Number.MAX_SAFE_INTEGER
+      }
+    }
+    return {blockHeightRequestPeriod, txIncludedRequestPeriod}
+  }
+
+  /**
    * listen transaction confirm status
    */
   listenTx (txInfo, callback) {
@@ -138,7 +162,7 @@ export default class ICoinNetwork {
       currentBlock: -1,
       nextTime: 0,
       request: async function () {
-        let response
+        let response = {}
         try {
           if (!this.hasRecord) response = await that.queryTx(this.txInfo.txId)
         } catch (e) {
@@ -149,16 +173,18 @@ export default class ICoinNetwork {
           callback(e, this.txInfo)
           return
         }
-        let confirmations = response.blockNumber ? that._blockHeight - response.blockNumber : 0
+        let blockNumber = response.blockNumber ? response.blockNumber : txInfo.blockNumber
+        let confirmations = blockNumber > 0 ? (that._blockHeight - blockNumber + 1) : 0
 
         if (confirmations > 0) this.hasRecord = true
-        if (confirmations >= D.tx.matureConfirms.btc) {
+        if (confirmations >= D.tx.getMatureConfirms(txInfo.coinType)) {
           console.log('confirmations enough, remove', this)
           remove(that._requestList, this)
         }
-        if (this.txInfo.confirmations !== confirmations) {
-          this.txInfo.confirmations = confirmations
-          callback(D.error.succeed, this.txInfo)
+        if (confirmations > txInfo.confirmations) {
+          txInfo.blockNumber = blockNumber
+          txInfo.confirmations = confirmations
+          callback(D.error.succeed, txInfo)
         }
       }
     })
@@ -201,7 +227,6 @@ export default class ICoinNetwork {
   generateAddressTasks (addressInfos) {
     let checkNewTx = async (response, addressInfo) => {
       let newTransaction = async (addressInfo, tx) => {
-        console.log('here', tx.inputs.find(input => addressInfo.address === input.prevAddress), tx)
         let input = tx.inputs.find(input => addressInfo.address === input.prevAddress)
         let direction = input ? D.tx.direction.out : D.tx.direction.in
 
@@ -217,7 +242,7 @@ export default class ICoinNetwork {
           accountId: addressInfo.accountId,
           coinType: addressInfo.coinType,
           txId: tx.txId,
-          version: tx.version,
+          version: tx.version ? tx.version : 0,
           blockNumber: tx.blockNumber,
           confirmations: tx.confirmations,
           time: tx.time,

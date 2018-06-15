@@ -19,7 +19,8 @@ module.exports = {
   devServer: {
     contentBase: 'test',
     historyApiFallback: true,
-    inline: true
+    inline: false,
+    hot: false
   },
 
   entry: ['babel-polyfill', path.resolve(__dirname, 'src/index.js')],

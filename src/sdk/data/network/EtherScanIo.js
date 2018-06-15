@@ -27,7 +27,6 @@ export default class EtherScanIo extends ICoinNetwork {
 
   async get (url) {
     let response = await super.get(url)
-    console.debug('hi get etherscan.io', response)
     if (response.error) {
       console.warn('etherscan.io get error', response.error)
       throw D.error.networkProviderError
@@ -41,7 +40,6 @@ export default class EtherScanIo extends ICoinNetwork {
 
   async post (url, args) {
     let response = await super.post(url, args)
-    console.debug('hi post etherscan.io', response)
     if (response.error) {
       console.warn('etherscan.io post error', response.error)
       throw D.error.networkProviderError
@@ -86,7 +84,11 @@ export default class EtherScanIo extends ICoinNetwork {
   }
 
   wrapTx (rTx) {
-    let confirmations = Number(rTx.confirmations) || (this._blockHeight - (Number(rTx.blockNumber) || this._blockHeight))
+    // if no blockNumber, that tx is in the pool, and confirmations should be 0
+    let blockNumber = Number(rTx.blockNumber) || (this._blockHeight + 1)
+    let confirmations = Number(rTx.confirmations) || (this._blockHeight - blockNumber + 1)
+    // confirmations < 0 means this._blockHeight is not the newest. In this case confirmations is at least 1
+    confirmations = confirmations < 0 ? 1 : confirmations
     let tx = {
       txId: rTx.hash,
       blockNumber: Number(rTx.blockNumber),
