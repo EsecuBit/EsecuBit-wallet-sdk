@@ -10,7 +10,7 @@ describe('EthAccount', function () {
 
   // new EsWallet will trigger heavy work, so make it lazy
   it('new wallet', async () => {
-    D.test.sync = true
+    D.test.sync = false
     D.test.mode = true
     esWallet = new EsWallet()
   })
@@ -126,7 +126,7 @@ describe('EthAccount', function () {
       console.log('prepareTx', prepareTx)
       let signedTx = await account.buildTx(prepareTx)
       console.log('signedTx', signedTx)
-      await account.sendTx(signedTx)
+      // await account.sendTx(signedTx)
     }
   })
 })
