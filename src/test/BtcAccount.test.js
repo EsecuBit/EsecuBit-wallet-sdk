@@ -136,6 +136,6 @@ describe('BtcAccount', function () {
     console.log('prepareTx', prepareTx)
     let signedTx = await account.buildTx(prepareTx)
     console.log('signedTx', signedTx)
-    // await account.sendTx(signedTx)
+    await account.sendTx(signedTx)
   })
 })
