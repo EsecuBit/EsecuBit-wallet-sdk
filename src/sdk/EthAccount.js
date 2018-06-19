@@ -144,24 +144,17 @@ export default class EthAccount {
   async getAddress () {
     let path = D.makeBip44Path(this.coinType, this.index, 0, 0)
     let address = await this._device.getAddress(this.coinType, path)
-    let prefix
-    switch (this.coinType) {
-      case D.coin.main.btc:
-      case D.coin.test.btcTestNet3:
-        prefix = 'btc:'
-        break
-      case D.coin.main.eth:
-      case D.coin.test.ethRinkeby:
-        prefix = 'eth:'
-        break
-      default:
-        throw D.error.coinNotSupported
-    }
+    let prefix = ''
     return {address: address, qrAddress: prefix + address}
   }
 
   getSuggestedFee () {
     return this._coinData.getSuggestedFee(this.coinType).fee
+  }
+
+  // noinspection JSMethodCanBeStatic
+  checkAddress (address) {
+    return D.address.checkEthAddress(address)
   }
 
   /**

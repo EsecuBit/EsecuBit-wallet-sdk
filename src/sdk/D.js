@@ -1,5 +1,6 @@
 
 import bitPony from 'bitpony'
+import base58check from 'bs58check'
 
 const D = {
   // wallet status
@@ -33,6 +34,10 @@ const D = {
     balanceNotEnough: 501,
     txNotFound: 502,
 
+    invalidAddress: 601,
+    noAddressCheckSum: 602, // for eth
+    notSupportP2SH: 603,
+
     notImplemented: 10000,
     unknown: 10001,
     coinNotSupported: 10002
@@ -51,7 +56,38 @@ const D = {
 
   address: {
     external: 'external',
-    change: 'change'
+    change: 'change',
+
+    checkBtcAddress (address) {
+      let buffer
+      try {
+        buffer = base58check.decode(address)
+      } catch (e) {
+        console.warn(e)
+        throw D.error.invalidAddress
+      }
+      if (buffer.length !== 21) throw D.error.invalidAddress
+
+      let network = buffer.readUInt8(0)
+      switch (network) {
+        case 0: // main net P2PKH
+          if (D.test.mode) throw D.error.invalidAddress
+          break
+        case 0x6f: // test net P2PKH
+          if (!D.test.mode) throw D.error.invalidAddress
+          break
+        case 0x05: // main net P2SH
+        case 0xc4: // test net P2SH
+          throw D.error.notSupportP2SH
+        default:
+          throw D.error.invalidAddress
+      }
+      return true
+    },
+
+    checkEthAddress (address) {
+      throw D.error.invalidAddress
+    }
   },
 
   tx: {

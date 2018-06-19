@@ -17,6 +17,6 @@
 // import './test/data/CoinData.test'
 
 // main class
-import './test/EsWallet.test'
-// import './test/BtcAccount.test'
+// import './test/EsWallet.test'
+import './test/BtcAccount.test'
 // import './test/EthAccount.test'

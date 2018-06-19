@@ -15,6 +15,7 @@ describe('BtcAccount', function () {
 
   // new EsWallet will trigger heavy work, so make it lazy
   it('new wallet', async () => {
+    D.test.mode = true
     D.test.sync = false
     esWallet = new EsWallet()
   })
@@ -108,6 +109,45 @@ describe('BtcAccount', function () {
     reloadAccount.label.should.equal(oldName)
   })
 
+  it('checkAddress', () => {
+    let oldTestMode = D.test.mode
+    let error = D.error.succeed
+
+    D.test.mode = false
+    account.checkAddress('14Vyjee2LgComhVaUPVmk49MUkp4AUSB3o')
+    //
+    D.test.mode = true
+    account.checkAddress('myYM3xcshRzbqQNggCLMPhQNpz7rB58FBc')
+    account.checkAddress('n1ok87KUNJAKgd224cTiAhX6ZDrtDwAVpx')
+    error.should.equal(D.error.succeed)
+
+    try {
+      error = D.error.succeed
+      account.checkAddress('3HyiHMF2bAVnYsQT4P4PmVgisU2rnkNJ76')
+    } catch (e) {
+      error = e
+    }
+    error.should.equal(D.error.notSupportP2SH)
+
+    try {
+      error = D.error.succeed
+      account.checkAddress('2NBMEXXCXEtsBUaT4zcjLmcT6RrXJyXy9Yn')
+    } catch (e) {
+      error = e
+    }
+    error.should.equal(D.error.notSupportP2SH)
+
+    try {
+      error = D.error.succeed
+      account.checkAddress('')
+    } catch (e) {
+      error = e
+    }
+    error.should.equal(D.error.invalidAddress)
+
+    D.test.mode = oldTestMode
+  })
+
   it('getAddress', async () => {
     let address = await account.getAddress()
     address.address.should.be.a('string')
@@ -136,6 +176,6 @@ describe('BtcAccount', function () {
     console.log('prepareTx', prepareTx)
     let signedTx = await account.buildTx(prepareTx)
     console.log('signedTx', signedTx)
-    await account.sendTx(signedTx)
+    // await account.sendTx(signedTx)
   })
 })
