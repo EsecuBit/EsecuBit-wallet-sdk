@@ -10,8 +10,13 @@ describe('EsWallet', function () {
   let esWallet = null
 
   it('supportedCoinTypes', () => {
-    let availableCoinTypes = EsWallet.supportedCoinTypes()
-    availableCoinTypes.length.should.equal(2)
+    let supportedCoinTypes = EsWallet.supportedCoinTypes()
+    supportedCoinTypes.should.deep.equal([D.coin.test.btcTestNet3, D.coin.test.ethRinkeby])
+  })
+
+  it('suppertedLegals', () => {
+    let supportedLegalCurrency = EsWallet.suppertedLegals()
+    supportedLegalCurrency.should.deep.equal([D.unit.legal.USD, D.unit.legal.EUR, D.unit.legal.CNY, D.unit.legal.JPY])
   })
 
   // it('clearDatabase', async () => {
@@ -53,7 +58,7 @@ describe('EsWallet', function () {
 
   it('getAccounts', async () => {
     let accounts = await esWallet.getAccounts()
-    accounts.length.should.equal(2)
+    accounts.length.should.equal(3)
   })
 
   let availableNewAccountCoinType

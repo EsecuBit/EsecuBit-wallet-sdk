@@ -96,7 +96,6 @@ export default class IndexedDB extends IDatabase {
          *   fee: gas * gasPrice
          * }
          */
-        // TODO createIndex when upgrade?
         if (!db.objectStoreNames.contains('txInfo')) {
           let txInfo = db.createObjectStore('txInfo', {keyPath: 'txId'})
           txInfo.createIndex('accountId', 'accountId', {unique: false})
@@ -183,6 +182,13 @@ export default class IndexedDB extends IDatabase {
     })
   }
 
+  /**
+   * Won't do anything in release. Will keep the connection until app closed
+   */
+  async release () {
+    // do nothing
+  }
+
   clearDatabase () {
     return new Promise((resolve, reject) => {
       let transaction = this._db.transaction(['account', 'txInfo', 'addressInfo', 'utxo'], 'readwrite')
@@ -230,15 +236,6 @@ export default class IndexedDB extends IDatabase {
         finished++ || reject(D.error.databaseOpenFailed)
       }, 1900)
     })
-  }
-
-  /**
-   * Won't do anything in release. Will keep the connection until app closed
-   */
-  async release () {
-    // FIXME after release and reinit, throw "the database connection is closing".
-    // IndexedDB.pool[this._walletId] = undefined
-    // this._db && this._db.close()
   }
 
   newAccount (account) {

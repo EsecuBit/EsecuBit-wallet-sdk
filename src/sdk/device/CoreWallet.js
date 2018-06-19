@@ -51,7 +51,6 @@ export default class CoreWallet {
   }
 
   async getAddress (addressParams) {
-    // TODO fix
     let apdu
     if (addressParams.force === true) {
       apdu = '0023010000'

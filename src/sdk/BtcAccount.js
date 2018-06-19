@@ -40,7 +40,6 @@ export default class BtcAccount {
         console.warn('BtcAccount addressListener', error)
         return
       }
-      console.log('newTransaction', addressInfo, addressInfo, txInfo, utxos)
       await this._handleNewTx(addressInfo, txInfo, utxos)
     }
   }
@@ -54,7 +53,7 @@ export default class BtcAccount {
     await this._coinData.newAddressInfos(this._toAccountInfo(), newAddressInfos)
   }
 
-  // TODO judge compress uncompress public key
+  // TODO judge recover from compress or uncompress public key
   async sync () {
     let newAddressInfos = await this._checkAddressIndexAndGenerateNew(true)
     await this._coinData.newAddressInfos(this._toAccountInfo(), newAddressInfos)
@@ -64,14 +63,12 @@ export default class BtcAccount {
       // find out all the transactions
       let blobs = await this._coinData.checkAddresses(this.coinType, checkAddressInfos)
       let responses = await Promise.all(blobs.map(blob => this._handleNewTx(blob.addressInfo, blob.txInfo, blob.utxos, true)))
-      // no new transactions, sync finish
+      responses = responses.reduce((array, item) => array.concat(item), [])
       if (responses.length === 0) break
+      // noinspection JSUnresolvedVariable
       checkAddressInfos = responses.reduce((array, response) => array.concat(response.newAddressInfos), [])
     }
-    // TODO listen external address only
-    let listenAddressInfos = [].concat(
-      this._getAddressInfos(0, this.externalPublicKeyIndex + 1, D.address.external),
-      this._getAddressInfos(0, this.changePublicKeyIndex + 1, D.address.change))
+    let listenAddressInfos = this._getAddressInfos(0, this.changePublicKeyIndex + 1, D.address.change)
     if (listenAddressInfos.length !== 0) this._coinData.listenAddresses(this.coinType, listenAddressInfos, this._addressListener)
 
     this.txInfos.filter(txInfo => txInfo.confirmations < D.tx.getMatureConfirms(this.coinType))
@@ -101,6 +98,8 @@ export default class BtcAccount {
    * 2. store utxo, addressInfo, txInfo
    */
   async _handleNewTx (addressInfo, txInfo, utxos, isSyncing = false) {
+    console.log('newTransaction', addressInfo, txInfo, utxos, isSyncing)
+
     // async operation may lead to disorder. so we need a simple lock
     // eslint-disable-next-line
     while (this.busy) {
@@ -147,9 +146,21 @@ export default class BtcAccount {
         this._coinData.listenTx(this.coinType, D.copy(txInfo), this._txListener)
       }
     }
-
     this.busy = false
-    return {addressInfo, txInfo, utxos, newAddressInfos}
+
+    // find out changeAddreses for this tx
+    let relativeAddresses = [].concat(
+      txInfo.inputs.filter(input => input.isMine).map(input => input.prevAddress),
+      txInfo.outputs.filter(input => input.isMine).map(output => output.address))
+    let changeAddresses = this.addressInfos
+      .filter(a => a.type === D.address.change)
+      .filter(a => !a.txs.includes(txInfo.txId))
+      .filter(a => relativeAddresses.find(address => a.address === address))
+    changeAddresses.forEach(a => a.txs.push(txInfo.txId))
+    let changeResponses = await Promise.all(changeAddresses.map(a => this._handleNewTx(a, txInfo, utxos, true)))
+    changeResponses = changeResponses.reduce((array, item) => array.concat(item), [])
+
+    return [{addressInfo, txInfo, utxos, newAddressInfos}].concat(changeResponses)
   }
 
   /**

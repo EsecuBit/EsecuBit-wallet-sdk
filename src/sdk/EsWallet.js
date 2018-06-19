@@ -15,7 +15,7 @@ export default class EsWallet {
     return D.suppertedCoinTypes()
   }
 
-  static supportedLegalCurrency () {
+  static suppertedLegals () {
     return D.suppertedLegals()
   }
 

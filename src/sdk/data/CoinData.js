@@ -7,7 +7,6 @@ import ExchangeCryptoCompareCom from './network/exchange/ExchangeCryptoCompareCo
 import EthGasStationInfo from './network/fee/EthGasStationInfo'
 import EtherScanIo from './network/EtherScanIo'
 
-// TODO CoinData only manage data, don't handle data. leave it to BtcAccount and EsWallet?
 export default class CoinData {
   constructor () {
     if (CoinData.prototype.Instance) {
@@ -19,7 +18,6 @@ export default class CoinData {
 
     const coinTypes = D.suppertedCoinTypes()
     this._network = coinTypes.reduce((obj, coinType) => {
-      // TODO read provider from settings
       if (D.isBtc(coinType)) {
         obj[coinType] = new BlockChainInfo(coinType)
       } else if (D.isEth(coinType)) {
