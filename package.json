@@ -1,8 +1,8 @@
 {
   "name": "chrome-excelsecu-wallet",
   "version": "1.0.0",
-  "description": "",
-  "main": "background.js",
+  "description": "SDK for excelsecu device",
+  "main": "index.js",
   "directories": {
     "test": "test"
   },
