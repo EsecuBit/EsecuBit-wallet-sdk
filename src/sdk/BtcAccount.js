@@ -359,9 +359,6 @@ export default class BtcAccount {
    * @see prepareTx
    */
   async buildTx (prepareTx) {
-    // TODO support P2SH
-    // judge address is P2PKH or P2SH, and make different output script
-    // https://en.bitcoin.it/wiki/Pay_to_script_hash
     let totalOut = prepareTx.outputs.reduce((sum, output) => sum + output.value, 0)
     if (totalOut + prepareTx.fee !== prepareTx.total) throw D.error.unknown
     let totalIn = prepareTx.utxos.reduce((sum, utxo) => sum + utxo.value, 0)

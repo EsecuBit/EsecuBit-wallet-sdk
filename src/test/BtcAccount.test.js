@@ -115,7 +115,7 @@ describe('BtcAccount', function () {
 
     D.test.mode = false
     account.checkAddress('14Vyjee2LgComhVaUPVmk49MUkp4AUSB3o')
-    //
+
     D.test.mode = true
     account.checkAddress('myYM3xcshRzbqQNggCLMPhQNpz7rB58FBc')
     account.checkAddress('n1ok87KUNJAKgd224cTiAhX6ZDrtDwAVpx')

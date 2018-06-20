@@ -1,6 +1,7 @@
 
 import bitPony from 'bitpony'
 import base58check from 'bs58check'
+import web3 from 'web3'
 
 const D = {
   // wallet status
@@ -36,7 +37,8 @@ const D = {
 
     invalidAddress: 601,
     noAddressCheckSum: 602, // for eth
-    notSupportP2SH: 603,
+    invalidAddressChecksum: 603,
+    notSupportP2SH: 604,
 
     notImplemented: 10000,
     unknown: 10001,
@@ -86,6 +88,19 @@ const D = {
     },
 
     checkEthAddress (address) {
+      let checksum
+      try {
+        checksum = web3.utils.toChecksumAddress(address)
+      } catch (e) {
+        console.warn(e)
+        throw D.error.invalidAddress
+      }
+      if (checksum === address) {
+        return true
+      }
+      if (address.toUpperCase() === address || address.toLowerCase() === address) {
+        throw D.error.noAddressCheckSum
+      }
       throw D.error.invalidAddress
     }
   },
