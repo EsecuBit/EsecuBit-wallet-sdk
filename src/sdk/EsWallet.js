@@ -86,7 +86,7 @@ export default class EsWallet {
       console.log('no accounts, new wallet, start recovery')
       await Promise.all(D.recoverCoinTypes().map(coinType => this._recover(coinType)))
     } else {
-      await Promise.all(this._esAccounts.map(esAccount => esAccount.sync()))
+      await Promise.all(this._esAccounts.map(esAccount => esAccount.sync(true)))
     }
   }
 
@@ -102,7 +102,7 @@ export default class EsWallet {
         throw D.error.coinNotSupported
       }
       await esAccount.init()
-      await esAccount.sync()
+      await esAccount.sync(true)
       // new account has no transactions, recover finish
       if ((await esAccount.getTxInfos()).total === 0) {
         if (esAccount.index !== 0) {

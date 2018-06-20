@@ -64,17 +64,18 @@ export default class EthAccount {
     }
   }
 
-  async sync () {
+  async sync (firstSync = false) {
     // find out all the transactions
     let blobs = await this._coinData.checkAddresses(this.coinType, this.addressInfos)
     await Promise.all(blobs.map(blob => this._handleNewTx(blob.addressInfo, blob.txInfo, blob.utxos)))
-    this._coinData.listenAddresses(this.coinType, D.copy(this.addressInfos), this._addressListener)
-
-    this.txInfos.filter(txInfo => txInfo.confirmations < D.tx.getMatureConfirms(this.coinType))
-      .forEach(txInfo => {
-        this._listenedTxs.push(txInfo.txId)
-        this._coinData.listenTx(this.coinType, D.copy(txInfo), this._txListener)
-      })
+    if (firstSync) {
+      this._coinData.listenAddresses(this.coinType, D.copy(this.addressInfos), this._addressListener)
+      this.txInfos.filter(txInfo => txInfo.confirmations < D.tx.getMatureConfirms(this.coinType))
+        .forEach(txInfo => {
+          this._listenedTxs.push(txInfo.txId)
+          this._coinData.listenTx(this.coinType, D.copy(txInfo), this._txListener)
+        })
+    }
   }
 
   async delete () {
