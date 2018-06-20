@@ -185,6 +185,10 @@ export default class CoinData {
     this._listeners.forEach(listener => listener(D.error.succeed, txInfo))
   }
 
+  clearData () {
+    return this._db.clearDatabase()
+  }
+
   checkAddresses (coinType, addressInfos) {
     return this._network[coinType].checkAddresses(addressInfos)
   }

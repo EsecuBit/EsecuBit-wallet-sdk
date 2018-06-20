@@ -104,4 +104,8 @@ describe('EsWallet', function () {
       }
     })
   })
+
+  // it('reset', () => {
+  //   esWallet.reset()
+  // })
 })

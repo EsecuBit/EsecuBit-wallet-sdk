@@ -121,6 +121,13 @@ export default class EsWallet {
     return this._coinData.release()
   }
 
+  /**
+   * Clear all data. Used for unrecoverable error. Need resync after reset.
+   */
+  reset () {
+    return this._coinData.clearData()
+  }
+
   listenStatus (callback) {
     this._callback = callback
     switch (this._status) {

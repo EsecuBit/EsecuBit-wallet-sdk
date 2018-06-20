@@ -54,7 +54,7 @@ export default class BtcAccount {
   }
 
   // TODO judge recover from compress or uncompress public key
-  async sync () {
+  async sync (firstSync = false) {
     let newAddressInfos = await this._checkAddressIndexAndGenerateNew(true)
     await this._coinData.newAddressInfos(this._toAccountInfo(), newAddressInfos)
 
@@ -68,14 +68,17 @@ export default class BtcAccount {
       // noinspection JSUnresolvedVariable
       checkAddressInfos = responses.reduce((array, response) => array.concat(response.newAddressInfos), [])
     }
-    let listenAddressInfos = this._getAddressInfos(0, this.changePublicKeyIndex + 1, D.address.change)
-    if (listenAddressInfos.length !== 0) this._coinData.listenAddresses(this.coinType, listenAddressInfos, this._addressListener)
 
-    this.txInfos.filter(txInfo => txInfo.confirmations < D.tx.getMatureConfirms(this.coinType))
-      .forEach(txInfo => {
-        this._listenedTxs.push(txInfo.txId)
-        this._coinData.listenTx(this.coinType, D.copy(txInfo), this._txListener)
-      })
+    if (firstSync) {
+      let listenAddressInfos = this._getAddressInfos(0, this.externalPublicKey + 1, D.address.external)
+      if (listenAddressInfos.length !== 0) this._coinData.listenAddresses(this.coinType, listenAddressInfos, this._addressListener)
+
+      this.txInfos.filter(txInfo => txInfo.confirmations < D.tx.getMatureConfirms(this.coinType))
+        .forEach(txInfo => {
+          this._listenedTxs.push(txInfo.txId)
+          this._coinData.listenTx(this.coinType, D.copy(txInfo), this._txListener)
+        })
+    }
   }
 
   async delete () {
