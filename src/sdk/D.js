@@ -309,7 +309,7 @@ const D = {
 
     generateSeed () {
       let seed = ''
-      const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+      const possible = '0123456789abcdef'
       for (let i = 0; i < 64; i++) seed += possible.charAt(Math.floor(Math.random() * possible.length))
       return seed
     }
