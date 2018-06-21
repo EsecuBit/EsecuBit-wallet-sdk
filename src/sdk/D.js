@@ -301,10 +301,10 @@ const D = {
     sync: false,
     // TODO remove when publish
     // sync used for test sync
-    syncWalletId: 'ba3253876aed6bc22d4a6ff53d8406c6ad864195ed144ab5c87621b6c233b548',
+    syncWalletId: 'aa49342d805682f345135afcba79ffa7d50c2999944b91d88e01e1d38b80ca63',
     syncSeed: 'aa49342d805682f345135afcba79ffa7d50c2999944b91d88e01e1d38b80ca63',
     // sync used for test transaction
-    txWalletId: 'ba3253876aed6bc22d4a6ff53d8406c6ad864195ed144ab5c87621b600000000',
+    txWalletId: 'aa49342d805682f345135afcba79ffa7d50c2999944b91d88e01e1d300000000',
     txSeed: 'aa49342d805682f345135afcba79ffa7d50c2999944b91d88e01e1d300000000'
   }
 }
