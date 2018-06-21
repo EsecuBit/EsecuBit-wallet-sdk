@@ -137,7 +137,7 @@ export default class EthAccount {
     }
   }
 
-  async getTxInfos (startIndex, endIndex) {
+  getTxInfos (startIndex, endIndex) {
     let accountId = this.accountId
     return this._coinData.getTxInfos({accountId, startIndex, endIndex})
   }

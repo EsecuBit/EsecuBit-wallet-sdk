@@ -379,28 +379,22 @@ export default class IndexedDB extends IDatabase {
         request = this._db.transaction(['txInfo'], 'readonly')
           .objectStore('txInfo')
           .index('accountId')
-          .openCursor(filter.accountId)
+          .getAll(filter.accountId)
       } else {
         request = this._db.transaction(['txInfo'], 'readonly')
           .objectStore('txInfo')
-          .openCursor()
+          .getAll()
       }
 
       let total = 0
-      let txInfos = []
       let startIndex = filter.startIndex || 0
       let endIndex = filter.endIndex || Number.MAX_SAFE_INTEGER
       request.onsuccess = (e) => {
-        let cursor = e.target.result
-        if (!cursor) {
-          resolve({total, txInfos})
-          return
-        }
-        if (total >= startIndex && total < endIndex) {
-          txInfos.push(cursor.value)
-        }
-        total++
-        cursor.continue()
+        let txInfos = e.target.result
+        total = txInfos.length
+        txInfos.sort((a, b) => a.time - b.time)
+        txInfos = txInfos.slice(startIndex, endIndex)
+        resolve({total, txInfos})
       }
       request.onerror = (e) => {
         console.log('getTxInfos', e)

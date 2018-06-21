@@ -240,13 +240,9 @@ export default class BtcAccount {
     }
   }
 
-  async getTxInfos (startIndex, endIndex) {
-    startIndex = startIndex || 0
-    endIndex = endIndex || this.txInfos.length
-    return {
-      total: this.txInfos.length,
-      txInfos: this.txInfos.slice(startIndex, endIndex)
-    }
+  getTxInfos (startIndex, endIndex) {
+    let accountId = this.accountId
+    return this._coinData.getTxInfos({accountId, startIndex, endIndex})
   }
 
   async getAddress () {
