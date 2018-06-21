@@ -171,7 +171,12 @@ export default class EsWallet {
    * @returns {Promise<*>}
    */
   async getAccounts (filter) {
-    return this._esAccounts
+    const order = {}
+    order[D.coin.main.btc] = 0
+    order[D.coin.main.eth] = 1
+    order[D.coin.test.btcTestNet3] = 100
+    order[D.coin.test.ethRinkeby] = 101
+    return this._esAccounts.sort((a, b) => order[a.coinType] - order[b.coinType])
   }
 
   async newAccount (coinType) {
