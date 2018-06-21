@@ -227,9 +227,6 @@ export default class ICoinNetwork {
   generateAddressTasks (addressInfos) {
     let checkNewTx = async (response, addressInfo) => {
       let newTransaction = async (addressInfo, tx) => {
-        let input = tx.inputs.find(input => addressInfo.address === input.prevAddress)
-        let direction = input ? D.tx.direction.out : D.tx.direction.in
-
         let fee = 0
         if (D.isEth(this.coinType)) {
           fee = tx.gas * tx.gasPrice
@@ -246,7 +243,6 @@ export default class ICoinNetwork {
           blockNumber: tx.blockNumber,
           confirmations: tx.confirmations,
           time: tx.time,
-          direction: direction,
           fee: fee,
           inputs: tx.inputs,
           outputs: tx.outputs

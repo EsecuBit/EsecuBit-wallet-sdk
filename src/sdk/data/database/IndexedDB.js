@@ -392,7 +392,7 @@ export default class IndexedDB extends IDatabase {
       request.onsuccess = (e) => {
         let txInfos = e.target.result
         total = txInfos.length
-        txInfos.sort((a, b) => a.time - b.time)
+        txInfos.sort((a, b) => b.time - a.time)
         txInfos = txInfos.slice(startIndex, endIndex)
         resolve({total, txInfos})
       }

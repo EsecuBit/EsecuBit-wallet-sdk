@@ -109,6 +109,8 @@ export default class EthAccount {
     txInfo.value = 0
     txInfo.value -= txInfo.inputs.reduce((sum, input) => sum + input.isMine ? input.value : 0, 0)
     txInfo.value += txInfo.outputs.reduce((sum, output) => sum + output.isMine ? output.value : 0, 0)
+    let input = txInfo.inputs.find(input => addressInfo.address === input.prevAddress)
+    input.direction = input ? D.tx.direction.out : D.tx.direction.in
 
     // update account info
     this.balance += txInfo.value
