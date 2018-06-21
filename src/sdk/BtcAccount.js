@@ -115,7 +115,7 @@ export default class BtcAccount {
     txInfo.value -= txInfo.inputs.reduce((sum, input) => sum + input.isMine ? input.value : 0, 0)
     txInfo.value += txInfo.outputs.reduce((sum, output) => sum + output.isMine ? output.value : 0, 0)
     let input = txInfo.inputs.find(input => addressInfo.address === input.prevAddress)
-    input.direction = input ? D.tx.direction.out : D.tx.direction.in
+    txInfo.direction = input ? D.tx.direction.out : D.tx.direction.in
 
     // check utxo update. unspent can update to pending and spent, pending can update to spent. otherwise ignore
     utxos = utxos.filter(utxo => {
