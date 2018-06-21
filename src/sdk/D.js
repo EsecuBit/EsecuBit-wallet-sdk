@@ -305,7 +305,14 @@ const D = {
     syncSeed: 'aa49342d805682f345135afcba79ffa7d50c2999944b91d88e01e1d38b80ca63',
     // sync used for test transaction
     txWalletId: 'aa49342d805682f345135afcba79ffa7d50c2999944b91d88e01e1d300000000',
-    txSeed: 'aa49342d805682f345135afcba79ffa7d50c2999944b91d88e01e1d300000000'
+    txSeed: 'aa49342d805682f345135afcba79ffa7d50c2999944b91d88e01e1d300000000',
+
+    generateSeed () {
+      let seed = ''
+      const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+      for (let i = 0; i < 64; i++) seed += possible.charAt(Math.floor(Math.random() * possible.length))
+      return seed
+    }
   }
 }
 export default D
