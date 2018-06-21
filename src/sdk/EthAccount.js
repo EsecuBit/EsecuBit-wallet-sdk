@@ -114,6 +114,7 @@ export default class EthAccount {
     txInfo.showAddresses = txInfo.direction === D.tx.direction.in
       ? txInfo.inputs.filter(inputs => !inputs.isMine).map(inputs => inputs.prevAddress)
       : txInfo.outputs.filter(output => !output.isMine).map(output => output.address)
+    if (txInfo.showAddresses.length === 0) txInfo.showAddresses.push('self')
 
     // update account info
     this.balance += txInfo.value
@@ -254,8 +255,7 @@ export default class EthAccount {
           address: prepareTx.output.address,
           isMine: false,
           value: prepareTx.output.value
-        }],
-        showAddresses: [prepareTx.output.address]
+        }]
       },
       addressInfo: prepareTx.input,
       hex: signedTx.hex
