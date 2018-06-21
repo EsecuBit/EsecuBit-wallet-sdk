@@ -50,7 +50,7 @@ export default class ExchangeCryptoCompareCom {
   }
 
   async updateExchange () {
-    const url = 'https://min-api.cryptocompare.com/data/price?fsym=' + this.requestCoin + '&tsyms=USD,JPY,EUR,legal.CNY'
+    const url = 'https://min-api.cryptocompare.com/data/price?fsym=' + this.requestCoin + '&tsyms=USD,JPY,EUR,CNY'
     let get = (url) => {
       return new Promise((resolve, reject) => {
         console.debug('get', url)
