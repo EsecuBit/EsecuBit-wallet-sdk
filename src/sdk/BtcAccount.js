@@ -74,6 +74,7 @@ export default class BtcAccount {
       if (listenAddressInfos.length !== 0) this._coinData.listenAddresses(this.coinType, listenAddressInfos, this._addressListener)
 
       this.txInfos.filter(txInfo => txInfo.confirmations < D.tx.getMatureConfirms(this.coinType))
+        .filter(txInfo => !this._listenedTxs.includes(txInfo.txId))
         .forEach(txInfo => {
           this._listenedTxs.push(txInfo.txId)
           this._coinData.listenTx(this.coinType, D.copy(txInfo), this._txListener)
