@@ -134,6 +134,9 @@ export default class BtcAccount {
     // update account info
     this.balance += txInfo.value
     this.txInfos.push(D.copy(txInfo))
+    this.utxos = this.utxos
+      .filter(oldUtxo => !utxos.some(utxo => oldUtxo.txId === utxo.txId && oldUtxo.index === utxo.index))
+      .concat(utxos)
     this.utxos.push(...utxos)
     this.addressInfos.find(a => a.address === addressInfo.address).txs = D.copy(addressInfo.txs)
 
