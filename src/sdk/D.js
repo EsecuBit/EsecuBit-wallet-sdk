@@ -225,6 +225,10 @@ const D = {
     return new Promise(resolve => setTimeout(resolve, timeMill))
   },
 
+  dispatch (func) {
+    setTimeout(func, 0)
+  },
+
   toHex (array) {
     const hexChars = '0123456789ABCDEF'
     let hexString = new Array(array.byteLength * 2)

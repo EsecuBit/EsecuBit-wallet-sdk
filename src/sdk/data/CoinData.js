@@ -159,7 +159,7 @@ export default class CoinData {
 
   async saveOrUpdateTxInfo (txInfo) {
     await this._db.saveOrUpdateTxInfo(txInfo)
-    this._listeners.forEach(listener => listener(D.error.succeed, txInfo))
+    this._listeners.forEach(listener => D.dispatch(listener(D.error.succeed, txInfo)))
   }
 
   async newAddressInfos (account, addressInfos) {
@@ -182,7 +182,7 @@ export default class CoinData {
 
   async newTx (account, addressInfo, txInfo, utxos) {
     await this._db.newTx(account, addressInfo, txInfo, utxos)
-    this._listeners.forEach(listener => listener(D.error.succeed, txInfo))
+    this._listeners.forEach(listener => D.dispatch(listener(D.error.succeed, txInfo)))
   }
 
   clearData () {
