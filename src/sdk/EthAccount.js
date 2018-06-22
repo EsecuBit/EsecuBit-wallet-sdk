@@ -1,5 +1,6 @@
 
 import D from './D'
+import Web3 from 'web3'
 
 export default class EthAccount {
   constructor (info, device, coinData) {
@@ -118,9 +119,9 @@ export default class EthAccount {
     if (txInfo.showAddresses.length === 0) txInfo.showAddresses.push('self')
 
     // update account info
-    this.balance += txInfo.value
     this.txInfos.push(D.copy(txInfo))
     this.addressInfos.find(a => a.address === addressInfo.address).txs = D.copy(addressInfo.txs)
+    this.balance = this.txInfos.reduce((sum, txInfo) => sum + txInfo.value - txInfo.fee, 0)
 
     await this._coinData.newTx(this._toAccountInfo(), addressInfo, txInfo, [])
 
@@ -150,8 +151,9 @@ export default class EthAccount {
   }
 
   async getAddress () {
-    let path = D.makeBip44Path(this.coinType, this.index, 0, 0)
+    let path = D.makeBip44Path(this.coinType, this.index, D.address.external, 0)
     let address = await this._device.getAddress(this.coinType, path)
+    address = Web3.utils.toChecksumAddress(address)
     let prefix = ''
     return {address: address, qrAddress: prefix + address}
   }
@@ -256,7 +258,8 @@ export default class EthAccount {
           address: prepareTx.output.address,
           isMine: false,
           value: prepareTx.output.value
-        }]
+        }],
+        fee: prepareTx.fee
       },
       addressInfo: prepareTx.input,
       hex: signedTx.hex
@@ -272,6 +275,6 @@ export default class EthAccount {
   async sendTx (signedTx, test = false) {
     // broadcast transaction to network
     if (!test) await this._coinData.sendTx(this._toAccountInfo(), [], signedTx.txInfo, signedTx.hex)
-    await this._handleNewTx(signedTx.addressInfo, signedTx.txInfo, [])
+    this._handleNewTx(signedTx.addressInfo, signedTx.txInfo, [])
   }
 }
