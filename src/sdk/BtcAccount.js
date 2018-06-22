@@ -343,7 +343,9 @@ export default class BtcAccount {
     }
 
     // copy utxos for avoiding utxos of BtcAccount change
-    let utxos = this.utxos.filter(utxo => utxo.status === D.utxo.status.unspent).map(utxo => D.copy(utxo))
+    let utxos = this.utxos
+      .filter(utxo => utxo.status === D.utxo.status.unspent || utxo.status === D.utxo.status.unspent_pending)
+      .map(utxo => D.copy(utxo))
     let total = utxos.reduce((sum, utxo) => sum + utxo.value, 0)
     let fee = details.feeRate
     let totalOut = details.outputs.reduce((sum, output) => sum + output.value, 0)
