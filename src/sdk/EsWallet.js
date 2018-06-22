@@ -32,33 +32,33 @@ export default class EsWallet {
     this._device.listenPlug(async (error, plugStatus) => {
       this._status = plugStatus
       if (error !== D.error.succeed) {
-        this._callback && D.dispatch(this._callback(error, this._status))
+        this._callback && D.dispatch(() => this._callback(error, this._status))
         return
       }
       this._callback && this._callback(D.error.succeed, this._status)
       if (this._status === D.status.plugIn) {
         this._status = D.status.initializing
-        this._callback && D.dispatch(this._callback(D.error.succeed, this._status))
+        this._callback && D.dispatch(() => this._callback(D.error.succeed, this._status))
         try {
           await this._init()
         } catch (e) {
-          this._callback && D.dispatch(this._callback(e, this._status))
+          this._callback && D.dispatch(() => this._callback(e, this._status))
           return
         }
         if (this._status === D.status.plugOut) return
 
         this._status = D.status.syncing
-        this._callback && D.dispatch(this._callback(D.error.succeed, this._status))
+        this._callback && D.dispatch(() => this._callback(D.error.succeed, this._status))
         try {
           await this._sync()
         } catch (e) {
-          this._callback && D.dispatch(this._callback(e, this._status))
+          this._callback && D.dispatch(() => this._callback(e, this._status))
           return
         }
         if (this._status === D.status.plugOut) return
 
         this._status = D.status.syncFinish
-        this._callback && D.dispatch(this._callback(D.error.succeed, this._status))
+        this._callback && D.dispatch(() => this._callback(D.error.succeed, this._status))
       } else {
         this._release()
       }
@@ -132,22 +132,22 @@ export default class EsWallet {
     this._callback = callback
     switch (this._status) {
       case D.status.plugIn:
-        D.dispatch(callback(D.error.succeed, D.status.plugIn))
+        D.dispatch(() => callback(D.error.succeed, D.status.plugIn))
         break
       case D.status.initializing:
-        D.dispatch(callback(D.error.succeed, D.status.plugIn))
-        D.dispatch(callback(D.error.succeed, D.status.initializing))
+        D.dispatch(() => callback(D.error.succeed, D.status.plugIn))
+        D.dispatch(() => callback(D.error.succeed, D.status.initializing))
         break
       case D.status.syncing:
-        D.dispatch(callback(D.error.succeed, D.status.plugIn))
-        D.dispatch(callback(D.error.succeed, D.status.initializing))
-        D.dispatch(callback(D.error.succeed, D.status.syncing))
+        D.dispatch(() => callback(D.error.succeed, D.status.plugIn))
+        D.dispatch(() => callback(D.error.succeed, D.status.initializing))
+        D.dispatch(() => callback(D.error.succeed, D.status.syncing))
         break
       case D.status.syncFinish:
-        D.dispatch(callback(D.error.succeed, D.status.plugIn))
-        D.dispatch(callback(D.error.succeed, D.status.initializing))
-        D.dispatch(callback(D.error.succeed, D.status.syncing))
-        D.dispatch(callback(D.error.succeed, D.status.syncFinish))
+        D.dispatch(() => callback(D.error.succeed, D.status.plugIn))
+        D.dispatch(() => callback(D.error.succeed, D.status.initializing))
+        D.dispatch(() => callback(D.error.succeed, D.status.syncing))
+        D.dispatch(() => callback(D.error.succeed, D.status.syncFinish))
         break
       case D.status.plugOut:
       default:
