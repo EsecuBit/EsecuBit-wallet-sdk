@@ -152,7 +152,6 @@ export default class EthAccount {
   async getAddress () {
     let path = D.makeBip44Path(this.coinType, this.index, 0, 0)
     let address = await this._device.getAddress(this.coinType, path)
-    console.log('wtf', address, this.addressInfos)
     let prefix = ''
     return {address: address, qrAddress: prefix + address}
   }
