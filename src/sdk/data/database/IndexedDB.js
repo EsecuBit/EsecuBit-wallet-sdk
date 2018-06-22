@@ -131,13 +131,13 @@ export default class IndexedDB extends IDatabase {
          *   index: int,
          *   script: string,
          *   value: long (santoshi),
-         *   spent: D.utxo.status.unspent / D.SPENT_PENDING / D.utxo.status.spent
+         *   status: D.utxo.status.unspent / D.SPENT_PENDING / D.utxo.status.spent
          * }
          */
         if (!db.objectStoreNames.contains('utxo')) {
           let utxo = db.createObjectStore('utxo', {keyPath: ['txId', 'index']})
           utxo.createIndex('accountId', 'accountId', {unique: false})
-          utxo.createIndex('accountId, spent', ['accountId', 'spent'], {unique: false})
+          utxo.createIndex('accountId, status', ['accountId', 'status'], {unique: false})
         }
 
         /**
@@ -473,11 +473,11 @@ export default class IndexedDB extends IDatabase {
       }
 
       let request
-      if (filter.accountId && filter.spent) {
+      if (filter.accountId && filter.status) {
         request = this._db.transaction(['utxo'], 'readonly')
           .objectStore('utxo')
-          .index('accountId, spent')
-          .getAll([filter.accountId, filter.spent])
+          .index('accountId, status')
+          .getAll([filter.accountId, filter.status])
       } else if (filter.accountId) {
         request = this._db.transaction(['utxo'], 'readonly')
           .objectStore('utxo')

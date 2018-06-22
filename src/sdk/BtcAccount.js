@@ -114,7 +114,9 @@ export default class BtcAccount {
     txInfo.outputs.forEach(output => { output['isMine'] = this.addressInfos.some(a => a.address === output.address) })
     txInfo.value = 0
     txInfo.value -= txInfo.inputs.reduce((sum, input) => sum + input.isMine ? input.value : 0, 0)
+    console.log('input', txInfo.inputs.reduce((sum, input) => sum + input.isMine ? input.value : 0, 0))
     txInfo.value += txInfo.outputs.reduce((sum, output) => sum + output.isMine ? output.value : 0, 0)
+    console.log('output', txInfo.outputs.reduce((sum, output) => sum + output.isMine ? output.value : 0, 0))
     let input = txInfo.inputs.find(input => input.isMine)
     txInfo.direction = input ? D.tx.direction.out : D.tx.direction.in
     txInfo.showAddresses = txInfo.direction === D.tx.direction.in
@@ -122,23 +124,28 @@ export default class BtcAccount {
       : txInfo.outputs.filter(output => !output.isMine).map(output => output.address)
     if (txInfo.showAddresses.length === 0) txInfo.showAddresses.push('self')
 
-    // check utxo update. unspent can update to pending and spent, pending can update to spent. otherwise ignore
+    // check utxo update.
+    // unspent_pending can update to other state
+    // unspent can update to pending_spent and spent
+    // pending_spent can update to spent
     utxos = utxos.filter(utxo => {
       let oldUtxo = this.utxos.find(oldUtxo => oldUtxo.txId === utxo.txId && oldUtxo.index === utxo.index)
       if (!oldUtxo) return true
-      if (oldUtxo.spent === D.utxo.status.unspent) return true
-      if (oldUtxo.spent === D.utxo.status.pending) return utxo === D.utxo.status.spent
+      if (oldUtxo.status === D.utxo.status.unspent_pending) return true
+      if (oldUtxo.status === D.utxo.status.unspent) return utxo.status === D.utxo.status.spent_pending || utxo.status === D.utxo.status.spent
+      if (oldUtxo.status === D.utxo.status.spent_pending) return utxo.status === D.utxo.status.spent
       return false
     })
 
     // update account info
-    this.balance += txInfo.value
     this.txInfos.push(D.copy(txInfo))
     this.utxos = this.utxos
       .filter(oldUtxo => !utxos.some(utxo => oldUtxo.txId === utxo.txId && oldUtxo.index === utxo.index))
       .concat(utxos)
-    this.utxos.push(...utxos)
     this.addressInfos.find(a => a.address === addressInfo.address).txs = D.copy(addressInfo.txs)
+    this.balance = this.utxos
+      .filter(utxo => utxo.status === D.utxo.status.unspent || utxo.status === D.utxo.status.unspent_pending)
+      .reduce((sum, utxo) => sum + utxo.value, 0)
 
     // update and addressIndex and listen new address
     let newIndex = addressInfo.index + 1
@@ -336,7 +343,7 @@ export default class BtcAccount {
     }
 
     // copy utxos for avoiding utxos of BtcAccount change
-    let utxos = this.utxos.filter(utxo => utxo.spent === D.utxo.status.unspent).map(utxo => D.copy(utxo))
+    let utxos = this.utxos.filter(utxo => utxo.status === D.utxo.status.unspent).map(utxo => D.copy(utxo))
     let total = utxos.reduce((sum, utxo) => sum + utxo.value, 0)
     let fee = details.feeRate
     let totalOut = details.outputs.reduce((sum, output) => sum + output.value, 0)
@@ -373,13 +380,13 @@ export default class BtcAccount {
     let totalIn = prepareTx.utxos.reduce((sum, utxo) => sum + utxo.value, 0)
     if (totalIn < prepareTx.total) throw D.error.balanceNotEnough
 
-    let changeAddress = await this._getAddressFromDeviceRetry(D.address.change)
+    let changeAddressInfo = this.addressInfos.find(addressInfo => addressInfo.index === this.changePublicKeyIndex)
     let value = totalIn - prepareTx.total
     let rawTx = {
       inputs: prepareTx.utxos,
       outputs: prepareTx.outputs
     }
-    rawTx.outputs.push({address: changeAddress, value: value})
+    rawTx.outputs.push({address: changeAddressInfo.address, value: value})
     console.log(rawTx)
     let signedTx = await this._device.signTransaction(this.coinType, rawTx)
     let txInfo = {
@@ -402,11 +409,28 @@ export default class BtcAccount {
       outputs: prepareTx.outputs.map(output => {
         return {
           address: output.address,
-          isMine: output.address === changeAddress,
+          isMine: output.address === changeAddressInfo.address,
           value: output.value
         }
       })
     }
+
+    // change utxo spent status from unspent to spent pending
+    prepareTx.utxos.forEach(utxo => { utxo.status = D.utxo.status.spent_pending })
+    let outputUtxos = txInfo.outputs.filter(output => output.isMine).map(output => {
+      return {
+        accountId: this.accountId,
+        coinType: this.coinType,
+        address: output.address,
+        path: changeAddressInfo.path,
+        txId: txInfo.txId,
+        index: txInfo.outputs.length,
+        value: totalIn - totalOut,
+        status: D.utxo.status.unspent_pending
+      }
+    })
+    prepareTx.utxos.push(...outputUtxos)
+
     return {txInfo: txInfo, utxos: prepareTx.utxos, hex: signedTx.hex}
   }
 
@@ -419,12 +443,17 @@ export default class BtcAccount {
   async sendTx (signedTx, test = false) {
     // broadcast transaction to network
     if (!test) await this._coinData.sendTx(this._toAccountInfo(), signedTx.utxos, signedTx.txInfo, signedTx.hex)
-    // change utxo spent status from unspent to spent pending
-    signedTx.utxos.forEach(utxo => { utxo.spent = D.utxo.status.pending })
-    signedTx.utxos.map(utxo => {
-      let addressInfo = this.addressInfos.find(addressInfo => addressInfo.address === utxo.address)
-      return {addressInfo, utxo}
-    }).forEach(pair => this._handleNewTx(pair.addressInfo, signedTx.txInfo, [pair.utxo]))
+    let blobs = {}
+    signedTx.utxos.forEach(utxo => {
+      let addressInfo = D.copy(this.addressInfos.find(addressInfo => addressInfo.address === utxo.address))
+      if (blobs[addressInfo.address]) {
+        blobs[addressInfo.address].utxos.push(utxo)
+      } else {
+        blobs[addressInfo.address] = {addressInfo: addressInfo, utxos: [utxo]}
+        addressInfo.txs.push(signedTx.txInfo.txId)
+      }
+    })
+    Object.values(blobs).forEach(blob => this._handleNewTx(blob.addressInfo, signedTx.txInfo, blob.utxos))
   }
 
   /**

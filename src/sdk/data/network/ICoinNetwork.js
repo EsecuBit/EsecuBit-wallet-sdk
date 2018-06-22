@@ -259,7 +259,7 @@ export default class ICoinNetwork {
             index: output.index,
             script: output.script,
             value: output.value,
-            spent: D.utxo.status.unspent
+            status: tx.confirmations === 0 ? D.utxo.status.unspent_pending : D.utxo.status.unspent
           }
         })
         utxos.push(...unspentUtxos)
@@ -283,7 +283,7 @@ export default class ICoinNetwork {
               index: input.prevOutIndex,
               script: input.prevOutScript,
               value: input.value,
-              spent: tx.confirmations === 0 ? D.utxo.status.pending : D.utxo.status.spent
+              status: tx.confirmations === 0 ? D.utxo.status.spent_pending : D.utxo.status.spent
             }
           })
           utxos.push(...spentUtxos)

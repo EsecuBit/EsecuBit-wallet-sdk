@@ -128,9 +128,10 @@ const D = {
 
   utxo: {
     status: {
-      unspent: 0,
-      spent_pending: 1,
-      spent: 2
+      unspent_pending: 'unspent_pending',
+      unspent: 'unspent',
+      spent_pending: 'spent_pending',
+      spent: 'spent'
     }
   },
 
@@ -308,8 +309,8 @@ const D = {
     syncWalletId: 'aa49342d805682f345135afcba79ffa7d50c2999944b91d88e01e1d38b80ca63',
     syncSeed: 'aa49342d805682f345135afcba79ffa7d50c2999944b91d88e01e1d38b80ca63',
     // sync used for test transaction
-    txWalletId: 'aa49342d805682f345135afcba79ffa7d50c2999944b91d88e01e1d300000000',
-    txSeed: 'aa49342d805682f345135afcba79ffa7d50c2999944b91d88e01e1d300000000',
+    txWalletId: '00000000805682f345135afcba79ffa7d50c2999944b91d88e01e1d300000000',
+    txSeed: '00000000805682f345135afcba79ffa7d50c2999944b91d88e01e1d300000000',
 
     generateSeed () {
       let seed = ''
