@@ -114,9 +114,7 @@ export default class BtcAccount {
     txInfo.outputs.forEach(output => { output['isMine'] = this.addressInfos.some(a => a.address === output.address) })
     txInfo.value = 0
     txInfo.value -= txInfo.inputs.reduce((sum, input) => sum + input.isMine ? input.value : 0, 0)
-    console.log('input', txInfo.inputs.reduce((sum, input) => sum + input.isMine ? input.value : 0, 0))
     txInfo.value += txInfo.outputs.reduce((sum, output) => sum + output.isMine ? output.value : 0, 0)
-    console.log('output', txInfo.outputs.reduce((sum, output) => sum + output.isMine ? output.value : 0, 0))
     let input = txInfo.inputs.find(input => input.isMine)
     txInfo.direction = input ? D.tx.direction.out : D.tx.direction.in
     txInfo.showAddresses = txInfo.direction === D.tx.direction.in
