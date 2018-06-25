@@ -4,7 +4,19 @@ const UglifyJSPlugin = require('uglifyjs-webpack-plugin')
 
 let cfg = Object.assign(webpackBase, {
   plugins: [
-    new UglifyJSPlugin()
+    new UglifyJSPlugin({
+      exclude: [
+        'Buffer',
+        'BigInteger',
+        'Point',
+        'ECPubKey',
+        'ECKey',
+        'sha512_asm',
+        'asm',
+        'ECPair',
+        'HDNode'
+      ]
+    })
   ],
   mode: 'production'
 });
