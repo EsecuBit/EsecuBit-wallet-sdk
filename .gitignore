@@ -1,7 +1,9 @@
-.idea/workspace.xml
-.DS_Store
-node_modules
-bundle.js
-*.log
-dist
+node_modules/
+dist/
 *~
+*.log
+
+.DS_Store
+.idea/workspace.xml
+bundle.js
+bundle.js.map

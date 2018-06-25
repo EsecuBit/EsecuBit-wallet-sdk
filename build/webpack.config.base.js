@@ -17,17 +17,17 @@ module.exports = {
 
   devtool: 'cheap-module-eval-source-map',
   devServer: {
-    contentBase: 'test',
+    contentBase: '../test',
     historyApiFallback: true,
     inline: false,
     hot: false
   },
 
-  entry: ['babel-polyfill', path.resolve(__dirname, 'src/index.js')],
+  entry: ['babel-polyfill', path.resolve(__dirname, '../src/index.js')],
 
   output: {
     filename: 'bundle.js',
-    path: path.resolve(__dirname, 'test')
+    path: path.resolve(__dirname, '../test')
   },
 
   mode: 'development'

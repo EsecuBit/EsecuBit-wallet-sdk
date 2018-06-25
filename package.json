@@ -42,8 +42,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "npm run server",
-    "build": "npx webpack --config webpack.config.js",
-    "server": "npx webpack-dev-server --no-inline --progress --open --config webpack.config.dev.js"
+    "build": "npx webpack --config build/webpack.config.js",
+    "server": "npx webpack-dev-server --no-inline --progress --open --config build/webpack.config.dev.js",
+    "watch": "npx webpack --watch --config build/webpack.config.chrome.dev.js"
   },
   "repository": {
     "type": "git",
