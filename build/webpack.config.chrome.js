@@ -1,5 +1,5 @@
 
-const webpackBase = require('./webpack.config.prod.js');
+const webpackBase = require('./webpack.config.dev.js');
 
 let cfg = Object.assign(webpackBase, {
   devtool: 'cheap-module-source-map',
