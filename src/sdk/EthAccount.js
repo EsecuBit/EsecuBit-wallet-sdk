@@ -170,6 +170,7 @@ export default class EthAccount {
    *
    * @param details
    * {
+   *   sendAll: bool,
    *   feeRate: number (Wei),
    *   outputs: [{    // only the first output will be used
    *     address: hex string,
@@ -209,8 +210,16 @@ export default class EthAccount {
     let gasPrice = details.feeRate
     let nonce = this.txInfos.filter(txInfo => txInfo.direction === D.tx.direction.out).length
     let fee = startGas * gasPrice
-    let total = fee + details.outputs[0].value
-    if (total > this.balance) throw D.error.balanceNotEnough
+
+    let total
+    // noinspection JSUnresolvedVariable
+    if (details.sendAll) {
+      total = this.balance
+      details.outputs[0].value = this.balance - fee
+    } else {
+      total = fee + details.outputs[0].value
+      if (total > this.balance) throw D.error.balanceNotEnough
+    }
 
     return {
       total: total,

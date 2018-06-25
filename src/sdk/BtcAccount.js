@@ -303,6 +303,7 @@ export default class BtcAccount {
    *
    * @param details
    * {
+   *   sendAll: bool,
    *   feeRate: long (santoshi),
    *   outputs: [{
    *     address: base58 string,
@@ -322,15 +323,18 @@ export default class BtcAccount {
    * }
    */
   async prepareTx (details) {
-    if (this.coinType !== D.coin.main.btc && this.coinType !== D.coin.test.btcTestNet3) throw D.error.coinNotSupported
+    if (!D.isBtc(this.coinType)) throw D.error.coinNotSupported
 
-    let getEnoughUtxo = (total) => {
+    let utxos = this.utxos
+      .filter(utxo => utxo.status === D.utxo.status.unspent || utxo.status === D.utxo.status.unspent_pending)
+      .map(utxo => D.copy(utxo))
+    let getEnoughUtxo = (total, sendAll) => {
       let willSpentUtxos = []
       let newTotal = 0
       for (let utxo of utxos) {
         newTotal += utxo.value
         willSpentUtxos.push(utxo)
-        if (newTotal > total) {
+        if (!sendAll && newTotal > total) {
           break
         }
       }
@@ -340,28 +344,29 @@ export default class BtcAccount {
       return {newTotal, willSpentUtxos}
     }
 
-    // copy utxos for avoiding utxos of BtcAccount change
-    let utxos = this.utxos
-      .filter(utxo => utxo.status === D.utxo.status.unspent || utxo.status === D.utxo.status.unspent_pending)
-      .map(utxo => D.copy(utxo))
-    let total = utxos.reduce((sum, utxo) => sum + utxo.value, 0)
-    let fee = details.feeRate
+    let fee = 0
     let totalOut = details.outputs.reduce((sum, output) => sum + output.value, 0)
-    // calculate the fee using uncompressed public key
+    // no output value is ok while sendAll = true
+    totalOut = totalOut || 0
+
+    // calculate the fee using uncompressed public key size
     let calculateFee = (utxos, outputs) => (utxos.length * 180 + 34 * outputs.length + 34 + 10) * details.feeRate
-    let result
     while (true) {
-      if (total < fee + totalOut) throw D.error.balanceNotEnough
-      result = getEnoughUtxo(totalOut + fee)
+      if (this.balance < fee + totalOut) throw D.error.balanceNotEnough
+      // noinspection JSUnresolvedVariable
+      let {newTotal, willSpentUtxos} = getEnoughUtxo(totalOut + fee, details.sendAll)
       // new fee calculated
-      fee = calculateFee(result.willSpentUtxos, details.outputs)
-      if (result.newTotal > totalOut + fee) {
+      fee = calculateFee(willSpentUtxos, details.outputs)
+      if (newTotal > totalOut + fee) {
+        if (details.sendAll) {
+          details.outputs[0].value = newTotal - fee
+        }
         return {
           feeRate: details.feeRate,
           outputs: details.outputs,
           fee: fee,
           total: totalOut + fee,
-          utxos: result.willSpentUtxos
+          utxos: willSpentUtxos
         }
       }
       // new fee + total out is larger than new total, calculate again

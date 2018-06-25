@@ -2,7 +2,6 @@
 .DS_Store
 node_modules
 bundle.js
-main.js
 *.log
 dist
 *~
