@@ -1,7 +1,7 @@
 
 import bitPony from 'bitpony'
 import base58check from 'bs58check'
-import web3 from 'web3'
+import createKeccakHash from 'keccak'
 
 const D = {
   // wallet status
@@ -60,7 +60,7 @@ const D = {
     external: 'external',
     change: 'change',
 
-    checkBtcAddress (address) {
+    checkBtcAddress(address) {
       let buffer
       try {
         buffer = base58check.decode(address)
@@ -88,13 +88,7 @@ const D = {
     },
 
     checkEthAddress (address) {
-      let checksum
-      try {
-        checksum = web3.utils.toChecksumAddress(address)
-      } catch (e) {
-        console.warn(e)
-        throw D.error.invalidAddress
-      }
+      let checksum = D.address.toEthChecksumAddress(address)
       if (checksum === address) {
         return true
       }
@@ -102,6 +96,46 @@ const D = {
         throw D.error.noAddressCheckSum
       }
       throw D.error.invalidAddress
+    },
+
+    keccak256 (data) {
+      if (data instanceof String) {
+        if (data.startsWith('0x')) {
+          data = data.slice(2)
+        }
+        data = D.toBuffer(data)
+      }
+      if (data instanceof ArrayBuffer) {
+        data = Buffer.from(data)
+      }
+      return '0x' + createKeccakHash('keccak256').update(data).digest('hex')
+    },
+
+    /**
+     * Copied from web3.utils.toChecksumAddress and modified.
+     *
+     * Converts to a checksum address
+     *
+     * @method toEthChecksumAddress
+     * @param {String} address the given HEX address
+     * @return {String}
+     */
+    toEthChecksumAddress (address) {
+      if (address === undefined) return ''
+      if (!/^(0x)?[0-9a-f]{40}$/i.test(address)) throw D.error.invalidAddress
+
+      address = address.toLowerCase().replace(/^0x/i, '')
+      let addressHash = D.address.keccak256(address).replace(/^0x/i, '')
+      let checksumAddress = '0x'
+      for (let i = 0; i < address.length; i++) {
+        // If ith character is 9 to f then make it uppercase
+        if (parseInt(addressHash[i], 16) > 7) {
+          checksumAddress += address[i].toUpperCase()
+        } else {
+          checksumAddress += address[i]
+        }
+      }
+      return checksumAddress
     }
   },
 

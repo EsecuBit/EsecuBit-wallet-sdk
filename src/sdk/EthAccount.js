@@ -1,6 +1,5 @@
 
 import D from './D'
-import Web3 from 'web3'
 
 export default class EthAccount {
   constructor (info, device, coinData) {
@@ -153,7 +152,7 @@ export default class EthAccount {
   async getAddress () {
     let path = D.makeBip44Path(this.coinType, this.index, D.address.external, 0)
     let address = await this._device.getAddress(this.coinType, path)
-    address = Web3.utils.toChecksumAddress(address)
+    address = D.address.toEthChecksumAddress(address)
     let prefix = ''
     return {address: address, qrAddress: prefix + address}
   }

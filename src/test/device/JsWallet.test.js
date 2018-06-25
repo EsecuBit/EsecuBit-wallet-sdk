@@ -2,7 +2,6 @@
 import chai from 'chai'
 import D from '../../sdk/D'
 import JsWallet from '../../sdk/device/JsWallet'
-import Web3 from 'web3'
 
 chai.should()
 describe('JsWallet Bitcoin', function () {
@@ -72,22 +71,16 @@ describe('JsWallet Ethernum', function () {
     let path = "m/44'/60'/0'/0/0"
     let address = await jsWallet.getAddress(D.coin.test.ethRinkeby, path)
     address.should.equal('0x79c744891902a0319b1322787190efaba5dbea72')
-    for (let nonce = 0; nonce < 1; nonce++) {
-      let response = await jsWallet.signTransaction(D.coin.test.ethRinkeby, {
-        input: {address: address, path: path},
-        output: {address: '0x79c744891902a0319b1322787190efaba5dbea72', value: 10000000000000000},
-        nonce: nonce,
-        gasPrice: 2000000000,
-        startGas: 210000,
-        data: ''
-      })
-      console.log('rlp', response)
-
-      let web3 = new Web3()
-      let verifyAddress = web3.eth.accounts.recoverTransaction('0x' + response.hex).toLowerCase()
-      console.log('nonce', nonce, (verifyAddress.toLowerCase() === address ? 'ok' : 'not ok'))
-      console.log('address', verifyAddress)
-      address.should.equal(verifyAddress)
-    }
+    let nonce = 0
+    let response = await jsWallet.signTransaction(D.coin.test.ethRinkeby, {
+      input: {address: address, path: path},
+      output: {address: '0x79c744891902a0319b1322787190efaba5dbea72', value: 10000000000000000},
+      nonce: nonce,
+      gasPrice: 2000000000,
+      startGas: 210000,
+      data: ''
+    })
+    console.log('rlp', response)
+    response.should.not.equal(undefined)
   })
 })

@@ -4,7 +4,6 @@ import ecurve from 'ecurve'
 import bitcoin from 'bitcoinjs-lib'
 import BigInteger from 'bigi'
 import createHmac from 'create-hmac'
-import Web3 from 'web3'
 import rlp from 'rlp'
 import D from '../D'
 
@@ -81,9 +80,9 @@ export default class JsWallet {
     let ethAddress = async () => {
       let node = await this._derive(addressPath, pPublicKey)
       let uncompressedPublicKey = node.keyPair.Q.getEncoded(false)
-      let withoutHead = new Uint8Array(D.toBuffer(D.toHex(uncompressedPublicKey).slice(2)))
+      let withoutHead = D.toBuffer(D.toHex(uncompressedPublicKey).slice(2))
       // noinspection JSCheckFunctionSignatures
-      let hash = Web3.utils.keccak256(withoutHead)
+      let hash = D.address.keccak256(withoutHead)
       return '0x' + hash.slice(-40)
     }
 
@@ -176,7 +175,7 @@ export default class JsWallet {
       let unsignedTx = [tx.nonce, tx.gasPrice, tx.startGas, tx.output.address, tx.output.value, tx.data, chainId, 0, 0]
       let rlpUnsignedTx = rlp.encode(unsignedTx)
       // noinspection JSCheckFunctionSignatures
-      let rlpHash = Web3.utils.keccak256(rlpUnsignedTx)
+      let rlpHash = D.address.keccak256(rlpUnsignedTx)
       console.log('rlpHash', rlpHash)
       let node = await this._derive(tx.input.path)
 
@@ -279,7 +278,7 @@ export default class JsWallet {
 
       let rawTx = D.toHex(rlp.encode(signedTx)).toLowerCase()
       // noinspection JSCheckFunctionSignatures
-      let txId = Web3.utils.keccak256(rlp.encode(signedTx))
+      let txId = D.address.keccak256(rlp.encode(signedTx))
       return {
         id: txId,
         hex: rawTx

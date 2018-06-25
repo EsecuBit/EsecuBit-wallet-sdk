@@ -42,6 +42,7 @@ export default class EsWallet {
         try {
           await this._init()
         } catch (e) {
+          console.warn(e)
           this._callback && D.dispatch(() => this._callback(e, this._status))
           return
         }
@@ -52,6 +53,7 @@ export default class EsWallet {
         try {
           await this._sync()
         } catch (e) {
+          console.warn(e)
           this._callback && D.dispatch(() => this._callback(e, this._status))
           return
         }
