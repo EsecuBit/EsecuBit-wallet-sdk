@@ -357,7 +357,7 @@ export default class BtcAccount {
       let {newTotal, willSpentUtxos} = getEnoughUtxo(totalOut + fee, details.sendAll)
       // new fee calculated
       fee = calculateFee(willSpentUtxos, details.outputs)
-      if (newTotal > totalOut + fee) {
+      if (newTotal >= totalOut + fee) {
         if (details.sendAll) {
           details.outputs[0].value = newTotal - fee
         }
