@@ -27,7 +27,10 @@ describe('EsWallet', function () {
 
   // new EsWallet will trigger heavy work, so make it lazy
   it('new wallet', async () => {
+    D.test.coin = true
     D.test.sync = true
+    D.test.networkRequest = true
+    D.test.jsWallet = true
     esWallet = new EsWallet()
   })
 

@@ -8,10 +8,10 @@ describe('EthAccount', function () {
   this.timeout(60000)
   let esWallet
 
-  // new EsWallet will trigger heavy work, so make it lazy
-  it('new wallet', async () => {
+  it('init', async () => {
     D.test.sync = false
-    D.test.mode = true
+    D.test.coin = true
+    D.test.jsWallet = true
     esWallet = new EsWallet()
   })
 

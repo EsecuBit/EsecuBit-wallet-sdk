@@ -121,7 +121,7 @@ export default class ICoinNetwork {
     if (!D.isBtc(this.coinType) && !D.isEth(this.coinType)) throw D.error.coinNotSupported
     let blockHeightRequestPeriod = 60
     let txIncludedRequestPeriod = 60
-    if (D.test.mode) {
+    if (D.test.coin) {
       if (D.isBtc(this.coinType)) {
         blockHeightRequestPeriod = 20
         txIncludedRequestPeriod = 10

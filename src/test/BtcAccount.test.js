@@ -15,8 +15,9 @@ describe('BtcAccount', function () {
 
   // new EsWallet will trigger heavy work, so make it lazy
   it('new wallet', async () => {
-    D.test.mode = true
+    D.test.coin = true
     D.test.sync = false
+    D.test.jsWallet = true
     esWallet = new EsWallet()
   })
 
@@ -110,13 +111,13 @@ describe('BtcAccount', function () {
   })
 
   it('checkAddress', () => {
-    let oldTestMode = D.test.mode
+    let oldTestMode = D.test.coin
     let error = D.error.succeed
 
-    D.test.mode = false
+    D.test.coin = false
     account.checkAddress('14Vyjee2LgComhVaUPVmk49MUkp4AUSB3o')
 
-    D.test.mode = true
+    D.test.coin = true
     account.checkAddress('myYM3xcshRzbqQNggCLMPhQNpz7rB58FBc')
     account.checkAddress('n1ok87KUNJAKgd224cTiAhX6ZDrtDwAVpx')
     error.should.equal(D.error.succeed)
@@ -145,7 +146,7 @@ describe('BtcAccount', function () {
     }
     error.should.equal(D.error.invalidAddress)
 
-    D.test.mode = oldTestMode
+    D.test.coin = oldTestMode
   })
 
   it('getAddress', async () => {

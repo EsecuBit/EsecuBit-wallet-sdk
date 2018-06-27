@@ -16,7 +16,7 @@ export default class JsWallet {
   }
 
   init (initSeed) {
-    const btcNetwork = D.test.mode ? bitcoin.networks.testnet : bitcoin.networks.btc
+    const btcNetwork = D.test.coin ? bitcoin.networks.testnet : bitcoin.networks.btc
     const defaultSeed = D.test.sync ? D.test.syncSeed : D.test.txSeed
     const walletId = D.test.sync ? D.test.syncWalletId : D.test.txWalletId
 

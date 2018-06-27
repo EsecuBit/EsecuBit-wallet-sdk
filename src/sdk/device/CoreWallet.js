@@ -1,7 +1,7 @@
 
 import D from '../D'
-import MockDevice from './MockDevice'
-import ChromeUsbDevice from './ChromeUsbDevice'
+import ChromeHidDevice from './ChromeHidDevice'
+import EsTransmitter from './EsTransmitter'
 
 export default class CoreWallet {
   constructor () {
@@ -10,8 +10,8 @@ export default class CoreWallet {
     }
     CoreWallet.prototype.Instance = this
 
-    this._deviceTrue = new ChromeUsbDevice()
-    this._device = new MockDevice()
+    this._device = new ChromeHidDevice()
+    this._transmitter = new EsTransmitter(this._device)
     this._walletId = 'defaultId'
   }
 
@@ -27,7 +27,7 @@ export default class CoreWallet {
   }
 
   listenPlug (callback) {
-    this._deviceTrue.listenPlug(callback)
+    this._device.listenPlug(callback)
   }
 
   async getWalletInfo () {
@@ -39,11 +39,11 @@ export default class CoreWallet {
   }
 
   _getFirmwareVersion () {
-    return this.sendHexApdu('0003000000')
+    return this._sendApdu('0003000000')
   }
 
   _getCosVersion () {
-    return this.sendHexApdu('00FF000000')
+    return this._sendApdu('00FF000000')
   }
 
   async verifyPin () {
@@ -57,15 +57,16 @@ export default class CoreWallet {
     } else {
       apdu = '0023000000'
     }
-    let response = await this.sendHexApdu(apdu)
+    let response = await this._sendApdu(apdu)
     return String.fromCharCode.apply(null, new Uint8Array(response))
   }
 
-  sendHexApdu (apdu) {
-    return this._device.sendAndReceive(D.toBuffer(apdu))
+  _sendApdu (apdu) {
+    return this._transmitter.sendApdu(apdu)
   }
 
-  sendHexApduTrue (apdu) {
-    return this._deviceTrue.sendAndReceive(D.toBuffer(apdu))
+  async getRandom (length) {
+    let apdu = '0084000008'
+    return this._transmitter.sendApdu(apdu)
   }
 }

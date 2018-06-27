@@ -10,7 +10,7 @@ describe('JsWallet Bitcoin', function () {
 
   it('init', async () => {
     D.test.sync = true
-    D.test.mode = true
+    D.test.coin = true
     await jsWallet.init()
   })
 

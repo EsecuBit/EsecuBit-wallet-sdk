@@ -25,17 +25,17 @@ export default class ChromeHidDevice extends IEsDevice {
     }
 
     let connect = () => {
-      chrome.usb.connect(this._deviceId, connection => {
+      chrome.hid.connect(this._deviceId, connection => {
         if (chrome.runtime.lastError) {
-          console.warn('chrome.usb.connect error: ' + chrome.runtime.lastError.message)
+          console.warn('chrome.hid.connect error: ' + chrome.runtime.lastError.message)
           this._deviceId = null
-          if (this._listener) this._listener(D.error.deviceConnectFailed, true)
+          this._listener && D.dispatch(() => this._listener(D.error.deviceConnectFailed, D.status.plugIn))
           return
         }
 
         this._connectionId = connection.connectionId
         console.log('Connected to the USB device!', this._deviceId, this._connectionId)
-        if (this._listener) this._listener(D.error.succeed, true)
+        this._listener && D.dispatch(() => this._listener(D.error.succeed, D.status.plugIn))
       })
     }
 
@@ -51,13 +51,13 @@ export default class ChromeHidDevice extends IEsDevice {
       if (device.deviceId === this._deviceId) {
         this._deviceId = null
         this._connectionId = null
-        if (this._listener) this._listener(D.error.succeed, false)
+        this._listener && D.dispatch(() => this._listener(D.error.succeed, D.status.plugOut))
       }
     })
 
     chrome.hid.getDevices({}, foundDevices => {
       if (chrome.runtime.lastError) {
-        console.warn('chrome.usb.getDevices error: ' + chrome.runtime.lastError.message)
+        console.warn('chrome.hid.getDevices error: ' + chrome.runtime.lastError.message)
         return
       }
 
@@ -73,6 +73,10 @@ export default class ChromeHidDevice extends IEsDevice {
   async sendAndReceive (apdu) {
     if (this._deviceId === null || this._connectionId === null) {
       throw D.error.noDevice
+    }
+
+    if (apdu instanceof String) {
+      apdu = D.toBuffer(apdu)
     }
 
     let send = (reportId, command) => {
@@ -107,15 +111,7 @@ export default class ChromeHidDevice extends IEsDevice {
   listenPlug (callback) {
     this._listener = callback
     if (this._deviceId !== null && this._connectionId !== null) {
-      callback(D.error.succeed, D.status.plugIn)
+      D.dispatch(() => this._listener(D.error.succeed, D.status.plugIn))
     }
-  }
-
-  static HidPackCommand (apdu) {
-
-  }
-
-  static HidUnpackResponse (response) {
-
   }
 }

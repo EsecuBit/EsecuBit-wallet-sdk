@@ -21,6 +21,7 @@ const D = {
     deviceComm: 102,
     deviceConnectFailed: 103,
     deviceDeriveLargerThanN: 104,
+    deviceProtocol: 105,
 
     databaseOpenFailed: 201,
     databaseExecFailed: 202,
@@ -60,7 +61,7 @@ const D = {
     external: 'external',
     change: 'change',
 
-    checkBtcAddress(address) {
+    checkBtcAddress (address) {
       let buffer
       try {
         buffer = base58check.decode(address)
@@ -73,10 +74,10 @@ const D = {
       let network = buffer.readUInt8(0)
       switch (network) {
         case 0: // main net P2PKH
-          if (D.test.mode) throw D.error.invalidAddress
+          if (D.test.coin) throw D.error.invalidAddress
           break
         case 0x6f: // test net P2PKH
-          if (!D.test.mode) throw D.error.invalidAddress
+          if (!D.test.coin) throw D.error.invalidAddress
           break
         case 0x05: // main net P2SH
         case 0xc4: // test net P2SH
@@ -208,7 +209,7 @@ const D = {
   },
 
   suppertedCoinTypes () {
-    return Object.values(D.test.mode ? D.coin.test : D.coin.main)
+    return Object.values(D.test.coin ? D.coin.test : D.coin.main)
   },
 
   recoverCoinTypes () {
@@ -333,11 +334,12 @@ const D = {
   },
 
   test: {
-    mode: true,
+    coin: false,
     data: false,
-    networkRequest: true,
-    jsWallet: true,
+    networkRequest: false,
+    jsWallet: false,
     sync: false,
+    mockDevice: false,
     // TODO remove when publish
     // sync used for test sync
     syncWalletId: 'aa49342d805682f345135afcba79ffa7d50c2999944b91d88e01e1d38b80ca63',
