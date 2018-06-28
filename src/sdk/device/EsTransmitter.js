@@ -151,17 +151,63 @@ export default class EsTransmitter {
   }
 
   async _transmit (apdu) {
-    // package
-    // TODO package
-    let pack = concat('0004', apdu)
-    let response = await this._device.sendAndReceive(pack)
+    // HID command format: u1PaddingNum 04 pu1Send[u4SendLen] Padding
+    // don't set feature id in hid command, chrome.hid will add it automatically to the head
+    let packHidCmd = () => {
+      // additional length of {u1PaddingNum 04}
+      let reportId = 0
+      let reportSize = apdu.byteLength + 2
+      let packView = new Uint8Array(reportSize + reportSize % 8)
+      if (reportSize <= 0x110) {
+        if ((reportSize & 0x07) !== 0) {
+          reportSize &= (~0x07)
+          reportSize += 0x08
+        }
+        reportId = reportSize >> 0x03
+      } else if (reportSize <= 0x210) {
+        reportSize -= 0x110
+        if ((reportSize & 0x3F) !== 0) {
+          reportSize &= ~0x3F
+          reportSize += 0x40
+        }
+        reportId = 0x22 + reportSize >> 0x06
+        reportSize += 0x110;
+      } else if (reportSize <= 0x410) {
+        reportSize -= 0x210;
+        if ((reportSize & 0x7F) !== 0) {
+          reportSize &= ~0x7F
+          reportSize += 0x80
+        }
+        reportId = 0x26 + reportSize >> 0x07
+        reportSize += 0x210
+      } else {
+        reportSize -= 0x410
+        if ((reportSize & 0xFF) !== 0) {
+          reportSize &= ~0xFF
+          reportSize += 0x100
+        }
+        reportId = 0x2A + reportSize >> 0x08
+        reportSize += 0x410
+      }
+      packView[0x00] = reportSize - apdu.byteLength - 0x03 // Padding num
+      packView[0x01] = 0x04 // opCode
+      packView.set(new Uint8Array(apdu), 2)
 
-    // unpackage
-    let resView = new Uint8Array(response)
-    let paddingNum = resView[1]
+      let buffer = packView.buffer
+      return {reportId, buffer}
+    }
 
-    let result = (resView[resView.length - paddingNum - 2] << 8) + resView[resView.length - paddingNum - 1]
-    response = slice(response, 3, -2 - paddingNum)
-    return {result, response}
+    let unpackHidCmd = (response) => {
+      let resView = new Uint8Array(response)
+      let paddingNum = resView[1]
+
+      let result = (resView[resView.length - paddingNum - 2] << 8) + resView[resView.length - paddingNum - 1]
+      response = slice(response, 3, -2 - paddingNum)
+      return {result, response}
+    }
+
+    let {reportId, pack} = packHidCmd(apdu)
+    let response = await this._device.sendAndReceive(reportId, pack)
+    return unpackHidCmd(response)
   }
 }

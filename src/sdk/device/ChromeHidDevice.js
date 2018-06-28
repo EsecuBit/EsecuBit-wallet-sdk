@@ -70,13 +70,13 @@ export default class ChromeHidDevice extends IEsDevice {
     })
   }
 
-  async sendAndReceive (apdu) {
+  async sendAndReceive (reportId, pack) {
     if (this._deviceId === null || this._connectionId === null) {
       throw D.error.noDevice
     }
 
-    if (apdu instanceof String) {
-      apdu = D.toBuffer(apdu)
+    if (typeof pack === 'string') {
+      pack = D.toBuffer(pack)
     }
 
     let send = (reportId, command) => {
@@ -98,13 +98,12 @@ export default class ChromeHidDevice extends IEsDevice {
             reject(D.error.deviceComm)
           }
           console.log('receive got ', D.toHex(data))
-          resolve(ChromeHidDevice.HidUnpackResponse(data))
+          resolve(data)
         })
       })
     }
 
-    let {reportId, command} = ChromeHidDevice.HidPackCommand(apdu)
-    await send(reportId, command)
+    await send(reportId, pack)
     return receive()
   }
 
