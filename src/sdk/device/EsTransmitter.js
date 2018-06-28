@@ -160,7 +160,6 @@ export default class EsTransmitter {
     let resView = new Uint8Array(response)
     let paddingNum = resView[1]
 
-    // Uint8Array don't support negative index
     let result = (resView[resView.length - paddingNum - 2] << 8) + resView[resView.length - paddingNum - 1]
     response = slice(response, 3, -2 - paddingNum)
     return {result, response}

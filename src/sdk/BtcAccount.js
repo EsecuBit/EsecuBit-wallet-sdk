@@ -426,7 +426,7 @@ export default class BtcAccount {
 
     // change utxo spent status from unspent to spent pending
     prepareTx.utxos.forEach(utxo => { utxo.status = D.utxo.status.spent_pending })
-    let changeOutput = txInfo.outputs[-1]
+    let changeOutput = txInfo.outputs[txInfo.outputs.length - 1]
     let changeUtxo = {
       accountId: this.accountId,
       coinType: this.coinType,
