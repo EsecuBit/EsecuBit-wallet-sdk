@@ -110,8 +110,12 @@ export default class BtcAccount {
       await D.wait(5)
     }
     this.busy = true
-    txInfo.inputs.forEach(input => { input['isMine'] = this.addressInfos.some(a => a.address === input.prevAddress) })
-    txInfo.outputs.forEach(output => { output['isMine'] = this.addressInfos.some(a => a.address === output.address) })
+    txInfo.inputs.forEach(input => {
+      input['isMine'] = this.addressInfos.some(a => a.address === input.prevAddress)
+    })
+    txInfo.outputs.forEach(output => {
+      output['isMine'] = this.addressInfos.some(a => a.address === output.address)
+    })
     txInfo.value = 0
     txInfo.value -= txInfo.inputs.reduce((sum, input) => sum + input.isMine ? input.value : 0, 0)
     txInfo.value += txInfo.outputs.reduce((sum, output) => sum + output.isMine ? output.value : 0, 0)
@@ -422,19 +426,18 @@ export default class BtcAccount {
 
     // change utxo spent status from unspent to spent pending
     prepareTx.utxos.forEach(utxo => { utxo.status = D.utxo.status.spent_pending })
-    let outputUtxos = txInfo.outputs.filter(output => output.isMine).map(output => {
-      return {
-        accountId: this.accountId,
-        coinType: this.coinType,
-        address: output.address,
-        path: changeAddressInfo.path,
-        txId: txInfo.txId,
-        index: txInfo.outputs.length,
-        value: totalIn - totalOut,
-        status: D.utxo.status.unspent_pending
-      }
-    })
-    prepareTx.utxos.push(...outputUtxos)
+    let changeOutput = txInfo.outputs[-1]
+    let changeUtxo = {
+      accountId: this.accountId,
+      coinType: this.coinType,
+      address: changeOutput.address,
+      path: changeAddressInfo.path,
+      txId: txInfo.txId,
+      index: txInfo.outputs.length - 1,
+      value: totalIn - totalOut,
+      status: D.utxo.status.unspent_pending
+    }
+    prepareTx.utxos.push(changeUtxo)
 
     return {txInfo: txInfo, utxos: prepareTx.utxos, hex: signedTx.hex}
   }
@@ -459,44 +462,5 @@ export default class BtcAccount {
       }
     })
     Object.values(blobs).forEach(blob => this._handleNewTx(blob.addressInfo, signedTx.txInfo, blob.utxos))
-  }
-
-  /**
-   * @deprecated
-   */
-  sendBitCoin (transaction, callback) {
-    let enc = new TextEncoder()
-    console.dir(enc)
-
-    let total = transaction.out + transaction.fee
-    let totalString = D.convertValue(this.coinType, total, D.unit.btc.santoshi, D.unit.btc.BTC) + ' btc.BTC'
-    let apdu = ''
-    let hexChars = '0123456789ABCDEF'
-    apdu += hexChars[totalString.length >> 4] + hexChars[totalString.length % 0x10] + D.toHex(enc.encode(totalString))
-    console.log(apdu)
-    apdu += '01'
-    console.log(apdu)
-    apdu += hexChars[transaction.addresses[0].length >> 4] + hexChars[transaction.addresses[0].length % 0x10] + D.toHex(enc.encode(transaction.addresses[0]))
-    console.log(apdu)
-    apdu = hexChars[parseInt(apdu.length / 2) % 0x10] + apdu
-    apdu = hexChars[parseInt(apdu.length / 2) >> 4] + apdu
-    apdu = '00780000' + apdu
-    console.log(apdu)
-
-    // var ok = "007800002E09302e303132204254430122314d6459433232476d6a7032656a5670437879596a66795762514359544768477138"
-    let response = this._device._sendHexApduTrue(apdu, callback)
-    let data = new Uint8Array(response)
-    let intArray = new Uint8Array(new Array(2))
-    intArray[0] = data[3]
-    intArray[1] = data[4]
-    console.log('data ' + D.toHex(response))
-    console.log('data ' + D.toHex(data))
-    console.log('sw ' + D.toHex(intArray))
-    let sw = D.toHex(intArray)
-
-    if (sw === '6FFA') {
-      this._device.sendBitCoin(transaction, callback)
-    }
-    callback(sw === '9000' ? D.error.succeed : D.error.userCancel)
   }
 }
