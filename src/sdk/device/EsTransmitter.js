@@ -14,7 +14,7 @@ const factoryPubKey = D.toBuffer(
 const sha1HashLen = 0x14
 
 let copy = (src, srcOffset, dest, destOffset, length) => {
-  if (src instanceof String) {
+  if (typeof src === 'string') {
     src = D.toBuffer(src)
   }
   let srcView = new Uint8Array(src)
@@ -24,10 +24,10 @@ let copy = (src, srcOffset, dest, destOffset, length) => {
 }
 
 let concat = (a, b) => {
-  if (a instanceof String) {
+  if (typeof a === 'string') {
     a = D.toBuffer(a)
   }
-  if (b instanceof String) {
+  if (typeof b === 'string') {
     b = D.toBuffer(b)
   }
   let c = new ArrayBuffer(a.byteLength + b.byteLength)
@@ -40,7 +40,7 @@ let concat = (a, b) => {
 }
 
 let slice = (src, start, end) => {
-  if (src instanceof String) {
+  if (typeof src === 'string') {
     src = D.toBuffer(src)
   }
   let srcv = new Uint8Array(src)
@@ -122,11 +122,11 @@ export default class EsTransmitter {
   }
 
   async _sendApdu (apdu) {
-    let {result, response} = this._transmit(apdu)
+    let {result, response} = await this._transmit(apdu)
 
     // 6AA6 means busy, send 00A6000008 immediately to get response
-    while (result === 0xE0616AA6) {
-      console.log("got 0xE0616AA6, resend apdu");
+    while (result === 0x6AA6) {
+      console.log('got 0xE0616AA6, resend apdu')
       let {_result, _response} = this._transmit(D.toBuffer('00A6000008'))
       response = concat(response, _response)
       result = _result
@@ -134,7 +134,7 @@ export default class EsTransmitter {
     }
 
     // 61XX means there are still XX bytes to get
-    while ((result & 0xFFFFFF00) === 0xE0616100) {
+    while ((result & 0xFF00) === 0x6100) {
       let rApdu = D.toBuffer('00C0000000')
       new Uint8Array(rApdu)[0x04] = result & 0xFF
       let {_result, _response} = this._transmit(rApdu)
@@ -159,13 +159,10 @@ export default class EsTransmitter {
     // unpackage
     let resView = new Uint8Array(response)
     let paddingNum = resView[1]
-    response = slice(response, 2, response.byteLength - paddingNum)
 
-    let result = slice(response, 0, 2)
-    response = slice(response, 2)
+    // Uint8Array don't support negative index
+    let result = (resView[resView.length - paddingNum - 2] << 8) + resView[resView.length - paddingNum - 1]
+    response = slice(response, 3, -2 - paddingNum)
     return {result, response}
   }
 }
-
-
-

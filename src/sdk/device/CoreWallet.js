@@ -1,6 +1,7 @@
 
 import D from '../D'
 import ChromeHidDevice from './ChromeHidDevice'
+import MockDevice from './MockDevice'
 import EsTransmitter from './EsTransmitter'
 
 export default class CoreWallet {
@@ -10,7 +11,7 @@ export default class CoreWallet {
     }
     CoreWallet.prototype.Instance = this
 
-    this._device = new ChromeHidDevice()
+    this._device = D.test.mockDevice ? new MockDevice() : new ChromeHidDevice()
     this._transmitter = new EsTransmitter(this._device)
     this._walletId = 'defaultId'
   }
@@ -66,7 +67,8 @@ export default class CoreWallet {
   }
 
   async getRandom (length) {
-    let apdu = '0084000008'
+    if (length > 255) throw D.error.notImplemented
+    let apdu = '00840000' + (length >> 8) + (length % 0xFF)
     return this._transmitter.sendApdu(apdu)
   }
 }

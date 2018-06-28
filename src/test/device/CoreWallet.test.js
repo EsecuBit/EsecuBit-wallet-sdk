@@ -5,10 +5,14 @@ import chai from 'chai'
 
 chai.should()
 describe('CoreWallet', function () {
-  const coreWallet = new CoreWallet()
+  let coreWallet
+
+  it('init', () => {
+    D.test.mockDevice = true
+    coreWallet = new CoreWallet()
+  })
 
   it('listenPlug', function (done) {
-    this.timeout(5000)
     coreWallet.listenPlug((error, status) => {
       error.should.equal(D.error.succeed)
       if (status === D.status.plugIn) {

@@ -8,12 +8,7 @@ export default class MockDevice extends IEsDevice {
     this.currentAddressIndex = 0
   }
   listenPlug (callback) {
-    setTimeout(() => {
-      callback(D.error.succeed, D.status.plugIn)
-      // setTimeout(function () {
-      //   callback(D.error.succeed, D.status.plugIn)
-      // }, 2000)
-    }, 500)
+    D.dispatch(() => callback(D.error.succeed, D.status.plugIn))
   }
 
   async sendAndReceive (apdu) {
