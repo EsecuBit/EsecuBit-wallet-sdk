@@ -280,6 +280,13 @@ const D = {
     return hexString.join('')
   },
 
+  getRandomHex (length) {
+    let hex = ''
+    const possible = '0123456789abcdef'
+    for (let i = 0; i < length; i++) hex += possible.charAt(Math.floor(Math.random() * possible.length))
+    return hex
+  },
+
   toBuffer (hex) {
     const hexChars = '0123456789ABCDEFabcdef'
     let result = new ArrayBuffer(hex.length / 2)
@@ -352,10 +359,7 @@ const D = {
     txSeed: '00000000805682f345135afcba79ffa7d50c2999944b91d88e01e1d300000000',
 
     generateSeed () {
-      let seed = ''
-      const possible = '0123456789abcdef'
-      for (let i = 0; i < 64; i++) seed += possible.charAt(Math.floor(Math.random() * possible.length))
-      return seed
+      return D.getRandomHex(64)
     }
   }
 }

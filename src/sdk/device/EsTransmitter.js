@@ -69,20 +69,29 @@ export default class EsTransmitter {
   async _doHandShake () {
     if (this._commKey.generated) return
 
+    let generateRsaKeyPair = () => {
+      return {
+        pubKey: 'AA5F4336939CB4186FF1E5119D3E93D1A33C72EED1F40718149B9B240C9DF300510C30C631FD583CA99CEA2956B7A4549797FCE307D3132AD599904389C0411791FEFC3214B55F1ECD615EDCF5A409184C7D30CEB31905B9007482A74815F8422195D4B4A64B43131A4A04424F14EE46BA5146FC9DB2B1A306760CEC597FBD6F',
+        priKey: 'DC2256316F55F208178C91DFE94D1C077D9F5D0A39E4E6000921247F9DA359E18BD0FDD4C498DCF22429E6D277AC89795422CF295CE25C153CDDA3CC5402845FC62161D3E8C80244E4E616983211609F6A3A5DEE0967D0F4AC1A913C3C84C7FFA72DEC760DE3125706158BBC8405D599203885F4B67149E7DF31237D0372E0F1554CCCDF7D07EDB06B07A263047147C23350746A09030488D100D1B6CDABC5A15B5F516C87FDBFE7E851804ADFEAB09E9E169AF5A93361812D43A93BFCF5B8BB8B3629669BC8ECCF3B85EF9A4093B5304D93752C2BAFA642442AE6A14C647FA241F5229050719C1149551A39FB099E6B59185E06F3A9E623E5CEC100B5CBA2019EDF52B0BC2FEE818C24A685AAB9D40E76E4E420C15D9690F85FD7D09322F43176582C9D068FC31B968A11950774766AC1A28B8E7A8AD16B5EF52E7981EA3BF7',
+        N: 'AA5F4336939CB4186FF1E5119D3E93D1A33C72EED1F40718149B9B240C9DF300510C30C631FD583CA99CEA2956B7A4549797FCE307D3132AD599904389C0411791FEFC3214B55F1ECD615EDCF5A409184C7D30CEB31905B9007482A74815F8422195D4B4A64B43131A4A04424F14EE46BA5146FC9DB2B1A306760CEC597FBD6F'
+      }
+      var MattsRSAkey = cryptico.generateRSAKey(D.makeId, Bits);
+    }
+
     let modLen = 0x80 // RSA1024
     let genHandShakeApdu = () => {
       let blkAysmKey = generateRsaKeyPair(modLen * 8)
       let apdu = new ArrayBuffer(0x49)
-      let apduView = new Uint8Array(apdu)
       copy('80334B4E00048402010000', 0, apdu, 0)
       copy(blkAysmKey.N, 0, apdu, 0x0b)
-
       return {blkAysmKey, apdu}
     }
 
     let parseHandShakeResponse = (tempKeyPair, response) => {
-      let recoverDevPubKey = (factoryKey, hostKey) => {
-
+      let recoverDevPubKey = (factoryKey, hostKey, response) => {
+        let devCert = slice(response, 0, modLen)
+        let encSKey = slice(response, modLen, modLen)
+        let devSign = slice(response, modLen * 2, modLen)
       }
 
       let makeKey = (devCert) => {
@@ -151,22 +160,25 @@ export default class EsTransmitter {
   }
 
   async _transmit (apdu) {
+    if (typeof apdu === 'string') {
+      apdu = D.toBuffer(apdu)
+    }
     // HID command format: u1PaddingNum 04 pu1Send[u4SendLen] Padding
     // don't set feature id in hid command, chrome.hid will add it automatically to the head
-    let packHidCmd = () => {
+    let packHidCmd = (apdu) => {
       // additional length of {u1PaddingNum 04}
-      let reportId = 0
-      let reportSize = apdu.byteLength + 2
-      let packView = new Uint8Array(reportSize + reportSize % 8)
+      let reportId = 0x00
+      let reportSize = apdu.byteLength + 0x02
+      let packView = new Uint8Array(reportSize + (1 + reportSize) % 0x08)
       if (reportSize <= 0x110) {
-        if ((reportSize & 0x07) !== 0) {
+        if ((reportSize & 0x07) !== 0x00) {
           reportSize &= (~0x07)
           reportSize += 0x08
         }
         reportId = reportSize >> 0x03
       } else if (reportSize <= 0x210) {
         reportSize -= 0x110
-        if ((reportSize & 0x3F) !== 0) {
+        if ((reportSize & 0x3F) !== 0x00) {
           reportSize &= ~0x3F
           reportSize += 0x40
         }
@@ -174,7 +186,7 @@ export default class EsTransmitter {
         reportSize += 0x110;
       } else if (reportSize <= 0x410) {
         reportSize -= 0x210;
-        if ((reportSize & 0x7F) !== 0) {
+        if ((reportSize & 0x7F) !== 0x00) {
           reportSize &= ~0x7F
           reportSize += 0x80
         }
@@ -182,7 +194,7 @@ export default class EsTransmitter {
         reportSize += 0x210
       } else {
         reportSize -= 0x410
-        if ((reportSize & 0xFF) !== 0) {
+        if ((reportSize & 0xFF) !== 0x00) {
           reportSize &= ~0xFF
           reportSize += 0x100
         }
@@ -191,18 +203,47 @@ export default class EsTransmitter {
       }
       packView[0x00] = reportSize - apdu.byteLength - 0x03 // Padding num
       packView[0x01] = 0x04 // opCode
-      packView.set(new Uint8Array(apdu), 2)
+      packView.set(new Uint8Array(apdu), 0x02)
 
-      let buffer = packView.buffer
-      return {reportId, buffer}
+      let pack = packView.buffer
+      return {reportId, pack}
     }
 
+    // HID response format: u1ReportId u1PaddingNum 04 RESPONSE SW1 SW2 Padding[PaddingNum]
     let unpackHidCmd = (response) => {
       let resView = new Uint8Array(response)
-      let paddingNum = resView[1]
+      if (resView[0x02] !== 0x04) {
+        console.warn('opCode != 0x04 not supported')
+        throw D.error.notImplemented
+      }
 
-      let result = (resView[resView.length - paddingNum - 2] << 8) + resView[resView.length - paddingNum - 1]
-      response = slice(response, 3, -2 - paddingNum)
+      let throwLengthError = () => {
+        console.warn('unpackHidCmd hid response length incorrect', resView)
+        throw D.error.deviceComm
+      }
+
+      // get report size from report id
+      let reportSize
+      if (resView[0x00] <= 0x22) {
+        reportSize = resView[0x00] * 0x08;
+        if (resView[0x01] > 0x07) throw throwLengthError()
+      } else if (resView[0x00] <= 0x26) {
+        reportSize = 0x110 + (resView[0x00] - 0x22) * 0x40;
+        if (resView[0x01] > 0x3F) throw throwLengthError()
+      } else if (resView[0x00] <= 0x2A) {
+        reportSize = 0x210 + (resView[0x00] - 0x26) * 0x80;
+        if (resView[0x01] > 0x7F) throw throwLengthError()
+      } else {
+        reportSize = 0x410 + (resView[0x00] - 0x2A) * 0x100;
+      }
+
+      if (reportSize < (resView[0x01] + 0x03)) throw throwLengthError()
+      reportSize -= (resView[0x01] + 0x03)
+      if (reportSize < 0x02) throwLengthError()
+      reportSize -= 0x02
+
+      response = slice(response, 3, 3 + reportSize)
+      let result = resView[0x03 + reportSize] << 8 + resView[0x04 + reportSize]
       return {result, response}
     }
 

@@ -15,7 +15,6 @@
     "babel-preset-es2015": "^6.24.1",
     "babel-preset-stage-0": "^6.24.1",
     "babelify": "^8.0.0",
-    "bigi": "^1.4.2",
     "bip39": "^2.5.0",
     "bitcoinjs-lib": "^3.3.2",
     "chai": "^4.1.2",
@@ -43,7 +42,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "npm run server",
     "build": "npx webpack --config build/webpack.config.js",
-    "server": "npx webpack-dev-server --no-inline --progress --open --config build/webpack.config.dev.js",
+    "server": "npx webpack-dev-server --progress --open --config build/webpack.config.dev.js",
     "watch": "npx webpack --progress --watch --config build/webpack.config.chrome.js"
   },
   "repository": {
@@ -54,8 +53,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "bigi": "^1.4.2",
     "bitpony": "0.0.1",
     "bs58check": "^2.1.1",
+    "jsencrypt": "^3.0.0-rc.1",
     "keccak": "^1.4.0",
     "rlp": "^2.0.0"
   }
