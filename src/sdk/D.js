@@ -184,6 +184,7 @@ const D = {
       santoshi: 'santoshi'
     },
     eth: {
+      ETH: 'ETH',
       Ether: 'Ether',
       GWei: 'GWei',
       Wei: 'Wei'
@@ -234,12 +235,14 @@ const D = {
     let convertEth = (value, fromType, toType) => {
       let wei
       switch (fromType) {
+        case D.unit.eth.ETH:
         case D.unit.eth.Ether: { wei = value * 1000000000000000000; break }
         case D.unit.eth.GWei: { wei = value * 1000000000; break }
         case D.unit.eth.Wei: { wei = value; break }
         default: throw D.error.unknown
       }
       switch (toType) {
+        case D.unit.eth.ETH:
         case D.unit.eth.Ether: return Number(wei / 1000000000000000000)
         case D.unit.eth.GWei: return Number(wei / 1000000000)
         case D.unit.eth.Wei: return Number(wei)

@@ -15,6 +15,8 @@
     },
     "permissions": [
         "https://*.excelseu.com/*",
+        "https://*.blockchain.info/*",
+        "https://*.etherscan.io/*",
         "storage",
         "unlimitedStorage",
         "hid",
