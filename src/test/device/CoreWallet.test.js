@@ -1,7 +1,6 @@
 
 import D from '../../sdk/D'
 import CoreWallet from '../../sdk/device/CoreWallet'
-import JSEncrypt from 'jsencrypt'
 import chai from 'chai'
 
 chai.should()

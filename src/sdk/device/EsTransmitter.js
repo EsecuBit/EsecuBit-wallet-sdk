@@ -1,8 +1,7 @@
 
 import D from '../D'
 import MockDevice from './MockDevice'
-// noinspection NpmUsedModulesInstalled
-import JSEncrypt from 'jsencrypt'
+import JSEncrypt from './jsencrypt'
 import CryptoJS from 'crypto-js'
 
 const sKeyEncKey = D.toBuffer('78648bd32a96310a80227f759fa7b489')
