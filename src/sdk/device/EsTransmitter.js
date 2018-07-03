@@ -146,7 +146,7 @@ export default class EsTransmitter {
     let genHandShakeApdu = () => {
       let tempKeyPair = generateRsa1024KeyPair()
       let apdu = new ArrayBuffer(0x8B)
-      copy('80334B4E00048402000000', 0, apdu, 0)
+      copy('80334B4E00008402000000', 0, apdu, 0)
       copy(tempKeyPair.key.n.toString(16), 0, apdu, 0x0B)
       return {tempKeyPair, apdu}
     }
@@ -310,7 +310,7 @@ export default class EsTransmitter {
       let viewLength = responseView.length
       let result = (responseView[viewLength - 2] << 8) + responseView[viewLength - 1]
       if (result !== 0x9000) {
-        console.warn('decrypt response send apdu got', result)
+        console.warn('decrypt response send apdu got', result.toString(16))
         throw D.error.deviceProtocol
       }
       return slice(decResponse, 0, -2)
@@ -349,7 +349,7 @@ export default class EsTransmitter {
     }
 
     if (result !== 0x9000) {
-      console.warn('send apdu got', result)
+      console.warn('send apdu got', result.toString(16))
       throw D.error.deviceProtocol
     }
 
@@ -362,12 +362,10 @@ export default class EsTransmitter {
       apdu = D.toBuffer(apdu)
     }
     // HID command format: u1PaddingNum 04 pu1Send[u4SendLen] Padding
-    // don't set feature id in hid command, chrome.hid will add it automatically to the head
     let packHidCmd = (apdu) => {
       // additional length of {u1PaddingNum 04}
       let reportId = 0x00
-      let reportSize = apdu.byteLength + 0x02
-      let packView = new Uint8Array(reportSize + (1 + reportSize) % 0x08)
+      let reportSize = apdu.byteLength + 0x03
       if (reportSize <= 0x110) {
         if ((reportSize & 0x07) !== 0x00) {
           reportSize &= (~0x07)
@@ -399,7 +397,12 @@ export default class EsTransmitter {
         reportId = 0x2A + reportSize >> 0x08
         reportSize += 0x410
       }
-      packView[0x00] = reportSize - apdu.byteLength - 0x03 // Padding num
+
+      let padNum = reportSize - apdu.byteLength - 0x03
+      // don't set feature id in hid command, chrome.hid will add it automatically to the head
+      let packView = new Uint8Array(reportSize - 0x01)
+      packView[0x00] = padNum
+      console.log('1', packView[0x00])
       packView[0x01] = 0x04 // opCode
       packView.set(new Uint8Array(apdu), 0x02)
 
@@ -441,7 +444,7 @@ export default class EsTransmitter {
       reportSize -= 0x02
 
       response = slice(response, 3, 3 + reportSize)
-      let result = resView[0x03 + reportSize] << 8 + resView[0x04 + reportSize]
+      let result = (resView[0x03 + reportSize] << 8) + resView[0x04 + reportSize]
       return {result, response}
     }
 

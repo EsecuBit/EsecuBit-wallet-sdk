@@ -9,7 +9,7 @@ describe('CoreWallet', function () {
   this.timeout(100000)
 
   it('init', () => {
-    D.test.mockDevice = true
+    D.test.mockDevice = false
     coreWallet = new CoreWallet()
   })
 
