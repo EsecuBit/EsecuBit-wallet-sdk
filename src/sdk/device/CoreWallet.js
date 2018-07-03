@@ -62,8 +62,8 @@ export default class CoreWallet {
     return String.fromCharCode.apply(null, new Uint8Array(response))
   }
 
-  _sendApdu (apdu) {
-    return this._transmitter.sendApdu(apdu)
+  _sendApdu (apdu, isEnc) {
+    return this._transmitter.sendApdu(apdu, isEnc)
   }
 
   async getRandom (length) {

@@ -1,26 +1,30 @@
 
 import D from '../D'
+import MockDevice from './MockDevice'
+// noinspection NpmUsedModulesInstalled
+import JSEncrypt from 'jsencrypt'
+import CryptoJS from 'crypto-js'
 
 const sKeyEncKey = D.toBuffer('78648bd32a96310a80227f759fa7b489')
-const factoryPubKey = D.toBuffer(
-  'B721A1039865ABB07039ACA0BC541FBE' +
-  '1A4C3FF707619F68FCCD1F59CACC39D2' +
-  '310A5BA1E8B39E179E552E97B305854C' +
-  '0276E356AFE06ED6FD9A1969FE9B3EBC' +
-  '9889A5C5F00498449FA41EE12FB3BE21' +
-  '40F3DAFFBF4075ECDF8C04DF343BB853' +
-  '47D39C6B7739DFD5AD81BB2E09ADCDC1' +
-  '7959A89E7617E297B0AEB6DFA084E5E1')
+const factoryPubKeyPem = '-----BEGIN PUBLIC KEY-----' +
+  'MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC3IaEDmGWrsHA5rKC8VB++Gkw/' +
+  '9wdhn2j8zR9Zysw50jEKW6Hos54XnlUul7MFhUwCduNWr+Bu1v2aGWn+mz68mIml' +
+  'xfAEmESfpB7hL7O+IUDz2v+/QHXs34wE3zQ7uFNH05xrdznf1a2Buy4Jrc3BeVmo' +
+  'nnYX4pewrrbfoITl4QIDAQAB' +
+  '-----END PUBLIC KEY-----'
 const sha1HashLen = 0x14
 
 let copy = (src, srcOffset, dest, destOffset, length) => {
   if (typeof src === 'string') {
     src = D.toBuffer(src)
   }
+  if (typeof dest === 'string') {
+    dest = D.toBuffer(dest)
+  }
   let srcView = new Uint8Array(src)
-  length = length || srcView.length - srcOffset
   let destView = new Uint8Array(dest)
-  srcView.slice(srcOffset, srcOffset + length).map((value, i) => destView[i + destOffset] = value)
+  length = length || srcView.length - srcOffset
+  srcView.slice(srcOffset, srcOffset + length).map((value, i) => { destView[i + destOffset] = value })
 }
 
 let concat = (a, b) => {
@@ -50,16 +54,72 @@ let slice = (src, start, end) => {
   return ret.buffer
 }
 
+let sha1 = (data) => {
+  if (typeof data === 'string') {
+    data = D.toBuffer(data)
+  }
+  let input = CryptoJS.lib.WordArray.create(new Uint8Array(data))
+  let plaintext = CryptoJS.SHA1(input)
+  return D.toBuffer(plaintext.toString())
+}
+
+let des112 = (isEnc, data, key) => {
+  let customPadding = (data) => {
+    let padNum = 24 % data.byteLength
+    let padding = new Uint8Array(padNum)
+    padding[0] = 0x80
+    return concat(data, padding)
+  }
+
+  let removeCustomPadding = (data) => {
+    if (typeof data === 'string') {
+      data = D.toBuffer(data)
+    }
+    let dataView = new Uint8Array(data)
+    let padNum = dataView[0]
+    return slice(data, 1, data.byteLength - padNum)
+  }
+
+  if (typeof data === 'string') {
+    data = D.toBuffer(data)
+  }
+  if (typeof key === 'string') {
+    key = D.toBuffer(key)
+  }
+
+  data = customPadding(data)
+  let des168Key = concat(key, slice(key, 0, 8)) // des112 => des 168
+  let input = CryptoJS.lib.WordArray.create(new Uint8Array(data))
+  let pass = CryptoJS.lib.WordArray.create(new Uint8Array(des168Key))
+  console.log(D.toHex(data), pass, pass.toString(CryptoJS.enc.Hex), D.toHex(key).slice(0, 16))
+  if (isEnc) {
+    let encData = CryptoJS.TripleDES.encrypt(input, pass, {
+      mode: CryptoJS.mode.ECB,
+      padding: CryptoJS.pad.NoPadding
+    })
+    return D.toBuffer(encData.ciphertext.toString(CryptoJS.enc.Hex))
+  } else {
+    let plaintext = CryptoJS.TripleDES.decrypt({ciphertext: input}, pass,
+      {
+        mode: CryptoJS.mode.ECB,
+        padding: CryptoJS.pad.NoPadding
+      })
+    plaintext = plaintext.toString(CryptoJS.enc.Hex)
+    return removeCustomPadding(plaintext)
+  }
+}
+
 /**
  * Hardware apdu protocol
  */
 export default class EsTransmitter {
-
   constructor (device) {
     this._device = device
     this._commKey = {
+      sKey: null,
       generated: false
     }
+    // TODO later used in bluetooth connection
     this._extKey = {}
   }
 
@@ -69,73 +129,210 @@ export default class EsTransmitter {
   async _doHandShake () {
     if (this._commKey.generated) return
 
-    let generateRsaKeyPair = () => {
-      return {
-        pubKey: 'AA5F4336939CB4186FF1E5119D3E93D1A33C72EED1F40718149B9B240C9DF300510C30C631FD583CA99CEA2956B7A4549797FCE307D3132AD599904389C0411791FEFC3214B55F1ECD615EDCF5A409184C7D30CEB31905B9007482A74815F8422195D4B4A64B43131A4A04424F14EE46BA5146FC9DB2B1A306760CEC597FBD6F',
-        priKey: 'DC2256316F55F208178C91DFE94D1C077D9F5D0A39E4E6000921247F9DA359E18BD0FDD4C498DCF22429E6D277AC89795422CF295CE25C153CDDA3CC5402845FC62161D3E8C80244E4E616983211609F6A3A5DEE0967D0F4AC1A913C3C84C7FFA72DEC760DE3125706158BBC8405D599203885F4B67149E7DF31237D0372E0F1554CCCDF7D07EDB06B07A263047147C23350746A09030488D100D1B6CDABC5A15B5F516C87FDBFE7E851804ADFEAB09E9E169AF5A93361812D43A93BFCF5B8BB8B3629669BC8ECCF3B85EF9A4093B5304D93752C2BAFA642442AE6A14C647FA241F5229050719C1149551A39FB099E6B59185E06F3A9E623E5CEC100B5CBA2019EDF52B0BC2FEE818C24A685AAB9D40E76E4E420C15D9690F85FD7D09322F43176582C9D068FC31B968A11950774766AC1A28B8E7A8AD16B5EF52E7981EA3BF7',
-        N: 'AA5F4336939CB4186FF1E5119D3E93D1A33C72EED1F40718149B9B240C9DF300510C30C631FD583CA99CEA2956B7A4549797FCE307D3132AD599904389C0411791FEFC3214B55F1ECD615EDCF5A409184C7D30CEB31905B9007482A74815F8422195D4B4A64B43131A4A04424F14EE46BA5146FC9DB2B1A306760CEC597FBD6F'
+    console.log('start hand shake')
+    let generateRsa1024KeyPair = () => {
+      let keyPair = new JSEncrypt()
+      if (D.test.mockDevice) {
+        let testKeyPair = MockDevice.getTestTempRsaKeyPair()
+        keyPair.setPrivateKey(testKeyPair.privKey)
+        // keyPair.setPublicKey(testKeyPair.pubKey)
       }
-      var MattsRSAkey = cryptico.generateRSAKey(D.makeId, Bits);
+
+      // if keyPair don't have keys, generate random keypair immediately
+      keyPair.getKey()
+      return keyPair
     }
 
     let modLen = 0x80 // RSA1024
     let genHandShakeApdu = () => {
-      let blkAysmKey = generateRsaKeyPair(modLen * 8)
-      let apdu = new ArrayBuffer(0x49)
-      copy('80334B4E00048402010000', 0, apdu, 0)
-      copy(blkAysmKey.N, 0, apdu, 0x0b)
-      return {blkAysmKey, apdu}
+      let tempKeyPair = generateRsa1024KeyPair()
+      let apdu = new ArrayBuffer(0x8B)
+      copy('80334B4E00048402000000', 0, apdu, 0)
+      copy(tempKeyPair.key.n.toString(16), 0, apdu, 0x0B)
+      return {tempKeyPair, apdu}
     }
 
-    let parseHandShakeResponse = (tempKeyPair, response) => {
-      let recoverDevPubKey = (factoryKey, hostKey, response) => {
-        let devCert = slice(response, 0, modLen)
-        let encSKey = slice(response, modLen, modLen)
-        let devSign = slice(response, modLen * 2, modLen)
+    let parseHandShakeResponse = (hostKey, response, apdu) => {
+      let removePadding = (data) => {
+        let dataView = new Uint8Array(data)
+        let pos = 0
+        if (dataView[pos++] !== 0x00) {
+          console.warn('decrypted device cert invalid padding, dataView[0] != 0x00', D.toHex(data))
+          throw D.error.handShake
+        }
+        let type = dataView[pos++]
+        while (dataView[pos]) {
+          if (type === 0x01 && dataView[pos] !== 0xFF) {
+            console.warn('decrypted device cert invalid padding, type === 0x01 but dataView[0] != 0xFF', D.toHex(data))
+          }
+          pos++
+        }
+        if (dataView[pos++] !== 0x00) {
+          console.warn('decrypted device cert invalid padding dataView[last_padding] != 0x00', D.toHex(data))
+          throw D.error.handShake
+        }
+        return slice(data, pos)
       }
 
-      let makeKey = (devCert) => {
-        let pos = 2 * modLen - sha1HashLen
-        let sKeyCount = new ArrayBuffer(0x04)
-        copy(devCert, pos, sKeyCount, 0, 0x04)
-        let sKeyPlain = new ArrayBuffer(0x10)
-        copy(devCert, pos + 0x04, sKeyPlain, 0, 0x10)
-        let sKey = des112(sKeyEncKey, sKeyPlain)
+      let buildPemPublicKeyHex = (publicKey) => {
+        let firstByte = new Uint8Array(publicKey)[0]
+        let prefix = (firstByte & 0x80)
+          ? '30819f300d06092a864886f70d010101050003818d0030818902818100'
+          : '30819e300d06092a864886f70d010101050003818c00308188028180'
+        return concat(concat(prefix, publicKey), '0203010001')
       }
 
       let responseView = new Uint8Array(response)
       let recvNoSign = new ArrayBuffer(responseView.length - modLen)
       copy(response, 0, recvNoSign, 0, responseView.length - modLen)
+      let factoryKey = new JSEncrypt()
+      factoryKey.setPublicKey(factoryPubKeyPem)
 
-      let {devPubKey, devCert} = recoverDevPubKey(factoryPubKey, tempKeyPair, response)
-      // verifyDevSignature(sha1, devPubKey, ...)
+      let devCert = slice(response, 0, modLen)
+      let encSKey = slice(response, modLen, modLen * 2)
+      let devSign = slice(response, modLen * 2, modLen * 3)
 
-      return makeKey(devCert)
+      // verify device cert by ca public key(factoryKey)
+      let decDevCert = factoryKey.encrypt(D.toHex(devCert))
+      if (!decDevCert) {
+        console.warn('decrypted device cert encrypt failed')
+        throw D.error.handShake
+      }
+      decDevCert = D.toBuffer(decDevCert)
+      console.log('1', D.toHex(decDevCert))
+      let orgDevCert = removePadding(decDevCert)
+      console.log('2', D.toHex(orgDevCert))
+
+      const oidSha1 = '3021300906052B0E03021A05000414'
+      if (D.toHex(slice(orgDevCert, 0, 15)).toUpperCase() !== oidSha1) {
+        console.warn('decrypted device cert oid != sha1 ', D.toHex(orgDevCert))
+        throw D.error.handShake
+      }
+
+      let tempLen = modLen - 0x2E
+      let devPubHash = slice(orgDevCert, 15, 35)
+      let devPubKey = slice(orgDevCert, 35, 35 + tempLen)
+      console.log('3', D.toHex(devPubHash), D.toHex(devPubKey))
+
+      // decrypt sKey by temp rsa key pair(hostKey)
+      console.log('4', hostKey, D.toHex(encSKey))
+      let decSKey = hostKey.decrypt(D.toHex(encSKey))
+      if (!decSKey) {
+        console.warn('decrypted enc skey failed', D.toHex(encSKey))
+        throw D.error.handShake
+      }
+      decSKey = D.toBuffer(decSKey)
+      console.log('5', D.toHex(decSKey))
+      let orgSKey = removePadding(decSKey)
+      console.log('6', D.toHex(orgSKey))
+
+      devPubKey = concat(devPubKey, slice(orgSKey, 0, 46))
+      console.log('7', D.toHex(devPubKey))
+
+      let devPubSha1 = sha1(devPubKey)
+      if (D.toHex(devPubSha1) !== D.toHex(devPubHash)) {
+        console.warn('sha1(devPubKey) != debPubHash', D.toHex(devPubKey), D.toHex(devPubHash))
+        throw D.error.handShake
+      }
+
+      let sKeyCount = slice(orgSKey, 46, 50)
+      let sKey = slice(orgSKey, 50, 66)
+      console.log('8', D.toHex(sKeyCount), D.toHex(sKey))
+
+      // verify device sign by device public key(devPubKey)
+      devPubKey = buildPemPublicKeyHex(devPubKey)
+      let devPubKeyObj = new JSEncrypt()
+      devPubKeyObj.setPublicKey(D.toHex(devPubKey))
+      console.log('9', devPubKeyObj, D.toHex(devPubKey), D.toHex(devSign))
+      let orgDevSign = devPubKeyObj.encrypt(D.toHex(devSign))
+      if (!orgDevSign) {
+        console.warn('device signature encrypt failed')
+        throw D.error.handShake
+      }
+      console.log('9', orgDevSign)
+      orgDevSign = D.toBuffer(orgDevSign)
+      console.log('9.1', D.toHex(orgDevSign))
+      orgDevSign = removePadding(orgDevSign)
+      console.log('10', D.toHex(orgDevSign))
+
+      let hashOrgValue = concat(slice(apdu, 7), concat(devCert, encSKey))
+      let hashResult = sha1(hashOrgValue)
+      console.log('11', D.toHex(hashOrgValue), D.toHex(hashResult))
+
+      let toSign = concat(oidSha1, hashResult)
+      if (D.toHex(toSign) !== D.toHex(orgDevSign)) {
+        console.warn('sign data not match')
+        throw D.error.handShake
+      }
+      return {sKey, sKeyCount}
     }
 
-    let {tempKeyPair, apdu} = await genHandShakeApdu()
+    let {tempKeyPair, apdu} = genHandShakeApdu()
     let response = await this.sendApdu(apdu)
-    this._commKey = parseHandShakeResponse(tempKeyPair, response)
+    let {sKey, sKeyCount} = parseHandShakeResponse(tempKeyPair, response, apdu)
+    this._commKey.sKey = sKey
+    this._commKey.sKeyCount = sKeyCount
+    this._commKey.generated = true
   }
 
   async sendApdu (apdu, isEnc = false) {
-    let makeEncApdu = () => {
-      // TODO
+    if (typeof apdu === 'string') {
+      apdu = D.toBuffer(apdu)
+    }
+
+    let makeEncApdu = (apdu) => {
+      console.log('0', D.toHex(apdu), D.toHex(this._commKey.sKey), D.toHex(this._commKey.sKeyCount))
+      let encryptedApdu = des112(true, apdu, this._commKey.sKey)
+      console.log('1', D.toHex(encryptedApdu))
+
+      // 8033 534D Lc         00 00 00 PaddingNum(1) SKeyCount(4) EncApdu
+      let padNum = encryptedApdu.byteLength - apdu.byteLength
+      let apduDataLen = 4 + this._commKey.sKeyCount.byteLength + encryptedApdu.byteLength
+      let apduData = new Uint8Array(apduDataLen)
+      apduData[0x03] = padNum & 0xFF
+      copy(this._commKey.sKeyCount, 0, apduData.buffer, 0x04, 0x04)
+      copy(encryptedApdu, 0, apduData.buffer, 0x08)
+
+      let encApduHead = new Uint8Array(D.toBuffer('8033534D000000'))
+      encApduHead[0x04] = (apduDataLen >> 16) & 0xFF
+      encApduHead[0x05] = (apduDataLen >> 8) & 0xFF
+      encApduHead[0x06] = apduDataLen & 0xFF
+      console.log('2', D.toHex(encApduHead))
+      let encApdu = concat(encApduHead, apduData)
+      console.log('3', D.toHex(encApdu))
+      return encApdu
+    }
+
+    let decryptResponse = (response) => {
+      let decResponse = des112(false, response, this._commKey.sKey)
+      console.log('4', D.toHex(decResponse))
+
+      let responseView = new Uint8Array(decResponse)
+      let viewLength = responseView.length
+      let result = (responseView[viewLength - 2] << 8) + responseView[viewLength - 1]
+      if (result !== 0x9000) {
+        console.warn('decrypt response send apdu got', result)
+        throw D.error.deviceProtocol
+      }
+      return slice(decResponse, 0, -2)
     }
 
     if (isEnc) {
       await this._doHandShake()
       apdu = makeEncApdu(apdu)
+      console.log('send enc apdu', D.toHex(apdu))
     }
-    return this._sendApdu(apdu)
+    let response = await this._sendApdu(apdu)
+    return isEnc ? decryptResponse(response) : response
   }
 
   async _sendApdu (apdu) {
+    console.log('send apdu', D.toHex(apdu))
     let {result, response} = await this._transmit(apdu)
 
     // 6AA6 means busy, send 00A6000008 immediately to get response
     while (result === 0x6AA6) {
-      console.log('got 0xE0616AA6, resend apdu')
+      console.debug('got 0xE0616AA6, resend apdu')
       let {_result, _response} = this._transmit(D.toBuffer('00A6000008'))
       response = concat(response, _response)
       result = _result
@@ -144,6 +341,7 @@ export default class EsTransmitter {
 
     // 61XX means there are still XX bytes to get
     while ((result & 0xFF00) === 0x6100) {
+      console.debug('got 0x61XX, get remain data')
       let rApdu = D.toBuffer('00C0000000')
       new Uint8Array(rApdu)[0x04] = result & 0xFF
       let {_result, _response} = this._transmit(rApdu)
@@ -156,6 +354,7 @@ export default class EsTransmitter {
       throw D.error.deviceProtocol
     }
 
+    console.log('got response', D.toHex(response))
     return response
   }
 
@@ -183,9 +382,9 @@ export default class EsTransmitter {
           reportSize += 0x40
         }
         reportId = 0x22 + reportSize >> 0x06
-        reportSize += 0x110;
+        reportSize += 0x110
       } else if (reportSize <= 0x410) {
-        reportSize -= 0x210;
+        reportSize -= 0x210
         if ((reportSize & 0x7F) !== 0x00) {
           reportSize &= ~0x7F
           reportSize += 0x80
@@ -225,16 +424,16 @@ export default class EsTransmitter {
       // get report size from report id
       let reportSize
       if (resView[0x00] <= 0x22) {
-        reportSize = resView[0x00] * 0x08;
+        reportSize = resView[0x00] * 0x08
         if (resView[0x01] > 0x07) throw throwLengthError()
       } else if (resView[0x00] <= 0x26) {
-        reportSize = 0x110 + (resView[0x00] - 0x22) * 0x40;
+        reportSize = 0x110 + (resView[0x00] - 0x22) * 0x40
         if (resView[0x01] > 0x3F) throw throwLengthError()
       } else if (resView[0x00] <= 0x2A) {
-        reportSize = 0x210 + (resView[0x00] - 0x26) * 0x80;
+        reportSize = 0x210 + (resView[0x00] - 0x26) * 0x80
         if (resView[0x01] > 0x7F) throw throwLengthError()
       } else {
-        reportSize = 0x410 + (resView[0x00] - 0x2A) * 0x100;
+        reportSize = 0x410 + (resView[0x00] - 0x2A) * 0x100
       }
 
       if (reportSize < (resView[0x01] + 0x03)) throw throwLengthError()
@@ -247,8 +446,13 @@ export default class EsTransmitter {
       return {result, response}
     }
 
+    console.debug('send apdu', D.toHex(apdu))
     let {reportId, pack} = packHidCmd(apdu)
-    let response = await this._device.sendAndReceive(reportId, pack)
-    return unpackHidCmd(response)
+    console.debug('send package', reportId, D.toHex(pack))
+    let received = await this._device.sendAndReceive(reportId, pack)
+    console.debug('receive package', D.toHex(received))
+    let response = unpackHidCmd(received)
+    console.debug('receive response', response.result, D.toHex(response.response))
+    return response
   }
 }

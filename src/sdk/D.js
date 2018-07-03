@@ -22,6 +22,7 @@ const D = {
     deviceConnectFailed: 103,
     deviceDeriveLargerThanN: 104,
     deviceProtocol: 105,
+    handShake: 106,
 
     databaseOpenFailed: 201,
     databaseExecFailed: 202,
@@ -269,7 +270,7 @@ const D = {
   },
 
   toHex (array) {
-    const hexChars = '0123456789ABCDEF'
+    const hexChars = '0123456789abcdef'
     let hexString = new Array(array.byteLength * 2)
     let intArray = new Uint8Array(array)
 
