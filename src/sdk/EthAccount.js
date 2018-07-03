@@ -228,7 +228,7 @@ export default class EthAccount {
       startGas: startGas,
       nonce: nonce,
       input: D.copy(input),
-      output: D.copy(details.outputs[0]),
+      outputs: D.copy(details.outputs),
       data: details.data ? details.data : '0x'
     }
   }
@@ -240,9 +240,10 @@ export default class EthAccount {
    * @see prepareTx
    */
   async buildTx (prepareTx) {
+    let output = prepareTx.outputs[0]
     let signedTx = await this._device.signTransaction(this.coinType, {
       input: {address: prepareTx.input.address, path: prepareTx.input.path},
-      output: {address: prepareTx.output.address, value: prepareTx.output.value},
+      output: {address: output.address, value: output.value},
       nonce: prepareTx.nonce,
       gasPrice: prepareTx.gasPrice,
       startGas: prepareTx.startGas,
@@ -260,12 +261,12 @@ export default class EthAccount {
         inputs: [{
           prevAddress: prepareTx.input.address,
           isMine: true,
-          value: prepareTx.output.value
+          value: output.value
         }],
         outputs: [{
-          address: prepareTx.output.address,
+          address: output.address,
           isMine: false,
-          value: prepareTx.output.value
+          value: output.value
         }],
         fee: prepareTx.fee
       },

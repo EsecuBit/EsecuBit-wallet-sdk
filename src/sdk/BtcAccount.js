@@ -367,7 +367,7 @@ export default class BtcAccount {
         }
         return {
           feeRate: details.feeRate,
-          outputs: details.outputs,
+          outputs: D.copy(details.outputs),
           fee: fee,
           total: totalOut + fee,
           utxos: willSpentUtxos
