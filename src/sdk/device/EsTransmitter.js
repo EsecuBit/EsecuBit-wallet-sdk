@@ -11,47 +11,10 @@ const factoryPubKeyPem = '-----BEGIN PUBLIC KEY-----' +
   'xfAEmESfpB7hL7O+IUDz2v+/QHXs34wE3zQ7uFNH05xrdznf1a2Buy4Jrc3BeVmo' +
   'nnYX4pewrrbfoITl4QIDAQAB' +
   '-----END PUBLIC KEY-----'
-const sha1HashLen = 0x14
 
-let copy = (src, srcOffset, dest, destOffset, length) => {
-  if (typeof src === 'string') {
-    src = D.toBuffer(src)
-  }
-  if (typeof dest === 'string') {
-    dest = D.toBuffer(dest)
-  }
-  let srcView = new Uint8Array(src)
-  let destView = new Uint8Array(dest)
-  length = length || srcView.length - srcOffset
-  srcView.slice(srcOffset, srcOffset + length).map((value, i) => { destView[i + destOffset] = value })
-}
-
-let concat = (a, b) => {
-  if (typeof a === 'string') {
-    a = D.toBuffer(a)
-  }
-  if (typeof b === 'string') {
-    b = D.toBuffer(b)
-  }
-  let c = new ArrayBuffer(a.byteLength + b.byteLength)
-  let av = new Uint8Array(a)
-  let bv = new Uint8Array(b)
-  let cv = new Uint8Array(c)
-  cv.set(av, 0)
-  cv.set(bv, av.length)
-  return c
-}
-
-let slice = (src, start, end) => {
-  if (typeof src === 'string') {
-    src = D.toBuffer(src)
-  }
-  let srcv = new Uint8Array(src)
-  srcv = srcv.slice(start, end)
-  let ret = new Uint8Array(srcv.length)
-  ret.set(srcv, 0)
-  return ret.buffer
-}
+let copy = D.buffer.copy
+let concat = D.buffer.concat
+let slice = D.buffer.slice
 
 let sha1 = (data) => {
   if (typeof data === 'string') {
@@ -64,7 +27,7 @@ let sha1 = (data) => {
 
 let des112 = (isEnc, data, key) => {
   let customPadding = (data) => {
-    let padNum = 24 % data.byteLength
+    let padNum = 8 - data.byteLength % 8
     let padding = new Uint8Array(padNum)
     padding[0] = 0x80
     return concat(data, padding)
@@ -86,11 +49,13 @@ let des112 = (isEnc, data, key) => {
     key = D.toBuffer(key)
   }
 
-  data = customPadding(data)
+  if (isEnc) {
+    data = customPadding(data)
+  }
   let des168Key = concat(key, slice(key, 0, 8)) // des112 => des 168
   let input = CryptoJS.lib.WordArray.create(new Uint8Array(data))
   let pass = CryptoJS.lib.WordArray.create(new Uint8Array(des168Key))
-  console.log(D.toHex(data), pass, pass.toString(CryptoJS.enc.Hex), D.toHex(key).slice(0, 16))
+  console.log('01', D.toHex(data), pass.toString(CryptoJS.enc.Hex))
   if (isEnc) {
     let encData = CryptoJS.TripleDES.encrypt(input, pass, {
       mode: CryptoJS.mode.ECB,
@@ -104,6 +69,7 @@ let des112 = (isEnc, data, key) => {
         padding: CryptoJS.pad.NoPadding
       })
     plaintext = plaintext.toString(CryptoJS.enc.Hex)
+    console.log('02', plaintext)
     return removeCustomPadding(plaintext)
   }
 }
@@ -134,11 +100,21 @@ export default class EsTransmitter {
       if (D.test.mockDevice) {
         let testKeyPair = MockDevice.getTestTempRsaKeyPair()
         keyPair.setPrivateKey(testKeyPair.privKey)
-        // keyPair.setPublicKey(testKeyPair.pubKey)
+        return keyPair
       }
 
-      // if keyPair don't have keys, generate random keypair immediately
-      keyPair.getKey()
+      while (true) {
+        // if keyPair don't have keys, generate random keypair immediately
+        keyPair.getKey()
+        // n.MSB must be 1
+        let n = keyPair.key.n.toString(16)
+        if (n.length !== 256 || n[0] < '8') {
+          console.debug('n MSB == 0, regenerate')
+          keyPair.key = undefined
+          continue
+        }
+        break
+      }
       return keyPair
     }
 
@@ -147,7 +123,9 @@ export default class EsTransmitter {
       let tempKeyPair = generateRsa1024KeyPair()
       let apdu = new ArrayBuffer(0x8B)
       copy('80334B4E00008402000000', 0, apdu, 0)
-      copy(tempKeyPair.key.n.toString(16), 0, apdu, 0x0B)
+      let n = tempKeyPair.key.n.toString(16)
+      n = concat(new ArrayBuffer(256 - n.length), n)
+      copy(n, 0, apdu, 0x0B)
       return {tempKeyPair, apdu}
     }
 
@@ -181,6 +159,7 @@ export default class EsTransmitter {
         return concat(concat(prefix, publicKey), '0203010001')
       }
 
+      console.log('-1', hostKey.key.n.toString(16), hostKey.key.d.toString(16))
       let responseView = new Uint8Array(response)
       let recvNoSign = new ArrayBuffer(responseView.length - modLen)
       copy(response, 0, recvNoSign, 0, responseView.length - modLen)
@@ -190,6 +169,7 @@ export default class EsTransmitter {
       let devCert = slice(response, 0, modLen)
       let encSKey = slice(response, modLen, modLen * 2)
       let devSign = slice(response, modLen * 2, modLen * 3)
+      console.log('0', D.toHex(response))
 
       // verify device cert by ca public key(factoryKey)
       let decDevCert = factoryKey.encrypt(D.toHex(devCert))
@@ -214,7 +194,7 @@ export default class EsTransmitter {
       console.log('3', D.toHex(devPubHash), D.toHex(devPubKey))
 
       // decrypt sKey by temp rsa key pair(hostKey)
-      console.log('4', hostKey, D.toHex(encSKey))
+      console.log('4', D.toHex(encSKey), hostKey.key.d.toString(16), hostKey.key.n.toString(16))
       let decSKey = hostKey.decrypt(D.toHex(encSKey))
       if (!decSKey) {
         console.warn('decrypted enc skey failed', D.toHex(encSKey))
@@ -289,8 +269,8 @@ export default class EsTransmitter {
       let apduDataLen = 4 + this._commKey.sKeyCount.byteLength + encryptedApdu.byteLength
       let apduData = new Uint8Array(apduDataLen)
       apduData[0x03] = padNum & 0xFF
-      copy(this._commKey.sKeyCount, 0, apduData.buffer, 0x04, 0x04)
-      copy(encryptedApdu, 0, apduData.buffer, 0x08)
+      copy(this._commKey.sKeyCount, 0, apduData, 0x04, 0x04)
+      copy(encryptedApdu, 0, apduData, 0x08)
 
       let encApduHead = new Uint8Array(D.toBuffer('8033534D000000'))
       encApduHead[0x04] = (apduDataLen >> 16) & 0xFF
@@ -402,7 +382,6 @@ export default class EsTransmitter {
       // don't set feature id in hid command, chrome.hid will add it automatically to the head
       let packView = new Uint8Array(reportSize - 0x01)
       packView[0x00] = padNum
-      console.log('1', packView[0x00])
       packView[0x01] = 0x04 // opCode
       packView.set(new Uint8Array(apdu), 0x02)
 
@@ -454,7 +433,7 @@ export default class EsTransmitter {
     let received = await this._device.sendAndReceive(reportId, pack)
     console.debug('receive package', D.toHex(received))
     let response = unpackHidCmd(received)
-    console.debug('receive response', response.result, D.toHex(response.response))
+    console.debug('receive response', response.result.toString(16), D.toHex(response.response))
     return response
   }
 }

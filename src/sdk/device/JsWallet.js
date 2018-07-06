@@ -98,6 +98,10 @@ export default class JsWallet {
     }
   }
 
+  async getRandom (length) {
+    D.toBuffer(D.getRandomHex(length * 2))
+  }
+
   async publicKeyToAddress (publicKey) {
     const ECPair = bitcoin.ECPair
     let curve = ecurve.getCurveByName('secp256k1')

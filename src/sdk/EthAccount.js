@@ -9,7 +9,6 @@ export default class EthAccount {
       this.coinType = info.coinType
       this.index = info.index
       this.balance = info.balance
-      this.externalPublicKey = info.externalPublicKey
       this.externalPublicKeyIndex = info.externalPublicKeyIndex
     }
     assign()
@@ -151,7 +150,7 @@ export default class EthAccount {
 
   async getAddress () {
     let path = D.makeBip44Path(this.coinType, this.index, D.address.external, 0)
-    let address = await this._device.getAddress(this.coinType, path)
+    let address = await this._device.getAddress(this.coinType, path, true)
     address = D.address.toEthChecksumAddress(address)
     let prefix = ''
     return {address: address, qrAddress: prefix + address}

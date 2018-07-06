@@ -9,9 +9,7 @@ export default class BtcAccount {
       this.coinType = info.coinType
       this.index = info.index
       this.balance = info.balance
-      this.externalPublicKey = info.externalPublicKey
       this.externalPublicKeyIndex = info.externalPublicKeyIndex
-      this.changePublicKey = info.changePublicKey
       this.changePublicKeyIndex = info.changePublicKeyIndex
     }
     assign()
@@ -70,7 +68,7 @@ export default class BtcAccount {
     }
 
     if (firstSync) {
-      let listenAddressInfos = this._getAddressInfos(0, this.externalPublicKey + 1, D.address.external)
+      let listenAddressInfos = this._getAddressInfos(0, this.externalPublicKeyIndex + 1, D.address.external)
       if (listenAddressInfos.length !== 0) this._coinData.listenAddresses(this.coinType, listenAddressInfos, this._addressListener)
 
       this.txInfos.filter(txInfo => txInfo.confirmations < D.tx.getMatureConfirms(this.coinType))
@@ -192,7 +190,6 @@ export default class BtcAccount {
   async _checkAddressIndexAndGenerateNew (sync = false) {
     let checkAndGenerate = async (type) => {
       let isExternal = type === D.address.external
-      let publicKey = isExternal ? this.externalPublicKey : this.changePublicKey
       let index = isExternal ? this.externalPublicKeyIndex : this.changePublicKeyIndex
       let maxIndex = this.addressInfos.filter(addressInfo => addressInfo.type === type)
         .reduce((max, addressInfo) => Math.max(max, addressInfo.index), -1)
@@ -205,7 +202,7 @@ export default class BtcAccount {
       }
       return (await Promise.all(Array.from({length: index - nextIndex}, (v, k) => nextIndex + k).map(async i => {
         try {
-          let address = await this._device.getAddress(this.coinType, i, publicKey)
+          let address = await this._device.getAddress(this.coinType, D.makeBip44Path(this.coinType, this.index, type, i))
           return {
             address: address,
             accountId: this.accountId,
@@ -220,18 +217,6 @@ export default class BtcAccount {
           throw e
         }
       }))).filter(addressInfo => addressInfo !== null)
-    }
-
-    if (!this.externalPublicKey) {
-      let externalPath = D.makeBip44Path(this.coinType, this.index, D.address.external)
-      this.externalPublicKey = await this._device.getPublicKey(externalPath)
-      this.externalPublicKeyIndex = 0
-    }
-
-    if (!this.changePublicKey) {
-      let changePath = D.makeBip44Path(this.coinType, this.index, D.address.change)
-      this.changePublicKey = await this._device.getPublicKey(changePath)
-      this.changePublicKeyIndex = 0
     }
 
     let newAddresseInfos = [].concat(await checkAndGenerate(D.address.external), await checkAndGenerate(D.address.change))
@@ -252,9 +237,7 @@ export default class BtcAccount {
       coinType: this.coinType,
       index: this.index,
       balance: this.balance,
-      externalPublicKey: this.externalPublicKey,
       externalPublicKeyIndex: this.externalPublicKeyIndex,
-      changePublicKey: this.changePublicKey,
       changePublicKeyIndex: this.changePublicKeyIndex
     }
   }
@@ -265,33 +248,10 @@ export default class BtcAccount {
   }
 
   async getAddress () {
-    let address = await this._getAddressFromDeviceRetry(D.address.external)
+    let address = await this._device.getAddress(this.coinType,
+      D.makeBip44Path(this.coinType, this.index, D.address.external, this.externalPublicKeyIndex), true)
     let prefix = ''
     return {address: address, qrAddress: prefix + address}
-  }
-
-  /**
-   * get address from device, and update public key index
-   * index + 1 and retry when got error.deviceDeriveLargerThanN
-   */
-  async _getAddressFromDeviceRetry (type) {
-    let publicKey = type === D.address.external ? this.externalPublicKey : this.changePublicKey
-    let index = type === D.address.external ? this.externalPublicKeyIndex : this.changePublicKeyIndex
-    let address
-    while (true) {
-      try {
-        address = await this._device.getAddress(this.coinType, index, publicKey)
-      } catch (e) {
-        if (e === D.error.deviceDeriveLargerThanN) {
-          index++
-          console.warn('derived key larger than n, try next', index)
-          continue
-        }
-        throw e
-      }
-      break
-    }
-    return address
   }
 
   getSuggestedFee () {

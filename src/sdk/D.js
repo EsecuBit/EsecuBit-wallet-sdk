@@ -289,6 +289,7 @@ const D = {
   },
 
   toBuffer (hex) {
+    hex = hex.replace(/\s+/g, '')
     const hexChars = '0123456789ABCDEFabcdef'
     let result = new ArrayBuffer(hex.length / 2)
     let res = new Uint8Array(result)
@@ -342,6 +343,49 @@ const D = {
    */
   copy (object) {
     return JSON.parse(JSON.stringify(object))
+  },
+
+  // array buffer operation
+  buffer: {
+    copy (src, srcOffset, dest, destOffset, length) {
+      if (typeof src === 'string') {
+        src = D.toBuffer(src)
+      }
+      if (typeof dest === 'string') {
+        dest = D.toBuffer(dest)
+      }
+      let srcView = src instanceof Uint8Array ? src : new Uint8Array(src)
+      let destView = dest instanceof Uint8Array ? dest : new Uint8Array(dest)
+      length = length || srcView.length - srcOffset
+      srcView.slice(srcOffset, srcOffset + length).map((value, i) => { destView[i + destOffset] = value })
+    },
+
+    concat (a, b) {
+      if (typeof a === 'string') {
+        a = D.toBuffer(a)
+      }
+      if (typeof b === 'string') {
+        b = D.toBuffer(b)
+      }
+      let c = new ArrayBuffer(a.byteLength + b.byteLength)
+      let av = a instanceof Uint8Array ? a : new Uint8Array(a)
+      let bv = b instanceof Uint8Array ? b : new Uint8Array(b)
+      let cv = c instanceof Uint8Array ? c : new Uint8Array(c)
+      cv.set(av, 0)
+      cv.set(bv, av.length)
+      return c
+    },
+
+    slice (src, start, end) {
+      if (typeof src === 'string') {
+        src = D.toBuffer(src)
+      }
+      let srcv = src instanceof Uint8Array ? src : new Uint8Array(src)
+      srcv = srcv.slice(start, end)
+      let ret = new Uint8Array(srcv.length)
+      ret.set(srcv, 0)
+      return ret.buffer
+    }
   },
 
   test: {
