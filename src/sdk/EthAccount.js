@@ -215,6 +215,7 @@ export default class EthAccount {
     if (details.sendAll) {
       total = this.balance
       details.outputs[0].value = this.balance - fee
+      if (details.outputs[0].value < 0) throw D.error.balanceNotEnough
     } else {
       total = fee + details.outputs[0].value
       if (total > this.balance) throw D.error.balanceNotEnough

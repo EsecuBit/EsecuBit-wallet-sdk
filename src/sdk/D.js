@@ -23,6 +23,7 @@ const D = {
     deviceDeriveLargerThanN: 104,
     deviceProtocol: 105,
     handShake: 106,
+    needPressKey: 107, // sleep after long time idle
 
     databaseOpenFailed: 201,
     databaseExecFailed: 202,
@@ -138,6 +139,30 @@ const D = {
         }
       }
       return checksumAddress
+    },
+
+    /**
+     * convert string type address to ArrayBuffer
+     */
+    toBuffer (path) {
+      // TODO change all ArrayBuffer to Buffer
+      let level = path.split('/').length
+      if (path[0] === 'm') level--
+      let buffer = new Uint8Array(level * 4)
+      path.split('/').forEach((index, i) => {
+        if (i === 0 && index === 'm') return
+        let indexInt = 0
+        if (index[index.length - 1] === "'") {
+          indexInt += 0x80000000
+          index = index.slice(0, -1)
+        }
+        indexInt += parseInt(index)
+        buffer[4 * (i - 1)] = indexInt >> 24
+        buffer[4 * (i - 1) + 1] = indexInt >> 16
+        buffer[4 * (i - 1) + 2] = indexInt >> 8
+        buffer[4 * (i - 1) + 3] = indexInt
+      })
+      return buffer.buffer
     }
   },
 

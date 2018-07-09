@@ -34,14 +34,20 @@ export default class JsWallet {
   async updateIndex (addressInfo) {
   }
 
+  // noinspection JSMethodCanBeStatic
   async listenPlug (callback) {
     callback(D.error.succeed, D.status.plugIn)
   }
 
+  // noinspection JSMethodCanBeStatic
   async getWalletInfo () {
     return [
       {name: 'COS Version', value: 1},
       {name: 'Firmware Version', value: 1}]
+  }
+
+  async verifyPin () {
+    return true
   }
 
   async _derive (path, pPublicKey) {
@@ -81,7 +87,6 @@ export default class JsWallet {
       let node = await this._derive(addressPath, pPublicKey)
       let uncompressedPublicKey = node.keyPair.Q.getEncoded(false)
       let withoutHead = D.toBuffer(D.toHex(uncompressedPublicKey).slice(2))
-      // noinspection JSCheckFunctionSignatures
       let hash = D.address.keccak256(withoutHead)
       return '0x' + hash.slice(-40)
     }
@@ -98,6 +103,7 @@ export default class JsWallet {
     }
   }
 
+  // noinspection JSMethodCanBeStatic
   async getRandom (length) {
     D.toBuffer(D.getRandomHex(length * 2))
   }
@@ -170,19 +176,6 @@ export default class JsWallet {
     }
 
     let signEth = async () => {
-      const chainIds = {}
-      chainIds[D.coin.main.eth] = 1
-      chainIds[D.coin.test.ethRinkeby] = 4
-      let chainId = chainIds[coinType]
-      if (!chainId) throw D.error.coinNotSupported
-
-      let unsignedTx = [tx.nonce, tx.gasPrice, tx.startGas, tx.output.address, tx.output.value, tx.data, chainId, 0, 0]
-      let rlpUnsignedTx = rlp.encode(unsignedTx)
-      // noinspection JSCheckFunctionSignatures
-      let rlpHash = D.address.keccak256(rlpUnsignedTx)
-      console.log('rlpHash', rlpHash)
-      let node = await this._derive(tx.input.path)
-
       // copy from ecdsa.sign(hash, d) in bitcoinjs, returing [v, r, s] format
       let sign = (hash, d) => {
         const secp256k1 = ecurve.getCurveByName('secp256k1')
@@ -276,12 +269,22 @@ export default class JsWallet {
           '0x' + s.toHex()
         ]
       }
+
+      const chainIds = {}
+      chainIds[D.coin.main.eth] = 1
+      chainIds[D.coin.test.ethRinkeby] = 4
+      let chainId = chainIds[coinType]
+      if (!chainId) throw D.error.coinNotSupported
+
+      let unsignedTx = [tx.nonce, tx.gasPrice, tx.startGas, tx.output.address, tx.output.value, tx.data, chainId, 0, 0]
+      let rlpUnsignedTx = rlp.encode(unsignedTx)
+      let rlpHash = D.address.keccak256(rlpUnsignedTx)
+      let node = await this._derive(tx.input.path)
       let [v, r, s] = sign(Buffer.from(D.toBuffer(rlpHash.slice(2))), node.keyPair.d)
 
       let signedTx = [tx.nonce, tx.gasPrice, tx.startGas, tx.output.address, tx.output.value, tx.data, v, r, s]
 
       let rawTx = D.toHex(rlp.encode(signedTx)).toLowerCase()
-      // noinspection JSCheckFunctionSignatures
       let txId = D.address.keccak256(rlp.encode(signedTx))
       return {
         id: txId,
@@ -289,15 +292,12 @@ export default class JsWallet {
       }
     }
 
-    switch (coinType) {
-      case D.coin.main.btc:
-      case D.coin.test.btcTestNet3:
-        return signBtc()
-      case D.coin.main.eth:
-      case D.coin.test.ethRinkeby:
-        return signEth()
-      default:
-        throw D.error.coinNotSupported
+    if (D.isBtc(coinType)) {
+      return signBtc()
+    } else if (D.isEth(coinType)) {
+      return signEth()
+    } else {
+      throw D.error.coinNotSupported
     }
   }
 }

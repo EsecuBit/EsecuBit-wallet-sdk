@@ -353,10 +353,11 @@ export default class BtcAccount {
     let value = totalIn - prepareTx.total
     let rawTx = {
       inputs: prepareTx.utxos,
-      outputs: prepareTx.outputs
+      outputs: prepareTx.outputs,
+      changePath: changeAddressInfo.path
     }
     rawTx.outputs.push({address: changeAddressInfo.address, value: value})
-    console.log(rawTx)
+    console.log('presign tx', rawTx)
     let signedTx = await this._device.signTransaction(this.coinType, rawTx)
     let txInfo = {
       accountId: this.accountId,

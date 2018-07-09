@@ -70,40 +70,42 @@ export default class ChromeHidDevice extends IEsDevice {
     })
   }
 
-  async sendAndReceive (reportId, pack) {
+  send (reportId, command) {
     if (this._deviceId === null || this._connectionId === null) {
       throw D.error.noDevice
     }
 
-    if (typeof pack === 'string') {
-      pack = D.toBuffer(pack)
+    if (typeof command === 'string') {
+      command = D.toBuffer(command)
     }
 
-    let send = (reportId, command) => {
-      return new Promise((resolve, reject) => {
-        chrome.hid.sendFeatureReport(this._connectionId, reportId, command, () => {
-          if (chrome.runtime.lastError) {
-            console.warn('hid send error: ' + chrome.runtime.lastError.message)
-            reject(D.error.deviceComm)
-          }
-          resolve()
-        })
+    console.debug('send package', reportId, D.toHex(command))
+    return new Promise((resolve, reject) => {
+      chrome.hid.sendFeatureReport(this._connectionId, reportId, command, () => {
+        if (chrome.runtime.lastError) {
+          console.warn('hid send error: ' + chrome.runtime.lastError.message)
+          reject(D.error.deviceComm)
+        }
+        resolve()
       })
-    }
-    let receive = async () => {
-      return new Promise((resolve, reject) => {
-        chrome.hid.receiveFeatureReport(this._connectionId, 51, (data) => {
-          if (chrome.runtime.lastError) {
-            console.warn('receive error: ' + chrome.runtime.lastError.message)
-            reject(D.error.deviceComm)
-          }
-          resolve(data)
-        })
-      })
+    })
+  }
+
+  receive () {
+    if (this._deviceId === null || this._connectionId === null) {
+      throw D.error.noDevice
     }
 
-    await send(reportId, pack)
-    return receive()
+    return new Promise((resolve, reject) => {
+      chrome.hid.receiveFeatureReport(this._connectionId, 51, (data) => {
+        if (chrome.runtime.lastError) {
+          console.warn('receive error: ' + chrome.runtime.lastError.message)
+          reject(D.error.deviceComm)
+        }
+        console.debug('receive package', D.toHex(data))
+        resolve(data)
+      })
+    })
   }
 
   listenPlug (callback) {

@@ -55,7 +55,6 @@ let des112 = (isEnc, data, key) => {
   let des168Key = concat(key, slice(key, 0, 8)) // des112 => des 168
   let input = CryptoJS.lib.WordArray.create(new Uint8Array(data))
   let pass = CryptoJS.lib.WordArray.create(new Uint8Array(des168Key))
-  console.log('01', D.toHex(data), pass.toString(CryptoJS.enc.Hex))
   if (isEnc) {
     let encData = CryptoJS.TripleDES.encrypt(input, pass, {
       mode: CryptoJS.mode.ECB,
@@ -69,7 +68,6 @@ let des112 = (isEnc, data, key) => {
         padding: CryptoJS.pad.NoPadding
       })
     plaintext = plaintext.toString(CryptoJS.enc.Hex)
-    console.log('02', plaintext)
     return removeCustomPadding(plaintext)
   }
 }
@@ -159,7 +157,6 @@ export default class EsTransmitter {
         return concat(concat(prefix, publicKey), '0203010001')
       }
 
-      console.log('-1', hostKey.key.n.toString(16), hostKey.key.d.toString(16))
       let responseView = new Uint8Array(response)
       let recvNoSign = new ArrayBuffer(responseView.length - modLen)
       copy(response, 0, recvNoSign, 0, responseView.length - modLen)
@@ -169,7 +166,6 @@ export default class EsTransmitter {
       let devCert = slice(response, 0, modLen)
       let encSKey = slice(response, modLen, modLen * 2)
       let devSign = slice(response, modLen * 2, modLen * 3)
-      console.log('0', D.toHex(response))
 
       // verify device cert by ca public key(factoryKey)
       let decDevCert = factoryKey.encrypt(D.toHex(devCert))
@@ -178,9 +174,7 @@ export default class EsTransmitter {
         throw D.error.handShake
       }
       decDevCert = D.toBuffer(decDevCert)
-      console.log('1', D.toHex(decDevCert))
       let orgDevCert = removePadding(decDevCert)
-      console.log('2', D.toHex(orgDevCert))
 
       const oidSha1 = '3021300906052B0E03021A05000414'
       if (D.toHex(slice(orgDevCert, 0, 15)).toUpperCase() !== oidSha1) {
@@ -191,22 +185,17 @@ export default class EsTransmitter {
       let tempLen = modLen - 0x2E
       let devPubHash = slice(orgDevCert, 15, 35)
       let devPubKey = slice(orgDevCert, 35, 35 + tempLen)
-      console.log('3', D.toHex(devPubHash), D.toHex(devPubKey))
 
       // decrypt sKey by temp rsa key pair(hostKey)
-      console.log('4', D.toHex(encSKey), hostKey.key.d.toString(16), hostKey.key.n.toString(16))
       let decSKey = hostKey.decrypt(D.toHex(encSKey))
       if (!decSKey) {
         console.warn('decrypted enc skey failed', D.toHex(encSKey))
         throw D.error.handShake
       }
       decSKey = D.toBuffer(decSKey)
-      console.log('5', D.toHex(decSKey))
       let orgSKey = removePadding(decSKey)
-      console.log('6', D.toHex(orgSKey))
 
       devPubKey = concat(devPubKey, slice(orgSKey, 0, 46))
-      console.log('7', D.toHex(devPubKey))
 
       let devPubSha1 = sha1(devPubKey)
       if (D.toHex(devPubSha1) !== D.toHex(devPubHash)) {
@@ -216,27 +205,21 @@ export default class EsTransmitter {
 
       let sKeyCount = slice(orgSKey, 46, 50)
       let sKey = slice(orgSKey, 50, 66)
-      console.log('8', D.toHex(sKeyCount), D.toHex(sKey))
 
       // verify device sign by device public key(devPubKey)
       devPubKey = buildPemPublicKeyHex(devPubKey)
       let devPubKeyObj = new JSEncrypt()
       devPubKeyObj.setPublicKey(D.toHex(devPubKey))
-      console.log('9', devPubKeyObj, D.toHex(devPubKey), D.toHex(devSign))
       let orgDevSign = devPubKeyObj.encrypt(D.toHex(devSign))
       if (!orgDevSign) {
         console.warn('device signature encrypt failed')
         throw D.error.handShake
       }
-      console.log('9', orgDevSign)
       orgDevSign = D.toBuffer(orgDevSign)
-      console.log('9.1', D.toHex(orgDevSign))
       orgDevSign = removePadding(orgDevSign)
-      console.log('10', D.toHex(orgDevSign))
 
       let hashOrgValue = concat(slice(apdu, 7), concat(devCert, encSKey))
       let hashResult = sha1(hashOrgValue)
-      console.log('11', D.toHex(hashOrgValue), D.toHex(hashResult))
 
       let toSign = concat(oidSha1, hashResult)
       if (D.toHex(toSign) !== D.toHex(orgDevSign)) {
@@ -260,9 +243,7 @@ export default class EsTransmitter {
     }
 
     let makeEncApdu = (apdu) => {
-      console.log('0', D.toHex(apdu), D.toHex(this._commKey.sKey), D.toHex(this._commKey.sKeyCount))
       let encryptedApdu = des112(true, apdu, this._commKey.sKey)
-      console.log('1', D.toHex(encryptedApdu))
 
       // 8033 534D Lc         00 00 00 PaddingNum(1) SKeyCount(4) EncApdu
       let padNum = encryptedApdu.byteLength - apdu.byteLength
@@ -276,15 +257,12 @@ export default class EsTransmitter {
       encApduHead[0x04] = (apduDataLen >> 16) & 0xFF
       encApduHead[0x05] = (apduDataLen >> 8) & 0xFF
       encApduHead[0x06] = apduDataLen & 0xFF
-      console.log('2', D.toHex(encApduHead))
       let encApdu = concat(encApduHead, apduData)
-      console.log('3', D.toHex(encApdu))
       return encApdu
     }
 
     let decryptResponse = (response) => {
       let decResponse = des112(false, response, this._commKey.sKey)
-      console.log('4', D.toHex(decResponse))
 
       let responseView = new Uint8Array(decResponse)
       let viewLength = responseView.length
@@ -296,17 +274,22 @@ export default class EsTransmitter {
       return slice(decResponse, 0, -2)
     }
 
+    console.log('send apdu', D.toHex(apdu), 'isEnc', isEnc)
     if (isEnc) {
       await this._doHandShake()
       apdu = makeEncApdu(apdu)
       console.log('send enc apdu', D.toHex(apdu))
     }
     let response = await this._sendApdu(apdu)
-    return isEnc ? decryptResponse(response) : response
+    console.log('got response', D.toHex(response), 'isEnc', isEnc)
+    if (isEnc) {
+      response = decryptResponse(response)
+      console.log('got dec response', D.toHex(response))
+    }
+    return response
   }
 
   async _sendApdu (apdu) {
-    console.log('send apdu', D.toHex(apdu))
     let {result, response} = await this._transmit(apdu)
 
     // 6AA6 means busy, send 00A6000008 immediately to get response
@@ -333,7 +316,6 @@ export default class EsTransmitter {
       throw D.error.deviceProtocol
     }
 
-    console.log('got response', D.toHex(response))
     return response
   }
 
@@ -393,8 +375,8 @@ export default class EsTransmitter {
     let unpackHidCmd = (response) => {
       let resView = new Uint8Array(response)
       if (resView[0x02] !== 0x04) {
-        console.warn('opCode != 0x04 not supported')
-        throw D.error.notImplemented
+        console.warn('opCode != 0x04 not supported', D.toHex(resView))
+        throw D.error.deviceComm
       }
 
       let throwLengthError = () => {
@@ -427,13 +409,43 @@ export default class EsTransmitter {
       return {result, response}
     }
 
-    console.debug('send apdu', D.toHex(apdu))
+    let sendAndReceive = async (reportId, pack) => {
+      await this._device.send(reportId, pack)
+      while (true) {
+        let received = await this._device.receive()
+        let receivedView = new Uint8Array(received)
+        if (receivedView[0x00] !== 0x00 && receivedView[0x02] === 0x00) {
+          if (receivedView[0x07] === 0x60) {
+            if (receivedView[0x05] === 0x02) {
+              // 01 00 00 00 00 02 xx 60: delay xx seconds before get response again
+              let delayMills = receivedView[0x06] * 1000 + 100 // additional 100ms
+              console.debug(`device busy 02, delay ${delayMills} and resend`)
+              await D.wait(delayMills)
+              continue
+            } else if (receivedView[0x05] === 0x03) {
+              // 01 00 00 00 00 03 xx 60: delay xx * 5 millseconds before get response again
+              let delayMills = receivedView[0x06] * 5
+              console.debug(`device busy 03, delay ${delayMills} and resend`)
+              await D.wait(delayMills)
+              continue
+            }
+          } else if (receivedView[0x07] === 0x00) {
+            // 01 00 00 00 00 00 xx 00: showing control
+            // key will disconnect after long time idle, in this case device will return 0x86 and then return 0x6ff2
+            if (receivedView[0x06] !== 0x86) {
+              throw D.error.needPressKey
+            }
+          }
+        }
+        return received
+      }
+    }
+
+    console.debug('transmit send apdu', D.toHex(apdu))
     let {reportId, pack} = packHidCmd(apdu)
-    console.debug('send package', reportId, D.toHex(pack))
-    let received = await this._device.sendAndReceive(reportId, pack)
-    console.debug('receive package', D.toHex(received))
+    let received = await sendAndReceive(reportId, pack)
     let response = unpackHidCmd(received)
-    console.debug('receive response', response.result.toString(16), D.toHex(response.response))
+    console.debug('transmit got response', response.result.toString(16), D.toHex(response.response))
     return response
   }
 }
