@@ -92,7 +92,6 @@ export default class EsTransmitter {
   async _doHandShake () {
     if (this._commKey.generated) return
 
-    console.log('start hand shake')
     let generateRsa1024KeyPair = () => {
       let keyPair = new JSEncrypt()
       if (D.test.mockDevice) {
@@ -229,19 +228,17 @@ export default class EsTransmitter {
       return {sKey, sKeyCount}
     }
 
+    console.log('start hand shake')
     let {tempKeyPair, apdu} = genHandShakeApdu()
-    let response = await this.sendApdu(apdu)
+    let response = await this._sendApdu(apdu)
     let {sKey, sKeyCount} = parseHandShakeResponse(tempKeyPair, response, apdu)
     this._commKey.sKey = sKey
     this._commKey.sKeyCount = sKeyCount
     this._commKey.generated = true
+    console.log('finish hand shake')
   }
 
   async sendApdu (apdu, isEnc = false) {
-    if (typeof apdu === 'string') {
-      apdu = D.toBuffer(apdu)
-    }
-
     let makeEncApdu = (apdu) => {
       let encryptedApdu = des112(true, apdu, this._commKey.sKey)
 
@@ -274,19 +271,34 @@ export default class EsTransmitter {
       return slice(decResponse, 0, -2)
     }
 
-    console.log('send apdu', D.toHex(apdu), 'isEnc', isEnc)
-    if (isEnc) {
-      await this._doHandShake()
-      apdu = makeEncApdu(apdu)
-      console.log('send enc apdu', D.toHex(apdu))
+    // a simple lock to guarantee apdu order
+    while (this.busy) {
+      await D.wait(5)
     }
-    let response = await this._sendApdu(apdu)
-    console.log('got response', D.toHex(response), 'isEnc', isEnc)
-    if (isEnc) {
-      response = decryptResponse(response)
-      console.log('got dec response', D.toHex(response))
+    this.busy = true
+
+    if (typeof apdu === 'string') {
+      apdu = D.toBuffer(apdu)
     }
-    return response
+    try {
+      console.log('send apdu', D.toHex(apdu), 'isEnc', isEnc)
+      if (isEnc) {
+        await this._doHandShake()
+        apdu = makeEncApdu(apdu)
+        console.debug('send enc apdu', D.toHex(apdu))
+      }
+      let response = await this._sendApdu(apdu)
+      if (isEnc) {
+        console.debug('got enc response', D.toHex(response), 'isEnc', isEnc)
+        response = decryptResponse(response)
+      }
+      console.log('got response', D.toHex(response), 'isEnc', isEnc)
+      return response
+    } catch (e) {
+      throw e
+    } finally {
+      this.busy = false
+    }
   }
 
   async _sendApdu (apdu) {

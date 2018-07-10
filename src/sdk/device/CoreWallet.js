@@ -5,10 +5,21 @@ import MockDevice from './MockDevice'
 import EsTransmitter from './EsTransmitter'
 import rlp from 'rlp'
 import BigInteger from 'bigi'
+import bitPony from 'bitpony'
 
 let copy = D.buffer.copy
 let slice = D.buffer.slice
 let allEnc = true
+
+// rewrite _containKeys to make empty value available, so we can use it to build presign tx
+// noinspection JSPotentiallyInvalidConstructorUsage
+bitPony.prototype._containKeys = function (keys) {
+  for (let i of keys) {
+    if (this.data[i] === null) {
+      throw new Error('key ' + this.type + '.' + i + ' can not be null ' + this.data[i])
+    }
+  }
+}
 
 export default class CoreWallet {
   constructor () {
@@ -68,7 +79,7 @@ export default class CoreWallet {
     let apdu = new Uint8Array(26)
     copy('803D00001505', 0, apdu, 0)
     apdu[3] = flag
-    let pathBuffer = D.address.toBuffer(path)
+    let pathBuffer = D.address.path.toBuffer(path)
     copy(pathBuffer, 0, apdu, 6)
 
     let response = await this._sendApdu(apdu.buffer)
@@ -149,7 +160,7 @@ export default class CoreWallet {
       const N_OVER_TWO = n.shiftRight(1)
       let rInt = BigInteger.fromBuffer(Buffer.from(r))
       if (rInt.compareTo(N_OVER_TWO) > 0) {
-        console.debug('r > N / 2, r = r - N / 2, old r, v', D.toHex(r), v)
+        console.debug('r > N/2, r = r - N/2, old r, v', D.toHex(r), v)
         rInt = n.subtract(rInt)
         r = D.toBuffer(rInt.toString(16))
         v = v ? 0 : 1
@@ -158,24 +169,97 @@ export default class CoreWallet {
       return {v, r, s, pubKey}
     }
 
-    let signBtc = async () => {
-      let makeBasicScript = () => {
-
+    // sign for P2PKH
+    let signBtc = async (tx) => {
+      let makeBasicScript = (tx) => {
+        return {
+          version: 1,
+          inputs: tx.inputs.map(input => {
+            return {
+              hash: input.txId,
+              index: input.index,
+              scriptSig: input.script,
+              sequence: 0xFFFFFFFF
+            }
+          }),
+          outputs: tx.outputs.map(output => {
+            return {
+              amount: output.value,
+              scriptPubKey: '76A914' + D.toHex(D.address.toBuffer(output.address)) + '88AC'
+            }
+          }),
+          lockTime: 0
+        }
       }
-      let makePreSignScript = (basicScript) => {
 
+      let makePreSignScript = (i, basicScript) => {
+        let script = D.copy(basicScript)
+        script.inputs.forEach((input, j) => {
+          if (i !== j) input.scriptSig = ''
+        })
+        let preSignScript = D.toBuffer(bitPony.tx.write(
+          script.version, script.inputs, script.outputs, script.lockTime).toString('hex'))
+        return D.buffer.concat(preSignScript, '01000000')
       }
 
-      let basicScript = makeBasicScript()
-      let signedBlobs = await Promise.all(tx.inputs.map(async input => {
-        let pathBuffer = D.address.toBuffer(input.path)
-        let preSignScript = makePreSignScript(basicScript)
-        let {v, r, s, pubKey} = await sign(pathBuffer, null, preSignScript)
-        return null
-      }))
+      let makeScriptSig = (r, s, pubKey) => {
+        // DER encode
+        let scriptSigLength = 0x02 + 0x22 + 0x22 + 0x42 + 0x01
+        // r must < N/2, s has no limit
+        let sView = new Uint8Array(s)
+        let upperS = sView[0] >= 0x80
+        if (upperS) scriptSigLength++
+
+        let scriptSig = new Uint8Array(scriptSigLength)
+        let index = 0
+        scriptSig[index++] = 0x30
+        scriptSig[index++] = scriptSigLength - 0x02
+        // r
+        scriptSig[index++] = 0x02
+        scriptSig[index++] = 0x20
+        copy(r, 0, scriptSig, index)
+        index += r.byteLength
+        // s
+        scriptSig[index++] = 0x02
+        scriptSig[index++] = upperS ? 0x21 : 0x20
+        if (upperS) scriptSig[index++] = 0x00
+        copy(s, 0, scriptSig, index)
+        index += s.byteLength
+        // pubKey
+        scriptSig[index++] = 0x41
+        scriptSig[index++] = 0x04 // uncompress type
+        copy(pubKey, 0, scriptSig, index)
+        index += pubKey.byteLength
+        // hashType
+        scriptSig[index] = 0x01
+
+        return scriptSig
+      }
+
+      let basicScript = makeBasicScript(tx)
+      let signedTx = D.copy(basicScript)
+      let changePathBuffer = D.address.path.toBuffer(tx.changePath)
+      // execute in order
+      let sequence = Promise.resolve()
+      tx.inputs.forEach((input, i) => {
+        sequence = sequence.then(async () => {
+          let pathBuffer = D.address.path.toBuffer(input.path)
+          let preSignScript = makePreSignScript(i, basicScript)
+          let {r, s, pubKey} = await sign(pathBuffer, changePathBuffer, preSignScript)
+          let scirptSig = makeScriptSig(r, s, pubKey)
+          signedTx.inputs[i].scriptSig = D.toHex(scirptSig)
+        })
+      })
+      await sequence
+
+      signedTx = bitPony.tx.write(signedTx.version, signedTx.inputs, signedTx.outputs, signedTx.lockTime).toString('hex')
+      return {
+        id: bitPony.tx.read(signedTx).hash,
+        hex: signedTx
+      }
     }
 
-    let signEth = async () => {
+    let signEth = async (tx) => {
       const chainIds = {}
       chainIds[D.coin.main.eth] = 1
       chainIds[D.coin.test.ethRinkeby] = 4
@@ -187,7 +271,7 @@ export default class CoreWallet {
       let rlpUnsignedTx = rlp.encode(unsignedTx)
       let rlpBuffer = D.toBuffer(rlpUnsignedTx.toString('hex'))
 
-      let {v, r, s} = await sign(D.address.toBuffer(tx.input.path), null, rlpBuffer)
+      let {v, r, s} = await sign(D.address.path.toBuffer(tx.input.path), null, rlpBuffer)
       let signedTx = [tx.nonce, tx.gasPrice, tx.startGas, tx.output.address, tx.output.value, tx.data,
         35 + chainId * 2 + (v % 2), Buffer.from(r), Buffer.from(s)]
       let rawTx = D.toHex(rlp.encode(signedTx)).toLowerCase()
@@ -200,9 +284,9 @@ export default class CoreWallet {
 
     await this.verifyPin()
     if (D.isBtc(coinType)) {
-      return signBtc()
+      return signBtc(tx)
     } else if (D.isEth(coinType)) {
-      return signEth()
+      return signEth(tx)
     } else {
       throw D.error.coinNotSupported
     }

@@ -41,7 +41,6 @@ const D = {
     invalidAddress: 601,
     noAddressCheckSum: 602, // for eth
     invalidAddressChecksum: 603,
-    notSupportP2SH: 604,
 
     notImplemented: 10000,
     unknown: 10001,
@@ -76,14 +75,13 @@ const D = {
       let network = buffer.readUInt8(0)
       switch (network) {
         case 0: // main net P2PKH
+        case 0x05: // main net P2SH
           if (D.test.coin) throw D.error.invalidAddress
           break
         case 0x6f: // test net P2PKH
+        case 0xc4: // test net P2SH
           if (!D.test.coin) throw D.error.invalidAddress
           break
-        case 0x05: // main net P2SH
-        case 0xc4: // test net P2SH
-          throw D.error.notSupportP2SH
         default:
           throw D.error.invalidAddress
       }
@@ -144,25 +142,49 @@ const D = {
     /**
      * convert string type address to ArrayBuffer
      */
-    toBuffer (path) {
-      // TODO change all ArrayBuffer to Buffer
-      let level = path.split('/').length
-      if (path[0] === 'm') level--
-      let buffer = new Uint8Array(level * 4)
-      path.split('/').forEach((index, i) => {
-        if (i === 0 && index === 'm') return
-        let indexInt = 0
-        if (index[index.length - 1] === "'") {
-          indexInt += 0x80000000
-          index = index.slice(0, -1)
+    toBuffer (address) {
+      // TODO refactor all ArrayBuffer to Buffer
+      // TODO throw Error instead of int
+      if (address.startsWith('0x')) {
+        // eth
+        return D.toBuffer(address.slice(2))
+      } else {
+        // bitcoin
+        let buffer
+        try {
+          buffer = base58check.decode(address)
+        } catch (e) {
+          console.warn(e)
+          throw D.error.invalidAddress
         }
-        indexInt += parseInt(index)
-        buffer[4 * (i - 1)] = indexInt >> 24
-        buffer[4 * (i - 1) + 1] = indexInt >> 16
-        buffer[4 * (i - 1) + 2] = indexInt >> 8
-        buffer[4 * (i - 1) + 3] = indexInt
-      })
-      return buffer.buffer
+        if (buffer.length !== 21) throw D.error.invalidAddress
+        return new Uint8Array(buffer.slice(1)).buffer
+      }
+    },
+
+    path: {
+      /**
+       * convert string type path to ArrayBuffer
+       */
+      toBuffer (path) {
+        let level = path.split('/').length
+        if (path[0] === 'm') level--
+        let buffer = new Uint8Array(level * 4)
+        path.split('/').forEach((index, i) => {
+          if (i === 0 && index === 'm') return
+          let indexInt = 0
+          if (index[index.length - 1] === "'") {
+            indexInt += 0x80000000
+            index = index.slice(0, -1)
+          }
+          indexInt += parseInt(index)
+          buffer[4 * (i - 1)] = indexInt >> 24
+          buffer[4 * (i - 1) + 1] = indexInt >> 16
+          buffer[4 * (i - 1) + 2] = indexInt >> 8
+          buffer[4 * (i - 1) + 3] = indexInt
+        })
+        return buffer.buffer
+      }
     }
   },
 
