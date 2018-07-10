@@ -23,47 +23,52 @@ describe('CoreWallet', function () {
     })
   })
 
-  // it('getRandom', async () => {
-  //   let response = await coreWallet.getRandom(8)
-  //   response.byteLength.should.equal(8)
-  // })
-  //
-  // it('getRandom by enc apdu', async () => {
-  //   let response = await coreWallet._sendApdu('0084000008', true)
-  //   response.byteLength.should.equal(8)
-  // })
-  //
-  // it('get address by apdu', async () => {
-  //   let address = await coreWallet._sendApdu('803D000415 05 8000002C 80000000 80000000 00000000 00000000', true)
-  //   address = String.fromCharCode.apply(null, new Uint8Array(address))
-  //   D.address.checkBtcAddress(address)
-  // })
-  //
-  // it('get address', async () => {
-  //   let address = await coreWallet.getAddress(D.coin.main.btc, "m/44'/0'/0'/0/0")
-  //   D.address.checkBtcAddress(address)
+  it('getRandom', async () => {
+    let response = await coreWallet.getRandom(8)
+    response.byteLength.should.equal(8)
+  })
 
-  //   let address = await coreWallet.getAddress(D.coin.main.eth, "m/44'/60'/0'/0/0")
-  //   D.address.checkBtcAddress(address)
-  // })
-  //
-  // it('sign eth', async () => {
-  //   let result = await coreWallet.signTransaction(D.coin.main.eth, {
-  //     input: {
-  //       address: '0x1234567890123456789012345678901234567890',
-  //       path: "m/44'/60'/0'/0/0"
-  //     },
-  //     output: {
-  //       address: '0x0987654321098765432109876543210987654321',
-  //       value: 0.518 * 10000000000000000000
-  //     },
-  //     nonce: 0,
-  //     gasPrice: 1000000000,
-  //     startGas: 21000,
-  //     data: null
-  //   })
-  //   console.log('result', result)
-  // })
+  it('getRandom by enc apdu', async () => {
+    let response = await coreWallet._sendApdu('0084000008', true)
+    response.byteLength.should.equal(8)
+  })
+
+  it('get address by apdu', async () => {
+    let address = await coreWallet._sendApdu('803D000415 05 8000002C 80000000 80000000 00000000 00000000', true)
+    address = String.fromCharCode.apply(null, new Uint8Array(address))
+    D.address.checkBtcAddress(address)
+  })
+
+  it('get address', async () => {
+    let btcAddr = await coreWallet.getAddress(D.coin.main.btc, "m/44'/0'/0'/0/0")
+    D.address.checkBtcAddress(btcAddr)
+
+    let ethAddr = await coreWallet.getAddress(D.coin.main.eth, "m/44'/60'/0'/0/0")
+    console.log('?', btcAddr, ethAddr)
+    try {
+      D.address.checkEthAddress(ethAddr)
+    } catch (e) {
+      if (e !== D.error.noAddressCheckSum) throw e
+    }
+  })
+
+  it('sign eth', async () => {
+    let result = await coreWallet.signTransaction(D.coin.main.eth, {
+      input: {
+        address: '0x1234567890123456789012345678901234567890',
+        path: "m/44'/60'/0'/0/0"
+      },
+      output: {
+        address: '0x0987654321098765432109876543210987654321',
+        value: 0.518 * 10000000000000000000
+      },
+      nonce: 0,
+      gasPrice: 1000000000,
+      startGas: 21000,
+      data: null
+    })
+    console.log('result', result)
+  })
 
   it('sign bitcoin', async () => {
     let changeAddress = await coreWallet.getAddress(D.coin.main.btc, "m/44'/0'/0'/1/0", false)

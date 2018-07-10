@@ -295,7 +295,7 @@ export default class CoreWallet {
   async getRandom (length) {
     if (length > 255) throw D.error.notImplemented
     let apdu = '00840000' + (length >> 8) + (length % 0xFF)
-    return this._transmitter.sendApdu(apdu)
+    return this._sendApdu(apdu)
   }
 
   _sendApdu (apdu, isEnc = false) {

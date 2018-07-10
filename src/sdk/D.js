@@ -93,6 +93,7 @@ const D = {
       if (checksum === address) {
         return true
       }
+      if (address.startsWith('0x')) address = address.slice(2)
       if (address.toUpperCase() === address || address.toLowerCase() === address) {
         throw D.error.noAddressCheckSum
       }
