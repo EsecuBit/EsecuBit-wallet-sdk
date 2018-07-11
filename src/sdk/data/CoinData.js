@@ -114,7 +114,9 @@ export default class CoinData {
       label: 'Account#' + (accountIndex + 1),
       coinType: coinType,
       index: accountIndex,
-      balance: 0
+      balance: 0,
+      externalPublicKeyIndex: 0,
+      changePublicKeyIndex: 0
     }
     console.log('newAccount', account)
     return account
@@ -190,6 +192,7 @@ export default class CoinData {
   }
 
   checkAddresses (coinType, addressInfos) {
+    console.warn(coinType, this._network)
     return this._network[coinType].checkAddresses(addressInfos)
   }
 

@@ -116,27 +116,13 @@ describe('BtcAccount', function () {
 
     D.test.coin = false
     account.checkAddress('14Vyjee2LgComhVaUPVmk49MUkp4AUSB3o')
+    account.checkAddress('3HyiHMF2bAVnYsQT4P4PmVgisU2rnkNJ76')
 
     D.test.coin = true
     account.checkAddress('myYM3xcshRzbqQNggCLMPhQNpz7rB58FBc')
     account.checkAddress('n1ok87KUNJAKgd224cTiAhX6ZDrtDwAVpx')
+    account.checkAddress('2NBMEXXCXEtsBUaT4zcjLmcT6RrXJyXy9Yn')
     error.should.equal(D.error.succeed)
-
-    try {
-      error = D.error.succeed
-      account.checkAddress('3HyiHMF2bAVnYsQT4P4PmVgisU2rnkNJ76')
-    } catch (e) {
-      error = e
-    }
-    error.should.equal(D.error.notSupportP2SH)
-
-    try {
-      error = D.error.succeed
-      account.checkAddress('2NBMEXXCXEtsBUaT4zcjLmcT6RrXJyXy9Yn')
-    } catch (e) {
-      error = e
-    }
-    error.should.equal(D.error.notSupportP2SH)
 
     try {
       error = D.error.succeed

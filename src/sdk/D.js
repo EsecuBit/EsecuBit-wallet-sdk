@@ -163,6 +163,18 @@ const D = {
       }
     },
 
+    toString (address) {
+      if (address.byteLength === 20) {
+        // eth
+        return D.address.toEthChecksumAddress(address)
+      } else if (address.byteLength === 21) {
+        // bitcoin
+        return base58check.encode(Buffer.from(address))
+      } else {
+        throw D.error.coinNotSupported
+      }
+    },
+
     path: {
       /**
        * convert string type path to ArrayBuffer
@@ -263,7 +275,8 @@ const D = {
   },
 
   recoverCoinTypes () {
-    return D.suppertedCoinTypes()
+    return [D.coin.test.btcTestNet3]
+    // return D.suppertedCoinTypes()
   },
 
   convertValue (coinType, value, fromType, toType) {

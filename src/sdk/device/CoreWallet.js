@@ -83,7 +83,13 @@ export default class CoreWallet {
     copy(pathBuffer, 0, apdu, 6)
 
     let response = await this._sendApdu(apdu.buffer)
-    return String.fromCharCode.apply(null, new Uint8Array(response))
+    let address = String.fromCharCode.apply(null, new Uint8Array(response))
+    if (D.isBtc(coinType) && D.test.coin) {
+      let addressBuffer = D.address.toBuffer(address)
+      addressBuffer = D.buffer.concat('6F', addressBuffer)
+      address = D.address.toString(addressBuffer)
+    }
+    return address
   }
 
   /**

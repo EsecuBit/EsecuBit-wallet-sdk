@@ -201,20 +201,15 @@ export default class BtcAccount {
         console.log(this.accountId, 'generating', type, 'addressInfos, from', nextIndex, 'to', index)
       }
       return (await Promise.all(Array.from({length: index - nextIndex}, (v, k) => nextIndex + k).map(async i => {
-        try {
-          let address = await this._device.getAddress(this.coinType, D.makeBip44Path(this.coinType, this.index, type, i))
-          return {
-            address: address,
-            accountId: this.accountId,
-            coinType: this.coinType,
-            path: D.makeBip44Path(this.coinType, this.index, type, i),
-            type: type,
-            index: i,
-            txs: []
-          }
-        } catch (e) {
-          if (e === D.error.device_derive_larger_than_n) return null
-          throw e
+        let address = await this._device.getAddress(this.coinType, D.makeBip44Path(this.coinType, this.index, type, i))
+        return {
+          address: address,
+          accountId: this.accountId,
+          coinType: this.coinType,
+          path: D.makeBip44Path(this.coinType, this.index, type, i),
+          type: type,
+          index: i,
+          txs: []
         }
       }))).filter(addressInfo => addressInfo !== null)
     }
