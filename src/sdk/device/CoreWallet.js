@@ -229,13 +229,12 @@ export default class CoreWallet {
         if (upperS) scriptSig[index++] = 0x00
         copy(s, 0, scriptSig, index)
         index += s.byteLength
+        // hashType
+        scriptSig[index++] = 0x01
         // pubKey
         scriptSig[index++] = 0x41
         scriptSig[index++] = 0x04 // uncompress type
         copy(pubKey, 0, scriptSig, index)
-        index += pubKey.byteLength
-        // hashType
-        scriptSig[index] = 0x01
 
         return scriptSig
       }
