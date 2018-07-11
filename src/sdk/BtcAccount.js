@@ -344,7 +344,10 @@ export default class BtcAccount {
     let totalIn = prepareTx.utxos.reduce((sum, utxo) => sum + utxo.value, 0)
     if (totalIn < prepareTx.total) throw D.error.balanceNotEnough
 
-    let changeAddressInfo = this.addressInfos.find(addressInfo => addressInfo.index === this.changePublicKeyIndex)
+    let changeAddressInfo = this.addressInfos.find(addressInfo => {
+      return addressInfo.type === D.address.change &&
+      addressInfo.index === this.changePublicKeyIndex
+    })
     let value = totalIn - prepareTx.total
     let rawTx = {
       inputs: prepareTx.utxos,
