@@ -20,7 +20,7 @@ describe('EsWallet', function () {
     D.test.coin = true
     D.test.sync = true
     D.test.networkRequest = true
-    D.test.jsWallet = true
+    D.test.jsWallet = false
     esWallet = new EsWallet()
   })
 
@@ -79,7 +79,8 @@ describe('EsWallet', function () {
   })
 
   it('getWalletInfo', async () => {
-    let info = esWallet.getWalletInfo()
+    let info = await esWallet.getWalletInfo()
+    console.log('wallet info', info)
     info.should.not.equal(undefined)
   })
 

@@ -30,15 +30,16 @@ export default class CoreWallet {
 
     this._device = D.test.mockDevice ? new MockDevice() : new ChromeHidDevice()
     this._transmitter = new EsTransmitter(this._device)
-    this._walletId = 'defaultId'
   }
 
   async init () {
-    return {walletId: this._walletId}
+    let walletId = D.toHex(D.address.toBuffer(await this.getAddress(D.coin.main.btc, "m/44'/0'/0'/0/0")))
+    return {walletId: walletId}
   }
 
+  // noinspection JSMethodCanBeStatic
   async sync () {
-    // TODO get index from device
+    return true
   }
 
   async updateIndex (addressInfo) {
@@ -50,20 +51,15 @@ export default class CoreWallet {
 
   async getWalletInfo () {
     let cosVersion = await this._getCosVersion()
-    let firmwareVersion = await this._getFirmwareVersion()
     return [
-      {name: 'COS Version', value: D.toHex(cosVersion)},
-      {name: 'Firmware Version', value: D.toHex(firmwareVersion)}]
-  }
-
-  // noinspection JSMethodCanBeStatic
-  _getFirmwareVersion () {
-    throw D.error.notImplemented
+      // TODO auto update App version
+      {name: 'App Version', value: '0.0.1'},
+      {name: 'COS Version', value: D.toHex(cosVersion)}]
   }
 
   // noinspection JSMethodCanBeStatic
   _getCosVersion () {
-    throw D.error.notImplemented
+    return this._sendApdu('803300000ABD080000000000000000')
   }
 
   async verifyPin () {
