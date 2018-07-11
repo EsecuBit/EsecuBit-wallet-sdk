@@ -9,16 +9,6 @@ describe('EsWallet', function () {
   this.timeout(100000)
   let esWallet = null
 
-  it('supportedCoinTypes', () => {
-    let supportedCoinTypes = EsWallet.supportedCoinTypes()
-    supportedCoinTypes.should.deep.equal([D.coin.test.btcTestNet3, D.coin.test.ethRinkeby])
-  })
-
-  it('suppertedLegals', () => {
-    let supportedLegalCurrency = EsWallet.suppertedLegals()
-    supportedLegalCurrency.should.deep.equal([D.unit.legal.USD, D.unit.legal.EUR, D.unit.legal.CNY, D.unit.legal.JPY])
-  })
-
   // it('clearDatabase', async () => {
   //   let indexedDB = new IndexedDB(D.test.syncWalletId)
   //   await indexedDB.init()
@@ -32,6 +22,16 @@ describe('EsWallet', function () {
     D.test.networkRequest = true
     D.test.jsWallet = true
     esWallet = new EsWallet()
+  })
+
+  it('supportedCoinTypes', () => {
+    let supportedCoinTypes = EsWallet.supportedCoinTypes()
+    supportedCoinTypes.should.deep.equal([D.coin.test.btcTestNet3, D.coin.test.ethRinkeby])
+  })
+
+  it('suppertedLegals', () => {
+    let supportedLegalCurrency = EsWallet.suppertedLegals()
+    supportedLegalCurrency.should.deep.equal([D.unit.legal.USD, D.unit.legal.EUR, D.unit.legal.CNY, D.unit.legal.JPY])
   })
 
   it('listenStatus', (done) => {

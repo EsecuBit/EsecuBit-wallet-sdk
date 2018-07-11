@@ -94,7 +94,7 @@ export default class CoinData {
     if (accountIndex === -1) throw D.error.lastAccountNoTransaction
 
     let account = await this._newAccount(coinType, accountIndex)
-    if (D.test.data && accountIndex === 0 && (coinType === D.coin.main.btc || coinType.D.coin.test.btcTestNet3)) {
+    if (D.test.data && accountIndex === 0 && (D.isBtc(coinType))) {
       await this._initTestDbData(account)
     }
     await this._db.newAccount(account)
@@ -192,7 +192,6 @@ export default class CoinData {
   }
 
   checkAddresses (coinType, addressInfos) {
-    console.warn(coinType, this._network)
     return this._network[coinType].checkAddresses(addressInfos)
   }
 

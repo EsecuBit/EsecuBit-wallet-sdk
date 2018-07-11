@@ -275,8 +275,7 @@ const D = {
   },
 
   recoverCoinTypes () {
-    return [D.coin.test.btcTestNet3]
-    // return D.suppertedCoinTypes()
+    return D.suppertedCoinTypes()
   },
 
   convertValue (coinType, value, fromType, toType) {

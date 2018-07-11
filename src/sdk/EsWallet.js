@@ -183,7 +183,7 @@ export default class EsWallet {
 
   async newAccount (coinType) {
     let account = await this._coinData.newAccount(coinType)
-    let esAccount = D.isBtc()
+    let esAccount = D.isBtc(coinType)
       ? new BtcAccount(account, this._device, this._coinData)
       : new EthAccount(account, this._device, this._coinData)
     await esAccount.init()

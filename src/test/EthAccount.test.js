@@ -176,7 +176,7 @@ describe('EthAccount', function () {
     for (let nonce = 0; nonce < 1; nonce++) {
       let prepareTx = await account.prepareTx({
         feeRate: 1000000000,
-        outputs: [{address: '0x5c69f6b7a38ca89d5dd48a7f21be5f1030760891', value: 32000000000000000}]
+        outputs: [{address: '0x5c69f6b7a38ca89d5dd48a7f21be5f1030760891', value: 3200000000000}]
       })
       console.log('prepareTx', prepareTx)
       let signedTx = await account.buildTx(prepareTx)

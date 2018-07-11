@@ -46,6 +46,7 @@ export default class JsWallet {
       {name: 'Firmware Version', value: 1}]
   }
 
+  // noinspection JSMethodCanBeStatic
   async verifyPin () {
     return true
   }
@@ -77,14 +78,14 @@ export default class JsWallet {
     return {publicKey, chainCode}
   }
 
-  async getAddress (coinType, addressPath, pPublicKey) {
+  async getAddress (coinType, addressPath) {
     let btcAddress = async () => {
-      let node = await this._derive(addressPath, pPublicKey)
+      let node = await this._derive(addressPath)
       return node.getAddress()
     }
 
     let ethAddress = async () => {
-      let node = await this._derive(addressPath, pPublicKey)
+      let node = await this._derive(addressPath)
       let uncompressedPublicKey = node.keyPair.Q.getEncoded(false)
       let withoutHead = D.toBuffer(D.toHex(uncompressedPublicKey).slice(2))
       let hash = D.address.keccak256(withoutHead)
@@ -150,7 +151,7 @@ export default class JsWallet {
    *   data: hex string,
    * }
    */
-  signTransaction (coinType, tx) {
+  async signTransaction (coinType, tx) {
     let signBtc = async () => {
       try {
         let txb = new bitcoin.TransactionBuilder(this.btcNetwork)
@@ -292,6 +293,7 @@ export default class JsWallet {
       }
     }
 
+    await this.verifyPin()
     if (D.isBtc(coinType)) {
       return signBtc()
     } else if (D.isEth(coinType)) {
