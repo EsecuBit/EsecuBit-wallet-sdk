@@ -206,7 +206,7 @@ export default class CoreWallet {
 
       let makeScriptSig = (r, s, pubKey) => {
         // DER encode
-        let scriptSigLength = 0x02 + 0x22 + 0x22 + 0x42 + 0x01
+        let scriptSigLength = 0x03 + 0x22 + 0x22 + 0x01 + 0x42
         // r must < N/2, s has no limit
         let sView = new Uint8Array(s)
         let upperS = sView[0] >= 0x80
@@ -214,8 +214,10 @@ export default class CoreWallet {
 
         let scriptSig = new Uint8Array(scriptSigLength)
         let index = 0
+        let sigLength = 0x22 + 0x22 + (upperS ? 0x01 : 0x00)
+        scriptSig[index++] = 0x03 + sigLength
         scriptSig[index++] = 0x30
-        scriptSig[index++] = scriptSigLength - 0x02
+        scriptSig[index++] = sigLength
         // r
         scriptSig[index++] = 0x02
         scriptSig[index++] = 0x20

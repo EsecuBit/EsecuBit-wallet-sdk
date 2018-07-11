@@ -409,6 +409,7 @@ export default class BtcAccount {
    */
   async sendTx (signedTx, test = false) {
     // broadcast transaction to network
+    console.log('sendTx', signedTx)
     if (!test) await this._coinData.sendTx(this._toAccountInfo(), signedTx.utxos, signedTx.txInfo, signedTx.hex)
     let blobs = {}
     signedTx.utxos.forEach(utxo => {
