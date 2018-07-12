@@ -212,7 +212,7 @@ export default class CoreWallet {
         // DER encode
         let scriptSigLength = 0x03 + 0x22 + 0x22 + 0x01 + 0x42
         // s must < N/2, r has no limit
-        let rView = new Uint8Array(s)
+        let rView = new Uint8Array(r)
         let upperR = rView[0] >= 0x80
         if (upperR) scriptSigLength++
 
