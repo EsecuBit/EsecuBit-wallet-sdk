@@ -105,10 +105,10 @@ export default class EthAccount {
     }
     this.busy = true
     txInfo.inputs.forEach(input => {
-      input['isMine'] = this.addressInfos.some(a => a.address.toLowerCase() === input.prevAddress)
+      input['isMine'] = this.addressInfos.some(a => a.address.toLowerCase() === input.prevAddress.toLowerCase())
     })
     txInfo.outputs.forEach(output => {
-      output['isMine'] = this.addressInfos.some(a => a.address.toLowerCase() === output.address)
+      output['isMine'] = this.addressInfos.some(a => a.address.toLowerCase() === output.address.toLowerCase())
     })
     txInfo.value = 0
     txInfo.value -= txInfo.inputs.reduce((sum, input) => sum + input.isMine ? input.value : 0, 0)
