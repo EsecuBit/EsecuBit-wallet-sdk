@@ -265,6 +265,7 @@ export default class EsTransmitter {
       let viewLength = responseView.length
       let result = (responseView[viewLength - 2] << 8) + responseView[viewLength - 1]
       if (result !== 0x9000) {
+        if (result === 0x6FF8) throw D.error.userCancel
         console.warn('decrypt response send apdu got', result.toString(16))
         throw D.error.deviceProtocol
       }

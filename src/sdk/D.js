@@ -15,7 +15,6 @@ const D = {
 
   error: {
     succeed: 0,
-    userCancel: 1,
 
     noDevice: 101,
     deviceComm: 102,
@@ -24,6 +23,7 @@ const D = {
     deviceProtocol: 105,
     handShake: 106,
     needPressKey: 107, // sleep after long time idle
+    userCancel: 108,
 
     databaseOpenFailed: 201,
     databaseExecFailed: 202,
