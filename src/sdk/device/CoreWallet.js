@@ -33,7 +33,9 @@ export default class CoreWallet {
   }
 
   async init () {
-    let walletId = D.toHex(D.address.toBuffer(await this.getAddress(D.coin.main.btc, "m/44'/0'/0'/0/0")))
+    let walletId = D.test.coin ? '01' : '00'
+    walletId += D.test.jsWallet ? '01' : '00'
+    walletId += D.toHex(D.address.toBuffer(await this.getAddress(D.coin.main.btc, "m/44'/0'/0'/0/0")))
     return {walletId: walletId}
   }
 
