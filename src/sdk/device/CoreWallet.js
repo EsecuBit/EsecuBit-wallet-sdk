@@ -160,13 +160,15 @@ export default class CoreWallet {
 
       let n = new BigInteger('fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141', 16)
       const N_OVER_TWO = n.shiftRight(1)
-      let rInt = BigInteger.fromBuffer(Buffer.from(r))
-      if (rInt.compareTo(N_OVER_TWO) > 0) {
-        console.debug('r > N/2, r = r - N/2, old r, v', D.toHex(r), v)
-        rInt = n.subtract(rInt)
-        r = D.toBuffer(rInt.toString(16))
+      let sInt = BigInteger.fromBuffer(Buffer.from(s))
+      if (sInt.compareTo(N_OVER_TWO) > 0) {
+        console.debug('s > N/2, s = N/2 - r, old s, v', D.toHex(s), v)
+        sInt = n.subtract(sInt)
+        let sHex = sInt.toHex()
+        sHex = sHex.length % 2 ? ('0' + sHex) : sHex
+        s = D.toBuffer(sHex)
         v = v ? 0 : 1
-        console.debug('new r, v', D.toHex(r), v)
+        console.debug('new s, v', D.toHex(s), v)
       }
       return {v, r, s, pubKey}
     }
