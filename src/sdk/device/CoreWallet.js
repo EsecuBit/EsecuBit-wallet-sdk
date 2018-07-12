@@ -68,12 +68,14 @@ export default class CoreWallet {
     return this._sendApdu('8082008100')
   }
 
-  async getAddress (coinType, path, isShowing) {
+  async getAddress (coinType, path, isShowing = false, isStoring = false) {
     // bit 0: 0 not save on key / 1 save on key
     // bit 1: 0 not show on key / 1 show on key
     // bit 2: 0 public key / 1 address
     // if bit2 == 0, bit0 == bit1 == 0
-    let flag = isShowing ? 0x07 : 0x04
+    let flag = 0x04
+    flag += isShowing ? 0x02 : 0x00
+    flag += isStoring ? 0x01 : 0x00
     let apdu = new Uint8Array(26)
     copy('803D00001505', 0, apdu, 0)
     apdu[3] = flag
