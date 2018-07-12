@@ -78,6 +78,7 @@ export default class EthGasStationInfo {
      */
     let response = await get(url)
     let fee = D.copy(this.fee)
+    fee.fee[D.fee.fastest] = response.fastest * 100000000
     fee.fee[D.fee.fast] = response.fast * 100000000
     fee.fee[D.fee.normal] = response.average * 100000000
     fee.fee[D.fee.economic] = response.safeLow * 100000000
