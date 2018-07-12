@@ -386,6 +386,7 @@ export default class BtcAccount {
     // change utxo spent status from unspent to spent pending
     prepareTx.utxos.forEach(utxo => { utxo.status = D.utxo.status.spent_pending })
     let changeOutput = txInfo.outputs[txInfo.outputs.length - 1]
+    let changeAddressBuffer = D.address.toBuffer(changeAddressInfo.address)
     let changeUtxo = {
       accountId: this.accountId,
       coinType: this.coinType,
@@ -394,7 +395,9 @@ export default class BtcAccount {
       txId: txInfo.txId,
       index: txInfo.outputs.length - 1,
       value: totalIn - totalOut,
-      status: D.utxo.status.unspent_pending
+      status: D.utxo.status.unspent_pending,
+      // P2PKH script
+      script: '76a914' + D.toHex(changeAddressBuffer) + '88ac'
     }
     prepareTx.utxos.push(changeUtxo)
 
