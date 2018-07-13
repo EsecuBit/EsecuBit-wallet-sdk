@@ -110,11 +110,13 @@ export default class EthAccount {
     txInfo.outputs.forEach(output => {
       output['isMine'] = this.addressInfos.some(a => a.address.toLowerCase() === output.address.toLowerCase())
     })
+    let input = txInfo.inputs.find(input => input.isMine)
+    txInfo.direction = input ? D.tx.direction.out : D.tx.direction.in
+
     txInfo.value = 0
     txInfo.value -= txInfo.inputs.reduce((sum, input) => sum + input.isMine ? input.value : 0, 0)
     txInfo.value += txInfo.outputs.reduce((sum, output) => sum + output.isMine ? output.value : 0, 0)
-    let input = txInfo.inputs.find(input => input.isMine)
-    txInfo.direction = input ? D.tx.direction.out : D.tx.direction.in
+
     txInfo.showAddresses = txInfo.direction === D.tx.direction.in
       ? txInfo.inputs.filter(inputs => !inputs.isMine).map(inputs => inputs.prevAddress)
       : txInfo.outputs.filter(output => !output.isMine).map(output => output.address)
@@ -123,7 +125,8 @@ export default class EthAccount {
     // update account info
     this.txInfos.push(D.copy(txInfo))
     this.addressInfos.find(a => a.address === addressInfo.address).txs = D.copy(addressInfo.txs)
-    this.balance = this.txInfos.reduce((sum, txInfo) => sum + txInfo.value - txInfo.fee, 0)
+    this.balance = this.txInfos.reduce((sum, txInfo) =>
+      sum + txInfo.value - (txInfo.direction === D.tx.direction.out ? txInfo.fee : 0), 0)
 
     await this._coinData.newTx(this._toAccountInfo(), addressInfo, txInfo, [])
 
