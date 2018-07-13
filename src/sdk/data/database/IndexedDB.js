@@ -2,7 +2,7 @@
 import IDatabase from './IDatabase'
 import D from '../../D'
 
-const DB_VERSION = 5
+const DB_VERSION = 6
 export default class IndexedDB extends IDatabase {
   constructor (walletId) {
     super()
@@ -97,7 +97,7 @@ export default class IndexedDB extends IDatabase {
          * }
          */
         if (!db.objectStoreNames.contains('txInfo')) {
-          let txInfo = db.createObjectStore('txInfo', {keyPath: 'txId'})
+          let txInfo = db.createObjectStore('txInfo', {keyPath: ['txId', 'accountId']})
           txInfo.createIndex('accountId', 'accountId', {unique: false})
           txInfo.createIndex('txId', 'txId', {unique: false})
           txInfo.createIndex('time', 'time', {unique: false})
