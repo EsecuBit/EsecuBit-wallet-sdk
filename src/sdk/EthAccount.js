@@ -184,7 +184,7 @@ export default class EthAccount {
    *   }]
    *   data: hex string (optional)
    * }
-   * @returns {Promise<prepareTx>}
+   * @returns {Promise<{total: *, fee: number, gasPrice: number, startGas: number, nonce: *, input: *, outputs: *, data: string}>}
    * {
    *   total: number (Wei)
    *   fee: number (Wei)
@@ -228,7 +228,7 @@ export default class EthAccount {
       if (total > this.balance) throw D.error.balanceNotEnough
     }
 
-    return {
+    let prepareTx = {
       total: total,
       fee: fee,
       gasPrice: gasPrice,
@@ -238,6 +238,8 @@ export default class EthAccount {
       outputs: D.copy(details.outputs),
       data: details.data ? details.data : '0x'
     }
+    console.log('prepareTx', prepareTx)
+    return prepareTx
   }
 
   /**
