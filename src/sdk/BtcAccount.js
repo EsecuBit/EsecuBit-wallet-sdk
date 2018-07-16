@@ -138,7 +138,12 @@ export default class BtcAccount {
     })
 
     // update account info
-    this.txInfos.push(D.copy(txInfo))
+    let index = this.txInfos.findIndex(t => t.txId === txInfo.txId)
+    if (index === -1) {
+      this.txInfos.push(txInfo)
+    } else {
+      this.txInfos[index] = txInfo
+    }
     this.utxos = this.utxos
       .filter(oldUtxo => !utxos.some(utxo => oldUtxo.txId === utxo.txId && oldUtxo.index === utxo.index))
       .concat(utxos)

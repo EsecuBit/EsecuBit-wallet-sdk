@@ -123,7 +123,12 @@ export default class EthAccount {
     if (txInfo.showAddresses.length === 0) txInfo.showAddresses.push('self')
 
     // update account info
-    this.txInfos.push(D.copy(txInfo))
+    let index = this.txInfos.findIndex(t => t.txId === txInfo.txId)
+    if (index === -1) {
+      this.txInfos.push(txInfo)
+    } else {
+      this.txInfos[index] = txInfo
+    }
     this.addressInfos.find(a => a.address === addressInfo.address).txs = D.copy(addressInfo.txs)
     this.balance = this.txInfos.reduce((sum, txInfo) =>
       sum + txInfo.value - (txInfo.direction === D.tx.direction.out ? txInfo.fee : 0), 0)
