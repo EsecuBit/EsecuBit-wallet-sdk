@@ -275,7 +275,7 @@ const D = {
 
   suppertedCoinTypes () {
     return D.test.coin
-      ? [D.coin.test.btcTestNet3, D.coin.test.ethRopsten]
+      ? [D.coin.test.btcTestNet3, D.coin.test.ethRinkeby]
       : [D.coin.main.btc, D.coin.main.eth]
   },
 
