@@ -2,8 +2,15 @@
 import D from '../../D'
 import ICoinNetwork from './ICoinNetwork'
 
-const testRinkebyUrl = 'https://api-rinkeby.etherscan.io'
-const mainUrl = 'https://api.etherscan.io'
+let apiUrls = {}
+apiUrls[D.coin.main.eth] = 'https://api.etherscan.io'
+apiUrls[D.coin.test.ethRinkeby] = 'https://api-rinkeby.etherscan.io'
+apiUrls[D.coin.test.ethRopsten] = 'https://api-ropsten.etherscan.io'
+
+let urls = {}
+urls[D.coin.main.eth] = 'https://etherscan.io/tx/'
+urls[D.coin.test.ethRinkeby] = 'https://rinkeby.etherscan.io/tx/'
+urls[D.coin.test.ethRopsten] = 'https://ropsten.etherscan.io/tx/'
 
 export default class EtherScanIo extends ICoinNetwork {
   constructor (coinType) {
@@ -12,16 +19,8 @@ export default class EtherScanIo extends ICoinNetwork {
   }
 
   async init () {
-    switch (this.coinType) {
-      case D.coin.main.eth:
-        this._apiUrl = mainUrl
-        break
-      case D.coin.test.ethRinkeby:
-        this._apiUrl = testRinkebyUrl
-        break
-      default:
-        throw D.error.coinNotSupported
-    }
+    this._apiUrl = apiUrls[this.coinType]
+    if (!this._apiUrl) throw D.error.coinNotSupported
     return super.init()
   }
 
@@ -52,9 +51,6 @@ export default class EtherScanIo extends ICoinNetwork {
   }
 
   getTxLink (txInfo) {
-    let urls = {}
-    urls[D.coin.main.eth] = 'https://etherscan.io/tx/'
-    urls[D.coin.test.ethRinkeby] = 'https://rinkeby.etherscan.io/tx/'
     let url = urls[txInfo.coinType]
     if (!url) throw D.error.coinNotSupported
     return url + txInfo.txId

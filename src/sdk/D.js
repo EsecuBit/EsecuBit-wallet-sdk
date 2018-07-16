@@ -56,7 +56,8 @@ const D = {
     },
     test: {
       btcTestNet3: 'btc_testnet3',
-      ethRinkeby: 'eth_rinkeby'
+      ethRinkeby: 'eth_rinkeby',
+      ethRopsten: 'eth_ropsten'
     }
   },
 
@@ -273,7 +274,9 @@ const D = {
   },
 
   suppertedCoinTypes () {
-    return Object.values(D.test.coin ? D.coin.test : D.coin.main)
+    return D.test.coin
+      ? [D.coin.test.btcTestNet3, D.coin.test.ethRopsten]
+      : [D.coin.main.btc, D.coin.main.eth]
   },
 
   recoverCoinTypes () {
