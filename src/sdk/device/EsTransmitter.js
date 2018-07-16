@@ -264,11 +264,7 @@ export default class EsTransmitter {
       let responseView = new Uint8Array(decResponse)
       let viewLength = responseView.length
       let result = (responseView[viewLength - 2] << 8) + responseView[viewLength - 1]
-      if (result !== 0x9000) {
-        if (result === 0x6FF8) throw D.error.userCancel
-        console.warn('decrypt response send apdu got', result.toString(16))
-        throw D.error.deviceProtocol
-      }
+      this._checkSw1Sw2(result)
       return slice(decResponse, 0, -2)
     }
 
@@ -323,13 +319,18 @@ export default class EsTransmitter {
       response = concat(response, _response)
       result = _result
     }
-
-    if (result !== 0x9000) {
-      console.warn('send apdu got', result.toString(16))
-      throw D.error.deviceProtocol
-    }
+    this._checkSw1Sw2(result)
 
     return response
+  }
+
+  // noinspection JSMethodCanBeStatic
+  _checkSw1Sw2 (sw1sw2) {
+    if (sw1sw2 === 0x9000) return
+    if (sw1sw2 === 0x6FF8) throw D.error.userCancel
+    if ((sw1sw2 & 0xFFF0) === 0x63C0) throw D.error.pinError
+    console.warn('sw1sw2 error', sw1sw2.toString(16))
+    throw D.error.deviceProtocol
   }
 
   async _transmit (apdu) {

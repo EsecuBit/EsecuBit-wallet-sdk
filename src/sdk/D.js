@@ -24,6 +24,7 @@ const D = {
     handShake: 106,
     needPressKey: 107, // sleep after long time idle
     userCancel: 108,
+    pinError: 109,
 
     databaseOpenFailed: 201,
     databaseExecFailed: 202,
