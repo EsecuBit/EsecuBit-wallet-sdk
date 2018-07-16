@@ -34,9 +34,10 @@ const D = {
     networkUnavailable: 401,
     networkNotInitialized: 402,
     networkProviderError: 403,
+    networkTxNotFound: 404,
+    networkFeeTooSmall: 405,
 
     balanceNotEnough: 501,
-    txNotFound: 502,
 
     invalidAddress: 601,
     noAddressCheckSum: 602, // for eth

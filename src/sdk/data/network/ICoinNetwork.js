@@ -166,7 +166,7 @@ export default class ICoinNetwork {
         try {
           if (!this.hasRecord) response = await that.queryTx(this.txInfo.txId)
         } catch (e) {
-          if (e === D.error.txNotFound) {
+          if (e === D.error.networkTxNotFound) {
             console.log('tx not found in btcNetwork, continue. id: ', txInfo.txId)
             return
           }

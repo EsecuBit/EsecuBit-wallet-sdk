@@ -41,13 +41,13 @@ export default class BlockchainInfo extends ICoinNetwork {
             }
           } else if (xmlhttp.status === 500) {
             let response = xmlhttp.responseText
-            switch (response) {
-              case 'Transaction not found':
-                reject(D.error.txNotFound)
-                return
-              default:
-                console.warn('BlockChainInfo get', xmlhttp)
-                reject(D.error.networkProviderError)
+            if (response === 'Transaction not found') {
+              reject(D.error.networkTxNotFound)
+            } else if (response.includes('min relay fee not met')) {
+              reject(D.error.networkFeeTooSmall)
+            } else {
+              console.warn('BlockChainInfo get', xmlhttp)
+              reject(D.error.networkProviderError)
             }
           } else {
             console.warn(url, xmlhttp)
