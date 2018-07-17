@@ -206,6 +206,10 @@ export default class EthAccount {
    */
   async prepareTx (details) {
     if (!D.isEth(this.coinType)) throw D.error.coinNotSupported
+    if (D.isDecimal(details.feeRate)) throw D.error.valueIsDecimal
+    details.outputs.forEach(output => {
+      if (D.isDecimal(output.value)) throw D.error.valueIsDecimal
+    })
     if (details.data) throw D.error.notImplemented
 
     let estimateGas = (details) => {

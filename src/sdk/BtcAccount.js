@@ -268,26 +268,30 @@ export default class BtcAccount {
    * @param details
    * {
    *   sendAll: bool,
-   *   feeRate: long (santoshi),
+   *   feeRate: long (satoshi),
    *   outputs: [{
    *     address: base58 string,
-   *     value: long (santoshi)
+   *     value: long (satoshi)
    *   }]
    * }
    * @returns {Promise<prepareTx>}
    * {
-   *   total: long (santoshi)
-   *   fee: long (santoshi)
-   *   feeRate: long (santoshi),
+   *   total: long (satoshi)
+   *   fee: long (satoshi)
+   *   feeRate: long (satoshi),
    *   utxos: utxo array,
    *   outputs: [{
    *     address: base58 string,
-   *     value: long (santoshi)
+   *     value: long (satoshi)
    *   }]
    * }
    */
   async prepareTx (details) {
     if (!D.isBtc(this.coinType)) throw D.error.coinNotSupported
+    if (D.isDecimal(details.feeRate)) throw D.error.valueIsDecimal
+    details.outputs.forEach(output => {
+      if (D.isDecimal(output.value)) throw D.error.valueIsDecimal
+    })
 
     let utxos = this.utxos
       .filter(utxo => utxo.status === D.utxo.status.unspent || utxo.status === D.utxo.status.unspent_pending)

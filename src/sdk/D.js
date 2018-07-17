@@ -43,6 +43,7 @@ const D = {
     invalidAddress: 601,
     noAddressCheckSum: 602, // for eth
     invalidAddressChecksum: 603,
+    valueIsDecimal: 604,
 
     notImplemented: 10000,
     unknown: 10001,
@@ -245,7 +246,7 @@ const D = {
     btc: {
       BTC: 'BTC',
       mBTC: 'mBTC',
-      santoshi: 'santoshi'
+      satoshi: 'satoshi'
     },
     eth: {
       ETH: 'ETH',
@@ -285,17 +286,17 @@ const D = {
 
   convertValue (coinType, value, fromType, toType) {
     let convertBtc = (value, fromType, toType) => {
-      let santoshi
+      let satoshi
       switch (fromType) {
-        case D.unit.btc.BTC: { santoshi = value * 100000000; break }
-        case D.unit.btc.mBTC: { santoshi = value * 100000; break }
-        case D.unit.btc.santoshi: { santoshi = value; break }
+        case D.unit.btc.BTC: { satoshi = value * 100000000; break }
+        case D.unit.btc.mBTC: { satoshi = value * 100000; break }
+        case D.unit.btc.satoshi: { satoshi = value; break }
         default: throw D.error.unknown
       }
       switch (toType) {
-        case D.unit.btc.BTC: return Number(santoshi / 100000000)
-        case D.unit.btc.mBTC: return Number(santoshi / 100000)
-        case D.unit.btc.santoshi: return Number(santoshi)
+        case D.unit.btc.BTC: return Number(satoshi / 100000000)
+        case D.unit.btc.mBTC: return Number(satoshi / 100000)
+        case D.unit.btc.satoshi: return Number(satoshi)
       }
     }
     let convertEth = (value, fromType, toType) => {
@@ -363,6 +364,10 @@ const D = {
       res[i / 2] = parseInt(hex.substring(i, i + 2), 16)
     }
     return result
+  },
+
+  isDecimal (num) {
+    return num.toString().includes('.')
   },
 
   getCoinIndex (coinType) {

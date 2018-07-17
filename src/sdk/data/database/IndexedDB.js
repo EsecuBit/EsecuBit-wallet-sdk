@@ -74,7 +74,7 @@ export default class IndexedDB extends IDatabase {
          *   direction: D.tx.direction.in / D.tx.direction.out,
          *   inputs: [{prevAddress, prevOutIndex, index, value, isMine}, ...]
          *   outputs: [{address, index, value, isMine}, ...]
-         *   value: number (btc -> santoshi) // value that shows the account balance changes, calculated by inputs and outputs
+         *   value: number (btc -> satoshi) // value that shows the account balance changes, calculated by inputs and outputs
          * }
          *
          * eth：
@@ -90,7 +90,7 @@ export default class IndexedDB extends IDatabase {
          *   direction: D.tx.direction.in / D.tx.direction.out,
          *   inputs: [{prevAddress, prevOutIndex, index, value, isMine}, ...]
          *   outputs: [{address, index, value, isMine}, ...]
-         *   value: number (btc -> santoshi) // value that shows the account balance changes, calculated by inputs and outputs
+         *   value: number (btc -> satoshi) // value that shows the account balance changes, calculated by inputs and outputs
          *   gas: number,
          *   gasPrice: number,
          *   fee: gas * gasPrice
@@ -130,7 +130,7 @@ export default class IndexedDB extends IDatabase {
          *   txId: string,
          *   index: int,
          *   script: string,
-         *   value: long (santoshi),
+         *   value: long (satoshi),
          *   status: D.utxo.status.unspent / D.SPENT_PENDING / D.utxo.status.spent
          * }
          */

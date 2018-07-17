@@ -357,8 +357,8 @@ export default class ICoinNetwork {
    *    confirmations: int,
    *    time: long,         // mills
    *    hasDetails: bool,   // for queryAddress only, whether the tx has inputs and outputs. e.g. blockchain.info -> true, chain.so -> false
-   *    intputs: [{prevAddress, value(santoshi)}],
-   *    outputs: [{address, value(santoshi)}, index, script]
+   *    intputs: [{prevAddress, value(satoshi)}],
+   *    outputs: [{address, value(satoshi)}, index, script]
    * }
    * eth:
    * {

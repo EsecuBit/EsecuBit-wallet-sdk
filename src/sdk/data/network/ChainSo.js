@@ -103,14 +103,14 @@ export default class ChainSo extends ICoinNetwork {
     for (let input of response.inputs) {
       txInfo.inputs.push({
         prevAddress: input.address,
-        value: D.convertValue(this.coinType, input.value, D.unit.btc.BTC, D.unit.btc.santoshi)
+        value: D.convertValue(this.coinType, input.value, D.unit.btc.BTC, D.unit.btc.satoshi)
       })
     }
     txInfo.outputs = []
     for (let output of response.outputs) {
       txInfo.outputs.push({
         address: output.address,
-        value: D.convertValue(this.coinType, output.value, D.unit.btc.BTC, D.unit.btc.santoshi),
+        value: D.convertValue(this.coinType, output.value, D.unit.btc.BTC, D.unit.btc.satoshi),
         index: output.output_no,
         script: output.script_hex
       })

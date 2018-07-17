@@ -87,16 +87,16 @@ describe('EsWallet', function () {
   it('convertValue', () => {
     D.suppertedCoinTypes().forEach(coinType => {
       if (D.isBtc(coinType)) {
-        esWallet.convertValue(coinType, 123456, D.unit.btc.santoshi, D.unit.btc.BTC).should.equal(0.00123456)
-        esWallet.convertValue(coinType, 123456, D.unit.btc.santoshi, D.unit.btc.mBTC).should.equal(1.23456)
-        esWallet.convertValue(coinType, 123456, D.unit.btc.BTC, D.unit.btc.santoshi).should.equal(12345600000000)
-        esWallet.convertValue(coinType, 123456, D.unit.btc.mBTC, D.unit.btc.santoshi).should.equal(12345600000)
+        esWallet.convertValue(coinType, 123456, D.unit.btc.satoshi, D.unit.btc.BTC).should.equal(0.00123456)
+        esWallet.convertValue(coinType, 123456, D.unit.btc.satoshi, D.unit.btc.mBTC).should.equal(1.23456)
+        esWallet.convertValue(coinType, 123456, D.unit.btc.BTC, D.unit.btc.satoshi).should.equal(12345600000000)
+        esWallet.convertValue(coinType, 123456, D.unit.btc.mBTC, D.unit.btc.satoshi).should.equal(12345600000)
         esWallet.convertValue(coinType, 123456, D.unit.btc.BTC, D.unit.legal.USD)
         esWallet.convertValue(coinType, 123456, D.unit.btc.mBTC, D.unit.legal.CNY)
-        esWallet.convertValue(coinType, 123456, D.unit.btc.santoshi, D.unit.legal.EUR)
+        esWallet.convertValue(coinType, 123456, D.unit.btc.satoshi, D.unit.legal.EUR)
         esWallet.convertValue(coinType, 123456, D.unit.legal.USD, D.unit.btc.BTC)
         esWallet.convertValue(coinType, 123456, D.unit.legal.CNY, D.unit.btc.mBTC)
-        esWallet.convertValue(coinType, 123456, D.unit.legal.EUR, D.unit.btc.santoshi)
+        esWallet.convertValue(coinType, 123456, D.unit.legal.EUR, D.unit.btc.satoshi)
       }
       if (D.isEth(coinType)) {
         esWallet.convertValue(coinType, 123456, D.unit.eth.Ether, D.unit.legal.USD)
