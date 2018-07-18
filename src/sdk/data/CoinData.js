@@ -89,6 +89,23 @@ export default class CoinData {
     this._listeners = this._listeners.filter(listener => listener !== callback)
   }
 
+  getProviders () {
+    let providers = {}
+    D.suppertedCoinTypes().forEach(coin => {
+      providers[coin] = {}
+    })
+    Object.values(this._network).forEach(network => {
+      providers[network.coinType]['network'] = network.provider
+    })
+    Object.values(this._networkFee).forEach(fee => {
+      providers[fee.coinType]['fee'] = fee.provider
+    })
+    Object.values(this._exchange).forEach(exchange => {
+      providers[exchange.coinType]['exchange'] = exchange.provider
+    })
+    return providers
+  }
+
   async newAccount (coinType) {
     let accountIndex = await await this._newAccountIndex(coinType)
     if (accountIndex === -1) throw D.error.lastAccountNoTransaction

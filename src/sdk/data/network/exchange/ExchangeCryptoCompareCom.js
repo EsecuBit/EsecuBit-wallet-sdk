@@ -20,6 +20,7 @@ REQUEST_COINS[D.coin.test.ethRinkeby] = 'ETH'
 
 export default class ExchangeCryptoCompareCom {
   constructor (exchange) {
+    this.provider = 'cryptocompare.com'
     switch (exchange.coinType) {
       case D.coin.main.btc:
       case D.coin.test.btcTestNet3:

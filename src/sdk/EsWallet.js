@@ -205,6 +205,10 @@ export default class EsWallet {
     return this._device.getWalletInfo()
   }
 
+  getProviders () {
+    return this._coinData.getProviders()
+  }
+
   /**
    * convert coin value
    */

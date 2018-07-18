@@ -7,10 +7,15 @@ apiUrls[D.coin.main.eth] = 'https://api.etherscan.io'
 apiUrls[D.coin.test.ethRinkeby] = 'https://api-rinkeby.etherscan.io'
 apiUrls[D.coin.test.ethRopsten] = 'https://api-ropsten.etherscan.io'
 
+let txUrls = {}
+txUrls[D.coin.main.eth] = 'https://etherscan.io/tx/'
+txUrls[D.coin.test.ethRinkeby] = 'https://rinkeby.etherscan.io/tx/'
+txUrls[D.coin.test.ethRopsten] = 'https://ropsten.etherscan.io/tx/'
+
 let urls = {}
-urls[D.coin.main.eth] = 'https://etherscan.io/tx/'
-urls[D.coin.test.ethRinkeby] = 'https://rinkeby.etherscan.io/tx/'
-urls[D.coin.test.ethRopsten] = 'https://ropsten.etherscan.io/tx/'
+urls[D.coin.main.eth] = 'etherscan.io'
+urls[D.coin.test.ethRinkeby] = 'rinkeby.etherscan.io'
+urls[D.coin.test.ethRopsten] = 'ropsten.etherscan.io'
 
 export default class EtherScanIo extends ICoinNetwork {
   constructor (coinType) {
@@ -20,6 +25,8 @@ export default class EtherScanIo extends ICoinNetwork {
 
   async init () {
     this._apiUrl = apiUrls[this.coinType]
+    this._txUrl = txUrls[this.coinType]
+    this.provider = urls[this.coinType]
     if (!this._apiUrl) throw D.error.coinNotSupported
     return super.init()
   }
@@ -51,9 +58,7 @@ export default class EtherScanIo extends ICoinNetwork {
   }
 
   getTxLink (txInfo) {
-    let url = urls[txInfo.coinType]
-    if (!url) throw D.error.coinNotSupported
-    return url + txInfo.txId
+    return this._txUrl + txInfo.txId
   }
 
   async getBlockHeight () {

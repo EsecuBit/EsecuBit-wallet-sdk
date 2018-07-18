@@ -8,6 +8,7 @@ if (D.test.networkRequest) {
 
 export default class FeeBitCoinEarn {
   constructor (fee) {
+    this.provider = 'bitcoinfees.earn.com'
     switch (fee.coinType) {
       case D.coin.main.btc:
       case D.coin.test.btcTestNet3:

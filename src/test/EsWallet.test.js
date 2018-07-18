@@ -20,7 +20,7 @@ describe('EsWallet', function () {
     D.test.coin = true
     D.test.sync = true
     D.test.networkRequest = true
-    D.test.jsWallet = false
+    D.test.jsWallet = true
     esWallet = new EsWallet()
   })
 
@@ -82,6 +82,11 @@ describe('EsWallet', function () {
     let info = await esWallet.getWalletInfo()
     console.log('wallet info', info)
     info.should.not.equal(undefined)
+  })
+
+  it('getProviders', async () => {
+    let providers = await esWallet.getProviders()
+    console.log('providers', providers)
   })
 
   it('convertValue', () => {

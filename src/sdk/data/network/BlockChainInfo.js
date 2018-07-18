@@ -2,8 +2,14 @@
 import ICoinNetwork from './ICoinNetwork'
 import D from '../../D'
 
-const testUrl = 'https://testnet.blockchain.info'
-const mainUrl = 'https://blockchain.info'
+const testApiUrl = 'https://testnet.blockchain.info'
+const mainApiUrl = 'https://blockchain.info'
+
+const testTxUrl = 'https://testnet.blockchain.info/tx/'
+const mainTxUrl = 'https://blockchain.info/tx/'
+
+const testUrl = 'testnet.blockchain.info'
+const mainUrl = 'blockchain.info'
 
 export default class BlockchainInfo extends ICoinNetwork {
   constructor (coinType) {
@@ -16,10 +22,14 @@ export default class BlockchainInfo extends ICoinNetwork {
   async init () {
     switch (this.coinType) {
       case D.coin.main.btc:
-        this._apiUrl = mainUrl
+        this._apiUrl = mainApiUrl
+        this._txUrl = mainTxUrl
+        this.provider = mainUrl
         break
       case D.coin.test.btcTestNet3:
-        this._apiUrl = testUrl
+        this._apiUrl = testApiUrl
+        this._txUrl = testTxUrl
+        this.provider = testUrl
         break
       default:
         throw D.error.coinNotSupported
@@ -62,7 +72,7 @@ export default class BlockchainInfo extends ICoinNetwork {
   }
 
   getTxLink (txInfo) {
-    return [this._apiUrl, 'tx', txInfo.txId].join('/')
+    return this._txUrl + txInfo.txId
   }
 
   async getBlockHeight () {

@@ -8,6 +8,7 @@ if (D.test.networkRequest) {
 
 export default class EthGasStationInfo {
   constructor (fee) {
+    this.provider = 'ethgasstation.info'
     switch (fee.coinType) {
       case D.coin.main.eth:
       case D.coin.test.ethRinkeby:
