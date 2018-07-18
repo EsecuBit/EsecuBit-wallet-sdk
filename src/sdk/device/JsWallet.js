@@ -44,8 +44,9 @@ export default class JsWallet {
   // noinspection JSMethodCanBeStatic
   async getWalletInfo () {
     return [
-      {name: 'COS Version', value: 1},
-      {name: 'Firmware Version', value: 1}]
+      // TODO auto update App version
+      {name: 'app_version', value: '0.0.2'},
+      {name: 'cos_version', value: '20180718'}]
   }
 
   // noinspection JSMethodCanBeStatic
