@@ -48,10 +48,8 @@ export default class IndexedDB extends IDatabase {
          *   coinType: string,
          *   index: 0,
          *   balance: long,
-         *   externalPublicKey: string,
-         *   externalPublicKeyIndex: int, // next external address index
-         *   changePublicKey: string,
-         *   changePublicKeyIndex: int // next change address index
+         *   externalPublicKeyIndex: int, // current external address index
+         *   changePublicKeyIndex: int // current change address index
          * }
          */
         if (!db.objectStoreNames.contains('account')) {
@@ -131,13 +129,12 @@ export default class IndexedDB extends IDatabase {
          *   index: int,
          *   script: string,
          *   value: long (satoshi),
-         *   status: D.utxo.status.unspent / D.SPENT_PENDING / D.utxo.status.spent
+         *   status: D.utxo.status.*
          * }
          */
         if (!db.objectStoreNames.contains('utxo')) {
           let utxo = db.createObjectStore('utxo', {keyPath: ['txId', 'index']})
           utxo.createIndex('accountId', 'accountId', {unique: false})
-          utxo.createIndex('accountId, status', ['accountId', 'status'], {unique: false})
         }
 
         /**
@@ -145,6 +142,7 @@ export default class IndexedDB extends IDatabase {
          * {
          *   coinType: string,
          *   fee: object // (btc: {fast: int, normal: int, ecnomic: int})
+         *   // (eth: {fastest: int, fast: int, normal: int, ecnomic: int})
          * }
          */
         if (!db.objectStoreNames.contains('fee')) {
@@ -155,7 +153,7 @@ export default class IndexedDB extends IDatabase {
          * exchange:
          * {
          *   coinType: string,
-         *   unit: string,
+         *   unit: string, // coin unit
          *   exchange: object // (btc: {USD: float, EUR: float, JPY: float, legal.CNY: float})
          * }
          */
@@ -473,12 +471,7 @@ export default class IndexedDB extends IDatabase {
       }
 
       let request
-      if (filter.accountId && filter.status) {
-        request = this._db.transaction(['utxo'], 'readonly')
-          .objectStore('utxo')
-          .index('accountId, status')
-          .getAll([filter.accountId, filter.status])
-      } else if (filter.accountId) {
+      if (filter.accountId) {
         request = this._db.transaction(['utxo'], 'readonly')
           .objectStore('utxo')
           .index('accountId')

@@ -2,7 +2,6 @@
 import D from '../../D'
 
 export default class IDatabase {
-
   async init () {
     throw D.error.notImplemented
   }

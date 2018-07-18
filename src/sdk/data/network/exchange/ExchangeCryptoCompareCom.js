@@ -86,7 +86,7 @@ export default class ExchangeCryptoCompareCom {
      * "USD": float,
      * "JPY": float,
      * "EUR": float,
-     * "legal.CNY": float,
+     * "CNY": float,
      *}
      */
     let response = await get(url)
