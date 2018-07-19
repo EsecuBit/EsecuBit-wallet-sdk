@@ -34,7 +34,9 @@ export default class CoinData {
   async init (info) {
     try {
       if (this._initialized) return
-      this._db = new IndexedDB(info.walletId)
+      // TODO find better way to inject React Native DB module
+      let DB = ProviderDB || IndexedDB
+      this._db = new DB(info.walletId)
       // db
       await this._db.init()
       // btcNetwork

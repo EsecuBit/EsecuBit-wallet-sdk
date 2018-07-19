@@ -50,7 +50,7 @@ export default class IDatabase {
     throw D.error.notImplemented
   }
 
-  async getUtxos (filter = {}) {
+  async getUtxos (filter) {
     throw D.error.notImplemented
   }
 

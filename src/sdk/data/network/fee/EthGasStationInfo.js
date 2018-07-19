@@ -25,7 +25,7 @@ export default class EthGasStationInfo {
       fee.fee[D.fee.normal] = 2 * 1000000000
       fee.fee[D.fee.economic] = 1000000000
     }
-    this.fee = D.copy(fee) // santonshi per b
+    this.fee = D.copy(fee)
 
     // noinspection JSIgnoredPromiseFromCall
     this.updateFee()
