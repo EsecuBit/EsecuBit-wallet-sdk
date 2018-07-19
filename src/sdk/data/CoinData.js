@@ -192,9 +192,9 @@ export default class CoinData {
   }
 
   async getTxInfos (filter) {
-    let txInfos = await this._db.getTxInfos(filter)
-    txInfos.txInfos.forEach(txInfo => (txInfo.link = this._network[txInfo.coinType].getTxLink(txInfo)))
-    return txInfos
+    let {total, txInfos} = await this._db.getTxInfos(filter)
+    txInfos.forEach(txInfo => (txInfo.link = this._network[txInfo.coinType].getTxLink(txInfo)))
+    return {total, txInfos}
   }
 
   getUtxos (filter) {
