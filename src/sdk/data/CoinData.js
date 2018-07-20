@@ -63,6 +63,10 @@ export default class CoinData {
 
       this._initialized = true
     } catch (e) {
+      // TODO change e from int to Error
+      if (typeof e === 'number') {
+        throw e
+      }
       console.warn(e)
       throw D.error.unknown
     }
