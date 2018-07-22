@@ -1,10 +1,9 @@
 
 import D from './D'
-import JsWallet from './device/JsWallet'
-import CoreWallet from './device/CoreWallet'
 import CoinData from './data/CoinData'
 import BtcAccount from './BtcAccount'
 import EthAccount from './EthAccount'
+import Provider from './Provider'
 
 export default class EsWallet {
   /**
@@ -25,7 +24,7 @@ export default class EsWallet {
     }
     EsWallet.prototype.Instance = this
 
-    this._device = D.test.jsWallet ? new JsWallet() : new CoreWallet()
+    this._device = D.test.jsWallet ? new Provider.SoftWallet() : new Provider.HardWallet()
     this._coinData = new CoinData()
     this._status = D.status.plugOut
     this._callback = null

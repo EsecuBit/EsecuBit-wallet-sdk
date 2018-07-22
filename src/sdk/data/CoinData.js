@@ -1,11 +1,11 @@
 
 import D from '../D'
-import IndexedDB from './database/IndexedDB'
 import BlockChainInfo from './network/BlockChainInfo'
 import FeeBitCoinEarn from './network/fee/FeeBitCoinEarn'
 import ExchangeCryptoCompareCom from './network/exchange/ExchangeCryptoCompareCom'
 import EthGasStationInfo from './network/fee/EthGasStationInfo'
 import EtherScanIo from './network/EtherScanIo'
+import Provider from '../Provider'
 
 export default class CoinData {
   constructor () {
@@ -34,9 +34,7 @@ export default class CoinData {
   async init (info) {
     try {
       if (this._initialized) return
-      // TODO find better way to inject React Native DB module
-      let DB = ProviderDB || IndexedDB
-      this._db = new DB(info.walletId)
+      this._db = new Provider.DB(info.walletId)
       // db
       await this._db.init()
       // btcNetwork
