@@ -84,6 +84,10 @@ export default class HidTransmitter {
     }
   }
 
+  listenPlug (callback) {
+    this._device.listenPlug(callback)
+  }
+
   /**
    * handshake using rsa and 3DES112
    */

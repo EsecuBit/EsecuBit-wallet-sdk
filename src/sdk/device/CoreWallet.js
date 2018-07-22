@@ -44,7 +44,7 @@ export default class CoreWallet {
   }
 
   listenPlug (callback) {
-    this._device.listenPlug(callback)
+    this._transmitter.listenPlug(callback)
   }
 
   async getWalletInfo () {
