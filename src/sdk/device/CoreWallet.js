@@ -1,8 +1,6 @@
 
 import D from '../D'
-import ChromeHidDevice from './ChromeHidDevice'
-import MockDevice from './MockDevice'
-import EsTransmitter from './EsTransmitter'
+import Provider from '../Provider'
 import rlp from 'rlp'
 import BigInteger from 'bigi'
 import bitPony from 'bitpony'
@@ -27,9 +25,7 @@ export default class CoreWallet {
       return CoreWallet.prototype.Instance
     }
     CoreWallet.prototype.Instance = this
-
-    this._device = D.test.mockDevice ? new MockDevice() : new ChromeHidDevice()
-    this._transmitter = new EsTransmitter(this._device)
+    this._transmitter = new Provider.Transmitter()
   }
 
   async init () {

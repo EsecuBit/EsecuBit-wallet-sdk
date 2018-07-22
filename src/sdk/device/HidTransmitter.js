@@ -3,8 +3,8 @@ import D from '../D'
 import MockDevice from './MockDevice'
 import JSEncrypt from './jsencrypt'
 import CryptoJS from 'crypto-js'
+import ChromeHidDevice from './ChromeHidDevice'
 
-const sKeyEncKey = D.toBuffer('78648bd32a96310a80227f759fa7b489')
 const factoryPubKeyPem = '-----BEGIN PUBLIC KEY-----' +
   'MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC3IaEDmGWrsHA5rKC8VB++Gkw/' +
   '9wdhn2j8zR9Zysw50jEKW6Hos54XnlUul7MFhUwCduNWr+Bu1v2aGWn+mz68mIml' +
@@ -75,15 +75,13 @@ let des112 = (isEnc, data, key) => {
 /**
  * Hardware apdu protocol
  */
-export default class EsTransmitter {
-  constructor (device) {
-    this._device = device
+export default class HidTransmitter {
+  constructor () {
+    this._device = D.test.mockDevice ? new MockDevice() : new ChromeHidDevice()
     this._commKey = {
       sKey: null,
       generated: false
     }
-    // TODO later used in bluetooth connection
-    this._extKey = {}
   }
 
   /**
