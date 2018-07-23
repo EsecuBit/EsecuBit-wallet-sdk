@@ -302,11 +302,11 @@ export default class BtcAccount {
       for (let utxo of utxos) {
         newTotal += utxo.value
         willSpentUtxos.push(utxo)
-        if (!sendAll && newTotal > total) {
+        if (!sendAll && newTotal >= total) {
           break
         }
       }
-      if (newTotal <= total) {
+      if (newTotal < total) {
         throw D.error.balanceNotEnough
       }
       return {newTotal, willSpentUtxos}
