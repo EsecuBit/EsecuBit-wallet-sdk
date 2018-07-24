@@ -322,6 +322,7 @@ export default class HidTransmitter {
   _checkSw1Sw2 (sw1sw2) {
     if (sw1sw2 === 0x9000) return
     if (sw1sw2 === 0x6FF8) throw D.error.userCancel
+    if (sw1sw2 === 0x6FF9) throw D.error.operationTimeout
     if ((sw1sw2 & 0xFFF0) === 0x63C0) throw D.error.pinError
     console.warn('sw1sw2 error', sw1sw2.toString(16))
     throw D.error.deviceProtocol

@@ -25,6 +25,7 @@ const D = {
     needPressKey: 107, // sleep after long time idle
     userCancel: 108,
     pinError: 109,
+    operationTimeout: 110,
 
     databaseOpenFailed: 201,
     databaseExecFailed: 202,
