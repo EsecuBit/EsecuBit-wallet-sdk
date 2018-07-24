@@ -109,14 +109,13 @@ export default class ChromeUsbDevice extends IEsDevice {
     }
 
     let send = (data) => {
-      let packageData = new Uint8Array(new Array(64))
-      let intData = new Uint8Array(data)
+      let packageData = Buffer.alloc(64)
 
       packageData[0] = 0x21
       packageData[1] = 0x00
-      packageData[2] = intData.byteLength
-      for (let i = 0; i < intData.byteLength; i++) {
-        packageData[i + 3] = intData[i]
+      packageData[2] = data.length
+      for (let i = 0; i < data.length; i++) {
+        packageData[i + 3] = data[i]
       }
 
       let transferInfo = {
@@ -141,41 +140,8 @@ export default class ChromeUsbDevice extends IEsDevice {
             reject(D.error.deviceComm)
           }
 
-          console.log('send got ' + info.data.byteLength + ' bytes:')
-          console.log(D.toHex(info.data))
+          console.log('sent ' + info.data.byteLength + ' bytes')
           resolve()
-          // for (i = 0; i < 64; i++) {
-          //   package[i] = 0
-          // }
-          // package[0] = 0x21
-          // package[1] = 0xC3
-          // package[2] = 0x00
-          // package[5] = 0x02
-          // package[7] = 0x60
-          // package[28] = 0xB0
-          // package[29] = 0x04
-          //
-          // chrome.usb.controlTransfer(that._connectionHandle, transferInfo, function(info) {
-          //   if (chrome.runtime.lastError) {
-          //     console.warn('send error: ' + chrome.runtime.lastError.message
-          //     + ' resultCode: ' + info? 'undefined' : info.resultCode)
-          //     return
-          //   }
-          //   console.log('Sent to the USB device!', that._connectionHandle)
-          //   if (!info) {
-          //     callback(D.error.unknown)
-          //     return
-          //   }
-          //   if (info.resultCode !== 0) {
-          //     console.warn('send apdu error ', info.resultCode)
-          //     callback(D.error.deviceComm)
-          //     return
-          //   }
-          //
-          //   console.log('send got ' + info.data.byteLength + ' bytes:')
-          //   console.log(toHex(info.data))
-          //   receive(callback)
-          // })
         })
       })
     }
@@ -214,16 +180,16 @@ export default class ChromeUsbDevice extends IEsDevice {
               reject(D.error.deviceComm)
             }
 
-            console.log('receive got ' + info.data.byteLength + ' bytes:')
-            console.log(D.toHex(info.data))
+            let response = Buffer.from(info.data)
+            console.log('receive got ' + response.length + ' bytes:')
+            console.log(response.toString('hex'))
             resolve(info.data)
           })
         })
       }
       while (true) {
         let data = await transfer()
-        let intData = new Uint8Array(data)
-        if (intData[5] === 0x02 && intData[6] === 0x00 && intData[7] === 0x60) {
+        if (data[5] === 0x02 && data[6] === 0x00 && data[7] === 0x60) {
           // busy, keep receiving
           continue
         }

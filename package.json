@@ -1,6 +1,6 @@
 {
   "name": "chrome-excelsecu-wallet",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "SDK for excelsecu device",
   "main": "index.js",
   "directories": {
@@ -56,6 +56,7 @@
     "bigi": "^1.4.2",
     "bitpony": "0.0.1",
     "bs58check": "^2.1.1",
+    "buffer": "^5.1.0",
     "crypto-js": "^3.1.9-1",
     "keccak": "^1.4.0",
     "rlp": "^2.0.0"

@@ -15,7 +15,7 @@ describe('EsWallet', function () {
   //   await indexedDB.clearDatabase()
   // })
 
-  // new EsWallet will trigger heavy work, so make it lazy
+  // new EsWallet may trigger sync, so make it lazy
   it('init', async () => {
     D.test.coin = true
     D.test.sync = true
@@ -67,8 +67,10 @@ describe('EsWallet', function () {
   let availableNewAccountCoinType
   it('availableNewAccountCoinTypes', async () => {
     let availableNewAccountCoinTypes = await esWallet.availableNewAccountCoinTypes()
+    console.log('availableNewAccountCoinTypes', availableNewAccountCoinTypes)
     availableNewAccountCoinTypes.length.should.equal(2)
     availableNewAccountCoinType = availableNewAccountCoinTypes.find(coinType => D.isBtc(coinType))
+    availableNewAccountCoinType.should.not.equal(undefined)
   })
 
   it('newAccountAndDelete', async () => {

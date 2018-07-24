@@ -148,6 +148,7 @@ export default class CoinData {
    * @return index of new account, -1 if unavailable
    */
   async _newAccountIndex (coinType) {
+    if (!coinType) return -1
     let accounts = await this._db.getAccounts({coinType})
 
     // check whether the last spec coinType account has transaction

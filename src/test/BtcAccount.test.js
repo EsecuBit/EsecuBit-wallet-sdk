@@ -13,7 +13,7 @@ describe('BtcAccount', function () {
     console.log(tx)
   })
 
-  // new EsWallet will trigger heavy work, so make it lazy
+  // new EsWallet may trigger sync, so make it lazy
   it('new wallet', async () => {
     D.test.coin = true
     D.test.sync = false

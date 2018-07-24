@@ -109,10 +109,7 @@ const D = {
         if (data.startsWith('0x')) {
           data = data.slice(2)
         }
-        data = D.toBuffer(data)
-      }
-      if (data instanceof ArrayBuffer) {
-        data = Buffer.from(data)
+        data = Buffer.from(data, 'hex')
       }
       return '0x' + createKeccakHash('keccak256').update(data).digest('hex')
     },
@@ -145,14 +142,13 @@ const D = {
     },
 
     /**
-     * convert string type address to ArrayBuffer
+     * convert string type address to Buffer
      */
     toBuffer (address) {
-      // TODO refactor all ArrayBuffer to Buffer
       // TODO throw Error instead of int
       if (address.startsWith('0x')) {
         // eth
-        return D.toBuffer(address.slice(2))
+        return Buffer.from(address.slice(2), 'hex')
       } else {
         // bitcoin
         let buffer
@@ -163,15 +159,15 @@ const D = {
           throw D.error.invalidAddress
         }
         if (buffer.length !== 21) throw D.error.invalidAddress
-        return new Uint8Array(buffer.slice(1)).buffer
+        return buffer.slice(1)
       }
     },
 
     toString (address) {
-      if (address.byteLength === 20) {
+      if (address.length === 20) {
         // eth
         return D.address.toEthChecksumAddress(address)
-      } else if (address.byteLength === 21) {
+      } else if (address.length === 21) {
         // bitcoin
         return base58check.encode(Buffer.from(address))
       } else {
@@ -181,12 +177,12 @@ const D = {
 
     path: {
       /**
-       * convert string type path to ArrayBuffer
+       * convert string type path to Buffer
        */
       toBuffer (path) {
         let level = path.split('/').length
         if (path[0] === 'm') level--
-        let buffer = new Uint8Array(level * 4)
+        let buffer = Buffer.allocUnsafe(level * 4)
         path.split('/').forEach((index, i) => {
           if (i === 0 && index === 'm') return
           let indexInt = 0
@@ -200,7 +196,7 @@ const D = {
           buffer[4 * (i - 1) + 2] = indexInt >> 8
           buffer[4 * (i - 1) + 3] = indexInt
         })
-        return buffer.buffer
+        return buffer
       }
     }
   },
@@ -335,35 +331,11 @@ const D = {
     setTimeout(func, 0)
   },
 
-  toHex (array) {
-    const hexChars = '0123456789abcdef'
-    let hexString = new Array(array.byteLength * 2)
-    let intArray = new Uint8Array(array)
-
-    for (let i = 0; i < intArray.byteLength; i++) {
-      hexString[2 * i] = hexChars.charAt((intArray[i] >> 4) & 0x0f)
-      hexString[2 * i + 1] = hexChars.charAt(intArray[i] & 0x0f)
-    }
-    return hexString.join('')
-  },
-
   getRandomHex (length) {
     let hex = ''
     const possible = '0123456789abcdef'
     for (let i = 0; i < length; i++) hex += possible.charAt(Math.floor(Math.random() * possible.length))
     return hex
-  },
-
-  toBuffer (hex) {
-    hex = hex.replace(/\s+/g, '')
-    const hexChars = '0123456789ABCDEFabcdef'
-    let result = new ArrayBuffer(hex.length / 2)
-    let res = new Uint8Array(result)
-    for (let i = 0; i < hex.length; i += 2) {
-      if (hexChars.indexOf(hex.substring(i, i + 1)) === -1) break
-      res[i / 2] = parseInt(hex.substring(i, i + 2), 16)
-    }
-    return result
   },
 
   isDecimal (num) {
@@ -413,49 +385,6 @@ const D = {
    */
   copy (object) {
     return JSON.parse(JSON.stringify(object))
-  },
-
-  // array buffer operation
-  buffer: {
-    copy (src, srcOffset, dest, destOffset, length) {
-      if (typeof src === 'string') {
-        src = D.toBuffer(src)
-      }
-      if (typeof dest === 'string') {
-        dest = D.toBuffer(dest)
-      }
-      let srcView = src instanceof Uint8Array ? src : new Uint8Array(src)
-      let destView = dest instanceof Uint8Array ? dest : new Uint8Array(dest)
-      length = length || srcView.length - srcOffset
-      srcView.slice(srcOffset, srcOffset + length).map((value, i) => { destView[i + destOffset] = value })
-    },
-
-    concat (a, b) {
-      if (typeof a === 'string') {
-        a = D.toBuffer(a)
-      }
-      if (typeof b === 'string') {
-        b = D.toBuffer(b)
-      }
-      let c = new ArrayBuffer(a.byteLength + b.byteLength)
-      let av = a instanceof Uint8Array ? a : new Uint8Array(a)
-      let bv = b instanceof Uint8Array ? b : new Uint8Array(b)
-      let cv = c instanceof Uint8Array ? c : new Uint8Array(c)
-      cv.set(av, 0)
-      cv.set(bv, av.length)
-      return c
-    },
-
-    slice (src, start, end) {
-      if (typeof src === 'string') {
-        src = D.toBuffer(src)
-      }
-      let srcv = src instanceof Uint8Array ? src : new Uint8Array(src)
-      srcv = srcv.slice(start, end)
-      let ret = new Uint8Array(srcv.length)
-      ret.set(srcv, 0)
-      return ret.buffer
-    }
   },
 
   test: {

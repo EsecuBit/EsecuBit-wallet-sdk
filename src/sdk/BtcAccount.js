@@ -406,7 +406,7 @@ export default class BtcAccount {
       value: totalIn - totalOut,
       status: D.utxo.status.unspent_pending,
       // P2PKH script
-      script: '76a914' + D.toHex(changeAddressBuffer) + '88ac'
+      script: '76a914' + changeAddressBuffer.toString('hex') + '88ac'
     }
     prepareTx.utxos.push(changeUtxo)
 

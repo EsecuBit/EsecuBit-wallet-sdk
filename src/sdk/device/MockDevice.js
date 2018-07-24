@@ -1,22 +1,19 @@
 
 import D from '../D'
 import IEsDevice from './IEsDevice'
+import {Buffer} from 'buffer'
 
 export default class MockDevice extends IEsDevice {
-  constructor () {
-    super()
-    this.currentAddressIndex = 0
-  }
   listenPlug (callback) {
     D.dispatch(() => callback(D.error.succeed, D.status.plugIn))
   }
 
   async sendAndReceive (reportId, apdu) {
-    if (D.toHex(apdu) === '00040084000008') {
-      return D.toBuffer('020304a6cdf151561a61039000000000')
+    if (apdu.toString('hex') === '00040084000008') {
+      return Buffer.from('020304a6cdf151561a61039000000000', 'hex')
     }
-    if (D.toHex(apdu).startsWith('020480334b4e')) {
-      return D.toBuffer(
+    if (apdu.toString('hex').startsWith('020480334b4e')) {
+      return Buffer.from(
         '240B04' +
         // device cert
         'B1D74CE65A02C3C3C64B589EFD87C5016A3B3CB67201D65A257CBA7D9D29FC4F5BE20FB8C50DD36188B213360010457AFE97286B8833AFC62148820DC133B58E14D2FE57F3D6B6C5A46BC9B454A793310FEDDF7557D14743DBFEBB90FBA8F9A7A5CA2500765AB02D5521AC56DDDC419F808197601A4C1A694B5914138A78F358' +
@@ -25,11 +22,11 @@ export default class MockDevice extends IEsDevice {
         // device signature
         '33498BD4DCBAB74E71BFBAA52F604715DA0C0AC3CD02B388B8216FCD0C491E71795DEC0F46E2BBECA00C0F0622816D354855B933FD018E6ADB451F6561EF490927DCE616BB0865A8644EE6B6F2EB36EC8FC5B85B455661614389177E33259AB74BD6143A9B3D9C62786CDA927D68D43C14ADC2ECCE3D2640E81F9E6B62021974' +
         '9000' +
-        '0000000000000000000000')
+        '0000000000000000000000', 'hex')
     }
     // enc apdu
-    if (D.toHex(apdu).startsWith('06048033534d')) {
-      return D.toBuffer('0403044933397EE38DA493E94BE1566CE5CABEB71E73DA65EEB2069000000000')
+    if (apdu.toString('hex').startsWith('06048033534d')) {
+      return Buffer.from('0403044933397EE38DA493E94BE1566CE5CABEB71E73DA65EEB2069000000000', 'hex')
     }
   }
 

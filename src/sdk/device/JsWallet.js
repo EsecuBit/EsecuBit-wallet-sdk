@@ -63,8 +63,8 @@ export default class JsWallet {
         const ECPair = bitcoin.ECPair
         const HDNode = bitcoin.HDNode
         let curve = ecurve.getCurveByName('secp256k1')
-        let Q = ecurve.Point.decodeFrom(curve, Buffer.from(D.toBuffer(pPublicKey.publicKey)))
-        let pChainCode = Buffer.from(D.toBuffer(pPublicKey.chainCode))
+        let Q = ecurve.Point.decodeFrom(curve, Buffer.from(pPublicKey.publicKey, 'hex'))
+        let pChainCode = Buffer.from(pPublicKey.chainCode, 'hex')
         let keyPair = new ECPair(null, Q, {network: this.btcNetwork})
         node = new HDNode(keyPair, pChainCode)
       }
@@ -77,8 +77,8 @@ export default class JsWallet {
 
   async getPublicKey (publicKeyPath, pPublicKey) {
     let node = await this._derive(publicKeyPath, pPublicKey)
-    let publicKey = D.toHex(node.getPublicKeyBuffer())
-    let chainCode = D.toHex(node.chainCode)
+    let publicKey = node.getPublicKeyBuffer().toString('hex')
+    let chainCode = node.chainCode.toString('hex')
     return {publicKey, chainCode}
   }
 
@@ -91,7 +91,7 @@ export default class JsWallet {
     let ethAddress = async () => {
       let node = await this._derive(addressPath)
       let uncompressedPublicKey = node.keyPair.Q.getEncoded(false)
-      let withoutHead = D.toBuffer(D.toHex(uncompressedPublicKey).slice(2))
+      let withoutHead = uncompressedPublicKey.slice(1)
       let hash = D.address.keccak256(withoutHead)
       return '0x' + hash.slice(-40)
     }
@@ -110,13 +110,13 @@ export default class JsWallet {
 
   // noinspection JSMethodCanBeStatic
   async getRandom (length) {
-    D.toBuffer(D.getRandomHex(length * 2))
+    Buffer.from(D.getRandomHex(length * 2), 'hex')
   }
 
   async publicKeyToAddress (publicKey) {
     const ECPair = bitcoin.ECPair
     let curve = ecurve.getCurveByName('secp256k1')
-    let Q = ecurve.Point.decodeFrom(curve, Buffer.from(D.toBuffer(publicKey)))
+    let Q = ecurve.Point.decodeFrom(curve, Buffer.from(publicKey, 'hex'))
     let keyPair = new ECPair(null, Q, {network: this.btcNetwork})
     return keyPair.getAddress()
   }
@@ -285,11 +285,11 @@ export default class JsWallet {
       let rlpUnsignedTx = rlp.encode(unsignedTx)
       let rlpHash = D.address.keccak256(rlpUnsignedTx)
       let node = await this._derive(tx.input.path)
-      let [v, r, s] = sign(Buffer.from(D.toBuffer(rlpHash.slice(2))), node.keyPair.d)
+      let [v, r, s] = sign(Buffer.from(rlpHash.slice(2), 'hex'), node.keyPair.d)
 
       let signedTx = [tx.nonce, tx.gasPrice, tx.startGas, tx.output.address, tx.output.value, tx.data, v, r, s]
 
-      let rawTx = D.toHex(rlp.encode(signedTx)).toLowerCase()
+      let rawTx = rlp.encode(signedTx).toString('hex')``
       let txId = D.address.keccak256(rlp.encode(signedTx))
       return {
         id: txId,

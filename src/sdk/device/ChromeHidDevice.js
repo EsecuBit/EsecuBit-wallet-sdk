@@ -11,6 +11,7 @@
 
 import D from '../D'
 import IEsDevice from './IEsDevice'
+import {Buffer} from 'buffer'
 
 export default class ChromeHidDevice extends IEsDevice {
   constructor () {
@@ -74,10 +75,10 @@ export default class ChromeHidDevice extends IEsDevice {
     }
 
     if (typeof command === 'string') {
-      command = D.toBuffer(command)
+      command = Buffer.from(command, 'hex')
     }
 
-    console.debug('send package', reportId, D.toHex(command))
+    console.debug('send package', reportId, command.toString('hex'))
     return new Promise((resolve, reject) => {
       chrome.hid.sendFeatureReport(this._connectionId, reportId, command, () => {
         if (chrome.runtime.lastError) {
@@ -100,7 +101,8 @@ export default class ChromeHidDevice extends IEsDevice {
           console.warn('receive error: ' + chrome.runtime.lastError.message)
           reject(D.error.deviceComm)
         }
-        console.debug('receive package', D.toHex(data))
+        data = Buffer.from(data)
+        console.debug('receive package', data.toString('hex'))
         resolve(data)
       })
     })

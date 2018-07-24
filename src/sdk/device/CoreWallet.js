@@ -4,9 +4,8 @@ import Provider from '../Provider'
 import rlp from 'rlp'
 import BigInteger from 'bigi'
 import bitPony from 'bitpony'
+import {Buffer} from 'buffer'
 
-let copy = D.buffer.copy
-let slice = D.buffer.slice
 let allEnc = true
 
 // rewrite _containKeys to make empty value available, so we can use it to build presign tx
@@ -31,7 +30,7 @@ export default class CoreWallet {
   async init () {
     let walletId = D.test.coin ? '01' : '00'
     walletId += D.test.jsWallet ? '01' : '00'
-    walletId += D.toHex(D.address.toBuffer(await this.getAddress(D.coin.main.btc, "m/44'/0'/0'/0/0")))
+    walletId += D.address.toBuffer(await this.getAddress(D.coin.main.btc, "m/44'/0'/0'/0/0")).toString('hex')
     return {walletId: walletId}
   }
 
@@ -52,7 +51,7 @@ export default class CoreWallet {
     // TODO auto update sdk version
     return {
       sdk_version: '0.0.2',
-      cos_version: D.toHex(cosVersion)
+      cos_version: cosVersion.toString('hex')
     }
   }
 
@@ -73,17 +72,17 @@ export default class CoreWallet {
     let flag = 0x04
     flag += isShowing ? 0x02 : 0x00
     flag += isStoring ? 0x01 : 0x00
-    let apdu = new Uint8Array(26)
-    copy('803D00001505', 0, apdu, 0)
+    let apdu = Buffer.allocUnsafe(26)
+    Buffer.from('803D00001505', 'hex').copy(apdu)
     apdu[3] = flag
     let pathBuffer = D.address.path.toBuffer(path)
-    copy(pathBuffer, 0, apdu, 6)
+    pathBuffer.copy(apdu, 0x06)
 
-    let response = await this._sendApdu(apdu.buffer)
-    let address = String.fromCharCode.apply(null, new Uint8Array(response))
+    let response = await this._sendApdu(apdu)
+    let address = String.fromCharCode.apply(null, response)
     if (D.isBtc(coinType) && D.test.coin) {
       let addressBuffer = D.address.toBuffer(address)
-      addressBuffer = D.buffer.concat('6F', addressBuffer)
+      addressBuffer = Buffer.concat([Buffer.from('6F', 'hex'), addressBuffer])
       address = D.address.toString(addressBuffer)
     }
     return address
@@ -128,48 +127,48 @@ export default class CoreWallet {
     let sign = async (path, changePath, msg) => {
       // 803D0100 00XXXX C0 u1PathNum pu1Path C1 u1ChangePathNum pu1ChangePath C2 xxxx pu1Msg
       let dataLength =
-        2 + path.byteLength +
-        (changePath ? (2 + changePath.byteLength) : 2) +
-        3 + msg.byteLength
-      let apdu = new Uint8Array(7 + dataLength)
-      copy('803D0100', 0, apdu, 0)
+        2 + path.length +
+        (changePath ? (2 + changePath.length) : 2) +
+        3 + msg.length
+      let apdu = Buffer.allocUnsafe(7 + dataLength)
+      Buffer.from('803D0100', 'hex').copy(apdu)
       let index = 4
       apdu[index++] = dataLength >> 16
       apdu[index++] = dataLength >> 8
       apdu[index++] = dataLength
 
       apdu[index++] = 0xC0
-      apdu[index++] = path.byteLength / 4
-      copy(path, 0, apdu, index)
-      index += path.byteLength
+      apdu[index++] = path.length / 4
+      path.copy(apdu, index)
+      index += path.length
 
       apdu[index++] = 0xC1
-      apdu[index++] = changePath ? (changePath.byteLength / 4) : 0
-      changePath && copy(changePath, 0, apdu, index)
-      index += changePath ? changePath.byteLength : 0
+      apdu[index++] = changePath ? (changePath.length / 4) : 0
+      if (changePath) changePath.copy(apdu, index)
+      index += changePath ? changePath.length : 0
 
       apdu[index++] = 0xC2
-      apdu[index++] = msg.byteLength >> 8
-      apdu[index++] = msg.byteLength
-      copy(msg, 0, apdu, index)
+      apdu[index++] = msg.length >> 8
+      apdu[index++] = msg.length
+      msg.copy(apdu, index)
 
       let response = await this._sendApdu(apdu, true)
-      let r = slice(response, 0, 32)
-      let s = slice(response, 32, 64)
-      let pubKey = slice(response, 64, 128)
-      let v = parseInt(D.toHex(slice(response, 128, 129))) % 2
+      let r = response.slice(0, 32)
+      let s = response.slice(32, 64)
+      let pubKey = response.slice(64, 128)
+      let v = response[128] % 2
 
       let n = new BigInteger('fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141', 16)
       const N_OVER_TWO = n.shiftRight(1)
-      let sInt = BigInteger.fromBuffer(Buffer.from(s))
+      let sInt = BigInteger.fromBuffer(s)
       if (sInt.compareTo(N_OVER_TWO) > 0) {
-        console.debug('s > N/2, s = N/2 - r, old s, v', D.toHex(s), v)
+        console.debug('s > N/2, s = N/2 - r, old s, v', s.toString('hex'), v)
         sInt = n.subtract(sInt)
         let sHex = sInt.toHex()
         sHex = sHex.length % 2 ? ('0' + sHex) : sHex
-        s = D.toBuffer(sHex)
+        s = Buffer.from(sHex, 'hex')
         v = v ? 0 : 1
-        console.debug('new s, v', D.toHex(s), v)
+        console.debug('new s, v', s.toString('hex'), v)
       }
       return {v, r, s, pubKey}
     }
@@ -190,7 +189,7 @@ export default class CoreWallet {
           outputs: tx.outputs.map(output => {
             return {
               amount: output.value,
-              scriptPubKey: '76A914' + D.toHex(D.address.toBuffer(output.address)) + '88AC'
+              scriptPubKey: '76A914' + D.address.toBuffer(output.address).toString('hex') + '88AC'
             }
           }),
           lockTime: 0
@@ -202,20 +201,19 @@ export default class CoreWallet {
         script.inputs.forEach((input, j) => {
           if (i !== j) input.scriptSig = ''
         })
-        let preSignScript = D.toBuffer(bitPony.tx.write(
-          script.version, script.inputs, script.outputs, script.lockTime).toString('hex'))
-        return D.buffer.concat(preSignScript, '01000000')
+        let preSignScript = bitPony.tx.write(
+          script.version, script.inputs, script.outputs, script.lockTime)
+        return Buffer.concat([preSignScript, Buffer.from('01000000', 'hex')])
       }
 
       let makeScriptSig = (r, s, pubKey) => {
         // DER encode
         let scriptSigLength = 0x03 + 0x22 + 0x22 + 0x01 + 0x42
         // s must < N/2, r has no limit
-        let rView = new Uint8Array(r)
-        let upperR = rView[0] >= 0x80
+        let upperR = r[0] >= 0x80
         if (upperR) scriptSigLength++
 
-        let scriptSig = new Uint8Array(scriptSigLength)
+        let scriptSig = Buffer.allocUnsafe(scriptSigLength)
         let index = 0
         let sigLength = 0x22 + 0x22 + (upperR ? 0x01 : 0x00)
         scriptSig[index++] = 0x03 + sigLength
@@ -225,19 +223,19 @@ export default class CoreWallet {
         scriptSig[index++] = 0x02
         scriptSig[index++] = upperR ? 0x21 : 0x20
         if (upperR) scriptSig[index++] = 0x00
-        copy(r, 0, scriptSig, index)
-        index += r.byteLength
+        r.copy(scriptSig, index)
+        index += r.length
         // s
         scriptSig[index++] = 0x02
         scriptSig[index++] = 0x20
-        copy(s, 0, scriptSig, index)
-        index += s.byteLength
+        s.copy(scriptSig, index)
+        index += s.length
         // hashType
         scriptSig[index++] = 0x01
         // pubKey
         scriptSig[index++] = 0x41
         scriptSig[index++] = 0x04 // uncompress type
-        copy(pubKey, 0, scriptSig, index)
+        pubKey.copy(scriptSig, index)
 
         return scriptSig
       }
@@ -253,7 +251,7 @@ export default class CoreWallet {
           let preSignScript = makePreSignScript(i, basicScript)
           let {r, s, pubKey} = await sign(pathBuffer, changePathBuffer, preSignScript)
           let scirptSig = makeScriptSig(r, s, pubKey)
-          signedTx.inputs[i].scriptSig = D.toHex(scirptSig)
+          signedTx.inputs[i].scriptSig = scirptSig.toString('hex')
         })
       })
       await sequence
@@ -275,12 +273,11 @@ export default class CoreWallet {
       // rlp
       let unsignedTx = [tx.nonce, tx.gasPrice, tx.startGas, tx.output.address, tx.output.value, tx.data, chainId, 0, 0]
       let rlpUnsignedTx = rlp.encode(unsignedTx)
-      let rlpBuffer = D.toBuffer(rlpUnsignedTx.toString('hex'))
 
-      let {v, r, s} = await sign(D.address.path.toBuffer(tx.input.path), null, rlpBuffer)
+      let {v, r, s} = await sign(D.address.path.toBuffer(tx.input.path), null, rlpUnsignedTx)
       let signedTx = [tx.nonce, tx.gasPrice, tx.startGas, tx.output.address, tx.output.value, tx.data,
-        35 + chainId * 2 + (v % 2), Buffer.from(r), Buffer.from(s)]
-      let rawTx = D.toHex(rlp.encode(signedTx)).toLowerCase()
+        35 + chainId * 2 + (v % 2), r, s]
+      let rawTx = rlp.encode(signedTx).toString('hex')
       let txId = D.address.keccak256(rlp.encode(signedTx))
       return {
         id: txId,

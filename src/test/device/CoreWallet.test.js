@@ -25,16 +25,16 @@ describe('CoreWallet', function () {
 
   it('getRandom', async () => {
     let response = await coreWallet.getRandom(8)
-    response.byteLength.should.equal(8)
+    response.length.should.equal(8)
   })
 
   it('getRandom by enc apdu', async () => {
     let response = await coreWallet._sendApdu('0084000008', true)
-    response.byteLength.should.equal(8)
+    response.length.should.equal(8)
   })
 
   it('get address by apdu', async () => {
-    let address = await coreWallet._sendApdu('803D000415 05 8000002C 80000000 80000000 00000000 00000000', true)
+    let address = await coreWallet._sendApdu('803D000415058000002C80000000800000000000000000000000', true)
     address = String.fromCharCode.apply(null, new Uint8Array(address))
     D.address.checkBtcAddress(address)
   })
