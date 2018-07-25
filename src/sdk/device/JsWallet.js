@@ -45,7 +45,7 @@ export default class JsWallet {
   async getWalletInfo () {
     // TODO auto update sdk version
     return {
-      sdk_version: '0.0.2',
+      sdk_version: '0.0.3',
       cos_version: '20180718'
     }
   }

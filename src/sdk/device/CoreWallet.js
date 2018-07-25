@@ -50,7 +50,7 @@ export default class CoreWallet {
     let cosVersion = await this._getCosVersion()
     // TODO auto update sdk version
     return {
-      sdk_version: '0.0.2',
+      sdk_version: '0.0.3',
       cos_version: cosVersion.toString('hex')
     }
   }
