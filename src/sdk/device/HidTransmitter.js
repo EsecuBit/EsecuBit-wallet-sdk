@@ -385,7 +385,7 @@ export default class HidTransmitter {
       let pack = Buffer.alloc(reportSize - 0x01)
       pack[0x00] = padNum
       pack[0x01] = 0x04 // opCode
-      pack.fill(apdu, 0x02)
+      apdu.copy(pack, 0x02)
       return {reportId, pack}
     }
 
