@@ -77,10 +77,21 @@ export default class HidTransmitter {
       sKey: null,
       generated: false
     }
+
+    this._plugListener = () => {}
+    this._device.listenPlug((error, status) => {
+      if (status === D.status.plugOut) {
+        this._commKey = {
+          sKey: null,
+          generated: false
+        }
+      }
+      D.dispatch(() => this._plugListener(error, status))
+    })
   }
 
   listenPlug (callback) {
-    this._device.listenPlug(callback)
+    if (callback) this._plugListener = callback
   }
 
   /**
