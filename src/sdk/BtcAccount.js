@@ -201,7 +201,7 @@ export default class BtcAccount {
       let nextIndex = maxIndex + 1
 
       sync ? index += 20 : index += 1
-      nextIndex = nextIndex > index + 20 ? index + 20 : nextIndex
+      nextIndex = (nextIndex > index + 20) ? index + 20 : nextIndex
       if (index > nextIndex) {
         console.log(this.accountId, 'generating', type, 'addressInfos, from', nextIndex, 'to', index)
       }

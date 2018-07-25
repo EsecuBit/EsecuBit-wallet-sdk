@@ -165,7 +165,7 @@ export default class CoreWallet {
         console.debug('s > N/2, s = N/2 - r, old s, v', s.toString('hex'), v)
         sInt = n.subtract(sInt)
         let sHex = sInt.toHex()
-        sHex = sHex.length % 2 ? ('0' + sHex) : sHex
+        sHex = (sHex.length % 2) ? ('0' + sHex) : sHex
         s = Buffer.from(sHex, 'hex')
         v = v ? 0 : 1
         console.debug('new s, v', s.toString('hex'), v)

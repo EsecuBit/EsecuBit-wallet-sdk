@@ -360,7 +360,7 @@ export default class HidTransmitter {
           reportSize &= ~0x3F
           reportSize += 0x40
         }
-        reportId = 0x22 + reportSize >> 0x06
+        reportId = 0x22 + (reportSize >> 0x06)
         reportSize += 0x110
       } else if (reportSize <= 0x410) {
         reportSize -= 0x210
@@ -368,7 +368,7 @@ export default class HidTransmitter {
           reportSize &= ~0x7F
           reportSize += 0x80
         }
-        reportId = 0x26 + reportSize >> 0x07
+        reportId = 0x26 + (reportSize >> 0x07)
         reportSize += 0x210
       } else {
         reportSize -= 0x410
@@ -376,7 +376,7 @@ export default class HidTransmitter {
           reportSize &= ~0xFF
           reportSize += 0x100
         }
-        reportId = 0x2A + reportSize >> 0x08
+        reportId = 0x2A + (reportSize >> 0x08)
         reportSize += 0x410
       }
 
