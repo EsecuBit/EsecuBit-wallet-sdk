@@ -16,6 +16,7 @@ export default class BtcAccount {
     this._device = device
     this._coinData = coinData
     this._listenedTxs = []
+    this._listenedAddresses = []
 
     this._txListener = async (error, txInfo) => {
       if (error !== D.error.succeed) {
@@ -68,8 +69,12 @@ export default class BtcAccount {
     }
 
     if (firstSync) {
-      let listenAddressInfos = this._getAddressInfos(0, this.externalPublicKeyIndex + 1, D.address.external)
-      if (listenAddressInfos.length !== 0) this._coinData.listenAddresses(this.coinType, listenAddressInfos, this._addressListener)
+      // won't listen old addresses any more, they may be so much
+      // let listenedAddressInfos = this._getAddressInfos(0, this.externalPublicKeyIndex + 1, D.address.external)
+      // if (listenedAddressInfos.length !== 0) {
+      //   this._listenedAddresses = listenedAddressInfos.map(addressInfo => addressInfo.address)
+      //   this._coinData.listenAddresses(this.coinType, listenedAddressInfos, this._addressListener)
+      // }
 
       this.txInfos.filter(txInfo => txInfo.confirmations < D.tx.getMatureConfirms(this.coinType))
         .filter(txInfo => !this._listenedTxs.includes(txInfo.txId))
@@ -251,6 +256,14 @@ export default class BtcAccount {
   async getAddress () {
     let address = await this._device.getAddress(this.coinType,
       D.makeBip44Path(this.coinType, this.index, D.address.external, this.externalPublicKeyIndex), true)
+
+    let listenAddressInfo = this._getAddressInfos(
+      this.externalPublicKeyIndex, this.externalPublicKeyIndex + 1, D.address.external)[0]
+    if (!this._listenedAddresses.includes(listenAddressInfo.address)) {
+      this._listenedAddresses.push(listenAddressInfo.address)
+      this._coinData.listenAddresses(this.coinType, [listenAddressInfo], this._addressListener)
+    }
+
     let prefix = ''
     return {address: address, qrAddress: prefix + address}
   }

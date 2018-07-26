@@ -136,9 +136,8 @@ export default class ICoinNetwork {
         blockHeightRequestPeriod = 60
         txIncludedRequestPeriod = 30
       } else if (D.isEth(this.coinType)) {
-        blockHeightRequestPeriod = 10
-        // eth is quick enough that not need tx included request
-        txIncludedRequestPeriod = Number.MAX_SAFE_INTEGER
+        blockHeightRequestPeriod = 30
+        txIncludedRequestPeriod = 10
       }
     }
     return {blockHeightRequestPeriod, txIncludedRequestPeriod}
