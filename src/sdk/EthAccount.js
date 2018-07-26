@@ -131,7 +131,9 @@ export default class EthAccount {
     }
     this.addressInfos.find(a => a.address === addressInfo.address).txs = D.copy(addressInfo.txs)
 
-    let newBalance = BigInteger.ZERO
+    // can't use BigInteger.ZERO here, addTo, subTo will modify the value of BigInteger.ZERO
+    let newBalance = new BigInteger()
+    newBalance.fromInt(0)
     this.txInfos.forEach(txInfo => {
       new BigInteger(txInfo.value).addTo(newBalance, newBalance)
       if (txInfo.direction === D.tx.direction.out) {

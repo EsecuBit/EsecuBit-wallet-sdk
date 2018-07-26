@@ -83,12 +83,12 @@ export default class JsWallet {
   }
 
   async getAddress (coinType, addressPath) {
-    let btcAddress = async () => {
+    let btcAddress = async (addressPath) => {
       let node = await this._derive(addressPath)
       return node.getAddress()
     }
 
-    let ethAddress = async () => {
+    let ethAddress = async (addressPath) => {
       let node = await this._derive(addressPath)
       let uncompressedPublicKey = node.keyPair.Q.getEncoded(false)
       let withoutHead = uncompressedPublicKey.slice(1)
@@ -96,16 +96,21 @@ export default class JsWallet {
       return '0x' + hash.slice(-40)
     }
 
+    let address
     switch (coinType) {
       case D.coin.main.btc:
       case D.coin.test.btcTestNet3:
-        return btcAddress()
+        address = await btcAddress(addressPath)
+        break
       case D.coin.main.eth:
       case D.coin.test.ethRinkeby:
-        return ethAddress()
+        address = await ethAddress(addressPath)
+        break
       default:
         throw D.error.coinNotSupported
     }
+    console.debug('path, address', addressPath, address)
+    return address
   }
 
   // noinspection JSMethodCanBeStatic

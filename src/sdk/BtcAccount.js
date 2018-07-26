@@ -193,6 +193,7 @@ export default class BtcAccount {
    * @private
    */
   async _checkAddressIndexAndGenerateNew (sync = false) {
+    const maxAddressIndexLength = 20
     let checkAndGenerate = async (type) => {
       let isExternal = type === D.address.external
       let index = isExternal ? this.externalPublicKeyIndex : this.changePublicKeyIndex
@@ -200,8 +201,8 @@ export default class BtcAccount {
         .reduce((max, addressInfo) => Math.max(max, addressInfo.index), -1)
       let nextIndex = maxIndex + 1
 
-      sync ? index += 20 : index += 1
-      nextIndex = (nextIndex > index + 20) ? index + 20 : nextIndex
+      sync ? index += maxAddressIndexLength : index += 1
+      nextIndex = (nextIndex > index + maxAddressIndexLength) ? index + maxAddressIndexLength : nextIndex
       if (index > nextIndex) {
         console.log(this.accountId, 'generating', type, 'addressInfos, from', nextIndex, 'to', index)
       }

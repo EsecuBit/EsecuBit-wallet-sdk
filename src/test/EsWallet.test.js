@@ -6,7 +6,6 @@ import IndexedDB from '../sdk/data/database/IndexedDB'
 
 chai.should()
 describe('EsWallet', function () {
-  this.timeout(100000)
   let esWallet = null
 
   // it('clearDatabase', async () => {
@@ -34,7 +33,8 @@ describe('EsWallet', function () {
     supportedLegalCurrency.should.deep.equal([D.unit.legal.USD, D.unit.legal.EUR, D.unit.legal.CNY, D.unit.legal.JPY])
   })
 
-  it('listenStatus', (done) => {
+  it('listenStatus', function (done) {
+    this.timeout(200000)
     const statusList = [D.status.plugIn, D.status.initializing, D.status.syncing, D.status.syncFinish]
     let currentStatusIndex = 0
 
