@@ -7,11 +7,13 @@ chai.should()
 describe('EthAccount', function () {
   this.timeout(60000)
   let esWallet
+  let suppertedCoinTypes
 
   it('init', async () => {
-    D.test.sync = false
     D.test.coin = true
-    D.test.jsWallet = true
+    D.test.jsWallet = false
+    suppertedCoinTypes = D.suppertedCoinTypes
+    D.suppertedCoinTypes = () => [D.coin.test.ethRinkeby]
     esWallet = new EsWallet()
   })
 
@@ -49,7 +51,7 @@ describe('EthAccount', function () {
     account = ethAccount
     account.txInfos.length.should.above(0)
     account.addressInfos.length.should.above(0)
-    account.balance.should.above(0)
+    Number(account.balance).should.above(0)
   })
 
   it('getTxInfos', async () => {
@@ -66,17 +68,18 @@ describe('EthAccount', function () {
       tx.direction.should.be.oneOf([D.tx.direction.in, D.tx.direction.out])
       tx.inputs.should.lengthOf(1)
       tx.outputs.should.lengthOf(1)
-      tx.value.should.be.a('number')
+      Number(tx.value).should.be.a('number')
+      Number(tx.fee).should.be.a('number')
       tx.link.should.equal('https://rinkeby.etherscan.io/tx/' + tx.txId)
       tx.inputs.forEach(input => {
         input.prevAddress.should.be.a('string')
         input.isMine.should.be.a('boolean')
-        input.value.should.above(0)
+        Number(input.value).should.above(0)
       })
       tx.outputs.forEach(output => {
         output.address.should.be.a('string')
         output.isMine.should.be.a('boolean')
-        output.value.should.above(0)
+        Number(output.value).should.above(0)
       })
     })
   })
@@ -175,13 +178,15 @@ describe('EthAccount', function () {
   it('sendTx', async () => {
     for (let nonce = 0; nonce < 1; nonce++) {
       let prepareTx = await account.prepareTx({
-        feeRate: 1000000000,
-        outputs: [{address: '0x5c69f6b7a38ca89d5dd48a7f21be5f1030760891', value: 3200000000000}]
+        feeRate: '1000000000',
+        outputs: [{address: '0x5c69f6b7a38ca89d5dd48a7f21be5f1030760891', value: '3200000000000'}]
       })
-      console.log('prepareTx', prepareTx)
       let signedTx = await account.buildTx(prepareTx)
-      console.log('signedTx', signedTx)
       // await account.sendTx(signedTx)
     }
+  })
+
+  it('recover', async () => {
+    D.suppertedCoinTypes = suppertedCoinTypes
   })
 })

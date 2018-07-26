@@ -268,21 +268,21 @@ export default class BtcAccount {
    * @param details
    * {
    *   sendAll: bool,
-   *   feeRate: long (satoshi),
+   *   feeRate: number (satoshi),
    *   outputs: [{
    *     address: base58 string,
-   *     value: long (satoshi)
+   *     value: number (satoshi)
    *   }]
    * }
    * @returns {Promise<prepareTx>}
    * {
-   *   total: long (satoshi)
-   *   fee: long (satoshi)
-   *   feeRate: long (satoshi),
+   *   total: number (satoshi)
+   *   fee: number (satoshi)
+   *   feeRate: number (satoshi),
    *   utxos: utxo array,
    *   outputs: [{
    *     address: base58 string,
-   *     value: long (satoshi)
+   *     value: number (satoshi)
    *   }]
    * }
    */
@@ -376,6 +376,7 @@ export default class BtcAccount {
       time: new Date().getTime(),
       direction: D.tx.direction.out,
       value: prepareTx.total,
+      showAddresses: prepareTx.outputs.map(output => output.address),
       inputs: prepareTx.utxos.map(utxo => {
         return {
           prevAddress: utxo.address,

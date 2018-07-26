@@ -164,6 +164,10 @@ export default class HidTransmitter {
         return Buffer.concat([prefix, publicKey, Buffer.from('0203010001', 'hex')])
       }
 
+      if (response.length - modLen < 0) {
+        console.warn('handshake apdu response length invalid, length: ', response.length)
+        throw D.error.handShake
+      }
       let recvNoSign = Buffer.allocUnsafe(response.length - modLen)
       response.copy(recvNoSign, 0, 0, response.length - modLen)
       let factoryKey = new JSEncrypt()
@@ -285,7 +289,12 @@ export default class HidTransmitter {
     try {
       console.log('send apdu', apdu.toString('hex'), 'isEnc', isEnc)
       if (isEnc) {
+        // 1. some other program may try to send command to device
+        // 2. in some limit situation, device is not stable yet
+        // try up to 3 times
         await this._doHandShake()
+          .catch(() => this._doHandShake())
+          .catch(() => this._doHandShake())
         apdu = makeEncApdu(apdu)
         console.debug('send enc apdu', apdu.toString('hex'))
       }

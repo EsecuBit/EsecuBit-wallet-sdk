@@ -289,7 +289,7 @@ export default class JsWallet {
 
       let signedTx = [tx.nonce, tx.gasPrice, tx.startGas, tx.output.address, tx.output.value, tx.data, v, r, s]
 
-      let rawTx = rlp.encode(signedTx).toString('hex')``
+      let rawTx = rlp.encode(signedTx).toString('hex')
       let txId = D.address.keccak256(rlp.encode(signedTx))
       return {
         id: txId,

@@ -51,13 +51,13 @@ export default class CoreWallet {
     // TODO auto update sdk version
     return {
       sdk_version: '0.0.3',
-      cos_version: cosVersion.toString('hex')
+      cos_version: cosVersion
     }
   }
 
   // noinspection JSMethodCanBeStatic
   _getCosVersion () {
-    return this._sendApdu('803300000ABD080000000000000000')
+    return this._sendApdu('803300000ABD080000000000000000').toString('hex')
   }
 
   async verifyPin () {
@@ -158,7 +158,7 @@ export default class CoreWallet {
       let pubKey = response.slice(64, 128)
       let v = response[128] % 2
 
-      let n = new BigInteger('fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141', 16)
+      let n = BigInteger.fromHex('fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141')
       const N_OVER_TWO = n.shiftRight(1)
       let sInt = BigInteger.fromBuffer(s)
       if (sInt.compareTo(N_OVER_TWO) > 0) {

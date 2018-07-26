@@ -1,5 +1,6 @@
 
 import D from '../../D'
+import BigInteger from "bigi";
 
 const typeAddress = 'address'
 const typeTx = 'tx'
@@ -227,10 +228,14 @@ export default class ICoinNetwork {
   generateAddressTasks (addressInfos) {
     let checkNewTx = async (response, addressInfo) => {
       let newTransaction = async (addressInfo, tx) => {
-        let fee = 0
+
+        let fee
         if (D.isEth(this.coinType)) {
-          fee = tx.gas * tx.gasPrice
+          let gas = new BigInteger(tx.gas)
+          let gasPrice = new BigInteger(tx.gasPrice)
+          fee = gas.multiply(gasPrice).toString(10)
         } else {
+          fee = 0
           fee += tx.inputs.reduce((sum, input) => sum + input.value, 0)
           fee -= tx.outputs.reduce((sum, output) => sum + output.value, 0)
         }

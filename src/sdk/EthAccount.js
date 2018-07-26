@@ -1,5 +1,6 @@
 
 import D from './D'
+import BigInteger from 'bigi'
 
 export default class EthAccount {
   constructor (info, device, coinData) {
@@ -113,9 +114,8 @@ export default class EthAccount {
     let input = txInfo.inputs.find(input => input.isMine)
     txInfo.direction = input ? D.tx.direction.out : D.tx.direction.in
 
-    txInfo.value = 0
-    txInfo.value -= txInfo.inputs.reduce((sum, input) => sum + input.isMine ? input.value : 0, 0)
-    txInfo.value += txInfo.outputs.reduce((sum, output) => sum + output.isMine ? output.value : 0, 0)
+    txInfo.value = txInfo.inputs[0].value
+    if (txInfo.direction === D.tx.direction.out) txInfo.value = '-' + input.value
 
     txInfo.showAddresses = txInfo.direction === D.tx.direction.in
       ? txInfo.inputs.filter(inputs => !inputs.isMine).map(inputs => inputs.prevAddress)
@@ -130,8 +130,15 @@ export default class EthAccount {
       this.txInfos[index] = txInfo
     }
     this.addressInfos.find(a => a.address === addressInfo.address).txs = D.copy(addressInfo.txs)
-    this.balance = this.txInfos.reduce((sum, txInfo) =>
-      sum + txInfo.value - (txInfo.direction === D.tx.direction.out ? txInfo.fee : 0), 0)
+
+    let newBalance = BigInteger.ZERO
+    this.txInfos.forEach(txInfo => {
+      new BigInteger(txInfo.value).addTo(newBalance, newBalance)
+      if (txInfo.direction === D.tx.direction.out) {
+        new BigInteger(txInfo.fee).subTo(newBalance, newBalance)
+      }
+    })
+    this.balance = newBalance.toString(10)
 
     await this._coinData.newTx(this._toAccountInfo(), addressInfo, txInfo, [])
 
@@ -182,29 +189,33 @@ export default class EthAccount {
    * @param details
    * {
    *   sendAll: bool,
-   *   feeRate: number (Wei),
+   *   feeRate: string (decimal string Wei),
    *   outputs: [{    // only the first output will be used
    *     address: hex string,
-   *     value: number (Wei)
+   *     value: string (decimal string Wei)
    *   }]
    *   data: hex string (optional)
    * }
-   * @returns {Promise<{total: *, fee: number, gasPrice: number, startGas: number, nonce: *, input: *, outputs: *, data: string}>}
+   * @returns {Promise<{total: *, fee: number, gasPrice: string, startGas: string, nonce: number, input: *, outputs: *, data: string}>}
    * {
-   *   total: number (Wei)
-   *   fee: number (Wei)
-   *   gasPrice: number (Wei)
-   *   startGas: number (Wei)
-   *   nonce: number
+   *   total: string (decimal string Wei)
+   *   fee: string (decimal string Wei)
+   *   gasPrice: string (decimal string Wei)
+   *   startGas: string (decimal string Wei)
+   *   nonce: string
    *   intput: addressInfo
-   *   output: {
+   *   outputs: [{
    *     address: hex string,
-   *     value: number (Wei)
-   *   }
+   *     value: string (decimal string Wei)
+   *   }]
    *   data: hex string
    * }
    */
   async prepareTx (details) {
+    let feeRate = new BigInteger(details.feeRate)
+    let output = D.copy(details.outputs[0])
+    let value = new BigInteger(output.value)
+
     if (!D.isEth(this.coinType)) throw D.error.coinNotSupported
     if (D.isDecimal(details.feeRate)) throw D.error.valueIsDecimal
     details.outputs.forEach(output => {
@@ -214,7 +225,7 @@ export default class EthAccount {
 
     let estimateGas = (details) => {
       if (!details.data) {
-        return 21000
+        return new BigInteger('21000')
       }
       throw D.error.notImplemented
     }
@@ -222,30 +233,34 @@ export default class EthAccount {
     // TODO later support data
     let input = this.addressInfos[0]
     let startGas = estimateGas(details)
-    let gasPrice = details.feeRate
+    let gasPrice = feeRate
     let nonce = this.txInfos.filter(txInfo => txInfo.direction === D.tx.direction.out).length
-    let fee = startGas * gasPrice
+    let fee = startGas.multiply(gasPrice)
 
+    let balance = new BigInteger(this.balance)
     let total
     // noinspection JSUnresolvedVariable
     if (details.sendAll) {
-      total = this.balance
-      details.outputs[0].value = this.balance - fee
-      if (details.outputs[0].value < 0) throw D.error.balanceNotEnough
+      if (balance.compareTo(fee) < 0) throw D.error.balanceNotEnough
+      total = balance
+      value = total.subtract(fee)
+      output.value = value.toString(10)
     } else {
-      total = fee + details.outputs[0].value
-      if (total > this.balance) throw D.error.balanceNotEnough
+      total = value.add(fee)
+      if (total.compareTo(balance) > 0) throw D.error.balanceNotEnough
     }
 
+    let data = details.data ? details.data : ''
+    if (!data.startsWith('0x')) data = '0x' + data
     let prepareTx = {
       total: total,
-      fee: fee,
-      gasPrice: gasPrice,
-      startGas: startGas,
+      fee: fee.toString(10),
+      gasPrice: gasPrice.toString(10),
+      startGas: startGas.toString(10),
       nonce: nonce,
       input: D.copy(input),
-      outputs: D.copy(details.outputs),
-      data: details.data ? details.data : '0x'
+      outputs: D.copy([output]),
+      data: data
     }
     console.log('prepareTx', prepareTx)
     return prepareTx
@@ -258,15 +273,20 @@ export default class EthAccount {
    * @see prepareTx
    */
   async buildTx (prepareTx) {
-    let output = prepareTx.outputs[0]
-    let signedTx = await this._device.signTransaction(this.coinType, {
+    let output = D.copy(prepareTx.outputs[0])
+    let gasPrice = '0x' + new BigInteger(prepareTx.gasPrice).toString(16)
+    let startGas = '0x' + new BigInteger(prepareTx.startGas).toString(16)
+    let value = '0x' + new BigInteger(output.value).toString(16)
+    let preSignTx = {
       input: {address: prepareTx.input.address, path: prepareTx.input.path},
-      output: {address: output.address, value: output.value},
+      output: {address: output.address, value: value},
       nonce: prepareTx.nonce,
-      gasPrice: prepareTx.gasPrice,
-      startGas: prepareTx.startGas,
+      gasPrice: gasPrice,
+      startGas: startGas,
       data: prepareTx.data
-    })
+    }
+    console.log('preSignTx', preSignTx)
+    let signedTx = await this._device.signTransaction(this.coinType, preSignTx)
     return {
       txInfo: {
         accountId: this.accountId,
@@ -276,6 +296,7 @@ export default class EthAccount {
         confirmations: -1,
         time: new Date().getTime(),
         direction: D.tx.direction.out,
+        showAddresses: [output.address],
         inputs: [{
           prevAddress: prepareTx.input.address,
           isMine: true,
@@ -296,7 +317,7 @@ export default class EthAccount {
   /**
    * broadcast transaction to btcNetwork
    * @param signedTx
-   * @param test won't broadcast to btcNetwork if true
+   * @param test won't broadcast to ethNetwork if true
    * @see signedTx
    */
   async sendTx (signedTx, test = false) {

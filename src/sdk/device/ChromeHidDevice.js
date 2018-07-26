@@ -35,7 +35,7 @@ export default class ChromeHidDevice extends IEsDevice {
         }
 
         this._connectionId = connection.connectionId
-        console.log('Connected to the USB device!', this._deviceId, this._connectionId)
+        console.log('Connected to the HID device!', this._deviceId, this._connectionId)
         this._listener && D.dispatch(() => this._listener(D.error.succeed, D.status.plugIn))
       })
     }

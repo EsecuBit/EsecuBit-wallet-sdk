@@ -1,6 +1,7 @@
 
 import D from '../../D'
 import ICoinNetwork from './ICoinNetwork'
+import BigInteger from 'bigi'
 
 let apiUrls = {}
 apiUrls[D.coin.main.eth] = 'https://api.etherscan.io'
@@ -90,23 +91,24 @@ export default class EtherScanIo extends ICoinNetwork {
     let confirmations = Number(rTx.confirmations) || (this._blockHeight - blockNumber + 1)
     // confirmations < 0 means this._blockHeight is not the newest. In this case confirmations is at least 1
     confirmations = confirmations < 0 ? 1 : confirmations
+
+    let value = new BigInteger(rTx.value)
     let tx = {
       txId: rTx.hash,
-      blockNumber: Number(rTx.blockNumber),
+      blockNumber: blockNumber,
       confirmations: confirmations,
-      time: Number(rTx.timeStamp) * 1000,
-      gas: Number(rTx.gas),
-      gasPrice: Number(rTx.gasPrice),
-      fee: Number(rTx.gas) * Number(rTx.gasPrice),
+      time: rTx.timeStamp * 1000,
+      gas: rTx.gas,
+      gasPrice: rTx.gasPrice,
       hasDetails: true
     }
     tx.inputs = [{
       prevAddress: rTx.from,
-      value: Number(rTx.value)
+      value: value.toString(10)
     }]
     tx.outputs = [{
       address: rTx.to,
-      value: Number(rTx.value)
+      value: value.toString(10)
     }]
     return tx
   }
