@@ -268,10 +268,10 @@ export default class BtcAccount {
    * @param details
    * {
    *   sendAll: bool,
-   *   feeRate: number (satoshi),
+   *   feeRate: string (satoshi),
    *   outputs: [{
    *     address: base58 string,
-   *     value: number (satoshi)
+   *     value: string (satoshi)
    *   }]
    * }
    * @returns {Promise<prepareTx>}
@@ -287,6 +287,12 @@ export default class BtcAccount {
    * }
    */
   async prepareTx (details) {
+    details = D.copy(details)
+    details.feeRate = Number(details.feeRate)
+    details.outputs.forEach(output => {
+      output.value = Number(output.value)
+    })
+
     if (!D.isBtc(this.coinType)) throw D.error.coinNotSupported
     if (D.isDecimal(details.feeRate)) throw D.error.valueIsDecimal
     details.outputs.forEach(output => {
