@@ -251,15 +251,15 @@ export default class CoinData {
     } else if (fromLegal) {
       let exchange = this._exchange[coinType].getCurrentExchange()
       let rRate = exchange.exchange[fromType]
-      let unitValue = D.convertValue(coinType, value, toType, exchange.unit)
-      return rRate && (unitValue / rRate)
+      let unitValue = Number(D.convertValue(coinType, value, toType, exchange.unit))
+      return (rRate && (unitValue / rRate)).toString()
     } else if (toLegal) {
       let exchange = this._exchange[coinType].getCurrentExchange()
       let rate = exchange.exchange[toType]
-      let unitValue = D.convertValue(coinType, value, fromType, exchange.unit)
-      return unitValue * rate
+      let unitValue = Number(D.convertValue(coinType, value, fromType, exchange.unit))
+      return (unitValue * rate).toString()
     } else {
-      return D.convertValue(coinType, value, fromType, toType)
+      return D.convertValue(coinType, value, fromType, toType).toString()
     }
   }
 

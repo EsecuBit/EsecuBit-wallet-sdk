@@ -2,6 +2,7 @@
 import bitPony from 'bitpony'
 import base58check from 'bs58check'
 import createKeccakHash from 'keccak'
+import {BigDecimal} from 'bigdecimal'
 
 const D = {
   // wallet status
@@ -283,6 +284,7 @@ const D = {
 
   convertValue (coinType, value, fromType, toType) {
     let convertBtc = (value, fromType, toType) => {
+      value = Number(value)
       let satoshi
       switch (fromType) {
         case D.unit.btc.BTC: { satoshi = value * 100000000; break }
@@ -295,22 +297,37 @@ const D = {
         case D.unit.btc.mBTC: return Number(satoshi / 100000)
         case D.unit.btc.satoshi: return Number(satoshi)
       }
+      return 0
     }
     let convertEth = (value, fromType, toType) => {
+      value = value.toString()
+      let mul = (a, b) => {
+        a = new BigDecimal(a)
+        b = new BigDecimal(b)
+        let result = a.multiply(b).toPlainString()
+        if (result.includes('.')) {
+          let index = result.length - 1
+          while (result[index] === '0') index--
+          if (result[index] === '.') index--
+          result = result.slice(0, index + 1)
+        }
+        return result
+      }
       let wei
       switch (fromType) {
         case D.unit.eth.ETH:
-        case D.unit.eth.Ether: { wei = value * 1000000000000000000; break }
-        case D.unit.eth.GWei: { wei = value * 1000000000; break }
+        case D.unit.eth.Ether: { wei = mul(value, '1000000000000000000'); break }
+        case D.unit.eth.GWei: { wei = mul(value, '1000000000'); break }
         case D.unit.eth.Wei: { wei = value; break }
         default: throw D.error.unknown
       }
       switch (toType) {
         case D.unit.eth.ETH:
-        case D.unit.eth.Ether: return Number(wei / 1000000000000000000)
-        case D.unit.eth.GWei: return Number(wei / 1000000000)
-        case D.unit.eth.Wei: return Number(wei)
+        case D.unit.eth.Ether: return mul(wei, '0.000000000000000001')
+        case D.unit.eth.GWei: return mul(wei, '0.000000001')
+        case D.unit.eth.Wei: return wei
       }
+      return '0'
     }
     switch (coinType) {
       case D.coin.main.btc:

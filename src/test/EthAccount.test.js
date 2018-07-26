@@ -11,7 +11,7 @@ describe('EthAccount', function () {
 
   it('init', async () => {
     D.test.coin = true
-    D.test.jsWallet = false
+    D.test.jsWallet = true
     suppertedCoinTypes = D.suppertedCoinTypes
     D.suppertedCoinTypes = () => [D.coin.test.ethRinkeby]
     esWallet = new EsWallet()
