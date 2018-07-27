@@ -8,7 +8,7 @@ export default class BtcAccount {
       this.label = info.label
       this.coinType = info.coinType
       this.index = info.index
-      this.balance = info.balance
+      this.balance = Number(info.balance)
       this.externalPublicKeyIndex = info.externalPublicKeyIndex
       this.changePublicKeyIndex = info.changePublicKeyIndex
     }
@@ -122,6 +122,8 @@ export default class BtcAccount {
     txInfo.value = 0
     txInfo.value -= txInfo.inputs.reduce((sum, input) => sum + (input.isMine ? input.value : 0), 0)
     txInfo.value += txInfo.outputs.reduce((sum, output) => sum + (output.isMine ? output.value : 0), 0)
+    txInfo.value = txInfo.value.toString()
+
     let input = txInfo.inputs.find(input => input.isMine)
     txInfo.direction = input ? D.tx.direction.out : D.tx.direction.in
     txInfo.showAddresses = txInfo.direction === D.tx.direction.in
@@ -242,7 +244,7 @@ export default class BtcAccount {
       label: this.label,
       coinType: this.coinType,
       index: this.index,
-      balance: this.balance,
+      balance: this.balance.toString(),
       externalPublicKeyIndex: this.externalPublicKeyIndex,
       changePublicKeyIndex: this.changePublicKeyIndex
     }
@@ -424,7 +426,7 @@ export default class BtcAccount {
       path: changeAddressInfo.path,
       txId: txInfo.txId,
       index: txInfo.outputs.length - 1,
-      value: totalIn - totalOut,
+      value: (totalIn - totalOut).toString(),
       status: D.utxo.status.unspent_pending,
       // P2PKH script
       script: '76a914' + changeAddressBuffer.toString('hex') + '88ac'

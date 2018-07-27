@@ -72,7 +72,7 @@ export default class IndexedDB extends IDatabase {
          *   direction: D.tx.direction.in / D.tx.direction.out,
          *   inputs: [{prevAddress, prevOutIndex, index, value, isMine}, ...]
          *   outputs: [{address, index, value, isMine}, ...]
-         *   value: number (satoshi) // value that shows the account balance changes, calculated by inputs and outputs
+         *   value: string (decimal string satoshi) // value that shows the account balance changes, calculated by inputs and outputs
          * }
          *
          * eth：
