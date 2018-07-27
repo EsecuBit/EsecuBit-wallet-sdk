@@ -47,7 +47,8 @@ export default class IndexedDB extends IDatabase {
          *   label: string,
          *   coinType: string,
          *   index: 0,
-         *   balance: string,
+         *   balance: string, // (decimal string satoshi)
+         *   fee: string, // (decimal string satoshi, fee = outputs - inputs)
          *   externalPublicKeyIndex: int, // current external address index
          *   changePublicKeyIndex: int // current change address index
          * }

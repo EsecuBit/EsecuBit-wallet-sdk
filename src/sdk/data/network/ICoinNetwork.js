@@ -237,6 +237,7 @@ export default class ICoinNetwork {
           fee = 0
           fee += tx.inputs.reduce((sum, input) => sum + input.value, 0)
           fee -= tx.outputs.reduce((sum, output) => sum + output.value, 0)
+          fee = fee.toString()
         }
 
         let txInfo = {
