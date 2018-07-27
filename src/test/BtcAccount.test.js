@@ -56,7 +56,7 @@ describe('BtcAccount', function () {
     account.utxos.length.should.above(0)
     account.addressInfos.length.should.above(0)
     account.txInfos.length.should.above(0)
-    account.balance.should.above(0)
+    Number(account.balance).should.above(0)
   })
 
   it('getTxInfos', async () => {
@@ -74,7 +74,7 @@ describe('BtcAccount', function () {
       tx.direction.should.be.oneOf([D.tx.direction.in, D.tx.direction.out])
       tx.inputs.should.lengthOf.above(0)
       tx.outputs.should.lengthOf.above(0)
-      tx.value.should.not.equal(0)
+      Number(tx.value).should.not.equal(0)
       tx.inputs.forEach(input => {
         input.prevAddress.should.be.a('string')
         input.isMine.should.be.a('boolean')

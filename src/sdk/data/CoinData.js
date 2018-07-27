@@ -135,7 +135,7 @@ export default class CoinData {
       label: 'Account#' + (accountIndex + 1),
       coinType: coinType,
       index: accountIndex,
-      balance: 0,
+      balance: '0',
       externalPublicKeyIndex: 0,
       changePublicKeyIndex: 0
     }
@@ -265,6 +265,7 @@ export default class CoinData {
 
   /*
    * Test data when test.data = true
+   * @deprecated
    */
   async _initTestDbData (account) {
     console.log('test.data add test txInfo')
