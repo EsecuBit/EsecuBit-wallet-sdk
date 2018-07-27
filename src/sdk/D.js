@@ -49,7 +49,16 @@ const D = {
 
     notImplemented: 10000,
     unknown: 10001,
-    coinNotSupported: 10002
+    coinNotSupported: 10002,
+
+    checkSw1Sw2 (sw1sw2) {
+      console.warn('sw1sw2 error', sw1sw2.toString(16))
+      if (sw1sw2 === 0x9000) return D.error.succeed
+      if (sw1sw2 === 0x6FF8) return D.error.userCancel
+      if (sw1sw2 === 0x6FF9) return D.error.operationTimeout
+      if ((sw1sw2 & 0xFFF0) === 0x63C0) return D.error.pinError
+      return D.error.deviceProtocol
+    }
   },
 
   coin: {
