@@ -250,12 +250,12 @@ export default class CoinData {
       throw D.error.coinNotSupported
     } else if (fromLegal) {
       let exchange = this._exchange[coinType].getCurrentExchange()
-      let rRate = exchange.exchange[fromType]
+      let rRate = Number(exchange.exchange[fromType])
       let unitValue = Number(D.convertValue(coinType, value, toType, exchange.unit))
       return (rRate && (unitValue / rRate)).toString()
     } else if (toLegal) {
       let exchange = this._exchange[coinType].getCurrentExchange()
-      let rate = exchange.exchange[toType]
+      let rate = Number(exchange.exchange[toType])
       let unitValue = Number(D.convertValue(coinType, value, fromType, exchange.unit))
       return (unitValue * rate).toString()
     } else {
@@ -267,59 +267,7 @@ export default class CoinData {
    * Test data when test.data = true
    * @deprecated
    */
-  async _initTestDbData (account) {
-    console.log('test.data add test txInfo')
-    account.balance = 32000000
-    let accountId = account.accountId
-    // TODO update data
-    await Promise.all([
-      this._db.saveOrUpdateTxInfo(
-        {
-          accountId: accountId,
-          coinType: D.coin.main.btc,
-          txId: '574e073f66897c203a172e7bf65df39e99b11eec4a2b722312d6175a1f8d00c3',
-          address: '1Lhyvw28ERxYJRjAYgntWazfmZmyfFkgqw',
-          direction: D.tx.direction.in,
-          time: 1524138384000,
-          outIndex: 0,
-          script: '76a91499bc78ba577a95a11f1a344d4d2ae55f2f857b9888ac',
-          value: 84000000,
-          hasDetails: false
-        }),
-
-      this._db.saveOrUpdateTxInfo(
-        {
-          accountId: accountId,
-          coinType: D.coin.main.btc,
-          txId: '574e073f66897c203a172e7bf65df39e99b11eec4a2b722312d6175a1f8d00c4',
-          address: '3PfcrxHzT6WuNo7tcqmAdLKn6EvgXCCSiQ',
-          direction: D.tx.direction.out,
-          time: 1524138384000,
-          value: 18000000,
-          hasDetails: false
-        }),
-
-      this._db.saveOrUpdateTxInfo(
-        {
-          accountId: accountId,
-          coinType: D.coin.main.btc,
-          txId: '574e073f66897c203a172e7bf65df39e99b11eec4a2b722312d6175a1f8d00c5',
-          address: '14F7iCA4FsPEYj67Jpme2puVmwAT6VoVEU',
-          direction: D.tx.direction.out,
-          time: 1524138384000,
-          value: 34000000,
-          hasDetails: false
-        }),
-
-      this._db.saveOrUpdateAddressInfo(
-        {
-          address: '14F7iCA4FsPEYj67Jpme2puVmwAT6VoVEU',
-          accountId: accountId,
-          coinType: D.coin.main.btc,
-          path: [0x80000000, 0x8000002C, 0x80000000, 0x00000000, 0x00000000],
-          type: D.address.external,
-          txIds: []
-        })
-    ])
+  async _initTestDbData () {
+    console.log('D.test.data add test txInfo')
   }
 }

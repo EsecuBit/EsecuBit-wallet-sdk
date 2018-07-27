@@ -17,9 +17,9 @@ export default class FeeBitCoinEarn {
 
     if (!fee.fee) {
       fee.fee = {}
-      fee.fee[D.fee.fast] = 100
-      fee.fee[D.fee.normal] = 50
-      fee.fee[D.fee.economic] = 20
+      fee.fee[D.fee.fast] = '100'
+      fee.fee[D.fee.normal] = '50'
+      fee.fee[D.fee.economic] = '20'
     }
     this.fee = D.copy(fee) // santonshi per b
 
@@ -74,9 +74,9 @@ export default class FeeBitCoinEarn {
      */
     let response = await get(url)
     let fee = D.copy(this.fee)
-    fee.fee[D.fee.fast] = response.fastestFee
-    fee.fee[D.fee.normal] = response.halfHourFee
-    fee.fee[D.fee.economic] = response.hourFee
+    fee.fee[D.fee.fast] = response.fastestFee.toString()
+    fee.fee[D.fee.normal] = response.halfHourFee.toString()
+    fee.fee[D.fee.economic] = response.hourFee.toString()
     console.debug('update fee succeed', 'old fee', this.fee, 'new fee', fee)
     this.fee = D.copy(fee)
     this.onUpdateFee(fee)

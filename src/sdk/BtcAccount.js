@@ -8,7 +8,7 @@ export default class BtcAccount {
       this.label = info.label
       this.coinType = info.coinType
       this.index = info.index
-      this.balance = Number(info.balance)
+      this.balance = info.balance
       this.externalPublicKeyIndex = info.externalPublicKeyIndex
       this.changePublicKeyIndex = info.changePublicKeyIndex
     }
@@ -158,6 +158,7 @@ export default class BtcAccount {
     this.balance = this.utxos
       .filter(utxo => utxo.status === D.utxo.status.unspent || utxo.status === D.utxo.status.unspent_pending)
       .reduce((sum, utxo) => sum + utxo.value, 0)
+      .toString()
 
     // update and addressIndex and listen new address
     let newIndex = addressInfo.index + 1
@@ -244,7 +245,7 @@ export default class BtcAccount {
       label: this.label,
       coinType: this.coinType,
       index: this.index,
-      balance: this.balance.toString(),
+      balance: this.balance,
       externalPublicKeyIndex: this.externalPublicKeyIndex,
       changePublicKeyIndex: this.changePublicKeyIndex
     }
@@ -342,7 +343,7 @@ export default class BtcAccount {
     // calculate the fee using uncompressed public key size
     let calculateFee = (utxos, outputs) => (utxos.length * 180 + 34 * outputs.length + 34 + 10) * details.feeRate
     while (true) {
-      if (this.balance < fee + totalOut) throw D.error.balanceNotEnough
+      if (Number(this.balance) < fee + totalOut) throw D.error.balanceNotEnough
       // noinspection JSUnresolvedVariable
       let {newTotal, willSpentUtxos} = getEnoughUtxo(totalOut + fee, details.sendAll)
       // new fee calculated
