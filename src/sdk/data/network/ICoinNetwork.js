@@ -1,6 +1,6 @@
 
 import D from '../../D'
-import BigInteger from "bigi";
+import BigInteger from 'bigi'
 
 const typeAddress = 'address'
 const typeTx = 'tx'
@@ -128,8 +128,7 @@ export default class ICoinNetwork {
         txIncludedRequestPeriod = 10
       } else if (D.isEth(this.coinType)) {
         blockHeightRequestPeriod = 10
-        // eth is quick enough that not need tx included request
-        txIncludedRequestPeriod = Number.MAX_SAFE_INTEGER
+        txIncludedRequestPeriod = 5
       }
     } else {
       if (D.isBtc(this.coinType)) {

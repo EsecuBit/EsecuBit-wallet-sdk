@@ -2,9 +2,6 @@
 import D from '../../../D'
 
 let UPDATE_DURATION = 10 * 60 * 1000
-if (D.test.networkRequest) {
-  UPDATE_DURATION = 60 * 1000
-}
 
 const UNITS = {}
 UNITS[D.coin.main.btc] = D.unit.btc.BTC

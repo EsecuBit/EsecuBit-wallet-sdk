@@ -408,7 +408,6 @@ const D = {
   test: {
     coin: false,
     data: false,
-    networkRequest: false,
     jsWallet: false,
     sync: false,
     mockDevice: false,
