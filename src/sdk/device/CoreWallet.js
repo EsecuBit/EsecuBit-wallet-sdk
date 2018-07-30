@@ -56,8 +56,8 @@ export default class CoreWallet {
   }
 
   // noinspection JSMethodCanBeStatic
-  _getCosVersion () {
-    return this._sendApdu('803300000ABD080000000000000000').toString('hex')
+  async _getCosVersion () {
+    return (await this._sendApdu('803300000ABD080000000000000000')).toString('hex')
   }
 
   async verifyPin () {
