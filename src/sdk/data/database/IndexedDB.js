@@ -6,12 +6,6 @@ const DB_VERSION = 6
 export default class IndexedDB extends IDatabase {
   constructor (walletId) {
     super()
-    if (IndexedDB.pool[walletId]) {
-      console.log('return exists instance', IndexedDB.pool[walletId])
-      return IndexedDB.pool[walletId]
-    }
-    IndexedDB.pool[walletId] = this
-
     this._db = null
     this._walletId = walletId
     this._finished = true
@@ -609,4 +603,3 @@ export default class IndexedDB extends IDatabase {
     })
   }
 }
-IndexedDB.pool = {}
