@@ -135,9 +135,9 @@ export default class EthAccount {
     let newBalance = new BigInteger()
     newBalance.fromInt(0)
     this.txInfos.forEach(txInfo => {
-      new BigInteger(txInfo.value).addTo(newBalance, newBalance)
+      newBalance.addTo(new BigInteger(txInfo.value), newBalance)
       if (txInfo.direction === D.tx.direction.out) {
-        new BigInteger(txInfo.fee).subTo(newBalance, newBalance)
+        newBalance.subTo(new BigInteger(txInfo.fee), newBalance)
       }
     })
     this.balance = newBalance.toString(10)
