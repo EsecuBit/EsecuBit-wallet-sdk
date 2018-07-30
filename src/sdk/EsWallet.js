@@ -68,6 +68,7 @@ export default class EsWallet {
 
   async _init () {
     let info = await this._device.init()
+    console.log('walletInfo', info)
     await this._coinData.init(info)
     this._esAccounts = (await this._coinData.getAccounts()).map(account => {
       if (D.isEth(account.coinType)) {
