@@ -55,6 +55,8 @@ export default class BlockchainInfo extends ICoinNetwork {
               reject(D.error.networkTxNotFound)
             } else if (response.includes('min relay fee not met')) {
               reject(D.error.networkFeeTooSmall)
+            } else if (response.includes('Too many pending transactions')) {
+              reject(D.error.networkTooManyPendingTx)
             } else {
               console.warn('BlockChainInfo get', xmlhttp)
               reject(D.error.networkProviderError)

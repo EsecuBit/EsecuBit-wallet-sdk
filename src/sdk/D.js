@@ -39,6 +39,7 @@ const D = {
     networkProviderError: 403,
     networkTxNotFound: 404,
     networkFeeTooSmall: 405,
+    networkTooManyPendingTx: 406,
 
     balanceNotEnough: 501,
 
