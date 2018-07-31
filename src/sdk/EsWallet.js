@@ -11,7 +11,7 @@ export default class EsWallet {
    * @returns {*[]}
    */
   static supportedCoinTypes () {
-    return D.suppertedCoinTypes()
+    return D.supportedCoinTypes()
   }
 
   static suppertedLegals () {
@@ -194,7 +194,7 @@ export default class EsWallet {
 
   async availableNewAccountCoinTypes () {
     let availables = []
-    for (let coinType of D.suppertedCoinTypes()) {
+    for (let coinType of D.supportedCoinTypes()) {
       if ((await this._coinData._newAccountIndex(coinType)) >= 0) {
         availables.push(coinType)
       }

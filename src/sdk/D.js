@@ -285,47 +285,48 @@ const D = {
     return Object.values(this.unit.legal)
   },
 
-  suppertedCoinTypes () {
+  supportedCoinTypes () {
     return D.test.coin
       ? [D.coin.test.btcTestNet3, D.coin.test.ethRinkeby]
       : [D.coin.main.btc, D.coin.main.eth]
   },
 
   recoverCoinTypes () {
-    return D.suppertedCoinTypes()
+    return D.supportedCoinTypes()
   },
 
   convertValue (coinType, value, fromType, toType) {
+    let mul = (a, b) => {
+      a = new BigDecimal(a)
+      b = new BigDecimal(b)
+      let result = a.multiply(b).toPlainString()
+      if (result.includes('.')) {
+        let index = result.length - 1
+        while (result[index] === '0') index--
+        if (result[index] === '.') index--
+        result = result.slice(0, index + 1)
+      }
+      return result
+    }
+
     let convertBtc = (value, fromType, toType) => {
-      value = Number(value)
+      value = value.toString()
       let satoshi
       switch (fromType) {
-        case D.unit.btc.BTC: { satoshi = value * 100000000; break }
-        case D.unit.btc.mBTC: { satoshi = value * 100000; break }
+        case D.unit.btc.BTC: { satoshi = mul(value, '100000000'); break }
+        case D.unit.btc.mBTC: { satoshi = mul(value, '100000'); break }
         case D.unit.btc.satoshi: { satoshi = value; break }
         default: throw D.error.unknown
       }
       switch (toType) {
-        case D.unit.btc.BTC: return Number(satoshi / 100000000)
-        case D.unit.btc.mBTC: return Number(satoshi / 100000)
-        case D.unit.btc.satoshi: return Number(satoshi)
+        case D.unit.btc.BTC: return mul(satoshi, '0.00000001')
+        case D.unit.btc.mBTC: return mul(satoshi, '0.00001')
+        case D.unit.btc.satoshi: return satoshi
       }
       return 0
     }
     let convertEth = (value, fromType, toType) => {
       value = value.toString()
-      let mul = (a, b) => {
-        a = new BigDecimal(a)
-        b = new BigDecimal(b)
-        let result = a.multiply(b).toPlainString()
-        if (result.includes('.')) {
-          let index = result.length - 1
-          while (result[index] === '0') index--
-          if (result[index] === '.') index--
-          result = result.slice(0, index + 1)
-        }
-        return result
-      }
       let wei
       switch (fromType) {
         case D.unit.eth.ETH:

@@ -91,7 +91,7 @@ describe('EsWallet', function () {
   })
 
   it('convertValue', () => {
-    D.suppertedCoinTypes().forEach(coinType => {
+    D.supportedCoinTypes().forEach(coinType => {
       if (D.isBtc(coinType)) {
         esWallet.convertValue(coinType, '123456', D.unit.btc.satoshi, D.unit.btc.BTC).should.equal('0.00123456')
         esWallet.convertValue(coinType, '123456', D.unit.btc.satoshi, D.unit.btc.mBTC).should.equal('1.23456')

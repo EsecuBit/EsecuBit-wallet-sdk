@@ -291,16 +291,18 @@ export default class BtcAccount {
    * }
    */
   async prepareTx (details) {
-    details = D.copy(details)
-    details.feeRate = Number(details.feeRate)
-    details.outputs.forEach(output => {
-      output.value = Number(output.value)
-    })
+    console.log('prepareTx details', details)
 
     if (!D.isBtc(this.coinType)) throw D.error.coinNotSupported
     if (D.isDecimal(details.feeRate)) throw D.error.valueIsDecimal
     details.outputs.forEach(output => {
       if (D.isDecimal(output.value)) throw D.error.valueIsDecimal
+    })
+
+    details = D.copy(details)
+    details.feeRate = Number(details.feeRate)
+    details.outputs.forEach(output => {
+      output.value = Number(output.value)
     })
 
     let utxos = this.utxos

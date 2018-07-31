@@ -7,13 +7,13 @@ chai.should()
 describe('EthAccount', function () {
   this.timeout(60000)
   let esWallet
-  let suppertedCoinTypes
+  let supportedCoinTypes
 
   it('init', async () => {
     D.test.coin = true
     D.test.jsWallet = true
-    suppertedCoinTypes = D.suppertedCoinTypes
-    D.suppertedCoinTypes = () => [D.coin.test.ethRinkeby]
+    supportedCoinTypes = D.supportedCoinTypes
+    D.supportedCoinTypes = () => [D.coin.test.ethRinkeby]
     esWallet = new EsWallet()
   })
 
@@ -187,6 +187,6 @@ describe('EthAccount', function () {
   })
 
   it('recover', async () => {
-    D.suppertedCoinTypes = suppertedCoinTypes
+    D.supportedCoinTypes = supportedCoinTypes
   })
 })

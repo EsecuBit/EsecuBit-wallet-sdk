@@ -16,7 +16,7 @@ export default class CoinData {
 
     this._initialized = false
 
-    const coinTypes = D.suppertedCoinTypes()
+    const coinTypes = D.supportedCoinTypes()
     this._network = coinTypes.reduce((obj, coinType) => {
       if (D.isBtc(coinType)) {
         obj[coinType] = new BlockChainInfo(coinType)
@@ -96,7 +96,7 @@ export default class CoinData {
 
   getProviders () {
     let providers = {}
-    D.suppertedCoinTypes().forEach(coin => {
+    D.supportedCoinTypes().forEach(coin => {
       providers[coin] = {}
     })
     Object.values(this._network).forEach(network => {
@@ -237,7 +237,7 @@ export default class CoinData {
   }
 
   getSuggestedFee (coinType) {
-    if (!D.suppertedCoinTypes().includes(coinType)) {
+    if (!D.supportedCoinTypes().includes(coinType)) {
       throw D.error.coinNotSupported
     }
     return this._networkFee[coinType].getCurrentFee()
