@@ -417,22 +417,25 @@ export default class BtcAccount {
     }
 
     // change utxo spent status from unspent to spent pending
-    prepareTx.utxos.forEach(utxo => { utxo.status = D.utxo.status.spent_pending })
-    let changeOutput = txInfo.outputs[txInfo.outputs.length - 1]
-    let changeAddressBuffer = D.address.toBuffer(changeAddressInfo.address)
-    let changeUtxo = {
-      accountId: this.accountId,
-      coinType: this.coinType,
-      address: changeOutput.address,
-      path: changeAddressInfo.path,
-      txId: txInfo.txId,
-      index: txInfo.outputs.length - 1,
-      value: totalIn - totalOut - prepareTx.fee,
-      status: D.utxo.status.unspent_pending,
-      // P2PKH script
-      script: '76a914' + changeAddressBuffer.toString('hex') + '88ac'
+    let changeValue = totalIn - totalOut - prepareTx.fee
+    if (changeValue !== 0) {
+      prepareTx.utxos.forEach(utxo => { utxo.status = D.utxo.status.spent_pending })
+      let changeOutput = txInfo.outputs[txInfo.outputs.length - 1]
+      let changeAddressBuffer = D.address.toBuffer(changeAddressInfo.address)
+      let changeUtxo = {
+        accountId: this.accountId,
+        coinType: this.coinType,
+        address: changeOutput.address,
+        path: changeAddressInfo.path,
+        txId: txInfo.txId,
+        index: txInfo.outputs.length - 1,
+        value: totalIn - totalOut - prepareTx.fee,
+        status: D.utxo.status.unspent_pending,
+        // P2PKH script
+        script: '76a914' + changeAddressBuffer.toString('hex') + '88ac'
+      }
+      prepareTx.utxos.push(changeUtxo)
     }
-    prepareTx.utxos.push(changeUtxo)
 
     return {txInfo: txInfo, utxos: prepareTx.utxos, hex: signedTx.hex}
   }
