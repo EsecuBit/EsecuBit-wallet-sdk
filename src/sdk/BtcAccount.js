@@ -62,7 +62,6 @@ export default class BtcAccount {
       // find out all the transactions
       let blobs = await this._coinData.checkAddresses(this.coinType, checkAddressInfos)
       let responses = await Promise.all(blobs.map(blob => this._handleNewTx(blob.addressInfo, blob.txInfo, blob.utxos, true)))
-      responses = responses.reduce((array, item) => array.concat(item), [])
       if (responses.length === 0) break
       // noinspection JSUnresolvedVariable
       checkAddressInfos = responses.reduce((array, response) => array.concat(response.newAddressInfos), [])
@@ -181,19 +180,7 @@ export default class BtcAccount {
     }
     this.busy = false
 
-    // find out changeAddreses for this tx
-    let relativeAddresses = [].concat(
-      txInfo.inputs.filter(input => input.isMine).map(input => input.prevAddress),
-      txInfo.outputs.filter(input => input.isMine).map(output => output.address))
-    let changeAddresses = this.addressInfos
-      .filter(a => a.type === D.address.change)
-      .filter(a => !a.txs.includes(txInfo.txId))
-      .filter(a => relativeAddresses.find(address => a.address === address))
-    changeAddresses.forEach(a => a.txs.push(txInfo.txId))
-    let changeResponses = await Promise.all(changeAddresses.map(a => this._handleNewTx(a, txInfo, utxos, true)))
-    changeResponses = changeResponses.reduce((array, item) => array.concat(item), [])
-
-    return [{addressInfo, txInfo, utxos, newAddressInfos}].concat(changeResponses)
+    return {addressInfo, txInfo, utxos, newAddressInfos}
   }
 
   /**
@@ -378,7 +365,7 @@ export default class BtcAccount {
 
     let changeAddressInfo = this.addressInfos.find(addressInfo => {
       return addressInfo.type === D.address.change &&
-      addressInfo.index === this.changePublicKeyIndex
+        addressInfo.index === this.changePublicKeyIndex
     })
     let value = totalIn - prepareTx.total
     let rawTx = {
@@ -416,10 +403,11 @@ export default class BtcAccount {
       })
     }
 
-    // change utxo spent status from unspent to spent pending
+    // update utxo spent status from unspent to spent pending
+    prepareTx.utxos.forEach(utxo => { utxo.status = D.utxo.status.spent_pending })
+
     let changeValue = totalIn - totalOut - prepareTx.fee
     if (changeValue !== 0) {
-      prepareTx.utxos.forEach(utxo => { utxo.status = D.utxo.status.spent_pending })
       let changeOutput = txInfo.outputs[txInfo.outputs.length - 1]
       let changeAddressBuffer = D.address.toBuffer(changeAddressInfo.address)
       let changeUtxo = {
