@@ -71,6 +71,7 @@ export default class CoinData {
   }
 
   async release () {
+    this._initialized = false
     this._listeners = []
     await Promise.all(Object.values(this._network).map(network => network.release()))
     if (this._db) await this._db.release()
