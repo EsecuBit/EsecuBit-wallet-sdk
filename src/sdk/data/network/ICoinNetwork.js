@@ -226,7 +226,6 @@ export default class ICoinNetwork {
   generateAddressTasks (addressInfos) {
     let checkNewTx = async (response, addressInfo) => {
       let newTransaction = async (addressInfo, tx) => {
-
         let fee
         if (D.isEth(this.coinType)) {
           let gas = new BigInteger(tx.gas)

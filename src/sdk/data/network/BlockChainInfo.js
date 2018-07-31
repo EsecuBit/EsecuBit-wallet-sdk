@@ -50,17 +50,8 @@ export default class BlockchainInfo extends ICoinNetwork {
               resolve({response: xmlhttp.responseText})
             }
           } else if (xmlhttp.status === 500) {
-            let response = xmlhttp.responseText
-            if (response === 'Transaction not found') {
-              reject(D.error.networkTxNotFound)
-            } else if (response.includes('min relay fee not met')) {
-              reject(D.error.networkFeeTooSmall)
-            } else if (response.includes('Too many pending transactions')) {
-              reject(D.error.networkTooManyPendingTx)
-            } else {
-              console.warn('BlockChainInfo get', xmlhttp)
-              reject(D.error.networkProviderError)
-            }
+            console.warn('BlockChainInfo get', xmlhttp)
+            reject(D.error.networkProviderError)
           } else {
             console.warn(url, xmlhttp)
             reject(D.error.networkUnavailable)
@@ -70,6 +61,42 @@ export default class BlockchainInfo extends ICoinNetwork {
       xmlhttp.open('GET', url, true)
       xmlhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded')
       xmlhttp.send()
+    })
+  }
+
+  post (url, args) {
+    console.debug('post', url, args)
+    return new Promise((resolve, reject) => {
+      const xmlhttp = new XMLHttpRequest()
+      xmlhttp.onreadystatechange = () => {
+        if (xmlhttp.readyState === 4) {
+          if (xmlhttp.status === 200) {
+            try {
+              resolve(JSON.parse(xmlhttp.responseText))
+            } catch (e) {
+              resolve({response: xmlhttp.responseText})
+            }
+          } else if (xmlhttp.status === 500) {
+            console.warn('BlockChainInfo post', xmlhttp)
+            let response = xmlhttp.responseText
+            if (response === 'Transaction not found') {
+              reject(D.error.networkTxNotFound)
+            } else if (response.includes('min relay fee not met')) {
+              reject(D.error.networkFeeTooSmall)
+            } else if (response.includes('Too many pending transactions')) {
+              reject(D.error.networkTooManyPendingTx)
+            } else {
+              reject(D.error.networkProviderError)
+            }
+          } else {
+            console.warn(url, xmlhttp)
+            reject(D.error.networkUnavailable)
+          }
+        }
+      }
+      xmlhttp.open('POST', url, true)
+      xmlhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded')
+      xmlhttp.send(args)
     })
   }
 
