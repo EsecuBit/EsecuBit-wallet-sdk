@@ -429,7 +429,7 @@ export default class BtcAccount {
         path: changeAddressInfo.path,
         txId: txInfo.txId,
         index: txInfo.outputs.length - 1,
-        value: totalIn - totalOut - prepareTx.fee,
+        value: changeValue,
         status: D.utxo.status.unspent_pending,
         // P2PKH script
         script: '76a914' + changeAddressBuffer.toString('hex') + '88ac'
