@@ -80,7 +80,7 @@ export default class ChromeHidDevice extends IEsDevice {
 
     console.debug('send package', reportId, command.toString('hex'))
     return new Promise((resolve, reject) => {
-      chrome.hid.sendFeatureReport(this._connectionId, reportId, command, () => {
+      chrome.hid.sendFeatureReport(this._connectionId, reportId, command.buffer, () => {
         if (chrome.runtime.lastError) {
           console.warn('hid send error: ' + chrome.runtime.lastError.message)
           reject(D.error.deviceComm)
