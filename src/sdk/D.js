@@ -316,7 +316,9 @@ const D = {
         case D.unit.btc.BTC: { satoshi = mul(value, '100000000'); break }
         case D.unit.btc.mBTC: { satoshi = mul(value, '100000'); break }
         case D.unit.btc.satoshi: { satoshi = value; break }
-        default: throw D.error.unknown
+        default:
+          console.warn('convertBtc fromType unit incorrect', fromType)
+          throw D.error.unknown
       }
       switch (toType) {
         case D.unit.btc.BTC: return mul(satoshi, '0.00000001')
@@ -333,7 +335,9 @@ const D = {
         case D.unit.eth.Ether: { wei = mul(value, '1000000000000000000'); break }
         case D.unit.eth.GWei: { wei = mul(value, '1000000000'); break }
         case D.unit.eth.Wei: { wei = value; break }
-        default: throw D.error.unknown
+        default:
+          console.warn('convertEth fromType unit incorrect', fromType)
+          throw D.error.unknown
       }
       switch (toType) {
         case D.unit.eth.ETH:
