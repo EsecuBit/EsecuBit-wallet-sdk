@@ -245,7 +245,7 @@ export default class EthAccount {
     if (details.sendAll) {
       if (balance.compareTo(fee) < 0) throw D.error.balanceNotEnough
       total = balance.toString(10)
-      value = total.subtract(fee)
+      value = balance.subtract(fee)
       output.value = value.toString(10)
     } else {
       total = value.add(fee).toString(10)
