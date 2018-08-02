@@ -44262,14 +44262,14 @@ var EthAccount = function () {
                 throw _D2.default.error.balanceNotEnough;
 
               case 21:
-                total = balance.toString(10);
+                total = balance;
                 value = total.subtract(fee);
                 output.value = value.toString(10);
                 _context9.next = 29;
                 break;
 
               case 26:
-                total = value.add(fee).toString(10);
+                total = value.add(fee);
 
                 if (!(total.compareTo(balance) > 0)) {
                   _context9.next = 29;
@@ -44283,7 +44283,7 @@ var EthAccount = function () {
 
                 if (!data.startsWith('0x')) data = '0x' + data;
                 prepareTx = {
-                  total: total,
+                  total: total.toString(10),
                   fee: fee.toString(10),
                   gasPrice: gasPrice.toString(10),
                   startGas: startGas.toString(10),
@@ -46225,15 +46225,22 @@ var IndexedDB = function (_IDatabase) {
 
         var request = void 0;
         if (filter.accountId) {
-          request = _this7._db.transaction(['account'], 'readonly').objectStore('account').getAll(filter.accountId);
+          request = _this7._db.transaction(['account'], 'readonly').objectStore('account').openCursor(IDBKeyRange.only(filter.accountId));
         } else if (filter.coinType) {
-          request = _this7._db.transaction(['account'], 'readonly').objectStore('account').index('coinType').getAll(filter.coinType);
+          request = _this7._db.transaction(['account'], 'readonly').objectStore('account').index('coinType').openCursor(IDBKeyRange.only(filter.coinType));
         } else {
-          request = _this7._db.transaction(['account'], 'readonly').objectStore('account').getAll();
+          request = _this7._db.transaction(['account'], 'readonly').objectStore('account').openCursor();
         }
 
+        var result = [];
         request.onsuccess = function (e) {
-          return resolve(e.target.result);
+          var cursor = e.target.result;
+          if (!cursor) {
+            resolve(result);
+            return;
+          }
+          result.push(cursor.value);
+          cursor.continue();
         };
         request.onerror = function (e) {
           console.warn('getAccounts', e);
@@ -46309,22 +46316,30 @@ var IndexedDB = function (_IDatabase) {
 
         var request = void 0;
         if (filter.accountId) {
-          request = _this10._db.transaction(['txInfo'], 'readonly').objectStore('txInfo').index('accountId').getAll(filter.accountId);
+          request = _this10._db.transaction(['txInfo'], 'readonly').objectStore('txInfo').index('accountId').openCursor(IDBKeyRange.only(filter.accountId));
         } else {
-          request = _this10._db.transaction(['txInfo'], 'readonly').objectStore('txInfo').getAll();
+          request = _this10._db.transaction(['txInfo'], 'readonly').objectStore('txInfo').openCursor();
         }
 
         var total = 0;
         var startIndex = filter.startIndex || 0;
         var endIndex = filter.endIndex || Number.MAX_SAFE_INTEGER;
+
+        var result = [];
         request.onsuccess = function (e) {
-          var txInfos = e.target.result;
-          total = txInfos.length;
-          txInfos.sort(function (a, b) {
-            return b.time - a.time;
-          });
-          txInfos = txInfos.slice(startIndex, endIndex);
-          resolve({ total: total, txInfos: txInfos });
+          var cursor = e.target.result;
+          if (!cursor) {
+            var txInfos = result;
+            total = txInfos.length;
+            txInfos.sort(function (a, b) {
+              return b.time - a.time;
+            });
+            txInfos = txInfos.slice(startIndex, endIndex);
+            resolve({ total: total, txInfos: txInfos });
+            return;
+          }
+          result.push(cursor.value);
+          cursor.continue();
         };
         request.onerror = function (e) {
           console.log('getTxInfos', e);
@@ -46385,13 +46400,20 @@ var IndexedDB = function (_IDatabase) {
 
         var request = void 0;
         if (filter.accountId) {
-          request = _this12._db.transaction(['addressInfo'], 'readonly').objectStore('addressInfo').index('accountId').getAll(filter.accountId);
+          request = _this12._db.transaction(['addressInfo'], 'readonly').objectStore('addressInfo').index('accountId').openCursor(IDBKeyRange.only(filter.accountId));
         } else {
-          request = _this12._db.transaction(['addressInfo'], 'readonly').objectStore('addressInfo').getAll();
+          request = _this12._db.transaction(['addressInfo'], 'readonly').objectStore('addressInfo').openCursor();
         }
 
+        var result = [];
         request.onsuccess = function (e) {
-          return resolve(e.target.result);
+          var cursor = e.target.result;
+          if (!cursor) {
+            resolve(result);
+            return;
+          }
+          result.push(cursor.value);
+          cursor.continue();
         };
         request.onerror = function (e) {
           console.warn('getAddressInfos', e);
@@ -46414,13 +46436,20 @@ var IndexedDB = function (_IDatabase) {
 
         var request = void 0;
         if (filter.accountId) {
-          request = _this13._db.transaction(['utxo'], 'readonly').objectStore('utxo').index('accountId').getAll(filter.accountId);
+          request = _this13._db.transaction(['utxo'], 'readonly').objectStore('utxo').index('accountId').openCursor(IDBKeyRange.only(filter.accountId));
         } else {
-          request = _this13._db.transaction(['utxo'], 'readonly').objectStore('utxo').getAll();
+          request = _this13._db.transaction(['utxo'], 'readonly').objectStore('utxo').openCursor();
         }
 
+        var result = [];
         request.onsuccess = function (e) {
-          return resolve(e.target.result);
+          var cursor = e.target.result;
+          if (!cursor) {
+            resolve(result);
+            return;
+          }
+          result.push(cursor.value);
+          cursor.continue();
         };
         request.onerror = function (e) {
           console.warn('getAccounts', e);
@@ -49043,7 +49072,7 @@ var CoreWallet = function () {
               case 2:
                 cosVersion = _context4.sent;
                 return _context4.abrupt('return', {
-                  sdk_version: '0.0.3',
+                  sdk_version: '0.0.5',
                   cos_version: cosVersion
                 });
 
