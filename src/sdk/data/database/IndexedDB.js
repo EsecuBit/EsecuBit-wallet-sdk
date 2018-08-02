@@ -295,19 +295,28 @@ export default class IndexedDB extends IDatabase {
       if (filter.accountId) {
         request = this._db.transaction(['account'], 'readonly')
           .objectStore('account')
-          .getAll(filter.accountId)
+          .openCursor(IDBKeyRange.only(filter.accountId))
       } else if (filter.coinType) {
         request = this._db.transaction(['account'], 'readonly')
           .objectStore('account')
           .index('coinType')
-          .getAll(filter.coinType)
+          .openCursor(IDBKeyRange.only(filter.coinType))
       } else {
         request = this._db.transaction(['account'], 'readonly')
           .objectStore('account')
-          .getAll()
+          .openCursor()
       }
 
-      request.onsuccess = (e) => resolve(e.target.result)
+      let result = []
+      request.onsuccess = (e) => {
+        let cursor = e.target.result
+        if (!cursor) {
+          resolve(result)
+          return
+        }
+        result.push(cursor.value)
+        cursor.continue()
+      }
       request.onerror = (e) => {
         console.warn('getAccounts', e)
         reject(D.error.databaseExecFailed)
@@ -378,22 +387,30 @@ export default class IndexedDB extends IDatabase {
         request = this._db.transaction(['txInfo'], 'readonly')
           .objectStore('txInfo')
           .index('accountId')
-          .getAll(filter.accountId)
+          .openCursor(IDBKeyRange.only(filter.accountId))
       } else {
         request = this._db.transaction(['txInfo'], 'readonly')
           .objectStore('txInfo')
-          .getAll()
+          .openCursor()
       }
 
       let total = 0
       let startIndex = filter.startIndex || 0
       let endIndex = filter.endIndex || Number.MAX_SAFE_INTEGER
+
+      let result = []
       request.onsuccess = (e) => {
-        let txInfos = e.target.result
-        total = txInfos.length
-        txInfos.sort((a, b) => b.time - a.time)
-        txInfos = txInfos.slice(startIndex, endIndex)
-        resolve({total, txInfos})
+        let cursor = e.target.result
+        if (!cursor) {
+          let txInfos = result
+          total = txInfos.length
+          txInfos.sort((a, b) => b.time - a.time)
+          txInfos = txInfos.slice(startIndex, endIndex)
+          resolve({total, txInfos})
+          return
+        }
+        result.push(cursor.value)
+        cursor.continue()
       }
       request.onerror = (e) => {
         console.log('getTxInfos', e)
@@ -449,14 +466,23 @@ export default class IndexedDB extends IDatabase {
         request = this._db.transaction(['addressInfo'], 'readonly')
           .objectStore('addressInfo')
           .index('accountId')
-          .getAll(filter.accountId)
+          .openCursor(IDBKeyRange.only(filter.accountId))
       } else {
         request = this._db.transaction(['addressInfo'], 'readonly')
           .objectStore('addressInfo')
-          .getAll()
+          .openCursor()
       }
 
-      request.onsuccess = (e) => resolve(e.target.result)
+      let result = []
+      request.onsuccess = (e) => {
+        let cursor = e.target.result
+        if (!cursor) {
+          resolve(result)
+          return
+        }
+        result.push(cursor.value)
+        cursor.continue()
+      }
       request.onerror = (e) => {
         console.warn('getAddressInfos', e)
         reject(D.error.databaseExecFailed)
@@ -476,14 +502,23 @@ export default class IndexedDB extends IDatabase {
         request = this._db.transaction(['utxo'], 'readonly')
           .objectStore('utxo')
           .index('accountId')
-          .getAll(filter.accountId)
+          .openCursor(IDBKeyRange.only(filter.accountId))
       } else {
         request = this._db.transaction(['utxo'], 'readonly')
           .objectStore('utxo')
-          .getAll()
+          .openCursor()
       }
 
-      request.onsuccess = (e) => resolve(e.target.result)
+      let result = []
+      request.onsuccess = (e) => {
+        let cursor = e.target.result
+        if (!cursor) {
+          resolve(result)
+          return
+        }
+        result.push(cursor.value)
+        cursor.continue()
+      }
       request.onerror = (e) => {
         console.warn('getAccounts', e)
         reject(D.error.databaseExecFailed)
