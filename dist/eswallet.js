@@ -42595,6 +42595,7 @@ var D = {
     networkTxNotFound: 404,
     networkFeeTooSmall: 405,
     networkTooManyPendingTx: 406,
+    networkValueTooSmall: 407,
 
     balanceNotEnough: 501,
 
@@ -42634,6 +42635,8 @@ var D = {
   address: {
     external: 'external',
     change: 'change',
+    p2pkh: 'p2pkh',
+    p2sh: 'p2sh',
 
     checkBtcAddress: function checkBtcAddress(address) {
       var buffer = void 0;
@@ -42647,20 +42650,25 @@ var D = {
 
       var network = buffer.readUInt8(0);
       switch (network) {
-        case 0: // main net P2PKH
+        case 0:
+          // main net P2PKH
+          if (D.test.coin) throw D.error.invalidAddress;
+          return D.address.p2pkh;
         case 0x05:
           // main net P2SH
           if (D.test.coin) throw D.error.invalidAddress;
-          break;
-        case 0x6f: // test net P2PKH
+          return D.address.p2sh;
+        case 0x6f:
+          // test net P2PKH
+          if (!D.test.coin) throw D.error.invalidAddress;
+          return D.address.p2pkh;
         case 0xc4:
           // test net P2SH
           if (!D.test.coin) throw D.error.invalidAddress;
-          break;
+          return D.address.p2sh;
         default:
           throw D.error.invalidAddress;
       }
-      return true;
     },
     checkEthAddress: function checkEthAddress(address) {
       var checksum = D.address.toEthChecksumAddress(address);
@@ -46761,6 +46769,8 @@ var BlockchainInfo = function (_ICoinNetwork) {
                 reject(_D2.default.error.networkFeeTooSmall);
               } else if (response.includes('Too many pending transactions')) {
                 reject(_D2.default.error.networkTooManyPendingTx);
+              } else if (response.includes('dust')) {
+                reject(_D2.default.error.networkValueTooSmall);
               } else {
                 reject(_D2.default.error.networkProviderError);
               }
@@ -49340,9 +49350,10 @@ var CoreWallet = function () {
                                   };
                                 }),
                                 outputs: tx.outputs.map(function (output) {
+                                  var scriptPubKey = _D2.default.address.checkEthAddress(output.address) === _D2.default.address.p2pkh ? '76A914' + _D2.default.address.toBuffer(output.address).toString('hex') + '88AC' : 'A914' + _D2.default.address.toBuffer(output.address).toString('hex') + '87';
                                   return {
                                     amount: output.value,
-                                    scriptPubKey: '76A914' + _D2.default.address.toBuffer(output.address).toString('hex') + '88AC'
+                                    scriptPubKey: scriptPubKey
                                   };
                                 }),
                                 lockTime: 0

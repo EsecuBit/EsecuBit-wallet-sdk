@@ -187,7 +187,6 @@ export default class CoreWallet {
             }
           }),
           outputs: tx.outputs.map(output => {
-            // TODO just P2PKH or P2PH
             let scriptPubKey = D.address.checkEthAddress(output.address) === D.address.p2pkh
               ? '76A914' + D.address.toBuffer(output.address).toString('hex') + '88AC'
               : 'A914' + D.address.toBuffer(output.address).toString('hex') + '87'
