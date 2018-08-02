@@ -244,18 +244,18 @@ export default class EthAccount {
     // noinspection JSUnresolvedVariable
     if (details.sendAll) {
       if (balance.compareTo(fee) < 0) throw D.error.balanceNotEnough
-      total = balance.toString(10)
-      value = balance.subtract(fee)
+      total = balance
+      value = total.subtract(fee)
       output.value = value.toString(10)
     } else {
-      total = value.add(fee).toString(10)
+      total = value.add(fee)
       if (total.compareTo(balance) > 0) throw D.error.balanceNotEnough
     }
 
     let data = details.data ? details.data : ''
     if (!data.startsWith('0x')) data = '0x' + data
     let prepareTx = {
-      total: total,
+      total: total.toString(10),
       fee: fee.toString(10),
       gasPrice: gasPrice.toString(10),
       startGas: startGas.toString(10),
