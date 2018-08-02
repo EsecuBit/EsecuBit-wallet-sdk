@@ -47589,6 +47589,8 @@ var ICoinNetwork = function () {
 
     /**
      * returns the network request speed. unit: seconds per request
+     * blockHeightRequestPeriod: the peroid of detecting new block
+     * txIncludedRequestPeriod: the peroid of detecting whether transaction is in memory pool
      * @returns {{blockHeightRequestPeriod: number, txIncludedRequestPeriod: number}}
      */
 
@@ -47597,22 +47599,18 @@ var ICoinNetwork = function () {
     value: function getRequestPeroid() {
       if (!_D2.default.isBtc(this.coinType) && !_D2.default.isEth(this.coinType)) throw _D2.default.error.coinNotSupported;
       var blockHeightRequestPeriod = 60;
-      var txIncludedRequestPeriod = 60;
+      var txIncludedRequestPeriod = 5;
       if (_D2.default.test.coin) {
         if (_D2.default.isBtc(this.coinType)) {
-          blockHeightRequestPeriod = 20;
-          txIncludedRequestPeriod = 10;
+          blockHeightRequestPeriod = 30;
         } else if (_D2.default.isEth(this.coinType)) {
           blockHeightRequestPeriod = 10;
-          txIncludedRequestPeriod = 5;
         }
       } else {
         if (_D2.default.isBtc(this.coinType)) {
           blockHeightRequestPeriod = 60;
-          txIncludedRequestPeriod = 30;
         } else if (_D2.default.isEth(this.coinType)) {
-          blockHeightRequestPeriod = 30;
-          txIncludedRequestPeriod = 10;
+          blockHeightRequestPeriod = 20;
         }
       }
       return { blockHeightRequestPeriod: blockHeightRequestPeriod, txIncludedRequestPeriod: txIncludedRequestPeriod };
@@ -47685,7 +47683,7 @@ var ICoinNetwork = function () {
                     confirmations = blockNumber > 0 ? that._blockHeight - blockNumber + 1 : 0;
 
 
-                    if (confirmations > 0) this.hasRecord = true;
+                    if (confirmations >= 0) this.hasRecord = true;
                     if (confirmations >= _D2.default.tx.getMatureConfirms(txInfo.coinType)) {
                       console.log('confirmations enough, remove', this);
                       remove(that._requestList, this);
