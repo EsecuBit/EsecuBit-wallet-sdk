@@ -1,6 +1,6 @@
 {
   "name": "chrome-excelsecu-wallet",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "SDK for excelsecu device",
   "main": "index.js",
   "directories": {
@@ -41,7 +41,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "npm run server",
-    "build": "npx webpack --config build/webpack.config.js",
+    "build": "npx webpack --config build/webpack.config.chrome.js --output dist/eswallet.js",
     "server": "npx webpack-dev-server --progress --open --config build/webpack.config.dev.js",
     "watch": "npx webpack --progress --watch --config build/webpack.config.chrome.js"
   },
