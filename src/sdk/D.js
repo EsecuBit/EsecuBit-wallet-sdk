@@ -81,6 +81,8 @@ const D = {
   address: {
     external: 'external',
     change: 'change',
+    p2pkh: 'p2pkh',
+    p2sh: 'p2sh',
 
     checkBtcAddress (address) {
       let buffer
@@ -95,17 +97,20 @@ const D = {
       let network = buffer.readUInt8(0)
       switch (network) {
         case 0: // main net P2PKH
+          if (D.test.coin) throw D.error.invalidAddress
+          return D.address.p2pkh
         case 0x05: // main net P2SH
           if (D.test.coin) throw D.error.invalidAddress
-          break
+          return D.address.p2sh
         case 0x6f: // test net P2PKH
+          if (!D.test.coin) throw D.error.invalidAddress
+          return D.address.p2pkh
         case 0xc4: // test net P2SH
           if (!D.test.coin) throw D.error.invalidAddress
-          break
+          return D.address.p2sh
         default:
           throw D.error.invalidAddress
       }
-      return true
     },
 
     checkEthAddress (address) {
