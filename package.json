@@ -41,9 +41,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "npm run server",
-    "build": "npx webpack --config build/webpack.config.chrome.js --output dist/eswallet.js",
+    "build": "npx webpack --config build/webpack.config.chrome.sdk.js --output dist/eswallet.js",
     "server": "npx webpack-dev-server --progress --open --config build/webpack.config.dev.js",
-    "watch": "npx webpack --progress --watch --config build/webpack.config.chrome.js"
+    "watch": "npx webpack --progress --watch --config build/webpack.config.chrome.app.js"
   },
   "repository": {
     "type": "git",
