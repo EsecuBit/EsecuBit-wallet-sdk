@@ -244,11 +244,11 @@ export default class EthAccount {
     // noinspection JSUnresolvedVariable
     if (details.sendAll) {
       if (balance.compareTo(fee) < 0) throw D.error.balanceNotEnough
-      total = balance
+      total = balance.toString(10)
       value = total.subtract(fee)
       output.value = value.toString(10)
     } else {
-      total = value.add(fee)
+      total = value.add(fee).toString(10)
       if (total.compareTo(balance) > 0) throw D.error.balanceNotEnough
     }
 
