@@ -116,27 +116,25 @@ export default class ICoinNetwork {
 
   /**
    * returns the network request speed. unit: seconds per request
+   * blockHeightRequestPeriod: the peroid of detecting new block
+   * txIncludedRequestPeriod: the peroid of detecting whether transaction is in memory pool
    * @returns {{blockHeightRequestPeriod: number, txIncludedRequestPeriod: number}}
    */
   getRequestPeroid () {
     if (!D.isBtc(this.coinType) && !D.isEth(this.coinType)) throw D.error.coinNotSupported
     let blockHeightRequestPeriod = 60
-    let txIncludedRequestPeriod = 60
+    let txIncludedRequestPeriod = 5
     if (D.test.coin) {
       if (D.isBtc(this.coinType)) {
-        blockHeightRequestPeriod = 20
-        txIncludedRequestPeriod = 10
+        blockHeightRequestPeriod = 30
       } else if (D.isEth(this.coinType)) {
         blockHeightRequestPeriod = 10
-        txIncludedRequestPeriod = 5
       }
     } else {
       if (D.isBtc(this.coinType)) {
         blockHeightRequestPeriod = 60
-        txIncludedRequestPeriod = 30
       } else if (D.isEth(this.coinType)) {
-        blockHeightRequestPeriod = 30
-        txIncludedRequestPeriod = 10
+        blockHeightRequestPeriod = 20
       }
     }
     return {blockHeightRequestPeriod, txIncludedRequestPeriod}
@@ -175,7 +173,7 @@ export default class ICoinNetwork {
         let blockNumber = response.blockNumber ? response.blockNumber : txInfo.blockNumber
         let confirmations = blockNumber > 0 ? (that._blockHeight - blockNumber + 1) : 0
 
-        if (confirmations > 0) this.hasRecord = true
+        if (confirmations >= 0) this.hasRecord = true
         if (confirmations >= D.tx.getMatureConfirms(txInfo.coinType)) {
           console.log('confirmations enough, remove', this)
           remove(that._requestList, this)
