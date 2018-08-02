@@ -45843,15 +45843,14 @@ var IndexedDB = function (_IDatabase) {
   function IndexedDB(walletId) {
     _classCallCheck(this, IndexedDB);
 
+    var _this = _possibleConstructorReturn(this, (IndexedDB.__proto__ || Object.getPrototypeOf(IndexedDB)).call(this));
+
     if (IndexedDB.pool[walletId]) {
       var _ret;
 
       console.log('return exists instance', IndexedDB.pool[walletId]);
       return _ret = IndexedDB.pool[walletId], _possibleConstructorReturn(_this, _ret);
     }
-
-    var _this = _possibleConstructorReturn(this, (IndexedDB.__proto__ || Object.getPrototypeOf(IndexedDB)).call(this));
-
     IndexedDB.pool[walletId] = _this;
 
     _this._db = null;
