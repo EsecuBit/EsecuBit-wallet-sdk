@@ -41,6 +41,7 @@ const D = {
     networkTxNotFound: 404,
     networkFeeTooSmall: 405,
     networkTooManyPendingTx: 406,
+    networkValueTooSmall: 407,
 
     balanceNotEnough: 501,
 

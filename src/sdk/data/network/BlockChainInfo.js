@@ -85,6 +85,8 @@ export default class BlockchainInfo extends ICoinNetwork {
               reject(D.error.networkFeeTooSmall)
             } else if (response.includes('Too many pending transactions')) {
               reject(D.error.networkTooManyPendingTx)
+            } else if (response.includes('dust')) {
+              reject(D.error.networkValueTooSmall)
             } else {
               reject(D.error.networkProviderError)
             }
