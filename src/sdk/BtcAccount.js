@@ -243,9 +243,9 @@ export default class BtcAccount {
     return this._coinData.getTxInfos({accountId, startIndex, endIndex})
   }
 
-  async getAddress () {
+  async getAddress (isStoring = false) {
     let address = await this._device.getAddress(this.coinType,
-      D.makeBip44Path(this.coinType, this.index, D.address.external, this.externalPublicKeyIndex), true)
+      D.makeBip44Path(this.coinType, this.index, D.address.external, this.externalPublicKeyIndex), true, isStoring)
 
     let listenAddressInfo = this._getAddressInfos(
       this.externalPublicKeyIndex, this.externalPublicKeyIndex + 1, D.address.external)[0]

@@ -169,9 +169,9 @@ export default class EthAccount {
     return this._coinData.getTxInfos({accountId, startIndex, endIndex})
   }
 
-  async getAddress () {
+  async getAddress (isStoring = false) {
     let path = D.makeBip44Path(this.coinType, this.index, D.address.external, 0)
-    let address = await this._device.getAddress(this.coinType, path, true)
+    let address = await this._device.getAddress(this.coinType, path, true, isStoring)
     address = D.address.toEthChecksumAddress(address)
     let prefix = ''
     return {address: address, qrAddress: prefix + address}
