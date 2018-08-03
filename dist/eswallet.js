@@ -42106,13 +42106,14 @@ var BtcAccount = function () {
     key: 'getAddress',
     value: function () {
       var _ref11 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee11() {
+        var isStoring = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
         var address, listenAddressInfo, prefix;
         return regeneratorRuntime.wrap(function _callee11$(_context11) {
           while (1) {
             switch (_context11.prev = _context11.next) {
               case 0:
                 _context11.next = 2;
-                return this._device.getAddress(this.coinType, _D2.default.makeBip44Path(this.coinType, this.index, _D2.default.address.external, this.externalPublicKeyIndex), true);
+                return this._device.getAddress(this.coinType, _D2.default.makeBip44Path(this.coinType, this.index, _D2.default.address.external, this.externalPublicKeyIndex), true, isStoring);
 
               case 2:
                 address = _context11.sent;
@@ -42319,7 +42320,7 @@ var BtcAccount = function () {
         }, _callee12, this);
       }));
 
-      function prepareTx(_x17) {
+      function prepareTx(_x18) {
         return _ref12.apply(this, arguments);
       }
 
@@ -42450,7 +42451,7 @@ var BtcAccount = function () {
         }, _callee13, this);
       }));
 
-      function buildTx(_x18) {
+      function buildTx(_x19) {
         return _ref13.apply(this, arguments);
       }
 
@@ -42513,7 +42514,7 @@ var BtcAccount = function () {
         }, _callee14, this);
       }));
 
-      function sendTx(_x20) {
+      function sendTx(_x21) {
         return _ref14.apply(this, arguments);
       }
 
@@ -44123,6 +44124,7 @@ var EthAccount = function () {
     key: 'getAddress',
     value: function () {
       var _ref8 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8() {
+        var isStoring = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
         var path, address, prefix;
         return regeneratorRuntime.wrap(function _callee8$(_context8) {
           while (1) {
@@ -44130,7 +44132,7 @@ var EthAccount = function () {
               case 0:
                 path = _D2.default.makeBip44Path(this.coinType, this.index, _D2.default.address.external, 0);
                 _context8.next = 3;
-                return this._device.getAddress(this.coinType, path, true);
+                return this._device.getAddress(this.coinType, path, true, isStoring);
 
               case 3:
                 address = _context8.sent;
@@ -44312,7 +44314,7 @@ var EthAccount = function () {
         }, _callee9, this);
       }));
 
-      function prepareTx(_x11) {
+      function prepareTx(_x12) {
         return _ref9.apply(this, arguments);
       }
 
@@ -44388,7 +44390,7 @@ var EthAccount = function () {
         }, _callee10, this);
       }));
 
-      function buildTx(_x12) {
+      function buildTx(_x13) {
         return _ref10.apply(this, arguments);
       }
 
@@ -44433,7 +44435,7 @@ var EthAccount = function () {
         }, _callee11, this);
       }));
 
-      function sendTx(_x14) {
+      function sendTx(_x15) {
         return _ref11.apply(this, arguments);
       }
 
