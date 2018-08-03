@@ -49350,7 +49350,7 @@ var CoreWallet = function () {
                                   };
                                 }),
                                 outputs: tx.outputs.map(function (output) {
-                                  var scriptPubKey = _D2.default.address.checkEthAddress(output.address) === _D2.default.address.p2pkh ? '76A914' + _D2.default.address.toBuffer(output.address).toString('hex') + '88AC' : 'A914' + _D2.default.address.toBuffer(output.address).toString('hex') + '87';
+                                  var scriptPubKey = _D2.default.address.checkBtcAddress(output.address) === _D2.default.address.p2pkh ? '76A914' + _D2.default.address.toBuffer(output.address).toString('hex') + '88AC' : 'A914' + _D2.default.address.toBuffer(output.address).toString('hex') + '87';
                                   return {
                                     amount: output.value,
                                     scriptPubKey: scriptPubKey
