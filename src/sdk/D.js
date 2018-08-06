@@ -136,7 +136,7 @@ const D = {
       }
       // publickey
       if (buffer.length === 78) {
-        let versionBytes = buffer.readUInt32LE(0)
+        let versionBytes = buffer.readUInt32BE(0)
         switch (versionBytes) {
           case 0x0488B21E: // main net
             if (D.test.coin) throw D.error.invalidAddress
