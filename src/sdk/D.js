@@ -142,8 +142,10 @@ const D = {
             if (D.test.coin) throw D.error.invalidAddress
             return D.address.p2pk
           case 0x043587CF: // test net
-            if (!D.test.coin) throw D.error.invalidAddress
-            return D.address.p2pk
+            // bitcoin-js dont support p2pk
+            throw D.error.invalidAddress
+            // if (!D.test.coin) throw D.error.invalidAddress
+            // return D.address.p2pk
           default:
             throw D.error.invalidAddress
         }
