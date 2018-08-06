@@ -3,6 +3,7 @@ import bitPony from 'bitpony'
 import base58check from 'bs58check'
 import createKeccakHash from 'keccak'
 import {BigDecimal} from 'bigdecimal'
+import bech32 from 'bech32'
 
 const D = {
   // wallet status
@@ -83,34 +84,71 @@ const D = {
     change: 'change',
     p2pkh: 'p2pkh',
     p2sh: 'p2sh',
+    p2wpkh: 'p2wpkh',
+    p2wsh: 'p2wsh',
+    p2pk: 'p2pk',
 
     checkBtcAddress (address) {
       let buffer
+
+      // segwit address, bech32 encoded
+      let decodedBech32
+      try {
+        decodedBech32 = bech32.decode(address)
+      } catch (e) {
+        console.debug('address', address, 'is not bech32 encoded')
+      }
+      if (decodedBech32) {
+        if (D.test.coin && decodedBech32.prefix !== 'tb') throw D.error.invalidAddress
+        if (!D.test.coin && decodedBech32.prefix !== 'bc') throw D.error.invalidAddress
+        buffer = bech32.fromWords(decodedBech32.words.slice(1))
+        if (buffer.length === 20) return D.address.p2pkh
+        if (buffer.length === 32) return D.address.p2wsh
+        console.info('address', address, 'is bech32 encoded but has invalid length')
+      }
+
+      // normal address, base58 encoded
       try {
         buffer = base58check.decode(address)
       } catch (e) {
         console.warn(e)
         throw D.error.invalidAddress
       }
-      if (buffer.length !== 21) throw D.error.invalidAddress
-
-      let network = buffer.readUInt8(0)
-      switch (network) {
-        case 0: // main net P2PKH
-          if (D.test.coin) throw D.error.invalidAddress
-          return D.address.p2pkh
-        case 0x05: // main net P2SH
-          if (D.test.coin) throw D.error.invalidAddress
-          return D.address.p2sh
-        case 0x6f: // test net P2PKH
-          if (!D.test.coin) throw D.error.invalidAddress
-          return D.address.p2pkh
-        case 0xc4: // test net P2SH
-          if (!D.test.coin) throw D.error.invalidAddress
-          return D.address.p2sh
-        default:
-          throw D.error.invalidAddress
+      // address
+      if (buffer.length === 21) {
+        let network = buffer.readUInt8(0)
+        switch (network) {
+          case 0: // main net P2PKH
+            if (D.test.coin) throw D.error.invalidAddress
+            return D.address.p2pkh
+          case 0x05: // main net P2SH
+            if (D.test.coin) throw D.error.invalidAddress
+            return D.address.p2sh
+          case 0x6f: // test net P2PKH
+            if (!D.test.coin) throw D.error.invalidAddress
+            return D.address.p2pkh
+          case 0xc4: // test net P2SH
+            if (!D.test.coin) throw D.error.invalidAddress
+            return D.address.p2sh
+          default:
+            throw D.error.invalidAddress
+        }
       }
+      // publickey
+      if (buffer.length === 78) {
+        let versionBytes = buffer.readUInt32LE(0)
+        switch (versionBytes) {
+          case 0x0488B21E: // main net
+            if (D.test.coin) throw D.error.invalidAddress
+            return D.address.p2pk
+          case 0x043587CF: // test net
+            if (!D.test.coin) throw D.error.invalidAddress
+            return D.address.p2pk
+          default:
+            throw D.error.invalidAddress
+        }
+      }
+      throw D.error.invalidAddress
     },
 
     checkEthAddress (address) {
@@ -166,21 +204,48 @@ const D = {
      * convert string type address to Buffer
      */
     toBuffer (address) {
-      // TODO throw Error instead of int
+      // TODO throw Error instead of int in the whole project
       if (address.startsWith('0x')) {
         // eth
         return Buffer.from(address.slice(2), 'hex')
       } else {
         // bitcoin
         let buffer
-        try {
-          buffer = base58check.decode(address)
-        } catch (e) {
-          console.warn(e)
-          throw D.error.invalidAddress
+        // p2wpkh & p2wsh address
+        if (address.startsWith('bc') || address.startsWith('tb')) {
+          let decodedBech32
+          try {
+            decodedBech32 = bech32.decode(address)
+            buffer = bech32.fromWords(decodedBech32.words.slice(1))
+            return buffer
+          } catch (e) {
+            console.debug('address', address, 'is not bech32 encoded')
+            throw D.error.invalidAddress
+          }
         }
-        if (buffer.length !== 21) throw D.error.invalidAddress
-        return buffer.slice(1)
+        // p2pkh & p2sh address
+        if (address.startsWith('1') || address.startsWith('m') || address.startsWith('n') ||
+          address.startsWith('2') || address.startsWith('3')) {
+          try {
+            buffer = base58check.decode(address)
+          } catch (e) {
+            console.warn(e)
+            throw D.error.invalidAddress
+          }
+          if (buffer.length !== 21) throw D.error.invalidAddress
+          return buffer.slice(1)
+        }
+        // p2pk address
+        if (address.startsWith('xpub') || address.startsWith('tpub')) {
+          try {
+            buffer = base58check.decode(address)
+          } catch (e) {
+            console.warn(e)
+            throw D.error.invalidAddress
+          }
+          if (buffer.length !== 78) throw D.error.invalidAddress
+          return buffer.slice(45)
+        }
       }
     },
 
