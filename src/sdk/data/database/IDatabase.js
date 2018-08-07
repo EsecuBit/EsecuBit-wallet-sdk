@@ -62,7 +62,7 @@ export default class IDatabase {
     throw D.error.notImplemented
   }
 
-  async saveOfUpdateFee (fee) {
+  async saveOrUpdateFee (fee) {
     throw D.error.notImplemented
   }
 
@@ -70,7 +70,7 @@ export default class IDatabase {
     throw D.error.notImplemented
   }
 
-  async saveOfUpdateExchange (exchange) {
+  async saveOrUpdateExchange (exchange) {
     throw D.error.notImplemented
   }
 }

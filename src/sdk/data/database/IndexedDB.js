@@ -593,7 +593,7 @@ export default class IndexedDB extends IDatabase {
     })
   }
 
-  saveOfUpdateFee (fee) {
+  saveOrUpdateFee (fee) {
     return new Promise((resolve, reject) => {
       if (this._db === null) {
         reject(D.error.databaseOpenFailed)
@@ -604,7 +604,7 @@ export default class IndexedDB extends IDatabase {
       let request = transaction.objectStore('fee').put(fee)
       request.onsuccess = resolve
       request.onerror = (e) => {
-        console.warn('saveOfUpdateFee', e)
+        console.warn('saveOrUpdateFee', e)
         reject(D.error.databaseExecFailed)
       }
     })
@@ -627,7 +627,7 @@ export default class IndexedDB extends IDatabase {
     })
   }
 
-  saveOfUpdateExchange (exchange) {
+  saveOrUpdateExchange (exchange) {
     return new Promise((resolve, reject) => {
       if (this._db === null) {
         reject(D.error.databaseOpenFailed)
@@ -638,7 +638,7 @@ export default class IndexedDB extends IDatabase {
       let request = transaction.objectStore('exchange').put(exchange)
       request.onsuccess = resolve
       request.onerror = (e) => {
-        console.warn('saveOfUpdateExchange', e)
+        console.warn('saveOrUpdateExchange', e)
         reject(D.error.databaseExecFailed)
       }
     })

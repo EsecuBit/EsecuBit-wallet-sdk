@@ -45,10 +45,10 @@ export default class CoinData {
         fee = fee || {coinType}
         if (D.isBtc(coinType)) {
           this._networkFee[coinType] = new FeeBitCoinEarn(fee)
-          this._networkFee[coinType].onUpdateFee = (fee) => this._db.saveOfUpdateFee(fee)
+          this._networkFee[coinType].onUpdateFee = (fee) => this._db.saveOrUpdateFee(fee)
         } else if (D.isEth(coinType)) {
           this._networkFee[coinType] = new EthGasStationInfo(fee)
-          this._networkFee[coinType].onUpdateFee = (fee) => this._db.saveOfUpdateFee(fee)
+          this._networkFee[coinType].onUpdateFee = (fee) => this._db.saveOrUpdateFee(fee)
         }
       }))
       // exchange
@@ -56,7 +56,7 @@ export default class CoinData {
         let exchange = await this._db.getExchange(coinType)
         exchange = exchange || {coinType}
         this._exchange[coinType] = new ExchangeCryptoCompareCom(exchange)
-        this._exchange[coinType].onUpdateExchange = (fee) => this._db.saveOfUpdateExchange(fee)
+        this._exchange[coinType].onUpdateExchange = (fee) => this._db.saveOrUpdateExchange(fee)
       }))
 
       this._initialized = true
