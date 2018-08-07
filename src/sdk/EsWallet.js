@@ -7,13 +7,15 @@ import Provider from './Provider'
 
 export default class EsWallet {
   /**
-   * get support coin types
-   * @returns {*[]}
+   * get supported coin types
    */
   static supportedCoinTypes () {
     return D.supportedCoinTypes()
   }
 
+  /**
+   * get supported legal currency types
+   */
   static suppertedLegals () {
     return D.suppertedLegals()
   }
@@ -24,6 +26,7 @@ export default class EsWallet {
     }
     EsWallet.prototype.Instance = this
 
+    this._esAccounts = []
     this._device = D.test.jsWallet ? new Provider.SoftWallet() : new Provider.HardWallet()
     this._coinData = new CoinData()
     this._status = D.status.plugOut
@@ -36,6 +39,7 @@ export default class EsWallet {
       }
       this._callback && this._callback(D.error.succeed, this._status)
       if (this._status === D.status.plugIn) {
+        this.offlineMode = false
         this._status = D.status.initializing
         this._callback && D.dispatch(() => this._callback(D.error.succeed, this._status))
         try {
@@ -60,35 +64,48 @@ export default class EsWallet {
 
         this._status = D.status.syncFinish
         this._callback && D.dispatch(() => this._callback(D.error.succeed, this._status))
-      } else {
+      } else if (this._status === D.status.plugOut) {
+        this.offlineMode = true
         this._release()
       }
     })
   }
 
+  /**
+   * use wallet in offline mode, do not have to connect the key and network
+   */
+  async enterOfflineMode () {
+    if (this._status !== D.status.plugOut) throw D.error.offlineModeUnnecessary
+    this.offlineMode = true
+    await this._init()
+    await this._sync()
+  }
+
   async _init () {
-    let info = await this._device.init()
-    console.log('walletInfo', info)
-    await this._coinData.init(info)
-    this._esAccounts = (await this._coinData.getAccounts()).map(account => {
-      if (D.isEth(account.coinType)) {
-        return new EthAccount(account, this._device, this._coinData)
-      } else {
-        return new BtcAccount(account, this._device, this._coinData)
-      }
+    let info
+    if (!this.offlineMode) info = await this._device.init()
+
+    await this._coinData.init(info, this.offlineMode)
+    let accounts = await this._coinData.getAccounts()
+    accounts.forEach(account => {
+      let exists = this._esAccounts.some(esAccount => esAccount.accountId === account.accountId)
+      if (exists) return
+      let esAccount = D.isEth(account.coinType)
+        ? new EthAccount(account, this._device, this._coinData)
+        : new BtcAccount(account, this._device, this._coinData)
+      this._esAccounts.push(esAccount)
     })
     await Promise.all(this._esAccounts.map(esAccount => esAccount.init()))
   }
 
   // TODO some block may forked and became orphan in the future, some txs and utxos may be invalid
   async _sync () {
-    await this._device.sync()
-
     if (this._esAccounts.length === 0) {
+      if (this.offlineMode) throw D.error.offlineModeNotAllowed
       console.log('no accounts, new wallet, start recovery')
       await Promise.all(D.recoverCoinTypes().map(coinType => this._recover(coinType)))
     } else {
-      await Promise.all(this._esAccounts.map(esAccount => esAccount.sync(true)))
+      await Promise.all(this._esAccounts.map(esAccount => esAccount.sync(true, this.offlineMode)))
     }
   }
 
@@ -188,6 +205,7 @@ export default class EsWallet {
       ? new BtcAccount(account, this._device, this._coinData)
       : new EthAccount(account, this._device, this._coinData)
     await esAccount.init()
+    await esAccount.sync()
     this._esAccounts.push(esAccount)
     return esAccount
   }

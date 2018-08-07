@@ -2,7 +2,7 @@
 import IDatabase from './IDatabase'
 import D from '../../D'
 
-const DB_VERSION = 6
+const DB_VERSION = 7
 export default class IndexedDB extends IDatabase {
   constructor (walletId) {
     super()
@@ -160,6 +160,17 @@ export default class IndexedDB extends IDatabase {
          */
         if (!db.objectStoreNames.contains('exchange')) {
           db.createObjectStore('exchange', {keyPath: 'coinType'})
+        }
+
+        /**
+         * settings:
+         * {
+         *   key: string,
+         *   value: string
+         * }
+         */
+        if (!db.objectStoreNames.contains('settings')) {
+          db.createObjectStore('settings', {keyPath: 'key'})
         }
       }
 
@@ -639,6 +650,40 @@ export default class IndexedDB extends IDatabase {
       request.onsuccess = resolve
       request.onerror = (e) => {
         console.warn('saveOrUpdateExchange', e)
+        reject(D.error.databaseExecFailed)
+      }
+    })
+  }
+
+  getSettings (key) {
+    return new Promise((resolve, reject) => {
+      if (this._db === null) {
+        reject(D.error.databaseOpenFailed)
+        return
+      }
+
+      let transaction = this._db.transaction(['settings'], 'readonly')
+      let request = transaction.objectStore('settings').get(key)
+      request.onsuccess = (e) => resolve(e.target.result && e.target.result.value)
+      request.onerror = (e) => {
+        console.warn('getSettings', e)
+        reject(D.error.databaseExecFailed)
+      }
+    })
+  }
+
+  saveOrUpdateSettings (key, value) {
+    return new Promise((resolve, reject) => {
+      if (this._db === null) {
+        reject(D.error.databaseOpenFailed)
+        return
+      }
+
+      let transaction = this._db.transaction(['settings'], 'readwrite')
+      let request = transaction.objectStore('settings').put({key, value})
+      request.onsuccess = resolve
+      request.onerror = (e) => {
+        console.warn('saveOrUpdateSettings', e)
         reject(D.error.databaseExecFailed)
       }
     })

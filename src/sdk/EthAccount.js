@@ -47,24 +47,10 @@ export default class EthAccount {
     let accountId = this.accountId
     this.addressInfos = await this._coinData.getAddressInfos({accountId})
     this.txInfos = (await this._coinData.getTxInfos({accountId})).txInfos
-    if (!this.addressInfos.length) {
-      let path = D.makeBip44Path(this.coinType, this.index, D.address.external, 0)
-      let address = await this._device.getAddress(this.coinType, path)
-      let addressInfo = {
-        address: address,
-        accountId: this.accountId,
-        coinType: this.coinType,
-        path: path,
-        type: D.address.external,
-        index: 0,
-        txs: []
-      }
-      this.addressInfos.push(addressInfo)
-      this._coinData.newAddressInfos(this._toAccountInfo(), [addressInfo])
-    }
   }
 
-  async sync (firstSync = false) {
+  async sync (firstSync = false, offlineMode = false) {
+    if (!offlineMode) await this._generateAddressIfNotExist()
     // find out all the transactions
     let blobs = await this._coinData.checkAddresses(this.coinType, this.addressInfos)
     await Promise.all(blobs.map(blob => this._handleNewTx(blob.addressInfo, blob.txInfo, blob.utxos)))
@@ -91,6 +77,24 @@ export default class EthAccount {
     oldAccountInfo.label = newName
     await this._coinData.renameAccount(oldAccountInfo)
     this.label = newName
+  }
+
+  async _generateAddressIfNotExist () {
+    if (this.addressInfos.length === 0) {
+      let path = D.makeBip44Path(this.coinType, this.index, D.address.external, 0)
+      let address = await this._device.getAddress(this.coinType, path)
+      let addressInfo = {
+        address: address,
+        accountId: this.accountId,
+        coinType: this.coinType,
+        path: path,
+        type: D.address.external,
+        index: 0,
+        txs: []
+      }
+      this.addressInfos.push(addressInfo)
+      this._coinData.newAddressInfos(this._toAccountInfo(), [addressInfo])
+    }
   }
 
   /**
@@ -170,6 +174,7 @@ export default class EthAccount {
   }
 
   async getAddress (isStoring = false) {
+    await this._generateAddressIfNotExist()
     let path = D.makeBip44Path(this.coinType, this.index, D.address.external, 0)
     let address = await this._device.getAddress(this.coinType, path, true, isStoring)
     address = D.address.toEthChecksumAddress(address)

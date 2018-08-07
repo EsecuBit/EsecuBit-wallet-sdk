@@ -14,8 +14,6 @@ export default class CoinData {
     }
     CoinData.prototype.Instance = this
 
-    this._initialized = false
-
     const coinTypes = D.supportedCoinTypes()
     this._network = coinTypes.reduce((obj, coinType) => {
       if (D.isBtc(coinType)) {
@@ -31,16 +29,32 @@ export default class CoinData {
     this._listeners = []
   }
 
-  async init (info) {
+  async init (info, offlineMode = false) {
     try {
-      if (this._initialized) return
-      this._db = new Provider.DB(info.walletId)
       // db
+      this._globalDb = new Provider.DB('default')
+      await this._globalDb.init()
+      if (offlineMode) {
+        let lastWalletId = await this._globalDb.getSettings('lastWalletId')
+        if (!lastWalletId) {
+          // noinspection ExceptionCaughtLocallyJS
+          throw D.error.offlineModeNotAllowed
+        }
+        info = {walletId: lastWalletId}
+      } else {
+        await this._globalDb.saveOrUpdateSettings('lastWalletId', info.walletId)
+      }
+
+      console.log('walletInfo', info)
+      this._db = new Provider.DB(info.walletId)
       await this._db.init()
-      // btcNetwork
+
+      // network
       await Promise.all(Object.values(this._network).map(network => network.init()))
+
       // fee
       await Promise.all(Object.keys(this._networkFee).map(async coinType => {
+        if (this._networkFee[coinType]) return this._networkFee[coinType]
         let fee = await this._db.getFee(coinType)
         fee = fee || {coinType}
         if (D.isBtc(coinType)) {
@@ -51,27 +65,28 @@ export default class CoinData {
           this._networkFee[coinType].onUpdateFee = (fee) => this._db.saveOrUpdateFee(fee)
         }
       }))
+
       // exchange
       await Promise.all(Object.keys(this._exchange).map(async coinType => {
+        if (this._exchange[coinType]) return this._exchange[coinType]
         let exchange = await this._db.getExchange(coinType)
         exchange = exchange || {coinType}
         this._exchange[coinType] = new ExchangeCryptoCompareCom(exchange)
         this._exchange[coinType].onUpdateExchange = (fee) => this._db.saveOrUpdateExchange(fee)
       }))
 
-      this._initialized = true
+      console.log('coin data init finish', this._db)
     } catch (e) {
-      // TODO change e from int to Error
+      // TODO throw Error instead of int in the whole project
       if (typeof e === 'number') {
         throw e
       }
-      console.warn(e)
+      console.warn('coin data init got unknown error', e)
       throw D.error.unknown
     }
   }
 
   async release () {
-    this._initialized = false
     this._listeners = []
     await Promise.all(Object.values(this._network).map(network => network.release()))
     if (this._db) await this._db.release()

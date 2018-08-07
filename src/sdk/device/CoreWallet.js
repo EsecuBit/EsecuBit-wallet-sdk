@@ -34,14 +34,6 @@ export default class CoreWallet {
     return {walletId: walletId}
   }
 
-  // noinspection JSMethodCanBeStatic
-  async sync () {
-    return true
-  }
-
-  async updateIndex (addressInfo) {
-  }
-
   listenPlug (callback) {
     this._transmitter.listenPlug(callback)
   }
@@ -50,7 +42,7 @@ export default class CoreWallet {
     let cosVersion = await this._getCosVersion()
     // TODO auto update sdk version
     return {
-      sdk_version: '0.0.5',
+      sdk_version: '0.1.0',
       cos_version: cosVersion
     }
   }

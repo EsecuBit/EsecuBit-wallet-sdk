@@ -217,6 +217,7 @@ export default class ICoinNetwork {
    * get all the new transactions provided addresseses immediately
    */
   async checkAddresses (addressInfos) {
+    if (!addressInfos || addressInfos.length === 0) return []
     return Promise.all(this.generateAddressTasks(addressInfos).map(task => task.request()))
       .then(blobs => blobs.reduce((array, item) => array.concat(item), []))
   }

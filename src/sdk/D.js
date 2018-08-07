@@ -51,6 +51,9 @@ const D = {
     invalidAddressChecksum: 603,
     valueIsDecimal: 604,
 
+    offlineModeNotAllowed: 701, // no device ever connected before
+    offlineModeUnnecessary: 702, // device has connected
+
     notImplemented: 10000,
     unknown: 10001,
     coinNotSupported: 10002,
@@ -206,7 +209,6 @@ const D = {
      * convert string type address to Buffer
      */
     toBuffer (address) {
-      // TODO throw Error instead of int in the whole project
       if (address.startsWith('0x')) {
         // eth
         return Buffer.from(address.slice(2), 'hex')

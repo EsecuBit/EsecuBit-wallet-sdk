@@ -30,12 +30,6 @@ export default class JsWallet {
     return {walletId: walletId}
   }
 
-  async sync () {
-  }
-
-  async updateIndex (addressInfo) {
-  }
-
   // noinspection JSMethodCanBeStatic
   async listenPlug (callback) {
     callback(D.error.succeed, D.status.plugIn)
@@ -45,7 +39,7 @@ export default class JsWallet {
   async getWalletInfo () {
     // TODO auto update sdk version
     return {
-      sdk_version: '0.0.3',
+      sdk_version: '0.1.0',
       cos_version: '20180718'
     }
   }
