@@ -53,7 +53,7 @@ export default class BtcAccount {
   // TODO judge recover from compress or uncompress public key
   async sync (firstSync = false, offlineMode = false) {
     if (!offlineMode) {
-      let newAddressInfos = await this._checkAddressIndexAndGenerateNew(true)
+      await this._checkAddressIndexAndGenerateNew(true)
     }
 
     let checkAddressInfos = this.addressInfos
@@ -246,7 +246,7 @@ export default class BtcAccount {
     let address = await this._device.getAddress(this.coinType,
       D.makeBip44Path(this.coinType, this.index, D.address.external, this.externalPublicKeyIndex), true, isStoring)
 
-    let newAddressInfos = await this._checkAddressIndexAndGenerateNew()
+    await this._checkAddressIndexAndGenerateNew()
     let listenAddressInfo = this._getAddressInfos(
       this.externalPublicKeyIndex, this.externalPublicKeyIndex + 1, D.address.external)[0]
     if (listenAddressInfo && !this._listenedAddresses.includes(listenAddressInfo.address)) {
