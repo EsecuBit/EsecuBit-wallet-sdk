@@ -62,6 +62,7 @@ const D = {
       if (sw1sw2 === 0x9000) return D.error.succeed
 
       console.warn('sw1sw2 error', sw1sw2.toString(16))
+      sw1sw2 = sw1sw2 & 0xFFFF
       if (sw1sw2 === 0x6A81) return D.error.deviceNotInit
       if (sw1sw2 === 0x6FF8) return D.error.userCancel
       if (sw1sw2 === 0x6FF9) return D.error.operationTimeout
