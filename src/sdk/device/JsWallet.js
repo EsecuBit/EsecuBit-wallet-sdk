@@ -121,7 +121,7 @@ export default class JsWallet {
   }
 
   /**
-   * tx:
+   * @prarms tx:
    * btc:
    * {
    *   inputs: [{
@@ -138,7 +138,6 @@ export default class JsWallet {
    * }
    *
    * eth:
-   * [nonce, gasprice, startgas, to, value, data, v, r, s]
    * {
    *   input: {
    *     address: 0x string,
@@ -149,8 +148,8 @@ export default class JsWallet {
    *     value: number
    *   },
    *   nonce: number,
-   *   gasPrice: number,
-   *   startGas: number,
+   *   gasPrice: 0x string,
+   *   gasLimit: 0x string,
    *   data: hex string,
    * }
    */
@@ -280,13 +279,13 @@ export default class JsWallet {
       let chainId = chainIds[coinType]
       if (!chainId) throw D.error.coinNotSupported
 
-      let unsignedTx = [tx.nonce, tx.gasPrice, tx.startGas, tx.output.address, tx.output.value, tx.data, chainId, 0, 0]
+      let unsignedTx = [tx.nonce, tx.gasPrice, tx.gasLimit, tx.output.address, tx.output.value, tx.data, chainId, 0, 0]
       let rlpUnsignedTx = rlp.encode(unsignedTx)
       let rlpHash = D.address.keccak256(rlpUnsignedTx)
       let node = await this._derive(tx.input.path)
       let [v, r, s] = sign(Buffer.from(rlpHash.slice(2), 'hex'), node.keyPair.d)
 
-      let signedTx = [tx.nonce, tx.gasPrice, tx.startGas, tx.output.address, tx.output.value, tx.data, v, r, s]
+      let signedTx = [tx.nonce, tx.gasPrice, tx.gasLimit, tx.output.address, tx.output.value, tx.data, v, r, s]
 
       let rawTx = rlp.encode(signedTx).toString('hex')
       let txId = D.address.keccak256(rlp.encode(signedTx))

@@ -99,7 +99,6 @@ export default class CoreWallet {
    * }
    *
    * eth:
-   * [nonce, gasprice, startgas, to, value, data, v, r, s]
    * {
    *   input: {
    *     address: 0x string,
@@ -110,9 +109,9 @@ export default class CoreWallet {
    *     value: number
    *   },
    *   nonce: number,
-   *   gasPrice: number,
-   *   startGas: number,
-   *   data: hex string,
+   *   gasPrice: 0x string,
+   *   gasLimit: 0x string,
+   *   data: 0x string,
    * }
    */
   async signTransaction (coinType, tx) {
@@ -165,7 +164,6 @@ export default class CoreWallet {
       return {v, r, s, pubKey}
     }
 
-    // sign for P2PKH
     let signBtc = async (tx) => {
       let makeBasicScript = (tx) => {
         return {
@@ -285,11 +283,11 @@ export default class CoreWallet {
       if (!chainId) throw D.error.coinNotSupported
 
       // rlp
-      let unsignedTx = [tx.nonce, tx.gasPrice, tx.startGas, tx.output.address, tx.output.value, tx.data, chainId, 0, 0]
+      let unsignedTx = [tx.nonce, tx.gasPrice, tx.gasLimit, tx.output.address, tx.output.value, tx.data, chainId, 0, 0]
       let rlpUnsignedTx = rlp.encode(unsignedTx)
 
       let {v, r, s} = await sign(D.address.path.toBuffer(tx.input.path), null, rlpUnsignedTx)
-      let signedTx = [tx.nonce, tx.gasPrice, tx.startGas, tx.output.address, tx.output.value, tx.data,
+      let signedTx = [tx.nonce, tx.gasPrice, tx.gasLimit, tx.output.address, tx.output.value, tx.data,
         35 + chainId * 2 + (v % 2), r, s]
       let rawTx = rlp.encode(signedTx).toString('hex')
       let txId = D.address.keccak256(rlp.encode(signedTx))
