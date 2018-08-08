@@ -196,53 +196,43 @@ export default class EthAccount {
    * @param details
    * {
    *   sendAll: bool,
-   *   feeRate: string (decimal string Wei),
-   *   outputs: [{    // only the first output will be used
+   *   output: {
    *     address: hex string,
    *     value: string (decimal string Wei)
-   *   }]
-   *   data: hex string (optional)
+   *   }
+   *   gasPrice: string (=gasPrice, decimal string Wei),
+   *   gasLimit: string (decimal string Wei),
+   *   data: hex string (optional),
    * }
-   * @returns {Promise<{total: *, fee: number, gasPrice: string, startGas: string, nonce: number, input: *, outputs: *, data: string}>}
+   * @returns {Promise<{total: *, fee: number, gasPrice: string, gasLimit: string, nonce: number, input: *, output: *, data: string}>}
    * {
    *   total: string (decimal string Wei)
    *   fee: string (decimal string Wei)
    *   gasPrice: string (decimal string Wei)
-   *   startGas: string (decimal string Wei)
+   *   gasLimit: string (decimal string Wei)
    *   nonce: string
    *   intput: addressInfo
-   *   outputs: [{
+   *   output: {
    *     address: hex string,
    *     value: string (decimal string Wei)
-   *   }]
+   *   }
    *   data: hex string
    * }
    */
   async prepareTx (details) {
-    let feeRate = new BigInteger(details.feeRate)
-    let output = D.copy(details.outputs[0])
+    let gasPrice = new BigInteger(details.gasPrice)
+    let gasLimit = new BigInteger(details.gasLimit || '21000')
+    let output = D.copy(details.output)
     let value = new BigInteger(output.value)
 
     if (!D.isEth(this.coinType)) throw D.error.coinNotSupported
-    if (D.isDecimal(details.feeRate)) throw D.error.valueIsDecimal
-    details.outputs.forEach(output => {
-      if (D.isDecimal(output.value)) throw D.error.valueIsDecimal
-    })
+    if (D.isDecimal(details.gasPrice)) throw D.error.valueIsDecimal
+    if (D.isDecimal(output.value)) throw D.error.valueIsDecimal
     if (details.data) throw D.error.notImplemented
 
-    let estimateGas = (details) => {
-      if (!details.data) {
-        return new BigInteger('21000')
-      }
-      throw D.error.notImplemented
-    }
-
-    // TODO later support data
-    let input = this.addressInfos[0]
-    let startGas = estimateGas(details)
-    let gasPrice = feeRate
+    let input = D.copy(this.addressInfos[0])
     let nonce = this.txInfos.filter(txInfo => txInfo.direction === D.tx.direction.out).length
-    let fee = startGas.multiply(gasPrice)
+    let fee = gasLimit.multiply(gasPrice)
 
     let balance = new BigInteger(this.balance)
     let total
@@ -263,10 +253,10 @@ export default class EthAccount {
       total: total.toString(10),
       fee: fee.toString(10),
       gasPrice: gasPrice.toString(10),
-      startGas: startGas.toString(10),
+      gasLimit: gasLimit.toString(10),
       nonce: nonce,
-      input: D.copy(input),
-      outputs: D.copy([output]),
+      input: input,
+      output: output,
       data: data
     }
     console.log('prepareTx', prepareTx)
@@ -280,16 +270,16 @@ export default class EthAccount {
    * @see prepareTx
    */
   async buildTx (prepareTx) {
-    let output = D.copy(prepareTx.outputs[0])
+    let output = D.copy(prepareTx.output)
     let gasPrice = '0x' + new BigInteger(prepareTx.gasPrice).toString(16)
-    let startGas = '0x' + new BigInteger(prepareTx.startGas).toString(16)
+    let gasLimit = '0x' + new BigInteger(prepareTx.gasLimit).toString(16)
     let value = '0x' + new BigInteger(output.value).toString(16)
     let preSignTx = {
       input: {address: prepareTx.input.address, path: prepareTx.input.path},
       output: {address: output.address, value: value},
       nonce: prepareTx.nonce,
       gasPrice: gasPrice,
-      startGas: startGas,
+      gasLimit: gasLimit,
       data: prepareTx.data
     }
     console.log('preSignTx', preSignTx)
