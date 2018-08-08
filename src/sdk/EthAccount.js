@@ -124,7 +124,10 @@ export default class EthAccount {
     txInfo.showAddresses = txInfo.direction === D.tx.direction.in
       ? txInfo.inputs.filter(inputs => !inputs.isMine).map(inputs => inputs.prevAddress)
       : txInfo.outputs.filter(output => !output.isMine).map(output => output.address)
-    if (txInfo.showAddresses.length === 0) txInfo.showAddresses.push('self')
+    if (txInfo.showAddresses.length === 0) {
+      txInfo.value = 0
+      txInfo.showAddresses.push('self')
+    }
 
     // update account info
     let index = this.txInfos.findIndex(t => t.txId === txInfo.txId)
