@@ -231,7 +231,14 @@ export default class EthAccount {
     if (!D.isEth(this.coinType)) throw D.error.coinNotSupported
     if (D.isDecimal(details.gasPrice)) throw D.error.valueIsDecimal
     if (D.isDecimal(output.value)) throw D.error.valueIsDecimal
-    if (details.data) throw D.error.notImplemented
+    if (details.data) {
+      let data = details.data
+      if (data.startsWith('0x')) data = data.slice(2)
+      if (!data.match(/^[0-9a-fA-F]$/)) throw D.error.invalidDataNotHex
+      details.data = '0x' + data
+    } else {
+      details.data = '0x'
+    }
 
     let input = D.copy(this.addressInfos[0])
     let nonce = this.txInfos.filter(txInfo => txInfo.direction === D.tx.direction.out).length
@@ -250,8 +257,6 @@ export default class EthAccount {
       if (total.compareTo(balance) > 0) throw D.error.balanceNotEnough
     }
 
-    let data = details.data ? details.data : ''
-    if (!data.startsWith('0x')) data = '0x' + data
     let prepareTx = {
       total: total.toString(10),
       fee: fee.toString(10),
@@ -260,7 +265,7 @@ export default class EthAccount {
       nonce: nonce,
       input: input,
       output: output,
-      data: data
+      data: details.data
     }
     console.log('prepareTx', prepareTx)
     return prepareTx

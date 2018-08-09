@@ -50,6 +50,7 @@ const D = {
     noAddressCheckSum: 602, // for eth
     invalidAddressChecksum: 603,
     valueIsDecimal: 604,
+    invalidDataNotHex: 605,
 
     offlineModeNotAllowed: 701, // no device ever connected before
     offlineModeUnnecessary: 702, // device has connected
