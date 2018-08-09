@@ -235,7 +235,7 @@ export default class EthAccount {
       let data = details.data
       if (data.startsWith('0x')) data = data.slice(2)
       if (data.length % 2 !== 0) throw D.error.invalidDataNotHex
-      if (!data.match(/^[0-9a-fA-F]$/)) throw D.error.invalidDataNotHex
+      if (!data.match(/^[0-9a-fA-F]+$/)) throw D.error.invalidDataNotHex
       details.data = '0x' + data
     } else {
       details.data = '0x'
