@@ -43225,6 +43225,7 @@ var D = {
     noAddressCheckSum: 602, // for eth
     invalidAddressChecksum: 603,
     valueIsDecimal: 604,
+    invalidDataNotHex: 605,
 
     offlineModeNotAllowed: 701, // no device ever connected before
     offlineModeUnnecessary: 702, // device has connected
@@ -45019,7 +45020,7 @@ var EthAccount = function () {
     key: 'prepareTx',
     value: function () {
       var _ref10 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee10(details) {
-        var gasPrice, gasLimit, output, value, input, nonce, fee, balance, total, data, prepareTx;
+        var gasPrice, gasLimit, output, value, data, input, nonce, fee, balance, total, prepareTx;
         return regeneratorRuntime.wrap(function _callee10$(_context10) {
           while (1) {
             switch (_context10.prev = _context10.next) {
@@ -45054,13 +45055,38 @@ var EthAccount = function () {
 
               case 10:
                 if (!details.data) {
-                  _context10.next = 12;
+                  _context10.next = 20;
                   break;
                 }
 
-                throw _D2.default.error.notImplemented;
+                data = details.data;
 
-              case 12:
+                if (data.startsWith('0x')) data = data.slice(2);
+
+                if (!(data.length % 2 !== 0)) {
+                  _context10.next = 15;
+                  break;
+                }
+
+                throw _D2.default.error.invalidDataNotHex;
+
+              case 15:
+                if (data.match(/^[0-9a-fA-F]+$/)) {
+                  _context10.next = 17;
+                  break;
+                }
+
+                throw _D2.default.error.invalidDataNotHex;
+
+              case 17:
+                details.data = '0x' + data;
+                _context10.next = 21;
+                break;
+
+              case 20:
+                details.data = '0x';
+
+              case 21:
                 input = _D2.default.copy(this.addressInfos[0]);
                 nonce = this.txInfos.filter(function (txInfo) {
                   return txInfo.direction === _D2.default.tx.direction.out;
@@ -45071,38 +45097,35 @@ var EthAccount = function () {
                 // noinspection JSUnresolvedVariable
 
                 if (!details.sendAll) {
-                  _context10.next = 25;
+                  _context10.next = 34;
                   break;
                 }
 
                 if (!(balance.compareTo(fee) < 0)) {
-                  _context10.next = 20;
+                  _context10.next = 29;
                   break;
                 }
 
                 throw _D2.default.error.balanceNotEnough;
 
-              case 20:
+              case 29:
                 total = balance;
                 value = total.subtract(fee);
                 output.value = value.toString(10);
-                _context10.next = 28;
+                _context10.next = 37;
                 break;
 
-              case 25:
+              case 34:
                 total = value.add(fee);
 
                 if (!(total.compareTo(balance) > 0)) {
-                  _context10.next = 28;
+                  _context10.next = 37;
                   break;
                 }
 
                 throw _D2.default.error.balanceNotEnough;
 
-              case 28:
-                data = details.data ? details.data : '';
-
-                if (!data.startsWith('0x')) data = '0x' + data;
+              case 37:
                 prepareTx = {
                   total: total.toString(10),
                   fee: fee.toString(10),
@@ -45111,13 +45134,13 @@ var EthAccount = function () {
                   nonce: nonce,
                   input: input,
                   output: output,
-                  data: data
+                  data: details.data
                 };
 
                 console.log('prepareTx', prepareTx);
                 return _context10.abrupt('return', prepareTx);
 
-              case 33:
+              case 40:
               case 'end':
                 return _context10.stop();
             }
