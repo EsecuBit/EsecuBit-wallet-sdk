@@ -252,6 +252,8 @@ const D = {
           if (buffer.length !== 78) throw D.error.invalidAddress
           return buffer.slice(45)
         }
+        console.warn('no matching prefix for bitcoin address')
+        throw D.error.invalidAddress
       }
     },
 
