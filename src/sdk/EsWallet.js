@@ -148,6 +148,7 @@ export default class EsWallet {
   }
 
   _release () {
+    this._esAccounts = []
     return this._coinData.release()
   }
 
