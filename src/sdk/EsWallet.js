@@ -32,14 +32,22 @@ export default class EsWallet {
     this._status = D.status.plugOut
     this._callback = null
     this._device.listenPlug(async (error, plugStatus) => {
+      // ignore the same plug event sent multiple times
+      if (this._status === plugStatus) return
+
+      // handle error
       this._status = plugStatus
       if (error !== D.error.succeed) {
         this._callback && D.dispatch(() => this._callback(error, this._status))
         return
       }
-      this._callback && this._callback(D.error.succeed, this._status)
+
+      // send plug status
+      this._callback && D.dispatch(() => this._callback(D.error.succeed, this._status))
       if (this._status === D.status.plugIn) {
         this.offlineMode = false
+
+        // initializing
         this._status = D.status.initializing
         this._callback && D.dispatch(() => this._callback(D.error.succeed, this._status))
         try {
@@ -51,6 +59,7 @@ export default class EsWallet {
         }
         if (this._status === D.status.plugOut) return
 
+        // syncing
         this._status = D.status.syncing
         this._callback && D.dispatch(() => this._callback(D.error.succeed, this._status))
         try {
@@ -62,6 +71,7 @@ export default class EsWallet {
         }
         if (this._status === D.status.plugOut) return
 
+        // syncFinish
         this._status = D.status.syncFinish
         this._callback && D.dispatch(() => this._callback(D.error.succeed, this._status))
       } else if (this._status === D.status.plugOut) {
