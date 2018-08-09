@@ -42188,7 +42188,7 @@ var BtcAccount = function () {
     key: 'init',
     value: function () {
       var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
-        var accountId, newAddressInfos;
+        var accountId;
         return regeneratorRuntime.wrap(function _callee3$(_context3) {
           while (1) {
             switch (_context3.prev = _context3.next) {
@@ -42209,15 +42209,8 @@ var BtcAccount = function () {
 
               case 9:
                 this.utxos = _context3.sent;
-                _context3.next = 12;
-                return this._checkAddressIndexAndGenerateNew();
 
-              case 12:
-                newAddressInfos = _context3.sent;
-                _context3.next = 15;
-                return this._coinData.newAddressInfos(this._toAccountInfo(), newAddressInfos);
-
-              case 15:
+              case 10:
               case 'end':
                 return _context3.stop();
             }
@@ -42241,63 +42234,72 @@ var BtcAccount = function () {
         var _this2 = this;
 
         var firstSync = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
-        var newAddressInfos, checkAddressInfos, blobs, responses;
+        var offlineMode = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+        var checkAddressInfos, blobs, responses, listenAddressInfo;
         return regeneratorRuntime.wrap(function _callee4$(_context4) {
           while (1) {
             switch (_context4.prev = _context4.next) {
               case 0:
-                _context4.next = 2;
+                if (offlineMode) {
+                  _context4.next = 3;
+                  break;
+                }
+
+                _context4.next = 3;
                 return this._checkAddressIndexAndGenerateNew(true);
 
-              case 2:
-                newAddressInfos = _context4.sent;
-                _context4.next = 5;
-                return this._coinData.newAddressInfos(this._toAccountInfo(), newAddressInfos);
-
-              case 5:
+              case 3:
                 checkAddressInfos = this.addressInfos;
 
-              case 6:
+              case 4:
                 if (false) {}
 
-                _context4.next = 9;
+                _context4.next = 7;
                 return this._coinData.checkAddresses(this.coinType, checkAddressInfos);
 
-              case 9:
+              case 7:
                 blobs = _context4.sent;
-                _context4.next = 12;
+                _context4.next = 10;
                 return Promise.all(blobs.map(function (blob) {
-                  return _this2._handleNewTx(blob.addressInfo, blob.txInfo, blob.utxos, true);
+                  return _this2._handleNewTx(blob.addressInfo, blob.txInfo, blob.utxos);
                 }));
 
-              case 12:
+              case 10:
                 responses = _context4.sent;
 
+                if (!offlineMode) {
+                  _context4.next = 13;
+                  break;
+                }
+
+                return _context4.abrupt('break', 20);
+
+              case 13:
                 if (!(responses.length === 0)) {
                   _context4.next = 15;
                   break;
                 }
 
-                return _context4.abrupt('break', 18);
+                return _context4.abrupt('break', 20);
 
               case 15:
-                // noinspection JSUnresolvedVariable
-                checkAddressInfos = responses.reduce(function (array, response) {
-                  return array.concat(response.newAddressInfos);
-                }, []);
-                _context4.next = 6;
+                _context4.next = 17;
+                return this._checkAddressIndexAndGenerateNew(true);
+
+              case 17:
+                checkAddressInfos = _context4.sent;
+                _context4.next = 4;
                 break;
 
-              case 18:
+              case 20:
 
                 if (firstSync) {
-                  // won't listen old addresses any more, they may be so much
-                  // let listenedAddressInfos = this._getAddressInfos(0, this.externalPublicKeyIndex + 1, D.address.external)
-                  // if (listenedAddressInfos.length !== 0) {
-                  //   this._listenedAddresses = listenedAddressInfos.map(addressInfo => addressInfo.address)
-                  //   this._coinData.listenAddresses(this.coinType, listenedAddressInfos, this._addressListener)
-                  // }
+                  listenAddressInfo = this._getAddressInfos(this.externalPublicKeyIndex, this.externalPublicKeyIndex + 1, _D2.default.address.external)[0];
 
+                  if (listenAddressInfo && !this._listenedAddresses.includes(listenAddressInfo.address)) {
+                    this._listenedAddresses.push(listenAddressInfo.address);
+                    this._coinData.listenAddresses(this.coinType, [listenAddressInfo], this._addressListener);
+                  }
                   this.txInfos.filter(function (txInfo) {
                     return txInfo.confirmations < _D2.default.tx.getMatureConfirms(_this2.coinType);
                   }).filter(function (txInfo) {
@@ -42308,7 +42310,7 @@ var BtcAccount = function () {
                   });
                 }
 
-              case 19:
+              case 21:
               case 'end':
                 return _context4.stop();
             }
@@ -42376,7 +42378,7 @@ var BtcAccount = function () {
         }, _callee6, this);
       }));
 
-      function rename(_x8) {
+      function rename(_x9) {
         return _ref6.apply(this, arguments);
       }
 
@@ -42395,13 +42397,12 @@ var BtcAccount = function () {
       var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7(addressInfo, txInfo, utxos) {
         var _this3 = this;
 
-        var isSyncing = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
-        var input, index, newIndex, oldIndex, newAddressInfos, newListeneAddressInfos;
+        var input, index, newIndex;
         return regeneratorRuntime.wrap(function _callee7$(_context7) {
           while (1) {
             switch (_context7.prev = _context7.next) {
               case 0:
-                console.log('newTransaction', addressInfo, txInfo, utxos, isSyncing);
+                console.log('newTransaction', addressInfo, txInfo, utxos);
 
                 // async operation may lead to disorder. so we need a simple lock
                 // eslint-disable-next-line
@@ -42445,10 +42446,10 @@ var BtcAccount = function () {
                 });
 
                 txInfo.direction = input ? _D2.default.tx.direction.out : _D2.default.tx.direction.in;
-                txInfo.showAddresses = txInfo.direction === _D2.default.tx.direction.in ? txInfo.inputs.filter(function (inputs) {
-                  return !inputs.isMine;
-                }).map(function (inputs) {
-                  return inputs.prevAddress;
+                txInfo.showAddresses = txInfo.direction === _D2.default.tx.direction.in ? txInfo.inputs.filter(function (input) {
+                  return !input.isMine;
+                }).map(function (input) {
+                  return input.prevAddress;
                 }) : txInfo.outputs.filter(function (output) {
                   return !output.isMine;
                 }).map(function (output) {
@@ -42497,32 +42498,17 @@ var BtcAccount = function () {
 
                 // update and addressIndex and listen new address
                 newIndex = addressInfo.index + 1;
-                oldIndex = addressInfo.type === _D2.default.address.external ? this.externalPublicKeyIndex : this.changePublicKeyIndex;
 
-                addressInfo.type === _D2.default.address.external ? this.externalPublicKeyIndex = newIndex : this.changePublicKeyIndex = newIndex;
-                _context7.next = 28;
-                return this._device.updateIndex(this);
-
-              case 28:
-                _context7.next = 30;
-                return this._checkAddressIndexAndGenerateNew(isSyncing);
-
-              case 30:
-                newAddressInfos = _context7.sent;
-                _context7.next = 33;
-                return this._coinData.newAddressInfos(this._toAccountInfo(), newAddressInfos);
-
-              case 33:
-                _context7.next = 35;
+                if (addressInfo.type === _D2.default.address.external) {
+                  if (this.externalPublicKeyIndex < newIndex) this.externalPublicKeyIndex = newIndex;
+                } else {
+                  if (this.changePublicKeyIndex < newIndex) this.changePublicKeyIndex = newIndex;
+                }
+                _context7.next = 27;
                 return this._coinData.newTx(this._toAccountInfo(), addressInfo, txInfo, utxos);
 
-              case 35:
+              case 27:
 
-                if (!isSyncing) {
-                  newListeneAddressInfos = this._getAddressInfos(oldIndex, newIndex + 1, addressInfo.type);
-
-                  if (newListeneAddressInfos.length !== 0) this._coinData.listenAddresses(this.coinType, newListeneAddressInfos, this._addressListener);
-                }
                 if (txInfo.confirmations < _D2.default.tx.getMatureConfirms(this.coinType)) {
                   if (!this._listenedTxs.some(function (tx) {
                     return tx === txInfo.txId;
@@ -42533,9 +42519,9 @@ var BtcAccount = function () {
                 }
                 this.busy = false;
 
-                return _context7.abrupt('return', { addressInfo: addressInfo, txInfo: txInfo, utxos: utxos, newAddressInfos: newAddressInfos });
+                return _context7.abrupt('return', { addressInfo: addressInfo, txInfo: txInfo, utxos: utxos });
 
-              case 39:
+              case 30:
               case 'end':
                 return _context7.stop();
             }
@@ -42558,91 +42544,85 @@ var BtcAccount = function () {
   }, {
     key: '_checkAddressIndexAndGenerateNew',
     value: function () {
-      var _ref8 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee10() {
+      var _ref8 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee9() {
         var _this4 = this,
             _addressInfos;
 
         var sync = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
-        var maxAddressIndexLength, checkAndGenerate, newAddresseInfos;
-        return regeneratorRuntime.wrap(function _callee10$(_context10) {
+        var maxAddressIndexLength, checkAndGenerate, newAddressInfos;
+        return regeneratorRuntime.wrap(function _callee9$(_context9) {
           while (1) {
-            switch (_context10.prev = _context10.next) {
+            switch (_context9.prev = _context9.next) {
               case 0:
-                maxAddressIndexLength = 20;
+                maxAddressIndexLength = sync ? 20 : 1;
 
                 checkAndGenerate = function () {
-                  var _ref9 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee9(type) {
-                    var isExternal, index, maxIndex, nextIndex;
-                    return regeneratorRuntime.wrap(function _callee9$(_context9) {
+                  var _ref9 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8(type) {
+                    var maxIndex, nextIndex, isExternal, newNextIndex, addressInfos, i, address;
+                    return regeneratorRuntime.wrap(function _callee8$(_context8) {
                       while (1) {
-                        switch (_context9.prev = _context9.next) {
+                        switch (_context8.prev = _context8.next) {
                           case 0:
-                            isExternal = type === _D2.default.address.external;
-                            index = isExternal ? _this4.externalPublicKeyIndex : _this4.changePublicKeyIndex;
                             maxIndex = _this4.addressInfos.filter(function (addressInfo) {
                               return addressInfo.type === type;
                             }).reduce(function (max, addressInfo) {
                               return Math.max(max, addressInfo.index);
                             }, -1);
                             nextIndex = maxIndex + 1;
+                            isExternal = type === _D2.default.address.external;
+                            newNextIndex = isExternal ? _this4.externalPublicKeyIndex : _this4.changePublicKeyIndex;
 
+                            newNextIndex += maxAddressIndexLength;
 
-                            sync ? index += maxAddressIndexLength : index += 1;
-                            nextIndex = nextIndex > index + maxAddressIndexLength ? index + maxAddressIndexLength : nextIndex;
-                            if (index > nextIndex) {
-                              console.log(_this4.accountId, 'generating', type, 'addressInfos, from', nextIndex, 'to', index);
+                            if (!(newNextIndex <= nextIndex)) {
+                              _context8.next = 7;
+                              break;
                             }
-                            _context9.next = 9;
-                            return Promise.all(Array.from({ length: index - nextIndex }, function (v, k) {
-                              return nextIndex + k;
-                            }).map(function () {
-                              var _ref10 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8(i) {
-                                var address;
-                                return regeneratorRuntime.wrap(function _callee8$(_context8) {
-                                  while (1) {
-                                    switch (_context8.prev = _context8.next) {
-                                      case 0:
-                                        _context8.next = 2;
-                                        return _this4._device.getAddress(_this4.coinType, _D2.default.makeBip44Path(_this4.coinType, _this4.index, type, i));
 
-                                      case 2:
-                                        address = _context8.sent;
-                                        return _context8.abrupt('return', {
-                                          address: address,
-                                          accountId: _this4.accountId,
-                                          coinType: _this4.coinType,
-                                          path: _D2.default.makeBip44Path(_this4.coinType, _this4.index, type, i),
-                                          type: type,
-                                          index: i,
-                                          txs: []
-                                        });
+                            return _context8.abrupt('return', []);
 
-                                      case 4:
-                                      case 'end':
-                                        return _context8.stop();
-                                    }
-                                  }
-                                }, _callee8, _this4);
-                              }));
+                          case 7:
 
-                              return function (_x15) {
-                                return _ref10.apply(this, arguments);
-                              };
-                            }()));
+                            console.log(_this4.accountId, 'generating', type, 'addressInfos, from', nextIndex, 'to', newNextIndex);
+                            addressInfos = [];
+                            i = nextIndex;
 
-                          case 9:
-                            _context9.t0 = function (addressInfo) {
-                              return addressInfo !== null;
-                            };
+                          case 10:
+                            if (!(i < newNextIndex)) {
+                              _context8.next = 18;
+                              break;
+                            }
 
-                            return _context9.abrupt('return', _context9.sent.filter(_context9.t0));
+                            _context8.next = 13;
+                            return _this4._device.getAddress(_this4.coinType, _D2.default.makeBip44Path(_this4.coinType, _this4.index, type, i));
 
-                          case 11:
+                          case 13:
+                            address = _context8.sent;
+
+                            addressInfos.push({
+                              address: address,
+                              accountId: _this4.accountId,
+                              coinType: _this4.coinType,
+                              path: _D2.default.makeBip44Path(_this4.coinType, _this4.index, type, i),
+                              type: type,
+                              index: i,
+                              txs: []
+                            });
+
+                          case 15:
+                            i++;
+                            _context8.next = 10;
+                            break;
+
+                          case 18:
+                            return _context8.abrupt('return', addressInfos);
+
+                          case 19:
                           case 'end':
-                            return _context9.stop();
+                            return _context8.stop();
                         }
                       }
-                    }, _callee9, _this4);
+                    }, _callee8, _this4);
                   }));
 
                   return function checkAndGenerate(_x14) {
@@ -42650,28 +42630,31 @@ var BtcAccount = function () {
                   };
                 }();
 
-                _context10.t0 = [];
-                _context10.next = 5;
+                _context9.t0 = [];
+                _context9.next = 5;
                 return checkAndGenerate(_D2.default.address.external);
 
               case 5:
-                _context10.t1 = _context10.sent;
-                _context10.next = 8;
+                _context9.t1 = _context9.sent;
+                _context9.next = 8;
                 return checkAndGenerate(_D2.default.address.change);
 
               case 8:
-                _context10.t2 = _context10.sent;
-                newAddresseInfos = _context10.t0.concat.call(_context10.t0, _context10.t1, _context10.t2);
-
-                (_addressInfos = this.addressInfos).push.apply(_addressInfos, _toConsumableArray(newAddresseInfos));
-                return _context10.abrupt('return', newAddresseInfos);
+                _context9.t2 = _context9.sent;
+                newAddressInfos = _context9.t0.concat.call(_context9.t0, _context9.t1, _context9.t2);
+                _context9.next = 12;
+                return this._coinData.newAddressInfos(this._toAccountInfo(), newAddressInfos);
 
               case 12:
+                (_addressInfos = this.addressInfos).push.apply(_addressInfos, _toConsumableArray(newAddressInfos));
+                return _context9.abrupt('return', newAddressInfos);
+
+              case 14:
               case 'end':
-                return _context10.stop();
+                return _context9.stop();
             }
           }
-        }, _callee10, this);
+        }, _callee9, this);
       }));
 
       function _checkAddressIndexAndGenerateNew() {
@@ -42708,10 +42691,30 @@ var BtcAccount = function () {
     }
   }, {
     key: 'getTxInfos',
-    value: function getTxInfos(startIndex, endIndex) {
-      var accountId = this.accountId;
-      return this._coinData.getTxInfos({ accountId: accountId, startIndex: startIndex, endIndex: endIndex });
-    }
+    value: function () {
+      var _ref10 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee10(startIndex, endIndex) {
+        var accountId;
+        return regeneratorRuntime.wrap(function _callee10$(_context10) {
+          while (1) {
+            switch (_context10.prev = _context10.next) {
+              case 0:
+                accountId = this.accountId;
+                return _context10.abrupt('return', this._coinData.getTxInfos({ accountId: accountId, startIndex: startIndex, endIndex: endIndex }));
+
+              case 2:
+              case 'end':
+                return _context10.stop();
+            }
+          }
+        }, _callee10, this);
+      }));
+
+      function getTxInfos(_x16, _x17) {
+        return _ref10.apply(this, arguments);
+      }
+
+      return getTxInfos;
+    }()
   }, {
     key: 'getAddress',
     value: function () {
@@ -42727,9 +42730,13 @@ var BtcAccount = function () {
 
               case 2:
                 address = _context11.sent;
+                _context11.next = 5;
+                return this._checkAddressIndexAndGenerateNew();
+
+              case 5:
                 listenAddressInfo = this._getAddressInfos(this.externalPublicKeyIndex, this.externalPublicKeyIndex + 1, _D2.default.address.external)[0];
 
-                if (!this._listenedAddresses.includes(listenAddressInfo.address)) {
+                if (listenAddressInfo && !this._listenedAddresses.includes(listenAddressInfo.address)) {
                   this._listenedAddresses.push(listenAddressInfo.address);
                   this._coinData.listenAddresses(this.coinType, [listenAddressInfo], this._addressListener);
                 }
@@ -42737,7 +42744,7 @@ var BtcAccount = function () {
                 prefix = '';
                 return _context11.abrupt('return', { address: address, qrAddress: prefix + address });
 
-              case 7:
+              case 9:
               case 'end':
                 return _context11.stop();
             }
@@ -42930,7 +42937,7 @@ var BtcAccount = function () {
         }, _callee12, this);
       }));
 
-      function prepareTx(_x18) {
+      function prepareTx(_x19) {
         return _ref12.apply(this, arguments);
       }
 
@@ -42984,8 +42991,8 @@ var BtcAccount = function () {
                 });
                 value = totalIn - prepareTx.total;
                 rawTx = {
-                  inputs: prepareTx.utxos,
-                  outputs: prepareTx.outputs,
+                  inputs: _D2.default.copy(prepareTx.utxos),
+                  outputs: _D2.default.copy(prepareTx.outputs),
                   changePath: changeAddressInfo.path
                 };
 
@@ -43016,7 +43023,7 @@ var BtcAccount = function () {
                       value: utxo.value
                     };
                   }),
-                  outputs: prepareTx.outputs.map(function (output) {
+                  outputs: rawTx.outputs.map(function (output) {
                     return {
                       address: output.address,
                       isMine: output.address === changeAddressInfo.address,
@@ -43061,7 +43068,7 @@ var BtcAccount = function () {
         }, _callee13, this);
       }));
 
-      function buildTx(_x19) {
+      function buildTx(_x20) {
         return _ref13.apply(this, arguments);
       }
 
@@ -43124,7 +43131,7 @@ var BtcAccount = function () {
         }, _callee14, this);
       }));
 
-      function sendTx(_x21) {
+      function sendTx(_x22) {
         return _ref14.apply(this, arguments);
       }
 
@@ -43219,6 +43226,9 @@ var D = {
     invalidAddressChecksum: 603,
     valueIsDecimal: 604,
 
+    offlineModeNotAllowed: 701, // no device ever connected before
+    offlineModeUnnecessary: 702, // device has connected
+
     notImplemented: 10000,
     unknown: 10001,
     coinNotSupported: 10002,
@@ -43227,6 +43237,7 @@ var D = {
       if (sw1sw2 === 0x9000) return D.error.succeed;
 
       console.warn('sw1sw2 error', sw1sw2.toString(16));
+      sw1sw2 = sw1sw2 & 0xFFFF;
       if (sw1sw2 === 0x6A81) return D.error.deviceNotInit;
       if (sw1sw2 === 0x6FF8) return D.error.userCancel;
       if (sw1sw2 === 0x6FF9) return D.error.operationTimeout;
@@ -43308,7 +43319,7 @@ var D = {
       }
       // publickey
       if (buffer.length === 78) {
-        var versionBytes = buffer.readUInt32LE(0);
+        var versionBytes = buffer.readUInt32BE(0);
         switch (versionBytes) {
           case 0x0488B21E:
             // main net
@@ -43316,8 +43327,10 @@ var D = {
             return D.address.p2pk;
           case 0x043587CF:
             // test net
-            if (!D.test.coin) throw D.error.invalidAddress;
-            return D.address.p2pk;
+            // bitcoin-js dont support p2pk
+            throw D.error.invalidAddress;
+          // if (!D.test.coin) throw D.error.invalidAddress
+          // return D.address.p2pk
           default:
             throw D.error.invalidAddress;
         }
@@ -43378,7 +43391,6 @@ var D = {
      * convert string type address to Buffer
      */
     toBuffer: function toBuffer(address) {
-      // TODO throw Error instead of int in the whole project
       if (address.startsWith('0x')) {
         // eth
         return Buffer.from(address.slice(2), 'hex');
@@ -43752,12 +43764,16 @@ var EsWallet = function () {
     key: 'supportedCoinTypes',
 
     /**
-     * get support coin types
-     * @returns {*[]}
+     * get supported coin types
      */
     value: function supportedCoinTypes() {
       return _D2.default.supportedCoinTypes();
     }
+
+    /**
+     * get supported legal currency types
+     */
+
   }, {
     key: 'suppertedLegals',
     value: function suppertedLegals() {
@@ -43775,6 +43791,7 @@ var EsWallet = function () {
     }
     EsWallet.prototype.Instance = this;
 
+    this._esAccounts = [];
     this._device = _D2.default.test.jsWallet ? new _Provider2.default.SoftWallet() : new _Provider2.default.HardWallet();
     this._coinData = new _CoinData2.default();
     this._status = _D2.default.status.plugOut;
@@ -43785,10 +43802,20 @@ var EsWallet = function () {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
+                if (!(_this._status === plugStatus)) {
+                  _context.next = 2;
+                  break;
+                }
+
+                return _context.abrupt('return');
+
+              case 2:
+
+                // handle error
                 _this._status = plugStatus;
 
                 if (!(error !== _D2.default.error.succeed)) {
-                  _context.next = 4;
+                  _context.next = 6;
                   break;
                 }
 
@@ -43797,29 +43824,36 @@ var EsWallet = function () {
                 });
                 return _context.abrupt('return');
 
-              case 4:
-                _this._callback && _this._callback(_D2.default.error.succeed, _this._status);
+              case 6:
+
+                // send plug status
+                _this._callback && _D2.default.dispatch(function () {
+                  return _this._callback(_D2.default.error.succeed, _this._status);
+                });
 
                 if (!(_this._status === _D2.default.status.plugIn)) {
-                  _context.next = 38;
+                  _context.next = 41;
                   break;
                 }
 
+                _this.offlineMode = false;
+
+                // initializing
                 _this._status = _D2.default.status.initializing;
                 _this._callback && _D2.default.dispatch(function () {
                   return _this._callback(_D2.default.error.succeed, _this._status);
                 });
-                _context.prev = 8;
-                _context.next = 11;
+                _context.prev = 11;
+                _context.next = 14;
                 return _this._init();
 
-              case 11:
-                _context.next = 18;
+              case 14:
+                _context.next = 21;
                 break;
 
-              case 13:
-                _context.prev = 13;
-                _context.t0 = _context['catch'](8);
+              case 16:
+                _context.prev = 16;
+                _context.t0 = _context['catch'](11);
 
                 console.warn(_context.t0);
                 _this._callback && _D2.default.dispatch(function () {
@@ -43827,31 +43861,32 @@ var EsWallet = function () {
                 });
                 return _context.abrupt('return');
 
-              case 18:
+              case 21:
                 if (!(_this._status === _D2.default.status.plugOut)) {
-                  _context.next = 20;
+                  _context.next = 23;
                   break;
                 }
 
                 return _context.abrupt('return');
 
-              case 20:
+              case 23:
 
+                // syncing
                 _this._status = _D2.default.status.syncing;
                 _this._callback && _D2.default.dispatch(function () {
                   return _this._callback(_D2.default.error.succeed, _this._status);
                 });
-                _context.prev = 22;
-                _context.next = 25;
+                _context.prev = 25;
+                _context.next = 28;
                 return _this._sync();
 
-              case 25:
-                _context.next = 32;
+              case 28:
+                _context.next = 35;
                 break;
 
-              case 27:
-                _context.prev = 27;
-                _context.t1 = _context['catch'](22);
+              case 30:
+                _context.prev = 30;
+                _context.t1 = _context['catch'](25);
 
                 console.warn(_context.t1);
                 _this._callback && _D2.default.dispatch(function () {
@@ -43859,32 +43894,36 @@ var EsWallet = function () {
                 });
                 return _context.abrupt('return');
 
-              case 32:
+              case 35:
                 if (!(_this._status === _D2.default.status.plugOut)) {
-                  _context.next = 34;
+                  _context.next = 37;
                   break;
                 }
 
                 return _context.abrupt('return');
 
-              case 34:
+              case 37:
 
+                // syncFinish
                 _this._status = _D2.default.status.syncFinish;
                 _this._callback && _D2.default.dispatch(function () {
                   return _this._callback(_D2.default.error.succeed, _this._status);
                 });
-                _context.next = 39;
+                _context.next = 42;
                 break;
 
-              case 38:
-                _this._release();
+              case 41:
+                if (_this._status === _D2.default.status.plugOut) {
+                  _this.offlineMode = true;
+                  _this._release();
+                }
 
-              case 39:
+              case 42:
               case 'end':
                 return _context.stop();
             }
           }
-        }, _callee, _this, [[8, 13], [22, 27]]);
+        }, _callee, _this, [[11, 16], [25, 30]]);
       }));
 
       return function (_x, _x2) {
@@ -43893,47 +43932,36 @@ var EsWallet = function () {
     }());
   }
 
+  /**
+   * use wallet in offline mode, do not have to connect the key and network
+   */
+
+
   _createClass(EsWallet, [{
-    key: '_init',
+    key: 'enterOfflineMode',
     value: function () {
       var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
-        var _this2 = this;
-
-        var info;
         return regeneratorRuntime.wrap(function _callee2$(_context2) {
           while (1) {
             switch (_context2.prev = _context2.next) {
               case 0:
-                _context2.next = 2;
-                return this._device.init();
+                if (!(this._status !== _D2.default.status.plugOut)) {
+                  _context2.next = 2;
+                  break;
+                }
+
+                throw _D2.default.error.offlineModeUnnecessary;
 
               case 2:
-                info = _context2.sent;
+                this.offlineMode = true;
+                _context2.next = 5;
+                return this._init();
 
-                console.log('walletInfo', info);
-                _context2.next = 6;
-                return this._coinData.init(info);
+              case 5:
+                _context2.next = 7;
+                return this._sync();
 
-              case 6:
-                _context2.next = 8;
-                return this._coinData.getAccounts();
-
-              case 8:
-                _context2.t0 = function (account) {
-                  if (_D2.default.isEth(account.coinType)) {
-                    return new _EthAccount2.default(account, _this2._device, _this2._coinData);
-                  } else {
-                    return new _BtcAccount2.default(account, _this2._device, _this2._coinData);
-                  }
-                };
-
-                this._esAccounts = _context2.sent.map(_context2.t0);
-                _context2.next = 12;
-                return Promise.all(this._esAccounts.map(function (esAccount) {
-                  return esAccount.init();
-                }));
-
-              case 12:
+              case 7:
               case 'end':
                 return _context2.stop();
             }
@@ -43941,8 +43969,70 @@ var EsWallet = function () {
         }, _callee2, this);
       }));
 
-      function _init() {
+      function enterOfflineMode() {
         return _ref2.apply(this, arguments);
+      }
+
+      return enterOfflineMode;
+    }()
+  }, {
+    key: '_init',
+    value: function () {
+      var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
+        var _this2 = this;
+
+        var info, accounts;
+        return regeneratorRuntime.wrap(function _callee3$(_context3) {
+          while (1) {
+            switch (_context3.prev = _context3.next) {
+              case 0:
+                info = void 0;
+
+                if (this.offlineMode) {
+                  _context3.next = 5;
+                  break;
+                }
+
+                _context3.next = 4;
+                return this._device.init();
+
+              case 4:
+                info = _context3.sent;
+
+              case 5:
+                _context3.next = 7;
+                return this._coinData.init(info, this.offlineMode);
+
+              case 7:
+                _context3.next = 9;
+                return this._coinData.getAccounts();
+
+              case 9:
+                accounts = _context3.sent;
+
+                accounts.forEach(function (account) {
+                  var exists = _this2._esAccounts.some(function (esAccount) {
+                    return esAccount.accountId === account.accountId;
+                  });
+                  if (exists) return;
+                  var esAccount = _D2.default.isEth(account.coinType) ? new _EthAccount2.default(account, _this2._device, _this2._coinData) : new _BtcAccount2.default(account, _this2._device, _this2._coinData);
+                  _this2._esAccounts.push(esAccount);
+                });
+                _context3.next = 13;
+                return Promise.all(this._esAccounts.map(function (esAccount) {
+                  return esAccount.init();
+                }));
+
+              case 13:
+              case 'end':
+                return _context3.stop();
+            }
+          }
+        }, _callee3, this);
+      }));
+
+      function _init() {
+        return _ref3.apply(this, arguments);
       }
 
       return _init;
@@ -43953,137 +44043,43 @@ var EsWallet = function () {
   }, {
     key: '_sync',
     value: function () {
-      var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
+      var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4() {
         var _this3 = this;
 
-        return regeneratorRuntime.wrap(function _callee3$(_context3) {
+        return regeneratorRuntime.wrap(function _callee4$(_context4) {
           while (1) {
-            switch (_context3.prev = _context3.next) {
+            switch (_context4.prev = _context4.next) {
               case 0:
-                _context3.next = 2;
-                return this._device.sync();
-
-              case 2:
                 if (!(this._esAccounts.length === 0)) {
-                  _context3.next = 8;
+                  _context4.next = 8;
                   break;
                 }
 
+                if (!this.offlineMode) {
+                  _context4.next = 3;
+                  break;
+                }
+
+                throw _D2.default.error.offlineModeNotAllowed;
+
+              case 3:
                 console.log('no accounts, new wallet, start recovery');
-                _context3.next = 6;
+                _context4.next = 6;
                 return Promise.all(_D2.default.recoverCoinTypes().map(function (coinType) {
                   return _this3._recover(coinType);
                 }));
 
               case 6:
-                _context3.next = 10;
+                _context4.next = 10;
                 break;
 
               case 8:
-                _context3.next = 10;
+                _context4.next = 10;
                 return Promise.all(this._esAccounts.map(function (esAccount) {
-                  return esAccount.sync(true);
+                  return esAccount.sync(true, _this3.offlineMode);
                 }));
 
               case 10:
-              case 'end':
-                return _context3.stop();
-            }
-          }
-        }, _callee3, this);
-      }));
-
-      function _sync() {
-        return _ref3.apply(this, arguments);
-      }
-
-      return _sync;
-    }()
-  }, {
-    key: '_recover',
-    value: function () {
-      var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(coinType) {
-        var account, esAccount;
-        return regeneratorRuntime.wrap(function _callee4$(_context4) {
-          while (1) {
-            switch (_context4.prev = _context4.next) {
-              case 0:
-                if (false) {}
-
-                _context4.next = 3;
-                return this._coinData.newAccount(coinType);
-
-              case 3:
-                account = _context4.sent;
-                esAccount = void 0;
-
-                if (!_D2.default.isBtc(coinType)) {
-                  _context4.next = 9;
-                  break;
-                }
-
-                esAccount = new _BtcAccount2.default(account, this._device, this._coinData);
-                _context4.next = 14;
-                break;
-
-              case 9:
-                if (!_D2.default.isEth(coinType)) {
-                  _context4.next = 13;
-                  break;
-                }
-
-                esAccount = new _EthAccount2.default(account, this._device, this._coinData);
-                _context4.next = 14;
-                break;
-
-              case 13:
-                throw _D2.default.error.coinNotSupported;
-
-              case 14:
-                _context4.next = 16;
-                return esAccount.init();
-
-              case 16:
-                _context4.next = 18;
-                return esAccount.sync(true);
-
-              case 18:
-                _context4.next = 20;
-                return esAccount.getTxInfos();
-
-              case 20:
-                _context4.t0 = _context4.sent.total;
-
-                if (!(_context4.t0 === 0)) {
-                  _context4.next = 30;
-                  break;
-                }
-
-                if (!(esAccount.index !== 0)) {
-                  _context4.next = 28;
-                  break;
-                }
-
-                console.log(esAccount.accountId, 'has no txInfo, will not recover, delete it');
-                _context4.next = 26;
-                return esAccount.delete();
-
-              case 26:
-                _context4.next = 29;
-                break;
-
-              case 28:
-                this._esAccounts.push(esAccount);
-
-              case 29:
-                return _context4.abrupt('break', 33);
-
-              case 30:
-                this._esAccounts.push(esAccount);
-                _context4.next = 0;
-                break;
-
-              case 33:
               case 'end':
                 return _context4.stop();
             }
@@ -44091,8 +44087,106 @@ var EsWallet = function () {
         }, _callee4, this);
       }));
 
-      function _recover(_x3) {
+      function _sync() {
         return _ref4.apply(this, arguments);
+      }
+
+      return _sync;
+    }()
+  }, {
+    key: '_recover',
+    value: function () {
+      var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(coinType) {
+        var account, esAccount;
+        return regeneratorRuntime.wrap(function _callee5$(_context5) {
+          while (1) {
+            switch (_context5.prev = _context5.next) {
+              case 0:
+                if (false) {}
+
+                _context5.next = 3;
+                return this._coinData.newAccount(coinType);
+
+              case 3:
+                account = _context5.sent;
+                esAccount = void 0;
+
+                if (!_D2.default.isBtc(coinType)) {
+                  _context5.next = 9;
+                  break;
+                }
+
+                esAccount = new _BtcAccount2.default(account, this._device, this._coinData);
+                _context5.next = 14;
+                break;
+
+              case 9:
+                if (!_D2.default.isEth(coinType)) {
+                  _context5.next = 13;
+                  break;
+                }
+
+                esAccount = new _EthAccount2.default(account, this._device, this._coinData);
+                _context5.next = 14;
+                break;
+
+              case 13:
+                throw _D2.default.error.coinNotSupported;
+
+              case 14:
+                _context5.next = 16;
+                return esAccount.init();
+
+              case 16:
+                _context5.next = 18;
+                return esAccount.sync(true);
+
+              case 18:
+                _context5.next = 20;
+                return esAccount.getTxInfos();
+
+              case 20:
+                _context5.t0 = _context5.sent.total;
+
+                if (!(_context5.t0 === 0)) {
+                  _context5.next = 30;
+                  break;
+                }
+
+                if (!(esAccount.index !== 0)) {
+                  _context5.next = 28;
+                  break;
+                }
+
+                console.log(esAccount.accountId, 'has no txInfo, will not recover, delete it');
+                _context5.next = 26;
+                return esAccount.delete();
+
+              case 26:
+                _context5.next = 29;
+                break;
+
+              case 28:
+                this._esAccounts.push(esAccount);
+
+              case 29:
+                return _context5.abrupt('break', 33);
+
+              case 30:
+                this._esAccounts.push(esAccount);
+                _context5.next = 0;
+                break;
+
+              case 33:
+              case 'end':
+                return _context5.stop();
+            }
+          }
+        }, _callee5, this);
+      }));
+
+      function _recover(_x3) {
+        return _ref5.apply(this, arguments);
       }
 
       return _recover;
@@ -44183,11 +44277,11 @@ var EsWallet = function () {
   }, {
     key: 'getAccounts',
     value: function () {
-      var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(filter) {
+      var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6(filter) {
         var order;
-        return regeneratorRuntime.wrap(function _callee5$(_context5) {
+        return regeneratorRuntime.wrap(function _callee6$(_context6) {
           while (1) {
-            switch (_context5.prev = _context5.next) {
+            switch (_context6.prev = _context6.next) {
               case 0:
                 order = {};
 
@@ -44195,47 +44289,11 @@ var EsWallet = function () {
                 order[_D2.default.coin.main.eth] = 1;
                 order[_D2.default.coin.test.btcTestNet3] = 100;
                 order[_D2.default.coin.test.ethRinkeby] = 101;
-                return _context5.abrupt('return', this._esAccounts.sort(function (a, b) {
+                return _context6.abrupt('return', this._esAccounts.sort(function (a, b) {
                   return order[a.coinType] - order[b.coinType];
                 }));
 
               case 6:
-              case 'end':
-                return _context5.stop();
-            }
-          }
-        }, _callee5, this);
-      }));
-
-      function getAccounts(_x4) {
-        return _ref5.apply(this, arguments);
-      }
-
-      return getAccounts;
-    }()
-  }, {
-    key: 'newAccount',
-    value: function () {
-      var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6(coinType) {
-        var account, esAccount;
-        return regeneratorRuntime.wrap(function _callee6$(_context6) {
-          while (1) {
-            switch (_context6.prev = _context6.next) {
-              case 0:
-                _context6.next = 2;
-                return this._coinData.newAccount(coinType);
-
-              case 2:
-                account = _context6.sent;
-                esAccount = _D2.default.isBtc(coinType) ? new _BtcAccount2.default(account, this._device, this._coinData) : new _EthAccount2.default(account, this._device, this._coinData);
-                _context6.next = 6;
-                return esAccount.init();
-
-              case 6:
-                this._esAccounts.push(esAccount);
-                return _context6.abrupt('return', esAccount);
-
-              case 8:
               case 'end':
                 return _context6.stop();
             }
@@ -44243,8 +44301,48 @@ var EsWallet = function () {
         }, _callee6, this);
       }));
 
-      function newAccount(_x5) {
+      function getAccounts(_x4) {
         return _ref6.apply(this, arguments);
+      }
+
+      return getAccounts;
+    }()
+  }, {
+    key: 'newAccount',
+    value: function () {
+      var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7(coinType) {
+        var account, esAccount;
+        return regeneratorRuntime.wrap(function _callee7$(_context7) {
+          while (1) {
+            switch (_context7.prev = _context7.next) {
+              case 0:
+                _context7.next = 2;
+                return this._coinData.newAccount(coinType);
+
+              case 2:
+                account = _context7.sent;
+                esAccount = _D2.default.isBtc(coinType) ? new _BtcAccount2.default(account, this._device, this._coinData) : new _EthAccount2.default(account, this._device, this._coinData);
+                _context7.next = 6;
+                return esAccount.init();
+
+              case 6:
+                _context7.next = 8;
+                return esAccount.sync();
+
+              case 8:
+                this._esAccounts.push(esAccount);
+                return _context7.abrupt('return', esAccount);
+
+              case 10:
+              case 'end':
+                return _context7.stop();
+            }
+          }
+        }, _callee7, this);
+      }));
+
+      function newAccount(_x5) {
+        return _ref7.apply(this, arguments);
       }
 
       return newAccount;
@@ -44252,35 +44350,35 @@ var EsWallet = function () {
   }, {
     key: 'availableNewAccountCoinTypes',
     value: function () {
-      var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7() {
+      var _ref8 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8() {
         var availables, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, coinType;
 
-        return regeneratorRuntime.wrap(function _callee7$(_context7) {
+        return regeneratorRuntime.wrap(function _callee8$(_context8) {
           while (1) {
-            switch (_context7.prev = _context7.next) {
+            switch (_context8.prev = _context8.next) {
               case 0:
                 availables = [];
                 _iteratorNormalCompletion = true;
                 _didIteratorError = false;
                 _iteratorError = undefined;
-                _context7.prev = 4;
+                _context8.prev = 4;
                 _iterator = _D2.default.supportedCoinTypes()[Symbol.iterator]();
 
               case 6:
                 if (_iteratorNormalCompletion = (_step = _iterator.next()).done) {
-                  _context7.next = 16;
+                  _context8.next = 16;
                   break;
                 }
 
                 coinType = _step.value;
-                _context7.next = 10;
+                _context8.next = 10;
                 return this._coinData._newAccountIndex(coinType);
 
               case 10:
-                _context7.t0 = _context7.sent;
+                _context8.t0 = _context8.sent;
 
-                if (!(_context7.t0 >= 0)) {
-                  _context7.next = 13;
+                if (!(_context8.t0 >= 0)) {
+                  _context8.next = 13;
                   break;
                 }
 
@@ -44288,56 +44386,56 @@ var EsWallet = function () {
 
               case 13:
                 _iteratorNormalCompletion = true;
-                _context7.next = 6;
+                _context8.next = 6;
                 break;
 
               case 16:
-                _context7.next = 22;
+                _context8.next = 22;
                 break;
 
               case 18:
-                _context7.prev = 18;
-                _context7.t1 = _context7['catch'](4);
+                _context8.prev = 18;
+                _context8.t1 = _context8['catch'](4);
                 _didIteratorError = true;
-                _iteratorError = _context7.t1;
+                _iteratorError = _context8.t1;
 
               case 22:
-                _context7.prev = 22;
-                _context7.prev = 23;
+                _context8.prev = 22;
+                _context8.prev = 23;
 
                 if (!_iteratorNormalCompletion && _iterator.return) {
                   _iterator.return();
                 }
 
               case 25:
-                _context7.prev = 25;
+                _context8.prev = 25;
 
                 if (!_didIteratorError) {
-                  _context7.next = 28;
+                  _context8.next = 28;
                   break;
                 }
 
                 throw _iteratorError;
 
               case 28:
-                return _context7.finish(25);
+                return _context8.finish(25);
 
               case 29:
-                return _context7.finish(22);
+                return _context8.finish(22);
 
               case 30:
-                return _context7.abrupt('return', availables);
+                return _context8.abrupt('return', availables);
 
               case 31:
               case 'end':
-                return _context7.stop();
+                return _context8.stop();
             }
           }
-        }, _callee7, this, [[4, 18, 22, 30], [23,, 25, 29]]);
+        }, _callee8, this, [[4, 18, 22, 30], [23,, 25, 29]]);
       }));
 
       function availableNewAccountCoinTypes() {
-        return _ref7.apply(this, arguments);
+        return _ref8.apply(this, arguments);
       }
 
       return availableNewAccountCoinTypes;
@@ -44500,7 +44598,7 @@ var EthAccount = function () {
     key: 'init',
     value: function () {
       var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
-        var accountId, path, address, addressInfo;
+        var accountId;
         return regeneratorRuntime.wrap(function _callee3$(_context3) {
           while (1) {
             switch (_context3.prev = _context3.next) {
@@ -44517,31 +44615,7 @@ var EthAccount = function () {
               case 6:
                 this.txInfos = _context3.sent.txInfos;
 
-                if (this.addressInfos.length) {
-                  _context3.next = 15;
-                  break;
-                }
-
-                path = _D2.default.makeBip44Path(this.coinType, this.index, _D2.default.address.external, 0);
-                _context3.next = 11;
-                return this._device.getAddress(this.coinType, path);
-
-              case 11:
-                address = _context3.sent;
-                addressInfo = {
-                  address: address,
-                  accountId: this.accountId,
-                  coinType: this.coinType,
-                  path: path,
-                  type: _D2.default.address.external,
-                  index: 0,
-                  txs: []
-                };
-
-                this.addressInfos.push(addressInfo);
-                this._coinData.newAddressInfos(this._toAccountInfo(), [addressInfo]);
-
-              case 15:
+              case 7:
               case 'end':
                 return _context3.stop();
             }
@@ -44562,22 +44636,32 @@ var EthAccount = function () {
         var _this2 = this;
 
         var firstSync = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+        var offlineMode = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
         var blobs;
         return regeneratorRuntime.wrap(function _callee4$(_context4) {
           while (1) {
             switch (_context4.prev = _context4.next) {
               case 0:
-                _context4.next = 2;
+                if (offlineMode) {
+                  _context4.next = 3;
+                  break;
+                }
+
+                _context4.next = 3;
+                return this._generateAddressIfNotExist();
+
+              case 3:
+                _context4.next = 5;
                 return this._coinData.checkAddresses(this.coinType, this.addressInfos);
 
-              case 2:
+              case 5:
                 blobs = _context4.sent;
-                _context4.next = 5;
+                _context4.next = 8;
                 return Promise.all(blobs.map(function (blob) {
                   return _this2._handleNewTx(blob.addressInfo, blob.txInfo, blob.utxos);
                 }));
 
-              case 5:
+              case 8:
                 if (firstSync) {
                   this._coinData.listenAddresses(this.coinType, _D2.default.copy(this.addressInfos), this._addressListener);
                   this.txInfos.filter(function (txInfo) {
@@ -44590,7 +44674,7 @@ var EthAccount = function () {
                   });
                 }
 
-              case 6:
+              case 9:
               case 'end':
                 return _context4.stop();
             }
@@ -44658,11 +44742,58 @@ var EthAccount = function () {
         }, _callee6, this);
       }));
 
-      function rename(_x8) {
+      function rename(_x9) {
         return _ref6.apply(this, arguments);
       }
 
       return rename;
+    }()
+  }, {
+    key: '_generateAddressIfNotExist',
+    value: function () {
+      var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7() {
+        var path, address, addressInfo;
+        return regeneratorRuntime.wrap(function _callee7$(_context7) {
+          while (1) {
+            switch (_context7.prev = _context7.next) {
+              case 0:
+                if (!(this.addressInfos.length === 0)) {
+                  _context7.next = 8;
+                  break;
+                }
+
+                path = _D2.default.makeBip44Path(this.coinType, this.index, _D2.default.address.external, 0);
+                _context7.next = 4;
+                return this._device.getAddress(this.coinType, path);
+
+              case 4:
+                address = _context7.sent;
+                addressInfo = {
+                  address: address,
+                  accountId: this.accountId,
+                  coinType: this.coinType,
+                  path: path,
+                  type: _D2.default.address.external,
+                  index: 0,
+                  txs: []
+                };
+
+                this.addressInfos.push(addressInfo);
+                this._coinData.newAddressInfos(this._toAccountInfo(), [addressInfo]);
+
+              case 8:
+              case 'end':
+                return _context7.stop();
+            }
+          }
+        }, _callee7, this);
+      }));
+
+      function _generateAddressIfNotExist() {
+        return _ref7.apply(this, arguments);
+      }
+
+      return _generateAddressIfNotExist;
     }()
 
     /**
@@ -44674,24 +44805,24 @@ var EthAccount = function () {
   }, {
     key: '_handleNewTx',
     value: function () {
-      var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7(addressInfo, txInfo) {
+      var _ref8 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8(addressInfo, txInfo) {
         var _this3 = this;
 
         var input, index, newBalance;
-        return regeneratorRuntime.wrap(function _callee7$(_context7) {
+        return regeneratorRuntime.wrap(function _callee8$(_context8) {
           while (1) {
-            switch (_context7.prev = _context7.next) {
+            switch (_context8.prev = _context8.next) {
               case 0:
                 if (!this.busy) {
-                  _context7.next = 5;
+                  _context8.next = 5;
                   break;
                 }
 
-                _context7.next = 3;
+                _context8.next = 3;
                 return _D2.default.wait(5);
 
               case 3:
-                _context7.next = 0;
+                _context8.next = 0;
                 break;
 
               case 5:
@@ -44724,7 +44855,10 @@ var EthAccount = function () {
                 }).map(function (output) {
                   return output.address;
                 });
-                if (txInfo.showAddresses.length === 0) txInfo.showAddresses.push('self');
+                if (txInfo.showAddresses.length === 0) {
+                  txInfo.value = '0';
+                  txInfo.showAddresses.push('self');
+                }
 
                 // update account info
                 index = this.txInfos.findIndex(function (t) {
@@ -44752,7 +44886,7 @@ var EthAccount = function () {
                 });
                 this.balance = newBalance.toString(10);
 
-                _context7.next = 23;
+                _context8.next = 23;
                 return this._coinData.newTx(this._toAccountInfo(), addressInfo, txInfo, []);
 
               case 23:
@@ -44770,14 +44904,14 @@ var EthAccount = function () {
 
               case 25:
               case 'end':
-                return _context7.stop();
+                return _context8.stop();
             }
           }
-        }, _callee7, this);
+        }, _callee8, this);
       }));
 
-      function _handleNewTx(_x9, _x10) {
-        return _ref7.apply(this, arguments);
+      function _handleNewTx(_x10, _x11) {
+        return _ref8.apply(this, arguments);
       }
 
       return _handleNewTx;
@@ -44802,34 +44936,38 @@ var EthAccount = function () {
   }, {
     key: 'getAddress',
     value: function () {
-      var _ref8 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8() {
+      var _ref9 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee9() {
         var isStoring = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
         var path, address, prefix;
-        return regeneratorRuntime.wrap(function _callee8$(_context8) {
+        return regeneratorRuntime.wrap(function _callee9$(_context9) {
           while (1) {
-            switch (_context8.prev = _context8.next) {
+            switch (_context9.prev = _context9.next) {
               case 0:
+                _context9.next = 2;
+                return this._generateAddressIfNotExist();
+
+              case 2:
                 path = _D2.default.makeBip44Path(this.coinType, this.index, _D2.default.address.external, 0);
-                _context8.next = 3;
+                _context9.next = 5;
                 return this._device.getAddress(this.coinType, path, true, isStoring);
 
-              case 3:
-                address = _context8.sent;
+              case 5:
+                address = _context9.sent;
 
                 address = _D2.default.address.toEthChecksumAddress(address);
                 prefix = '';
-                return _context8.abrupt('return', { address: address, qrAddress: prefix + address });
+                return _context9.abrupt('return', { address: address, qrAddress: prefix + address });
 
-              case 7:
+              case 9:
               case 'end':
-                return _context8.stop();
+                return _context9.stop();
             }
           }
-        }, _callee8, this);
+        }, _callee9, this);
       }));
 
       function getAddress() {
-        return _ref8.apply(this, arguments);
+        return _ref9.apply(this, arguments);
       }
 
       return getAddress;
@@ -44853,25 +44991,26 @@ var EthAccount = function () {
      * @param details
      * {
      *   sendAll: bool,
-     *   feeRate: string (decimal string Wei),
-     *   outputs: [{    // only the first output will be used
+     *   output: {
      *     address: hex string,
      *     value: string (decimal string Wei)
-     *   }]
-     *   data: hex string (optional)
+     *   }
+     *   gasPrice: string (=gasPrice, decimal string Wei),
+     *   gasLimit: string (decimal string Wei),
+     *   data: hex string (optional),
      * }
-     * @returns {Promise<{total: *, fee: number, gasPrice: string, startGas: string, nonce: number, input: *, outputs: *, data: string}>}
+     * @returns {Promise<{total: *, fee: number, gasPrice: string, gasLimit: string, nonce: number, input: *, output: *, data: string}>}
      * {
      *   total: string (decimal string Wei)
      *   fee: string (decimal string Wei)
      *   gasPrice: string (decimal string Wei)
-     *   startGas: string (decimal string Wei)
+     *   gasLimit: string (decimal string Wei)
      *   nonce: string
      *   intput: addressInfo
-     *   outputs: [{
+     *   output: {
      *     address: hex string,
      *     value: string (decimal string Wei)
-     *   }]
+     *   }
      *   data: hex string
      * }
      */
@@ -44879,95 +45018,88 @@ var EthAccount = function () {
   }, {
     key: 'prepareTx',
     value: function () {
-      var _ref9 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee9(details) {
-        var feeRate, output, value, estimateGas, input, startGas, gasPrice, nonce, fee, balance, total, data, prepareTx;
-        return regeneratorRuntime.wrap(function _callee9$(_context9) {
+      var _ref10 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee10(details) {
+        var gasPrice, gasLimit, output, value, input, nonce, fee, balance, total, data, prepareTx;
+        return regeneratorRuntime.wrap(function _callee10$(_context10) {
           while (1) {
-            switch (_context9.prev = _context9.next) {
+            switch (_context10.prev = _context10.next) {
               case 0:
-                feeRate = new _bigi2.default(details.feeRate);
-                output = _D2.default.copy(details.outputs[0]);
+                gasPrice = new _bigi2.default(details.gasPrice);
+                gasLimit = new _bigi2.default(details.gasLimit || '21000');
+                output = _D2.default.copy(details.output);
                 value = new _bigi2.default(output.value);
 
                 if (_D2.default.isEth(this.coinType)) {
-                  _context9.next = 5;
+                  _context10.next = 6;
                   break;
                 }
 
                 throw _D2.default.error.coinNotSupported;
 
-              case 5:
-                if (!_D2.default.isDecimal(details.feeRate)) {
-                  _context9.next = 7;
+              case 6:
+                if (!_D2.default.isDecimal(details.gasPrice)) {
+                  _context10.next = 8;
                   break;
                 }
 
                 throw _D2.default.error.valueIsDecimal;
 
-              case 7:
-                details.outputs.forEach(function (output) {
-                  if (_D2.default.isDecimal(output.value)) throw _D2.default.error.valueIsDecimal;
-                });
+              case 8:
+                if (!_D2.default.isDecimal(output.value)) {
+                  _context10.next = 10;
+                  break;
+                }
 
+                throw _D2.default.error.valueIsDecimal;
+
+              case 10:
                 if (!details.data) {
-                  _context9.next = 10;
+                  _context10.next = 12;
                   break;
                 }
 
                 throw _D2.default.error.notImplemented;
 
-              case 10:
-                estimateGas = function estimateGas(details) {
-                  if (!details.data) {
-                    return new _bigi2.default('21000');
-                  }
-                  throw _D2.default.error.notImplemented;
-                };
-
-                // TODO later support data
-
-
-                input = this.addressInfos[0];
-                startGas = estimateGas(details);
-                gasPrice = feeRate;
+              case 12:
+                input = _D2.default.copy(this.addressInfos[0]);
                 nonce = this.txInfos.filter(function (txInfo) {
                   return txInfo.direction === _D2.default.tx.direction.out;
                 }).length;
-                fee = startGas.multiply(gasPrice);
+                fee = gasLimit.multiply(gasPrice);
                 balance = new _bigi2.default(this.balance);
                 total = void 0;
                 // noinspection JSUnresolvedVariable
 
                 if (!details.sendAll) {
-                  _context9.next = 26;
+                  _context10.next = 25;
                   break;
                 }
 
                 if (!(balance.compareTo(fee) < 0)) {
-                  _context9.next = 21;
+                  _context10.next = 20;
                   break;
                 }
 
                 throw _D2.default.error.balanceNotEnough;
 
-              case 21:
+              case 20:
                 total = balance;
                 value = total.subtract(fee);
                 output.value = value.toString(10);
-                _context9.next = 29;
+                _context10.next = 28;
                 break;
 
-              case 26:
+              case 25:
                 total = value.add(fee);
 
                 if (!(total.compareTo(balance) > 0)) {
-                  _context9.next = 29;
+                  _context10.next = 28;
                   break;
                 }
 
                 throw _D2.default.error.balanceNotEnough;
 
-              case 29:
+              case 28:
                 data = details.data ? details.data : '';
 
                 if (!data.startsWith('0x')) data = '0x' + data;
@@ -44975,26 +45107,26 @@ var EthAccount = function () {
                   total: total.toString(10),
                   fee: fee.toString(10),
                   gasPrice: gasPrice.toString(10),
-                  startGas: startGas.toString(10),
+                  gasLimit: gasLimit.toString(10),
                   nonce: nonce,
-                  input: _D2.default.copy(input),
-                  outputs: _D2.default.copy([output]),
+                  input: input,
+                  output: output,
                   data: data
                 };
 
                 console.log('prepareTx', prepareTx);
-                return _context9.abrupt('return', prepareTx);
+                return _context10.abrupt('return', prepareTx);
 
-              case 34:
+              case 33:
               case 'end':
-                return _context9.stop();
+                return _context10.stop();
             }
           }
-        }, _callee9, this);
+        }, _callee10, this);
       }));
 
-      function prepareTx(_x12) {
-        return _ref9.apply(this, arguments);
+      function prepareTx(_x13) {
+        return _ref10.apply(this, arguments);
       }
 
       return prepareTx;
@@ -45010,32 +45142,32 @@ var EthAccount = function () {
   }, {
     key: 'buildTx',
     value: function () {
-      var _ref10 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee10(prepareTx) {
-        var output, gasPrice, startGas, value, preSignTx, signedTx;
-        return regeneratorRuntime.wrap(function _callee10$(_context10) {
+      var _ref11 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee11(prepareTx) {
+        var output, gasPrice, gasLimit, value, preSignTx, signedTx;
+        return regeneratorRuntime.wrap(function _callee11$(_context11) {
           while (1) {
-            switch (_context10.prev = _context10.next) {
+            switch (_context11.prev = _context11.next) {
               case 0:
-                output = _D2.default.copy(prepareTx.outputs[0]);
+                output = _D2.default.copy(prepareTx.output);
                 gasPrice = '0x' + new _bigi2.default(prepareTx.gasPrice).toString(16);
-                startGas = '0x' + new _bigi2.default(prepareTx.startGas).toString(16);
+                gasLimit = '0x' + new _bigi2.default(prepareTx.gasLimit).toString(16);
                 value = '0x' + new _bigi2.default(output.value).toString(16);
                 preSignTx = {
                   input: { address: prepareTx.input.address, path: prepareTx.input.path },
                   output: { address: output.address, value: value },
                   nonce: prepareTx.nonce,
                   gasPrice: gasPrice,
-                  startGas: startGas,
+                  gasLimit: gasLimit,
                   data: prepareTx.data
                 };
 
                 console.log('preSignTx', preSignTx);
-                _context10.next = 8;
+                _context11.next = 8;
                 return this._device.signTransaction(this.coinType, preSignTx);
 
               case 8:
-                signedTx = _context10.sent;
-                return _context10.abrupt('return', {
+                signedTx = _context11.sent;
+                return _context11.abrupt('return', {
                   txInfo: {
                     accountId: this.accountId,
                     coinType: this.coinType,
@@ -45063,14 +45195,14 @@ var EthAccount = function () {
 
               case 10:
               case 'end':
-                return _context10.stop();
+                return _context11.stop();
             }
           }
-        }, _callee10, this);
+        }, _callee11, this);
       }));
 
-      function buildTx(_x13) {
-        return _ref10.apply(this, arguments);
+      function buildTx(_x14) {
+        return _ref11.apply(this, arguments);
       }
 
       return buildTx;
@@ -45086,21 +45218,21 @@ var EthAccount = function () {
   }, {
     key: 'sendTx',
     value: function () {
-      var _ref11 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee11(signedTx) {
+      var _ref12 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee12(signedTx) {
         var test = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
-        return regeneratorRuntime.wrap(function _callee11$(_context11) {
+        return regeneratorRuntime.wrap(function _callee12$(_context12) {
           while (1) {
-            switch (_context11.prev = _context11.next) {
+            switch (_context12.prev = _context12.next) {
               case 0:
                 // broadcast transaction to network
                 console.log('sendTx', signedTx);
 
                 if (test) {
-                  _context11.next = 4;
+                  _context12.next = 4;
                   break;
                 }
 
-                _context11.next = 4;
+                _context12.next = 4;
                 return this._coinData.sendTx(this._toAccountInfo(), [], signedTx.txInfo, signedTx.hex);
 
               case 4:
@@ -45108,14 +45240,14 @@ var EthAccount = function () {
 
               case 5:
               case 'end':
-                return _context11.stop();
+                return _context12.stop();
             }
           }
-        }, _callee11, this);
+        }, _callee12, this);
       }));
 
-      function sendTx(_x15) {
-        return _ref11.apply(this, arguments);
+      function sendTx(_x16) {
+        return _ref12.apply(this, arguments);
       }
 
       return sendTx;
@@ -45230,8 +45362,6 @@ var CoinData = function () {
     }
     CoinData.prototype.Instance = this;
 
-    this._initialized = false;
-
     var coinTypes = _D2.default.supportedCoinTypes();
     this._network = coinTypes.reduce(function (obj, coinType) {
       if (_D2.default.isBtc(coinType)) {
@@ -45257,33 +45387,62 @@ var CoinData = function () {
       var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(info) {
         var _this = this;
 
+        var offlineMode = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+        var lastWalletId;
         return regeneratorRuntime.wrap(function _callee3$(_context3) {
           while (1) {
             switch (_context3.prev = _context3.next) {
               case 0:
                 _context3.prev = 0;
 
-                if (!this._initialized) {
-                  _context3.next = 3;
+                // db
+                this._globalDb = new _Provider2.default.DB('default');
+                _context3.next = 4;
+                return this._globalDb.init();
+
+              case 4:
+                if (!offlineMode) {
+                  _context3.next = 13;
                   break;
                 }
 
-                return _context3.abrupt('return');
+                _context3.next = 7;
+                return this._globalDb.getSettings('lastWalletId');
 
-              case 3:
+              case 7:
+                lastWalletId = _context3.sent;
+
+                if (lastWalletId) {
+                  _context3.next = 10;
+                  break;
+                }
+
+                throw _D2.default.error.offlineModeNotAllowed;
+
+              case 10:
+                info = { walletId: lastWalletId };
+                _context3.next = 15;
+                break;
+
+              case 13:
+                _context3.next = 15;
+                return this._globalDb.saveOrUpdateSettings('lastWalletId', info.walletId);
+
+              case 15:
+
+                console.log('walletInfo', info);
                 this._db = new _Provider2.default.DB(info.walletId);
-                // db
-                _context3.next = 6;
+                _context3.next = 19;
                 return this._db.init();
 
-              case 6:
-                _context3.next = 8;
+              case 19:
+                _context3.next = 21;
                 return Promise.all(Object.values(this._network).map(function (network) {
                   return network.init();
                 }));
 
-              case 8:
-                _context3.next = 10;
+              case 21:
+                _context3.next = 23;
                 return Promise.all(Object.keys(this._networkFee).map(function () {
                   var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(coinType) {
                     var fee;
@@ -45291,26 +45450,34 @@ var CoinData = function () {
                       while (1) {
                         switch (_context.prev = _context.next) {
                           case 0:
-                            _context.next = 2;
-                            return _this._db.getFee(coinType);
+                            if (!_this._networkFee[coinType]) {
+                              _context.next = 2;
+                              break;
+                            }
+
+                            return _context.abrupt('return', _this._networkFee[coinType]);
 
                           case 2:
+                            _context.next = 4;
+                            return _this._db.getFee(coinType);
+
+                          case 4:
                             fee = _context.sent;
 
                             fee = fee || { coinType: coinType };
                             if (_D2.default.isBtc(coinType)) {
                               _this._networkFee[coinType] = new _FeeBitCoinEarn2.default(fee);
                               _this._networkFee[coinType].onUpdateFee = function (fee) {
-                                return _this._db.saveOfUpdateFee(fee);
+                                return _this._db.saveOrUpdateFee(fee);
                               };
                             } else if (_D2.default.isEth(coinType)) {
                               _this._networkFee[coinType] = new _EthGasStationInfo2.default(fee);
                               _this._networkFee[coinType].onUpdateFee = function (fee) {
-                                return _this._db.saveOfUpdateFee(fee);
+                                return _this._db.saveOrUpdateFee(fee);
                               };
                             }
 
-                          case 5:
+                          case 7:
                           case 'end':
                             return _context.stop();
                         }
@@ -45318,13 +45485,13 @@ var CoinData = function () {
                     }, _callee, _this);
                   }));
 
-                  return function (_x2) {
+                  return function (_x3) {
                     return _ref2.apply(this, arguments);
                   };
                 }()));
 
-              case 10:
-                _context3.next = 12;
+              case 23:
+                _context3.next = 25;
                 return Promise.all(Object.keys(this._exchange).map(function () {
                   var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(coinType) {
                     var exchange;
@@ -45332,19 +45499,27 @@ var CoinData = function () {
                       while (1) {
                         switch (_context2.prev = _context2.next) {
                           case 0:
-                            _context2.next = 2;
-                            return _this._db.getExchange(coinType);
+                            if (!_this._exchange[coinType]) {
+                              _context2.next = 2;
+                              break;
+                            }
+
+                            return _context2.abrupt('return', _this._exchange[coinType]);
 
                           case 2:
+                            _context2.next = 4;
+                            return _this._db.getExchange(coinType);
+
+                          case 4:
                             exchange = _context2.sent;
 
                             exchange = exchange || { coinType: coinType };
                             _this._exchange[coinType] = new _ExchangeCryptoCompareCom2.default(exchange);
                             _this._exchange[coinType].onUpdateExchange = function (fee) {
-                              return _this._db.saveOfUpdateExchange(fee);
+                              return _this._db.saveOrUpdateExchange(fee);
                             };
 
-                          case 6:
+                          case 8:
                           case 'end':
                             return _context2.stop();
                         }
@@ -45352,41 +45527,41 @@ var CoinData = function () {
                     }, _callee2, _this);
                   }));
 
-                  return function (_x3) {
+                  return function (_x4) {
                     return _ref3.apply(this, arguments);
                   };
                 }()));
 
-              case 12:
+              case 25:
 
-                this._initialized = true;
-                _context3.next = 21;
+                console.log('coin data init finish', this._db);
+                _context3.next = 34;
                 break;
 
-              case 15:
-                _context3.prev = 15;
+              case 28:
+                _context3.prev = 28;
                 _context3.t0 = _context3['catch'](0);
 
                 if (!(typeof _context3.t0 === 'number')) {
-                  _context3.next = 19;
+                  _context3.next = 32;
                   break;
                 }
 
                 throw _context3.t0;
 
-              case 19:
-                console.warn(_context3.t0);
+              case 32:
+                console.warn('coin data init got unknown error', _context3.t0);
                 throw _D2.default.error.unknown;
 
-              case 21:
+              case 34:
               case 'end':
                 return _context3.stop();
             }
           }
-        }, _callee3, this, [[0, 15]]);
+        }, _callee3, this, [[0, 28]]);
       }));
 
-      function init(_x) {
+      function init(_x2) {
         return _ref.apply(this, arguments);
       }
 
@@ -45400,23 +45575,22 @@ var CoinData = function () {
           while (1) {
             switch (_context4.prev = _context4.next) {
               case 0:
-                this._initialized = false;
                 this._listeners = [];
-                _context4.next = 4;
+                _context4.next = 3;
                 return Promise.all(Object.values(this._network).map(function (network) {
                   return network.release();
                 }));
 
-              case 4:
+              case 3:
                 if (!this._db) {
-                  _context4.next = 7;
+                  _context4.next = 6;
                   break;
                 }
 
-                _context4.next = 7;
+                _context4.next = 6;
                 return this._db.release();
 
-              case 7:
+              case 6:
               case 'end':
                 return _context4.stop();
             }
@@ -45556,7 +45730,7 @@ var CoinData = function () {
         }, _callee6, this);
       }));
 
-      function newAccount(_x5) {
+      function newAccount(_x6) {
         return _ref6.apply(this, arguments);
       }
 
@@ -45600,7 +45774,7 @@ var CoinData = function () {
         }, _callee7, this);
       }));
 
-      function _newAccount(_x6, _x7) {
+      function _newAccount(_x7, _x8) {
         return _ref7.apply(this, arguments);
       }
 
@@ -45679,7 +45853,7 @@ var CoinData = function () {
         }, _callee8, this);
       }));
 
-      function _newAccountIndex(_x8) {
+      function _newAccountIndex(_x9) {
         return _ref8.apply(this, arguments);
       }
 
@@ -45728,7 +45902,7 @@ var CoinData = function () {
         }, _callee9, this);
       }));
 
-      function deleteAccount(_x9) {
+      function deleteAccount(_x10) {
         return _ref10.apply(this, arguments);
       }
 
@@ -45752,7 +45926,7 @@ var CoinData = function () {
         }, _callee10, this);
       }));
 
-      function renameAccount(_x10) {
+      function renameAccount(_x11) {
         return _ref12.apply(this, arguments);
       }
 
@@ -45784,7 +45958,7 @@ var CoinData = function () {
         }, _callee11, this);
       }));
 
-      function saveOrUpdateTxInfo(_x11) {
+      function saveOrUpdateTxInfo(_x12) {
         return _ref13.apply(this, arguments);
       }
 
@@ -45809,7 +45983,7 @@ var CoinData = function () {
         }, _callee12, this);
       }));
 
-      function newAddressInfos(_x12, _x13) {
+      function newAddressInfos(_x13, _x14) {
         return _ref14.apply(this, arguments);
       }
 
@@ -45853,7 +46027,7 @@ var CoinData = function () {
         }, _callee13, this);
       }));
 
-      function getTxInfos(_x14) {
+      function getTxInfos(_x15) {
         return _ref15.apply(this, arguments);
       }
 
@@ -45890,7 +46064,7 @@ var CoinData = function () {
         }, _callee14, this);
       }));
 
-      function newTx(_x15, _x16, _x17, _x18) {
+      function newTx(_x16, _x17, _x18, _x19) {
         return _ref17.apply(this, arguments);
       }
 
@@ -45942,7 +46116,7 @@ var CoinData = function () {
         }, _callee15, this);
       }));
 
-      function sendTx(_x19, _x20, _x21, _x22) {
+      function sendTx(_x20, _x21, _x22, _x23) {
         return _ref18.apply(this, arguments);
       }
 
@@ -46410,7 +46584,7 @@ var IDatabase = function () {
       return getFee;
     }()
   }, {
-    key: 'saveOfUpdateFee',
+    key: 'saveOrUpdateFee',
     value: function () {
       var _ref16 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee16(fee) {
         return regeneratorRuntime.wrap(function _callee16$(_context16) {
@@ -46427,11 +46601,11 @@ var IDatabase = function () {
         }, _callee16, this);
       }));
 
-      function saveOfUpdateFee(_x17) {
+      function saveOrUpdateFee(_x17) {
         return _ref16.apply(this, arguments);
       }
 
-      return saveOfUpdateFee;
+      return saveOrUpdateFee;
     }()
   }, {
     key: 'getExchange',
@@ -46458,7 +46632,7 @@ var IDatabase = function () {
       return getExchange;
     }()
   }, {
-    key: 'saveOfUpdateExchange',
+    key: 'saveOrUpdateExchange',
     value: function () {
       var _ref18 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee18(exchange) {
         return regeneratorRuntime.wrap(function _callee18$(_context18) {
@@ -46475,11 +46649,11 @@ var IDatabase = function () {
         }, _callee18, this);
       }));
 
-      function saveOfUpdateExchange(_x19) {
+      function saveOrUpdateExchange(_x19) {
         return _ref18.apply(this, arguments);
       }
 
-      return saveOfUpdateExchange;
+      return saveOrUpdateExchange;
     }()
   }]);
 
@@ -46524,7 +46698,7 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var DB_VERSION = 6;
+var DB_VERSION = 7;
 
 var IndexedDB = function (_IDatabase) {
   _inherits(IndexedDB, _IDatabase);
@@ -46729,6 +46903,17 @@ var IndexedDB = function (_IDatabase) {
                      */
                     if (!db.objectStoreNames.contains('exchange')) {
                       db.createObjectStore('exchange', { keyPath: 'coinType' });
+                    }
+
+                    /**
+                     * settings:
+                     * {
+                     *   key: string,
+                     *   value: string
+                     * }
+                     */
+                    if (!db.objectStoreNames.contains('settings')) {
+                      db.createObjectStore('settings', { keyPath: 'key' });
                     }
                   };
 
@@ -47224,8 +47409,8 @@ var IndexedDB = function (_IDatabase) {
       });
     }
   }, {
-    key: 'saveOfUpdateFee',
-    value: function saveOfUpdateFee(fee) {
+    key: 'saveOrUpdateFee',
+    value: function saveOrUpdateFee(fee) {
       var _this16 = this;
 
       return new Promise(function (resolve, reject) {
@@ -47238,7 +47423,7 @@ var IndexedDB = function (_IDatabase) {
         var request = transaction.objectStore('fee').put(fee);
         request.onsuccess = resolve;
         request.onerror = function (e) {
-          console.warn('saveOfUpdateFee', e);
+          console.warn('saveOrUpdateFee', e);
           reject(_D2.default.error.databaseExecFailed);
         };
       });
@@ -47266,8 +47451,8 @@ var IndexedDB = function (_IDatabase) {
       });
     }
   }, {
-    key: 'saveOfUpdateExchange',
-    value: function saveOfUpdateExchange(exchange) {
+    key: 'saveOrUpdateExchange',
+    value: function saveOrUpdateExchange(exchange) {
       var _this18 = this;
 
       return new Promise(function (resolve, reject) {
@@ -47280,7 +47465,49 @@ var IndexedDB = function (_IDatabase) {
         var request = transaction.objectStore('exchange').put(exchange);
         request.onsuccess = resolve;
         request.onerror = function (e) {
-          console.warn('saveOfUpdateExchange', e);
+          console.warn('saveOrUpdateExchange', e);
+          reject(_D2.default.error.databaseExecFailed);
+        };
+      });
+    }
+  }, {
+    key: 'getSettings',
+    value: function getSettings(key) {
+      var _this19 = this;
+
+      return new Promise(function (resolve, reject) {
+        if (_this19._db === null) {
+          reject(_D2.default.error.databaseOpenFailed);
+          return;
+        }
+
+        var transaction = _this19._db.transaction(['settings'], 'readonly');
+        var request = transaction.objectStore('settings').get(key);
+        request.onsuccess = function (e) {
+          return resolve(e.target.result && e.target.result.value);
+        };
+        request.onerror = function (e) {
+          console.warn('getSettings', e);
+          reject(_D2.default.error.databaseExecFailed);
+        };
+      });
+    }
+  }, {
+    key: 'saveOrUpdateSettings',
+    value: function saveOrUpdateSettings(key, value) {
+      var _this20 = this;
+
+      return new Promise(function (resolve, reject) {
+        if (_this20._db === null) {
+          reject(_D2.default.error.databaseOpenFailed);
+          return;
+        }
+
+        var transaction = _this20._db.transaction(['settings'], 'readwrite');
+        var request = transaction.objectStore('settings').put({ key: key, value: value });
+        request.onsuccess = resolve;
+        request.onerror = function (e) {
+          console.warn('saveOrUpdateSettings', e);
           reject(_D2.default.error.databaseExecFailed);
         };
       });
@@ -48471,6 +48698,14 @@ var ICoinNetwork = function () {
           while (1) {
             switch (_context6.prev = _context6.next) {
               case 0:
+                if (!(!addressInfos || addressInfos.length === 0)) {
+                  _context6.next = 2;
+                  break;
+                }
+
+                return _context6.abrupt('return', []);
+
+              case 2:
                 return _context6.abrupt('return', Promise.all(this.generateAddressTasks(addressInfos).map(function (task) {
                   return task.request();
                 })).then(function (blobs) {
@@ -48479,7 +48714,7 @@ var ICoinNetwork = function () {
                   }, []);
                 }));
 
-              case 1:
+              case 3:
               case 'end':
                 return _context6.stop();
             }
@@ -49693,54 +49928,6 @@ var CoreWallet = function () {
 
       return init;
     }()
-
-    // noinspection JSMethodCanBeStatic
-
-  }, {
-    key: 'sync',
-    value: function () {
-      var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
-        return regeneratorRuntime.wrap(function _callee2$(_context2) {
-          while (1) {
-            switch (_context2.prev = _context2.next) {
-              case 0:
-                return _context2.abrupt('return', true);
-
-              case 1:
-              case 'end':
-                return _context2.stop();
-            }
-          }
-        }, _callee2, this);
-      }));
-
-      function sync() {
-        return _ref2.apply(this, arguments);
-      }
-
-      return sync;
-    }()
-  }, {
-    key: 'updateIndex',
-    value: function () {
-      var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(addressInfo) {
-        return regeneratorRuntime.wrap(function _callee3$(_context3) {
-          while (1) {
-            switch (_context3.prev = _context3.next) {
-              case 0:
-              case 'end':
-                return _context3.stop();
-            }
-          }
-        }, _callee3, this);
-      }));
-
-      function updateIndex(_x) {
-        return _ref3.apply(this, arguments);
-      }
-
-      return updateIndex;
-    }()
   }, {
     key: 'listenPlug',
     value: function listenPlug(callback) {
@@ -49749,32 +49936,32 @@ var CoreWallet = function () {
   }, {
     key: 'getWalletInfo',
     value: function () {
-      var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4() {
+      var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
         var cosVersion;
-        return regeneratorRuntime.wrap(function _callee4$(_context4) {
+        return regeneratorRuntime.wrap(function _callee2$(_context2) {
           while (1) {
-            switch (_context4.prev = _context4.next) {
+            switch (_context2.prev = _context2.next) {
               case 0:
-                _context4.next = 2;
+                _context2.next = 2;
                 return this._getCosVersion();
 
               case 2:
-                cosVersion = _context4.sent;
-                return _context4.abrupt('return', {
-                  sdk_version: '0.0.5',
+                cosVersion = _context2.sent;
+                return _context2.abrupt('return', {
+                  sdk_version: '0.1.0',
                   cos_version: cosVersion
                 });
 
               case 4:
               case 'end':
-                return _context4.stop();
+                return _context2.stop();
             }
           }
-        }, _callee4, this);
+        }, _callee2, this);
       }));
 
       function getWalletInfo() {
-        return _ref4.apply(this, arguments);
+        return _ref2.apply(this, arguments);
       }
 
       return getWalletInfo;
@@ -49785,27 +49972,27 @@ var CoreWallet = function () {
   }, {
     key: '_getCosVersion',
     value: function () {
-      var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5() {
-        return regeneratorRuntime.wrap(function _callee5$(_context5) {
+      var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
+        return regeneratorRuntime.wrap(function _callee3$(_context3) {
           while (1) {
-            switch (_context5.prev = _context5.next) {
+            switch (_context3.prev = _context3.next) {
               case 0:
-                _context5.next = 2;
+                _context3.next = 2;
                 return this._sendApdu('803300000ABD080000000000000000');
 
               case 2:
-                return _context5.abrupt('return', _context5.sent.toString('hex'));
+                return _context3.abrupt('return', _context3.sent.toString('hex'));
 
               case 3:
               case 'end':
-                return _context5.stop();
+                return _context3.stop();
             }
           }
-        }, _callee5, this);
+        }, _callee3, this);
       }));
 
       function _getCosVersion() {
-        return _ref5.apply(this, arguments);
+        return _ref3.apply(this, arguments);
       }
 
       return _getCosVersion;
@@ -49813,23 +50000,23 @@ var CoreWallet = function () {
   }, {
     key: 'verifyPin',
     value: function () {
-      var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6() {
-        return regeneratorRuntime.wrap(function _callee6$(_context6) {
+      var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4() {
+        return regeneratorRuntime.wrap(function _callee4$(_context4) {
           while (1) {
-            switch (_context6.prev = _context6.next) {
+            switch (_context4.prev = _context4.next) {
               case 0:
-                return _context6.abrupt('return', this._sendApdu('8082008100'));
+                return _context4.abrupt('return', this._sendApdu('8082008100'));
 
               case 1:
               case 'end':
-                return _context6.stop();
+                return _context4.stop();
             }
           }
-        }, _callee6, this);
+        }, _callee4, this);
       }));
 
       function verifyPin() {
-        return _ref6.apply(this, arguments);
+        return _ref4.apply(this, arguments);
       }
 
       return verifyPin;
@@ -49837,13 +50024,13 @@ var CoreWallet = function () {
   }, {
     key: 'getAddress',
     value: function () {
-      var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7(coinType, path) {
+      var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(coinType, path) {
         var isShowing = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
         var isStoring = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
         var flag, apdu, pathBuffer, response, address, addressBuffer;
-        return regeneratorRuntime.wrap(function _callee7$(_context7) {
+        return regeneratorRuntime.wrap(function _callee5$(_context5) {
           while (1) {
-            switch (_context7.prev = _context7.next) {
+            switch (_context5.prev = _context5.next) {
               case 0:
                 // bit 0: 0 not save on key / 1 save on key
                 // bit 1: 0 not show on key / 1 show on key
@@ -49861,11 +50048,11 @@ var CoreWallet = function () {
 
                 pathBuffer.copy(apdu, 0x06);
 
-                _context7.next = 10;
+                _context5.next = 10;
                 return this._sendApdu(apdu);
 
               case 10:
-                response = _context7.sent;
+                response = _context5.sent;
                 address = String.fromCharCode.apply(null, response);
 
                 if (_D2.default.isBtc(coinType) && _D2.default.test.coin) {
@@ -49874,18 +50061,18 @@ var CoreWallet = function () {
                   addressBuffer = _buffer.Buffer.concat([_buffer.Buffer.from('6F', 'hex'), addressBuffer]);
                   address = _D2.default.address.toString(addressBuffer);
                 }
-                return _context7.abrupt('return', address);
+                return _context5.abrupt('return', address);
 
               case 14:
               case 'end':
-                return _context7.stop();
+                return _context5.stop();
             }
           }
-        }, _callee7, this);
+        }, _callee5, this);
       }));
 
-      function getAddress(_x4, _x5) {
-        return _ref7.apply(this, arguments);
+      function getAddress(_x3, _x4) {
+        return _ref5.apply(this, arguments);
       }
 
       return getAddress;
@@ -49910,7 +50097,6 @@ var CoreWallet = function () {
      * }
      *
      * eth:
-     * [nonce, gasprice, startgas, to, value, data, v, r, s]
      * {
      *   input: {
      *     address: 0x string,
@@ -49921,29 +50107,29 @@ var CoreWallet = function () {
      *     value: number
      *   },
      *   nonce: number,
-     *   gasPrice: number,
-     *   startGas: number,
-     *   data: hex string,
+     *   gasPrice: 0x string,
+     *   gasLimit: 0x string,
+     *   data: 0x string,
      * }
      */
 
   }, {
     key: 'signTransaction',
     value: function () {
-      var _ref8 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee12(coinType, tx) {
+      var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee10(coinType, tx) {
         var _this = this;
 
         var sign, signBtc, signEth;
-        return regeneratorRuntime.wrap(function _callee12$(_context12) {
+        return regeneratorRuntime.wrap(function _callee10$(_context10) {
           while (1) {
-            switch (_context12.prev = _context12.next) {
+            switch (_context10.prev = _context10.next) {
               case 0:
                 sign = function () {
-                  var _ref9 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8(path, changePath, msg) {
+                  var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6(path, changePath, msg) {
                     var dataLength, apdu, index, response, r, s, pubKey, v, n, N_OVER_TWO, sInt, sHex;
-                    return regeneratorRuntime.wrap(function _callee8$(_context8) {
+                    return regeneratorRuntime.wrap(function _callee6$(_context6) {
                       while (1) {
-                        switch (_context8.prev = _context8.next) {
+                        switch (_context6.prev = _context6.next) {
                           case 0:
                             // 803D0100 00XXXX C0 u1PathNum pu1Path C1 u1ChangePathNum pu1ChangePath C2 xxxx pu1Msg
                             dataLength = 2 + path.length + (changePath ? 2 + changePath.length : 2) + 3 + msg.length;
@@ -49971,11 +50157,11 @@ var CoreWallet = function () {
                             apdu[index++] = msg.length;
                             msg.copy(apdu, index);
 
-                            _context8.next = 21;
+                            _context6.next = 21;
                             return _this._sendApdu(apdu, true);
 
                           case 21:
-                            response = _context8.sent;
+                            response = _context6.sent;
                             r = response.slice(0, 32);
                             s = response.slice(32, 64);
                             pubKey = response.slice(64, 128);
@@ -49994,30 +50180,27 @@ var CoreWallet = function () {
                               v = v ? 0 : 1;
                               console.debug('new s, v', s.toString('hex'), v);
                             }
-                            return _context8.abrupt('return', { v: v, r: r, s: s, pubKey: pubKey });
+                            return _context6.abrupt('return', { v: v, r: r, s: s, pubKey: pubKey });
 
                           case 31:
                           case 'end':
-                            return _context8.stop();
+                            return _context6.stop();
                         }
                       }
-                    }, _callee8, _this);
+                    }, _callee6, _this);
                   }));
 
-                  return function sign(_x8, _x9, _x10) {
-                    return _ref9.apply(this, arguments);
+                  return function sign(_x7, _x8, _x9) {
+                    return _ref7.apply(this, arguments);
                   };
                 }();
 
-                // sign for P2PKH
-
-
                 signBtc = function () {
-                  var _ref10 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee10(tx) {
+                  var _ref8 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8(tx) {
                     var makeBasicScript, makePreSignScript, makeScriptSig, basicScript, signedTx, changePathBuffer, sequence;
-                    return regeneratorRuntime.wrap(function _callee10$(_context10) {
+                    return regeneratorRuntime.wrap(function _callee8$(_context8) {
                       while (1) {
-                        switch (_context10.prev = _context10.next) {
+                        switch (_context8.prev = _context8.next) {
                           case 0:
                             makeBasicScript = function makeBasicScript(tx) {
                               return {
@@ -50113,66 +50296,66 @@ var CoreWallet = function () {
                             sequence = Promise.resolve();
 
                             tx.inputs.forEach(function (input, i) {
-                              sequence = sequence.then(_asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee9() {
-                                var pathBuffer, preSignScript, _ref12, r, s, pubKey, scirptSig;
+                              sequence = sequence.then(_asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7() {
+                                var pathBuffer, preSignScript, _ref10, r, s, pubKey, scirptSig;
 
-                                return regeneratorRuntime.wrap(function _callee9$(_context9) {
+                                return regeneratorRuntime.wrap(function _callee7$(_context7) {
                                   while (1) {
-                                    switch (_context9.prev = _context9.next) {
+                                    switch (_context7.prev = _context7.next) {
                                       case 0:
                                         pathBuffer = _D2.default.address.path.toBuffer(input.path);
                                         preSignScript = makePreSignScript(i, basicScript);
-                                        _context9.next = 4;
+                                        _context7.next = 4;
                                         return sign(pathBuffer, changePathBuffer, preSignScript);
 
                                       case 4:
-                                        _ref12 = _context9.sent;
-                                        r = _ref12.r;
-                                        s = _ref12.s;
-                                        pubKey = _ref12.pubKey;
+                                        _ref10 = _context7.sent;
+                                        r = _ref10.r;
+                                        s = _ref10.s;
+                                        pubKey = _ref10.pubKey;
                                         scirptSig = makeScriptSig(r, s, pubKey);
 
                                         signedTx.inputs[i].scriptSig = scirptSig.toString('hex');
 
                                       case 10:
                                       case 'end':
-                                        return _context9.stop();
+                                        return _context7.stop();
                                     }
                                   }
-                                }, _callee9, _this);
+                                }, _callee7, _this);
                               })));
                             });
-                            _context10.next = 10;
+                            _context8.next = 10;
                             return sequence;
 
                           case 10:
 
                             signedTx = _bitpony2.default.tx.write(signedTx.version, signedTx.inputs, signedTx.outputs, signedTx.lockTime).toString('hex');
-                            return _context10.abrupt('return', {
+                            return _context8.abrupt('return', {
                               id: _bitpony2.default.tx.read(signedTx).hash,
                               hex: signedTx
                             });
 
                           case 12:
                           case 'end':
-                            return _context10.stop();
+                            return _context8.stop();
                         }
                       }
-                    }, _callee10, _this);
+                    }, _callee8, _this);
                   }));
 
-                  return function signBtc(_x11) {
-                    return _ref10.apply(this, arguments);
+                  return function signBtc(_x10) {
+                    return _ref8.apply(this, arguments);
                   };
                 }();
 
                 signEth = function () {
-                  var _ref13 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee11(tx) {
-                    var chainIds, chainId, unsignedTx, rlpUnsignedTx, _ref14, v, r, s, signedTx, rawTx, txId;
+                  var _ref11 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee9(tx) {
+                    var chainIds, chainId, unsignedTx, rlpUnsignedTx, _ref12, v, r, s, signedTx, rawTx, txId;
 
-                    return regeneratorRuntime.wrap(function _callee11$(_context11) {
+                    return regeneratorRuntime.wrap(function _callee9$(_context9) {
                       while (1) {
-                        switch (_context11.prev = _context11.next) {
+                        switch (_context9.prev = _context9.next) {
                           case 0:
                             chainIds = {};
 
@@ -50181,7 +50364,7 @@ var CoreWallet = function () {
                             chainId = chainIds[coinType];
 
                             if (chainId) {
-                              _context11.next = 6;
+                              _context9.next = 6;
                               break;
                             }
 
@@ -50190,69 +50373,69 @@ var CoreWallet = function () {
                           case 6:
 
                             // rlp
-                            unsignedTx = [tx.nonce, tx.gasPrice, tx.startGas, tx.output.address, tx.output.value, tx.data, chainId, 0, 0];
+                            unsignedTx = [tx.nonce, tx.gasPrice, tx.gasLimit, tx.output.address, tx.output.value, tx.data, chainId, 0, 0];
                             rlpUnsignedTx = _rlp2.default.encode(unsignedTx);
-                            _context11.next = 10;
+                            _context9.next = 10;
                             return sign(_D2.default.address.path.toBuffer(tx.input.path), null, rlpUnsignedTx);
 
                           case 10:
-                            _ref14 = _context11.sent;
-                            v = _ref14.v;
-                            r = _ref14.r;
-                            s = _ref14.s;
-                            signedTx = [tx.nonce, tx.gasPrice, tx.startGas, tx.output.address, tx.output.value, tx.data, 35 + chainId * 2 + v % 2, r, s];
+                            _ref12 = _context9.sent;
+                            v = _ref12.v;
+                            r = _ref12.r;
+                            s = _ref12.s;
+                            signedTx = [tx.nonce, tx.gasPrice, tx.gasLimit, tx.output.address, tx.output.value, tx.data, 35 + chainId * 2 + v % 2, r, s];
                             rawTx = _rlp2.default.encode(signedTx).toString('hex');
                             txId = _D2.default.address.keccak256(_rlp2.default.encode(signedTx));
-                            return _context11.abrupt('return', {
+                            return _context9.abrupt('return', {
                               id: txId,
                               hex: rawTx
                             });
 
                           case 18:
                           case 'end':
-                            return _context11.stop();
+                            return _context9.stop();
                         }
                       }
-                    }, _callee11, _this);
+                    }, _callee9, _this);
                   }));
 
-                  return function signEth(_x12) {
-                    return _ref13.apply(this, arguments);
+                  return function signEth(_x11) {
+                    return _ref11.apply(this, arguments);
                   };
                 }();
 
-                _context12.next = 5;
+                _context10.next = 5;
                 return this.verifyPin();
 
               case 5:
                 if (!_D2.default.isBtc(coinType)) {
-                  _context12.next = 9;
+                  _context10.next = 9;
                   break;
                 }
 
-                return _context12.abrupt('return', signBtc(tx));
+                return _context10.abrupt('return', signBtc(tx));
 
               case 9:
                 if (!_D2.default.isEth(coinType)) {
-                  _context12.next = 13;
+                  _context10.next = 13;
                   break;
                 }
 
-                return _context12.abrupt('return', signEth(tx));
+                return _context10.abrupt('return', signEth(tx));
 
               case 13:
                 throw _D2.default.error.coinNotSupported;
 
               case 14:
               case 'end':
-                return _context12.stop();
+                return _context10.stop();
             }
           }
-        }, _callee12, this);
+        }, _callee10, this);
       }));
 
-      function signTransaction(_x6, _x7) {
-        return _ref8.apply(this, arguments);
+      function signTransaction(_x5, _x6) {
+        return _ref6.apply(this, arguments);
       }
 
       return signTransaction;
@@ -50260,14 +50443,14 @@ var CoreWallet = function () {
   }, {
     key: 'getRandom',
     value: function () {
-      var _ref15 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee13(length) {
+      var _ref13 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee11(length) {
         var apdu;
-        return regeneratorRuntime.wrap(function _callee13$(_context13) {
+        return regeneratorRuntime.wrap(function _callee11$(_context11) {
           while (1) {
-            switch (_context13.prev = _context13.next) {
+            switch (_context11.prev = _context11.next) {
               case 0:
                 if (!(length > 255)) {
-                  _context13.next = 2;
+                  _context11.next = 2;
                   break;
                 }
 
@@ -50275,18 +50458,18 @@ var CoreWallet = function () {
 
               case 2:
                 apdu = '00840000' + (length >> 8) + length % 0xFF;
-                return _context13.abrupt('return', this._sendApdu(apdu));
+                return _context11.abrupt('return', this._sendApdu(apdu));
 
               case 4:
               case 'end':
-                return _context13.stop();
+                return _context11.stop();
             }
           }
-        }, _callee13, this);
+        }, _callee11, this);
       }));
 
-      function getRandom(_x13) {
-        return _ref15.apply(this, arguments);
+      function getRandom(_x12) {
+        return _ref13.apply(this, arguments);
       }
 
       return getRandom;
@@ -51209,14 +51392,20 @@ var JsWallet = function () {
       console.log('walletId', walletId);
       return { walletId: walletId };
     }
+
+    // noinspection JSMethodCanBeStatic
+
   }, {
-    key: 'sync',
+    key: 'listenPlug',
     value: function () {
-      var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+      var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(callback) {
         return regeneratorRuntime.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
+                callback(_D2.default.error.succeed, _D2.default.status.plugIn);
+
+              case 1:
               case 'end':
                 return _context.stop();
             }
@@ -51224,56 +51413,8 @@ var JsWallet = function () {
         }, _callee, this);
       }));
 
-      function sync() {
+      function listenPlug(_x) {
         return _ref.apply(this, arguments);
-      }
-
-      return sync;
-    }()
-  }, {
-    key: 'updateIndex',
-    value: function () {
-      var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(addressInfo) {
-        return regeneratorRuntime.wrap(function _callee2$(_context2) {
-          while (1) {
-            switch (_context2.prev = _context2.next) {
-              case 0:
-              case 'end':
-                return _context2.stop();
-            }
-          }
-        }, _callee2, this);
-      }));
-
-      function updateIndex(_x) {
-        return _ref2.apply(this, arguments);
-      }
-
-      return updateIndex;
-    }()
-
-    // noinspection JSMethodCanBeStatic
-
-  }, {
-    key: 'listenPlug',
-    value: function () {
-      var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(callback) {
-        return regeneratorRuntime.wrap(function _callee3$(_context3) {
-          while (1) {
-            switch (_context3.prev = _context3.next) {
-              case 0:
-                callback(_D2.default.error.succeed, _D2.default.status.plugIn);
-
-              case 1:
-              case 'end':
-                return _context3.stop();
-            }
-          }
-        }, _callee3, this);
-      }));
-
-      function listenPlug(_x2) {
-        return _ref3.apply(this, arguments);
       }
 
       return listenPlug;
@@ -51284,26 +51425,26 @@ var JsWallet = function () {
   }, {
     key: 'getWalletInfo',
     value: function () {
-      var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4() {
-        return regeneratorRuntime.wrap(function _callee4$(_context4) {
+      var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
+        return regeneratorRuntime.wrap(function _callee2$(_context2) {
           while (1) {
-            switch (_context4.prev = _context4.next) {
+            switch (_context2.prev = _context2.next) {
               case 0:
-                return _context4.abrupt('return', {
-                  sdk_version: '0.0.3',
+                return _context2.abrupt('return', {
+                  sdk_version: '0.1.0',
                   cos_version: '20180718'
                 });
 
               case 1:
               case 'end':
-                return _context4.stop();
+                return _context2.stop();
             }
           }
-        }, _callee4, this);
+        }, _callee2, this);
       }));
 
       function getWalletInfo() {
-        return _ref4.apply(this, arguments);
+        return _ref2.apply(this, arguments);
       }
 
       return getWalletInfo;
@@ -51314,23 +51455,23 @@ var JsWallet = function () {
   }, {
     key: 'verifyPin',
     value: function () {
-      var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5() {
-        return regeneratorRuntime.wrap(function _callee5$(_context5) {
+      var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
+        return regeneratorRuntime.wrap(function _callee3$(_context3) {
           while (1) {
-            switch (_context5.prev = _context5.next) {
+            switch (_context3.prev = _context3.next) {
               case 0:
-                return _context5.abrupt('return', true);
+                return _context3.abrupt('return', true);
 
               case 1:
               case 'end':
-                return _context5.stop();
+                return _context3.stop();
             }
           }
-        }, _callee5, this);
+        }, _callee3, this);
       }));
 
       function verifyPin() {
-        return _ref5.apply(this, arguments);
+        return _ref3.apply(this, arguments);
       }
 
       return verifyPin;
@@ -51338,13 +51479,13 @@ var JsWallet = function () {
   }, {
     key: '_derive',
     value: function () {
-      var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6(path, pPublicKey) {
+      var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(path, pPublicKey) {
         var node, ECPair, HDNode, curve, Q, pChainCode, keyPair;
-        return regeneratorRuntime.wrap(function _callee6$(_context6) {
+        return regeneratorRuntime.wrap(function _callee4$(_context4) {
           while (1) {
-            switch (_context6.prev = _context6.next) {
+            switch (_context4.prev = _context4.next) {
               case 0:
-                _context6.prev = 0;
+                _context4.prev = 0;
                 node = this._root;
 
                 path = path.toString();
@@ -51358,25 +51499,25 @@ var JsWallet = function () {
 
                   node = new HDNode(keyPair, pChainCode);
                 }
-                return _context6.abrupt('return', node.derivePath(path));
+                return _context4.abrupt('return', node.derivePath(path));
 
               case 7:
-                _context6.prev = 7;
-                _context6.t0 = _context6['catch'](0);
+                _context4.prev = 7;
+                _context4.t0 = _context4['catch'](0);
 
-                console.warn(_context6.t0);
+                console.warn(_context4.t0);
                 throw _D2.default.error.unknown;
 
               case 11:
               case 'end':
-                return _context6.stop();
+                return _context4.stop();
             }
           }
-        }, _callee6, this, [[0, 7]]);
+        }, _callee4, this, [[0, 7]]);
       }));
 
-      function _derive(_x3, _x4) {
-        return _ref6.apply(this, arguments);
+      function _derive(_x2, _x3) {
+        return _ref4.apply(this, arguments);
       }
 
       return _derive;
@@ -51384,31 +51525,31 @@ var JsWallet = function () {
   }, {
     key: 'getPublicKey',
     value: function () {
-      var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7(publicKeyPath, pPublicKey) {
+      var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(publicKeyPath, pPublicKey) {
         var node, publicKey, chainCode;
-        return regeneratorRuntime.wrap(function _callee7$(_context7) {
+        return regeneratorRuntime.wrap(function _callee5$(_context5) {
           while (1) {
-            switch (_context7.prev = _context7.next) {
+            switch (_context5.prev = _context5.next) {
               case 0:
-                _context7.next = 2;
+                _context5.next = 2;
                 return this._derive(publicKeyPath, pPublicKey);
 
               case 2:
-                node = _context7.sent;
+                node = _context5.sent;
                 publicKey = node.getPublicKeyBuffer().toString('hex');
                 chainCode = node.chainCode.toString('hex');
-                return _context7.abrupt('return', { publicKey: publicKey, chainCode: chainCode });
+                return _context5.abrupt('return', { publicKey: publicKey, chainCode: chainCode });
 
               case 6:
               case 'end':
-                return _context7.stop();
+                return _context5.stop();
             }
           }
-        }, _callee7, this);
+        }, _callee5, this);
       }));
 
-      function getPublicKey(_x5, _x6) {
-        return _ref7.apply(this, arguments);
+      function getPublicKey(_x4, _x5) {
+        return _ref5.apply(this, arguments);
       }
 
       return getPublicKey;
@@ -51416,109 +51557,109 @@ var JsWallet = function () {
   }, {
     key: 'getAddress',
     value: function () {
-      var _ref8 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee10(coinType, addressPath) {
+      var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8(coinType, addressPath) {
         var _this = this;
 
         var btcAddress, ethAddress, address;
-        return regeneratorRuntime.wrap(function _callee10$(_context10) {
+        return regeneratorRuntime.wrap(function _callee8$(_context8) {
           while (1) {
-            switch (_context10.prev = _context10.next) {
+            switch (_context8.prev = _context8.next) {
               case 0:
                 btcAddress = function () {
-                  var _ref9 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8(addressPath) {
+                  var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6(addressPath) {
                     var node;
-                    return regeneratorRuntime.wrap(function _callee8$(_context8) {
+                    return regeneratorRuntime.wrap(function _callee6$(_context6) {
                       while (1) {
-                        switch (_context8.prev = _context8.next) {
+                        switch (_context6.prev = _context6.next) {
                           case 0:
-                            _context8.next = 2;
+                            _context6.next = 2;
                             return _this._derive(addressPath);
 
                           case 2:
-                            node = _context8.sent;
-                            return _context8.abrupt('return', node.getAddress());
+                            node = _context6.sent;
+                            return _context6.abrupt('return', node.getAddress());
 
                           case 4:
                           case 'end':
-                            return _context8.stop();
+                            return _context6.stop();
                         }
                       }
-                    }, _callee8, _this);
+                    }, _callee6, _this);
                   }));
 
-                  return function btcAddress(_x9) {
-                    return _ref9.apply(this, arguments);
+                  return function btcAddress(_x8) {
+                    return _ref7.apply(this, arguments);
                   };
                 }();
 
                 ethAddress = function () {
-                  var _ref10 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee9(addressPath) {
+                  var _ref8 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7(addressPath) {
                     var node, uncompressedPublicKey, withoutHead, hash;
-                    return regeneratorRuntime.wrap(function _callee9$(_context9) {
+                    return regeneratorRuntime.wrap(function _callee7$(_context7) {
                       while (1) {
-                        switch (_context9.prev = _context9.next) {
+                        switch (_context7.prev = _context7.next) {
                           case 0:
-                            _context9.next = 2;
+                            _context7.next = 2;
                             return _this._derive(addressPath);
 
                           case 2:
-                            node = _context9.sent;
+                            node = _context7.sent;
                             uncompressedPublicKey = node.keyPair.Q.getEncoded(false);
                             withoutHead = uncompressedPublicKey.slice(1);
                             hash = _D2.default.address.keccak256(withoutHead);
-                            return _context9.abrupt('return', '0x' + hash.slice(-40));
+                            return _context7.abrupt('return', '0x' + hash.slice(-40));
 
                           case 7:
                           case 'end':
-                            return _context9.stop();
+                            return _context7.stop();
                         }
                       }
-                    }, _callee9, _this);
+                    }, _callee7, _this);
                   }));
 
-                  return function ethAddress(_x10) {
-                    return _ref10.apply(this, arguments);
+                  return function ethAddress(_x9) {
+                    return _ref8.apply(this, arguments);
                   };
                 }();
 
                 address = void 0;
-                _context10.t0 = coinType;
-                _context10.next = _context10.t0 === _D2.default.coin.main.btc ? 6 : _context10.t0 === _D2.default.coin.test.btcTestNet3 ? 6 : _context10.t0 === _D2.default.coin.main.eth ? 10 : _context10.t0 === _D2.default.coin.test.ethRinkeby ? 10 : 14;
+                _context8.t0 = coinType;
+                _context8.next = _context8.t0 === _D2.default.coin.main.btc ? 6 : _context8.t0 === _D2.default.coin.test.btcTestNet3 ? 6 : _context8.t0 === _D2.default.coin.main.eth ? 10 : _context8.t0 === _D2.default.coin.test.ethRinkeby ? 10 : 14;
                 break;
 
               case 6:
-                _context10.next = 8;
+                _context8.next = 8;
                 return btcAddress(addressPath);
 
               case 8:
-                address = _context10.sent;
-                return _context10.abrupt('break', 15);
+                address = _context8.sent;
+                return _context8.abrupt('break', 15);
 
               case 10:
-                _context10.next = 12;
+                _context8.next = 12;
                 return ethAddress(addressPath);
 
               case 12:
-                address = _context10.sent;
-                return _context10.abrupt('break', 15);
+                address = _context8.sent;
+                return _context8.abrupt('break', 15);
 
               case 14:
                 throw _D2.default.error.coinNotSupported;
 
               case 15:
                 console.debug('path, address', addressPath, address);
-                return _context10.abrupt('return', address);
+                return _context8.abrupt('return', address);
 
               case 17:
               case 'end':
-                return _context10.stop();
+                return _context8.stop();
             }
           }
-        }, _callee10, this);
+        }, _callee8, this);
       }));
 
-      function getAddress(_x7, _x8) {
-        return _ref8.apply(this, arguments);
+      function getAddress(_x6, _x7) {
+        return _ref6.apply(this, arguments);
       }
 
       return getAddress;
@@ -51529,23 +51670,23 @@ var JsWallet = function () {
   }, {
     key: 'getRandom',
     value: function () {
-      var _ref11 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee11(length) {
-        return regeneratorRuntime.wrap(function _callee11$(_context11) {
+      var _ref9 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee9(length) {
+        return regeneratorRuntime.wrap(function _callee9$(_context9) {
           while (1) {
-            switch (_context11.prev = _context11.next) {
+            switch (_context9.prev = _context9.next) {
               case 0:
                 Buffer.from(_D2.default.getRandomHex(length * 2), 'hex');
 
               case 1:
               case 'end':
-                return _context11.stop();
+                return _context9.stop();
             }
           }
-        }, _callee11, this);
+        }, _callee9, this);
       }));
 
-      function getRandom(_x11) {
-        return _ref11.apply(this, arguments);
+      function getRandom(_x10) {
+        return _ref9.apply(this, arguments);
       }
 
       return getRandom;
@@ -51553,35 +51694,35 @@ var JsWallet = function () {
   }, {
     key: 'publicKeyToAddress',
     value: function () {
-      var _ref12 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee12(publicKey) {
+      var _ref10 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee10(publicKey) {
         var ECPair, curve, Q, keyPair;
-        return regeneratorRuntime.wrap(function _callee12$(_context12) {
+        return regeneratorRuntime.wrap(function _callee10$(_context10) {
           while (1) {
-            switch (_context12.prev = _context12.next) {
+            switch (_context10.prev = _context10.next) {
               case 0:
                 ECPair = _bitcoinjsLib2.default.ECPair;
                 curve = _ecurve2.default.getCurveByName('secp256k1');
                 Q = _ecurve2.default.Point.decodeFrom(curve, Buffer.from(publicKey, 'hex'));
                 keyPair = new ECPair(null, Q, { network: this.btcNetwork });
-                return _context12.abrupt('return', keyPair.getAddress());
+                return _context10.abrupt('return', keyPair.getAddress());
 
               case 5:
               case 'end':
-                return _context12.stop();
+                return _context10.stop();
             }
           }
-        }, _callee12, this);
+        }, _callee10, this);
       }));
 
-      function publicKeyToAddress(_x12) {
-        return _ref12.apply(this, arguments);
+      function publicKeyToAddress(_x11) {
+        return _ref10.apply(this, arguments);
       }
 
       return publicKeyToAddress;
     }()
 
     /**
-     * tx:
+     * @prarms tx:
      * btc:
      * {
      *   inputs: [{
@@ -51598,7 +51739,6 @@ var JsWallet = function () {
      * }
      *
      * eth:
-     * [nonce, gasprice, startgas, to, value, data, v, r, s]
      * {
      *   input: {
      *     address: 0x string,
@@ -51609,8 +51749,8 @@ var JsWallet = function () {
      *     value: number
      *   },
      *   nonce: number,
-     *   gasPrice: number,
-     *   startGas: number,
+     *   gasPrice: 0x string,
+     *   gasLimit: 0x string,
      *   data: hex string,
      * }
      */
@@ -51618,117 +51758,117 @@ var JsWallet = function () {
   }, {
     key: 'signTransaction',
     value: function () {
-      var _ref13 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee15(coinType, tx) {
+      var _ref11 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee13(coinType, tx) {
         var _this2 = this;
 
         var signBtc, signEth;
-        return regeneratorRuntime.wrap(function _callee15$(_context15) {
+        return regeneratorRuntime.wrap(function _callee13$(_context13) {
           while (1) {
-            switch (_context15.prev = _context15.next) {
+            switch (_context13.prev = _context13.next) {
               case 0:
                 signBtc = function () {
-                  var _ref14 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee13() {
+                  var _ref12 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee11() {
                     var txb, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, input, _iteratorNormalCompletion2, _didIteratorError2, _iteratorError2, _iterator2, _step2, output, i, _iteratorNormalCompletion3, _didIteratorError3, _iteratorError3, _iterator3, _step3, _input, key, transaction;
 
-                    return regeneratorRuntime.wrap(function _callee13$(_context13) {
+                    return regeneratorRuntime.wrap(function _callee11$(_context11) {
                       while (1) {
-                        switch (_context13.prev = _context13.next) {
+                        switch (_context11.prev = _context11.next) {
                           case 0:
-                            _context13.prev = 0;
+                            _context11.prev = 0;
                             txb = new _bitcoinjsLib2.default.TransactionBuilder(_this2.btcNetwork);
 
                             txb.setVersion(1);
                             _iteratorNormalCompletion = true;
                             _didIteratorError = false;
                             _iteratorError = undefined;
-                            _context13.prev = 6;
+                            _context11.prev = 6;
                             for (_iterator = tx.inputs[Symbol.iterator](); !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
                               input = _step.value;
 
                               txb.addInput(input.txId, input.index);
                             }
-                            _context13.next = 14;
+                            _context11.next = 14;
                             break;
 
                           case 10:
-                            _context13.prev = 10;
-                            _context13.t0 = _context13['catch'](6);
+                            _context11.prev = 10;
+                            _context11.t0 = _context11['catch'](6);
                             _didIteratorError = true;
-                            _iteratorError = _context13.t0;
+                            _iteratorError = _context11.t0;
 
                           case 14:
-                            _context13.prev = 14;
-                            _context13.prev = 15;
+                            _context11.prev = 14;
+                            _context11.prev = 15;
 
                             if (!_iteratorNormalCompletion && _iterator.return) {
                               _iterator.return();
                             }
 
                           case 17:
-                            _context13.prev = 17;
+                            _context11.prev = 17;
 
                             if (!_didIteratorError) {
-                              _context13.next = 20;
+                              _context11.next = 20;
                               break;
                             }
 
                             throw _iteratorError;
 
                           case 20:
-                            return _context13.finish(17);
+                            return _context11.finish(17);
 
                           case 21:
-                            return _context13.finish(14);
+                            return _context11.finish(14);
 
                           case 22:
                             _iteratorNormalCompletion2 = true;
                             _didIteratorError2 = false;
                             _iteratorError2 = undefined;
-                            _context13.prev = 25;
+                            _context11.prev = 25;
                             for (_iterator2 = tx.outputs[Symbol.iterator](); !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
                               output = _step2.value;
 
                               txb.addOutput(output.address, output.value);
                             }
-                            _context13.next = 33;
+                            _context11.next = 33;
                             break;
 
                           case 29:
-                            _context13.prev = 29;
-                            _context13.t1 = _context13['catch'](25);
+                            _context11.prev = 29;
+                            _context11.t1 = _context11['catch'](25);
                             _didIteratorError2 = true;
-                            _iteratorError2 = _context13.t1;
+                            _iteratorError2 = _context11.t1;
 
                           case 33:
-                            _context13.prev = 33;
-                            _context13.prev = 34;
+                            _context11.prev = 33;
+                            _context11.prev = 34;
 
                             if (!_iteratorNormalCompletion2 && _iterator2.return) {
                               _iterator2.return();
                             }
 
                           case 36:
-                            _context13.prev = 36;
+                            _context11.prev = 36;
 
                             if (!_didIteratorError2) {
-                              _context13.next = 39;
+                              _context11.next = 39;
                               break;
                             }
 
                             throw _iteratorError2;
 
                           case 39:
-                            return _context13.finish(36);
+                            return _context11.finish(36);
 
                           case 40:
-                            return _context13.finish(33);
+                            return _context11.finish(33);
 
                           case 41:
                             i = 0;
                             _iteratorNormalCompletion3 = true;
                             _didIteratorError3 = false;
                             _iteratorError3 = undefined;
-                            _context13.prev = 45;
+                            _context11.prev = 45;
 
                             for (_iterator3 = tx.inputs[Symbol.iterator](); !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
                               _input = _step3.value;
@@ -51737,70 +51877,70 @@ var JsWallet = function () {
                               txb.sign(i, key);
                               i++;
                             }
-                            _context13.next = 53;
+                            _context11.next = 53;
                             break;
 
                           case 49:
-                            _context13.prev = 49;
-                            _context13.t2 = _context13['catch'](45);
+                            _context11.prev = 49;
+                            _context11.t2 = _context11['catch'](45);
                             _didIteratorError3 = true;
-                            _iteratorError3 = _context13.t2;
+                            _iteratorError3 = _context11.t2;
 
                           case 53:
-                            _context13.prev = 53;
-                            _context13.prev = 54;
+                            _context11.prev = 53;
+                            _context11.prev = 54;
 
                             if (!_iteratorNormalCompletion3 && _iterator3.return) {
                               _iterator3.return();
                             }
 
                           case 56:
-                            _context13.prev = 56;
+                            _context11.prev = 56;
 
                             if (!_didIteratorError3) {
-                              _context13.next = 59;
+                              _context11.next = 59;
                               break;
                             }
 
                             throw _iteratorError3;
 
                           case 59:
-                            return _context13.finish(56);
+                            return _context11.finish(56);
 
                           case 60:
-                            return _context13.finish(53);
+                            return _context11.finish(53);
 
                           case 61:
                             transaction = txb.build();
-                            return _context13.abrupt('return', { id: transaction.getId(), hex: transaction.toHex() });
+                            return _context11.abrupt('return', { id: transaction.getId(), hex: transaction.toHex() });
 
                           case 65:
-                            _context13.prev = 65;
-                            _context13.t3 = _context13['catch'](0);
+                            _context11.prev = 65;
+                            _context11.t3 = _context11['catch'](0);
 
-                            console.warn(_context13.t3);
+                            console.warn(_context11.t3);
                             throw _D2.default.error.unknown;
 
                           case 69:
                           case 'end':
-                            return _context13.stop();
+                            return _context11.stop();
                         }
                       }
-                    }, _callee13, _this2, [[0, 65], [6, 10, 14, 22], [15,, 17, 21], [25, 29, 33, 41], [34,, 36, 40], [45, 49, 53, 61], [54,, 56, 60]]);
+                    }, _callee11, _this2, [[0, 65], [6, 10, 14, 22], [15,, 17, 21], [25, 29, 33, 41], [34,, 36, 40], [45, 49, 53, 61], [54,, 56, 60]]);
                   }));
 
                   return function signBtc() {
-                    return _ref14.apply(this, arguments);
+                    return _ref12.apply(this, arguments);
                   };
                 }();
 
                 signEth = function () {
-                  var _ref15 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee14() {
+                  var _ref13 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee12() {
                     var sign, chainIds, chainId, unsignedTx, rlpUnsignedTx, rlpHash, node, _sign, _sign2, v, r, s, signedTx, rawTx, txId;
 
-                    return regeneratorRuntime.wrap(function _callee14$(_context14) {
+                    return regeneratorRuntime.wrap(function _callee12$(_context12) {
                       while (1) {
-                        switch (_context14.prev = _context14.next) {
+                        switch (_context12.prev = _context12.next) {
                           case 0:
                             // copy from ecdsa.sign(hash, d) in bitcoinjs, returing [v, r, s] format
                             sign = function sign(hash, d) {
@@ -51888,75 +52028,75 @@ var JsWallet = function () {
                             chainId = chainIds[coinType];
 
                             if (chainId) {
-                              _context14.next = 7;
+                              _context12.next = 7;
                               break;
                             }
 
                             throw _D2.default.error.coinNotSupported;
 
                           case 7:
-                            unsignedTx = [tx.nonce, tx.gasPrice, tx.startGas, tx.output.address, tx.output.value, tx.data, chainId, 0, 0];
+                            unsignedTx = [tx.nonce, tx.gasPrice, tx.gasLimit, tx.output.address, tx.output.value, tx.data, chainId, 0, 0];
                             rlpUnsignedTx = _rlp2.default.encode(unsignedTx);
                             rlpHash = _D2.default.address.keccak256(rlpUnsignedTx);
-                            _context14.next = 12;
+                            _context12.next = 12;
                             return _this2._derive(tx.input.path);
 
                           case 12:
-                            node = _context14.sent;
+                            node = _context12.sent;
                             _sign = sign(Buffer.from(rlpHash.slice(2), 'hex'), node.keyPair.d), _sign2 = _slicedToArray(_sign, 3), v = _sign2[0], r = _sign2[1], s = _sign2[2];
-                            signedTx = [tx.nonce, tx.gasPrice, tx.startGas, tx.output.address, tx.output.value, tx.data, v, r, s];
+                            signedTx = [tx.nonce, tx.gasPrice, tx.gasLimit, tx.output.address, tx.output.value, tx.data, v, r, s];
                             rawTx = _rlp2.default.encode(signedTx).toString('hex');
                             txId = _D2.default.address.keccak256(_rlp2.default.encode(signedTx));
-                            return _context14.abrupt('return', {
+                            return _context12.abrupt('return', {
                               id: txId,
                               hex: rawTx
                             });
 
                           case 18:
                           case 'end':
-                            return _context14.stop();
+                            return _context12.stop();
                         }
                       }
-                    }, _callee14, _this2);
+                    }, _callee12, _this2);
                   }));
 
                   return function signEth() {
-                    return _ref15.apply(this, arguments);
+                    return _ref13.apply(this, arguments);
                   };
                 }();
 
-                _context15.next = 4;
+                _context13.next = 4;
                 return this.verifyPin();
 
               case 4:
                 if (!_D2.default.isBtc(coinType)) {
-                  _context15.next = 8;
+                  _context13.next = 8;
                   break;
                 }
 
-                return _context15.abrupt('return', signBtc());
+                return _context13.abrupt('return', signBtc());
 
               case 8:
                 if (!_D2.default.isEth(coinType)) {
-                  _context15.next = 12;
+                  _context13.next = 12;
                   break;
                 }
 
-                return _context15.abrupt('return', signEth());
+                return _context13.abrupt('return', signEth());
 
               case 12:
                 throw _D2.default.error.coinNotSupported;
 
               case 13:
               case 'end':
-                return _context15.stop();
+                return _context13.stop();
             }
           }
-        }, _callee15, this);
+        }, _callee13, this);
       }));
 
-      function signTransaction(_x13, _x14) {
-        return _ref13.apply(this, arguments);
+      function signTransaction(_x12, _x13) {
+        return _ref11.apply(this, arguments);
       }
 
       return signTransaction;
