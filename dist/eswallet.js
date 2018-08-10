@@ -43154,7 +43154,7 @@ var BtcAccount = function () {
                   time: new Date().getTime(),
                   direction: _D2.default.tx.direction.out,
                   value: prepareTx.total.toString(),
-                  fee: prepareTx.fee,
+                  fee: prepareTx.fee.toString(),
                   showAddresses: prepareTx.outputs.map(function (output) {
                     return output.address;
                   }),
@@ -43173,6 +43173,7 @@ var BtcAccount = function () {
                       address: output.address,
                       isMine: output.address === changeAddressInfo.address,
                       index: index,
+                      script: _D2.default.address.makeOutputScript(output.address),
                       value: output.value
                     };
                   })
@@ -43495,6 +43496,31 @@ var D = {
       }
       throw D.error.invalidAddress;
     },
+    makeOutputScript: function makeOutputScript(address) {
+      var type = D.address.checkBtcAddress(address);
+      var scriptPubKey = void 0;
+      switch (type) {
+        case D.address.p2pk:
+          scriptPubKey = '21' + D.address.toBuffer(address).toString('hex') + 'AC';
+          break;
+        case D.address.p2pkh:
+          scriptPubKey = '76A914' + D.address.toBuffer(address).toString('hex') + '88AC';
+          break;
+        case D.address.p2sh:
+          scriptPubKey = 'A914' + D.address.toBuffer(address).toString('hex') + '87';
+          break;
+        case D.address.p2wpkh:
+          scriptPubKey = '0014' + D.address.toBuffer(address).toString('hex');
+          break;
+        case D.address.p2wsh:
+          scriptPubKey = '0020' + D.address.toBuffer(address).toString('hex');
+          break;
+        default:
+          console.warn('makeBasicScript: unsupported address type');
+          throw D.error.invalidAddress;
+      }
+      return scriptPubKey;
+    },
     keccak256: function keccak256(data) {
       if (data instanceof String) {
         if (data.startsWith('0x')) {
@@ -43688,7 +43714,7 @@ var D = {
     return Object.values(this.unit.legal);
   },
   supportedCoinTypes: function supportedCoinTypes() {
-    return [D.coin.test.btcTestNet3];
+    return D.test.coin ? [D.coin.test.btcTestNet3, D.coin.test.ethRinkeby] : [D.coin.main.btc, D.coin.main.eth];
   },
   recoverCoinTypes: function recoverCoinTypes() {
     return D.supportedCoinTypes();
@@ -48031,15 +48057,9 @@ var BlockchainInfo = function (_ICoinNetwork) {
 
               case 2:
                 response = _context5.sent;
+                return _context5.abrupt('return', this.wrapTx(response));
 
-                console.warn('queryTx', txId, response);
-                _context5.next = 6;
-                return this.wrapTx(response);
-
-              case 6:
-                return _context5.abrupt('return', _context5.sent);
-
-              case 7:
+              case 4:
               case 'end':
                 return _context5.stop();
             }
@@ -50458,28 +50478,7 @@ var CoreWallet = function () {
                                   };
                                 }),
                                 outputs: tx.outputs.map(function (output) {
-                                  var type = _D2.default.address.checkBtcAddress(output.address);
-                                  var scriptPubKey = void 0;
-                                  switch (type) {
-                                    case _D2.default.address.p2pk:
-                                      scriptPubKey = '21' + _D2.default.address.toBuffer(output.address).toString('hex') + 'AC';
-                                      break;
-                                    case _D2.default.address.p2pkh:
-                                      scriptPubKey = '76A914' + _D2.default.address.toBuffer(output.address).toString('hex') + '88AC';
-                                      break;
-                                    case _D2.default.address.p2sh:
-                                      scriptPubKey = 'A914' + _D2.default.address.toBuffer(output.address).toString('hex') + '87';
-                                      break;
-                                    case _D2.default.address.p2wpkh:
-                                      scriptPubKey = '0014' + _D2.default.address.toBuffer(output.address).toString('hex');
-                                      break;
-                                    case _D2.default.address.p2wsh:
-                                      scriptPubKey = '0020' + _D2.default.address.toBuffer(output.address).toString('hex');
-                                      break;
-                                    default:
-                                      console.warn('makeBasicScript: unsupported address type');
-                                      throw _D2.default.error.unknown;
-                                  }
+                                  var scriptPubKey = _D2.default.address.makeOutputScript(output.address);
                                   return {
                                     amount: output.value,
                                     scriptPubKey: scriptPubKey
