@@ -471,7 +471,7 @@ export default class BtcAccount {
       time: new Date().getTime(),
       direction: D.tx.direction.out,
       value: prepareTx.total.toString(),
-      fee: prepareTx.fee,
+      fee: prepareTx.fee.toString(),
       showAddresses: prepareTx.outputs.map(output => output.address),
       inputs: prepareTx.utxos.map(utxo => {
         return {
