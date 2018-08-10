@@ -194,7 +194,7 @@ const D = {
           throw D.error.invalidAddress
       }
       return scriptPubKey
-    }
+    },
 
     keccak256 (data) {
       if (data instanceof String) {
