@@ -118,7 +118,7 @@ export default class BtcAccount {
    * update txInfo, find out new transaction and utxos for specific address
    */
   async _handleNewTx (addressInfo, txInfo) {
-    console.log('newTransaction', addressInfo, txInfo)
+    console.log('btc newTransaction', addressInfo, txInfo)
 
     // async operation may lead to disorder. so we need a simple lock
     // eslint-disable-next-line
@@ -186,6 +186,7 @@ export default class BtcAccount {
       })
       utxos.push(...spentUtxos)
     }
+    console.log('btc newTransaction 2', addressInfo, txInfo)
     await this._handleNewTxInner(addressInfo, txInfo, utxos)
 
     this.busy = false
@@ -469,7 +470,8 @@ export default class BtcAccount {
       confirmations: -1,
       time: new Date().getTime(),
       direction: D.tx.direction.out,
-      value: prepareTx.total,
+      value: prepareTx.total.toString(),
+      fee: prepareTx.fee,
       showAddresses: prepareTx.outputs.map(output => output.address),
       inputs: prepareTx.utxos.map(utxo => {
         return {
