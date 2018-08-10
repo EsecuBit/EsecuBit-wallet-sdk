@@ -114,12 +114,16 @@ export default class BlockchainInfo extends ICoinNetwork {
 
   async queryAddresses (addresses) {
     let totalReceive = 0
-    let response = []
+    let response
     while (true) {
       let subResponse = await this.get(this._apiUrl + '/multiaddr?cors=true&offset=' + totalReceive + '&n=100&active=' + addresses.join('|'))
-      response = response.push(...subResponse)
+      if (!response) {
+        response = subResponse
+      } else {
+        response.txs.push(...subResponse.txs)
+      }
       totalReceive += response.txs.length
-      if (totalReceive === subResponse.n_tx) {
+      if (totalReceive === subResponse.wallet.n_tx) {
         break
       }
     }
