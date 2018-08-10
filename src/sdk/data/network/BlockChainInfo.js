@@ -124,20 +124,24 @@ export default class BlockchainInfo extends ICoinNetwork {
       return rTx.inputs.map(input => input.prev_out.addr).includes(address) ||
         rTx.out.map(output => output.addr).includes(address)
     }
-    return response.addresses.map(rAddress => {
-      return {
+
+    let blobs = []
+    for (let rAddress of response.addresses) {
+      let txs = response.txs.filter(rTx => selfTx(rTx, rAddress.address))
+      txs = await Promise.all(txs.map(rTx => this.wrapTx(rTx, rAddress.address)))
+      blobs.push({
         address: rAddress.address,
         txCount: rAddress.n_tx,
-        txs: response.txs.filter(rTx => selfTx(rTx, rAddress.address))
-          .map(rTx => this.wrapTx(rTx))
-      }
-    })
+        txs: txs
+      })
+    }
+    return blobs
   }
 
   async queryTx (txId) {
     let response = await this.get([this._apiUrl, 'rawtx', txId].join('/') + '?cors=true')
     console.warn('queryTx', txId, response)
-    return this.wrapTx(response)
+    return await this.wrapTx(response)
   }
 
   async queryRawTx (txId) {
@@ -149,7 +153,7 @@ export default class BlockchainInfo extends ICoinNetwork {
     return this.post([this._apiUrl, 'pushtx'].join('/'), 'tx=' + rawTransaction)
   }
 
-  wrapTx (rTx, rTxs, address) {
+  async wrapTx (rTx, address) {
     let confirmations = this._blockHeight - (rTx.block_height || this._blockHeight)
     let tx = {
       txId: rTx.hash,
@@ -160,10 +164,17 @@ export default class BlockchainInfo extends ICoinNetwork {
       hasDetails: true
     }
     let index = 0
-    tx.inputs = rTx.inputs.map(input => {
+    tx.inputs = await Promise.all(rTx.inputs.map(async input => {
       // blockchain.info don't have this field, but we can get it from txs by tx_index,
       // if prevAddress is the address we query. otherwise prevTxId is useless
       let prevTxId = this.indexMap[input.prev_out.tx_index]
+      // TODO query every time now, optimize this
+      if (!prevTxId && (input.prev_out.addr === address)) {
+        console.debug('tx_index not found, get it by queryRawTx', rTx)
+        let response = await this.queryRawTx(rTx.hash)
+        prevTxId = response.in.find(inn => inn.index === input.prev_out.n).hash
+        this.indexMap[input.prev_out.tx_index] = prevTxId
+      }
       return {
         prevAddress: input.prev_out.addr,
         prevTxId: prevTxId,
@@ -172,7 +183,7 @@ export default class BlockchainInfo extends ICoinNetwork {
         index: index++,
         value: input.prev_out.value
       }
-    })
+    }))
     tx.outputs = rTx.out.map(output => {
       return {
         address: output.addr,
