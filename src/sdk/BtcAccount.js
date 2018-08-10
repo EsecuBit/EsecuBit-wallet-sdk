@@ -488,6 +488,7 @@ export default class BtcAccount {
           address: output.address,
           isMine: output.address === changeAddressInfo.address,
           index: index,
+          script: D.address.makeOutputScript(output.address),
           value: output.value
         }
       })

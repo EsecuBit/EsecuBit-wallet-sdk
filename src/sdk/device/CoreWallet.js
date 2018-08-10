@@ -177,28 +177,7 @@ export default class CoreWallet {
             }
           }),
           outputs: tx.outputs.map(output => {
-            let type = D.address.checkBtcAddress(output.address)
-            let scriptPubKey
-            switch (type) {
-              case D.address.p2pk:
-                scriptPubKey = '21' + D.address.toBuffer(output.address).toString('hex') + 'AC'
-                break
-              case D.address.p2pkh:
-                scriptPubKey = '76A914' + D.address.toBuffer(output.address).toString('hex') + '88AC'
-                break
-              case D.address.p2sh:
-                scriptPubKey = 'A914' + D.address.toBuffer(output.address).toString('hex') + '87'
-                break
-              case D.address.p2wpkh:
-                scriptPubKey = '0014' + D.address.toBuffer(output.address).toString('hex')
-                break
-              case D.address.p2wsh:
-                scriptPubKey = '0020' + D.address.toBuffer(output.address).toString('hex')
-                break
-              default:
-                console.warn('makeBasicScript: unsupported address type')
-                throw D.error.unknown
-            }
+            let scriptPubKey = D.address.makeOutputScript(output.address)
             return {
               amount: output.value,
               scriptPubKey: scriptPubKey

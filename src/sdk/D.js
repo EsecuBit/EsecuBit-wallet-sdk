@@ -170,6 +170,32 @@ const D = {
       throw D.error.invalidAddress
     },
 
+    makeOutputScript (address) {
+      let type = D.address.checkBtcAddress(address)
+      let scriptPubKey
+      switch (type) {
+        case D.address.p2pk:
+          scriptPubKey = '21' + D.address.toBuffer(address).toString('hex') + 'AC'
+          break
+        case D.address.p2pkh:
+          scriptPubKey = '76A914' + D.address.toBuffer(address).toString('hex') + '88AC'
+          break
+        case D.address.p2sh:
+          scriptPubKey = 'A914' + D.address.toBuffer(address).toString('hex') + '87'
+          break
+        case D.address.p2wpkh:
+          scriptPubKey = '0014' + D.address.toBuffer(address).toString('hex')
+          break
+        case D.address.p2wsh:
+          scriptPubKey = '0020' + D.address.toBuffer(address).toString('hex')
+          break
+        default:
+          console.warn('makeBasicScript: unsupported address type')
+          throw D.error.invalidAddress
+      }
+      return scriptPubKey
+    }
+
     keccak256 (data) {
       if (data instanceof String) {
         if (data.startsWith('0x')) {
