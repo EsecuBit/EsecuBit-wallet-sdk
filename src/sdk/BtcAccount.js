@@ -186,7 +186,6 @@ export default class BtcAccount {
       })
       utxos.push(...spentUtxos)
     }
-    console.log('btc newTransaction 2', addressInfo, txInfo)
     await this._handleNewTxInner(addressInfo, txInfo, utxos)
 
     this.busy = false
