@@ -17,7 +17,9 @@ export default class BlockchainInfo extends ICoinNetwork {
     // noinspection JSUnusedGlobalSymbols
     this._supportMultiAddresses = true
     this.coinType = coinType
+    this.indexMap = {}
   }
+
 
   async init () {
     switch (this.coinType) {
@@ -112,7 +114,13 @@ export default class BlockchainInfo extends ICoinNetwork {
 
   async queryAddresses (addresses) {
     let response = await this.get(this._apiUrl + '/multiaddr?cors=true&active=' + addresses.join('|'))
-    let exist = (rTx, address) => {
+    response.txs.forEach(tx => {
+      if (!this.indexMap[tx.tx_index]) {
+        this.indexMap[tx.tx_index] = tx.hash
+      }
+    })
+
+    let selfTx = (rTx, address) => {
       return rTx.inputs.map(input => input.prev_out.addr).includes(address) ||
         rTx.out.map(output => output.addr).includes(address)
     }
@@ -120,13 +128,15 @@ export default class BlockchainInfo extends ICoinNetwork {
       return {
         address: rAddress.address,
         txCount: rAddress.n_tx,
-        txs: response.txs.filter(rTx => exist(rTx, rAddress.address)).map(rTx => this.wrapTx(rTx))
+        txs: response.txs.filter(rTx => selfTx(rTx, rAddress.address))
+          .map(rTx => this.wrapTx(rTx))
       }
     })
   }
 
   async queryTx (txId) {
     let response = await this.get([this._apiUrl, 'rawtx', txId].join('/') + '?cors=true')
+    console.warn('queryTx', txId, response)
     return this.wrapTx(response)
   }
 
@@ -139,7 +149,7 @@ export default class BlockchainInfo extends ICoinNetwork {
     return this.post([this._apiUrl, 'pushtx'].join('/'), 'tx=' + rawTransaction)
   }
 
-  wrapTx (rTx) {
+  wrapTx (rTx, rTxs, address) {
     let confirmations = this._blockHeight - (rTx.block_height || this._blockHeight)
     let tx = {
       txId: rTx.hash,
@@ -151,9 +161,12 @@ export default class BlockchainInfo extends ICoinNetwork {
     }
     let index = 0
     tx.inputs = rTx.inputs.map(input => {
+      // blockchain.info don't have this field, but we can get it from txs by tx_index,
+      // if prevAddress is the address we query. otherwise prevTxId is useless
+      let prevTxId = this.indexMap[input.prev_out.tx_index]
       return {
         prevAddress: input.prev_out.addr,
-        prevTxId: null, // blockchain.info don't have this field, need query tx raw hex
+        prevTxId: prevTxId,
         prevOutIndex: input.prev_out.n,
         prevOutScript: input.prev_out.script,
         index: index++,

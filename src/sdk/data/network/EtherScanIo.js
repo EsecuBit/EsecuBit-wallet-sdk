@@ -92,13 +92,21 @@ export default class EtherScanIo extends ICoinNetwork {
     // confirmations < 0 means this._blockHeight is not the newest. In this case confirmations is at least 1
     confirmations = confirmations < 0 ? 1 : confirmations
 
+    if (rTx.gas.startsWith('0x')) {
+      rTx.gas = rTx.gas.slice(2)
+      rTx.gas = BigInteger.fromHex(rTx.gas).toString(10)
+    }
+    if (rTx.gasPrice.startsWith('0x')) {
+      rTx.gasPrice = rTx.gasPrice.slice(2)
+      rTx.gasPrice = BigInteger.fromHex(rTx.gasPrice).toString(10)
+    }
     let value = new BigInteger(rTx.value)
     let tx = {
       txId: rTx.hash,
       blockNumber: blockNumber,
       confirmations: confirmations,
       time: rTx.timeStamp * 1000,
-      gas: rTx.gas,
+      gas: rTx.gasUsed || rTx.gas,
       gasPrice: rTx.gasPrice,
       hasDetails: true
     }

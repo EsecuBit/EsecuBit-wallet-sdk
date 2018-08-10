@@ -197,11 +197,6 @@ export default class CoinData {
     this._db.renameAccount(account)
   }
 
-  async saveOrUpdateTxInfo (txInfo) {
-    await this._db.saveOrUpdateTxInfo(txInfo)
-    this._listeners.forEach(listener => D.dispatch(() => listener(D.error.succeed, txInfo)))
-  }
-
   async newAddressInfos (account, addressInfos) {
     await this._db.newAddressInfos(account, addressInfos)
   }

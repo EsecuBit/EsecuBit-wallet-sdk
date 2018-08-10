@@ -178,8 +178,8 @@ describe('EthAccount', function () {
   it('sendTx', async () => {
     for (let nonce = 0; nonce < 1; nonce++) {
       let prepareTx = await account.prepareTx({
-        feeRate: '1000000000',
-        outputs: [{address: '0x5c69f6b7a38ca89d5dd48a7f21be5f1030760891', value: '3200000000000'}]
+        gasPrice: '1000000000',
+        output: {address: '0x5c69f6b7a38ca89d5dd48a7f21be5f1030760891', value: '3200000000000'}
       })
       let signedTx = await account.buildTx(prepareTx)
       // await account.sendTx(signedTx)

@@ -13,6 +13,7 @@ export default class JsWallet {
       return JsWallet.prototype.Instance
     }
     JsWallet.prototype.Instance = this
+    this.cache = {}
   }
 
   init (initSeed) {
@@ -39,7 +40,7 @@ export default class JsWallet {
   async getWalletInfo () {
     // TODO auto update sdk version
     return {
-      sdk_version: '0.1.0',
+      sdk_version: '0.2.1',
       cos_version: '20180718'
     }
   }
@@ -61,6 +62,17 @@ export default class JsWallet {
         let pChainCode = Buffer.from(pPublicKey.chainCode, 'hex')
         let keyPair = new ECPair(null, Q, {network: this.btcNetwork})
         node = new HDNode(keyPair, pChainCode)
+      } else {
+        // build cache to improve speed
+        let lastIndex = path.lastIndexOf('/')
+        let parentPath = path.slice(0, lastIndex)
+        path = path.slice(lastIndex + 1)
+        if (this.cache[parentPath]) {
+          node = this.cache[parentPath]
+        } else {
+          node = node.derivePath(parentPath)
+          this.cache[parentPath] = node
+        }
       }
       return node.derivePath(path)
     } catch (e) {

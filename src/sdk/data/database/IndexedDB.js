@@ -71,7 +71,7 @@ export default class IndexedDB extends IDatabase {
          *                  just for showing the status. won't active update after confirmations >= D.TRANSACTION_##coin.TYPE##_MATURE_CONFIRMATIONS
          *   time: number,
          *   direction: D.tx.direction.in / D.tx.direction.out,
-         *   inputs: [{prevAddress, prevOutIndex, index, value, isMine}, ...]
+         *   inputs: [{prevTxId, prevAddress, prevOutIndex, prevOutScript, index, value, isMine}, ...]
          *   outputs: [{address, index, value, isMine}, ...]
          *   value: string (decimal string satoshi) // value that shows the account balance changes, calculated by inputs and outputs
          * }

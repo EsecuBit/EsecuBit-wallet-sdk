@@ -27,19 +27,20 @@ export default class EthAccount {
       if (index === -1) {
         console.warn('this should not happen, add it')
         this.txInfos.push(txInfo)
+        index = this.txInfos.length - 1
       } else {
-        this.txInfos[index] = D.copy(txInfo)
+        // only update comfirmations, because txInfo may contains old gas(gasLimit, not gasUsed)
+        this.txInfos[index].confirmations = txInfo.confirmations
       }
-      await this._coinData.saveOrUpdateTxInfo(D.copy(txInfo))
+      await this._handleNewTx(this.addressInfos[0], this.txInfos[index])
     }
 
-    this._addressListener = async (error, addressInfo, txInfo, utxos) => {
+    this._addressListener = async (error, addressInfo, txInfo) => {
       if (error !== D.error.succeed) {
-        console.warn('BtcAccount addressListener', error)
+        console.warn('EthAccount addressListener', error)
         return
       }
-      console.log('newTransaction', addressInfo, txInfo, utxos)
-      await this._handleNewTx(addressInfo, txInfo, utxos)
+      await this._handleNewTx(addressInfo, txInfo)
     }
   }
 
@@ -103,6 +104,10 @@ export default class EthAccount {
    * 2. store utxo, addressInfo, txInfo
    */
   async _handleNewTx (addressInfo, txInfo) {
+    console.log('newTransaction', addressInfo, txInfo)
+    txInfo = D.copy(txInfo)
+    addressInfo = D.copy(addressInfo)
+
     // async operation may lead to disorder. so we need a simple lock
     // eslint-disable-next-line
     while (this.busy) {
@@ -117,6 +122,7 @@ export default class EthAccount {
     })
     let input = txInfo.inputs.find(input => input.isMine)
     txInfo.direction = input ? D.tx.direction.out : D.tx.direction.in
+    txInfo.fee = new BigInteger(txInfo.gas).multiply(new BigInteger(txInfo.gasPrice)).toString(10)
 
     txInfo.value = txInfo.inputs[0].value
     if (txInfo.direction === D.tx.direction.out) txInfo.value = '-' + input.value
@@ -223,6 +229,7 @@ export default class EthAccount {
    * }
    */
   async prepareTx (details) {
+    console.log('prepareTx details', details)
     let gasPrice = new BigInteger(details.gasPrice)
     let gasLimit = new BigInteger(details.gasLimit || '21000')
     let output = D.copy(details.output)
@@ -230,7 +237,7 @@ export default class EthAccount {
 
     if (!D.isEth(this.coinType)) throw D.error.coinNotSupported
     if (D.isDecimal(details.gasPrice)) throw D.error.valueIsDecimal
-    if (D.isDecimal(output.value)) throw D.error.valueIsDecimal
+    if (D.isDecimal(value)) throw D.error.valueIsDecimal
     if (details.data) {
       let data = details.data
       if (data.startsWith('0x')) data = data.slice(2)
@@ -313,6 +320,8 @@ export default class EthAccount {
           isMine: false,
           value: output.value
         }],
+        gas: BigInteger.fromHex(gasLimit.slice(2)).toString(10),
+        gasPrice: BigInteger.fromHex(gasPrice.slice(2)).toString(10),
         fee: prepareTx.fee
       },
       addressInfo: prepareTx.input,

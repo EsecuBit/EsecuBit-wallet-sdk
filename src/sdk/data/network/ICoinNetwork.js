@@ -155,33 +155,37 @@ export default class ICoinNetwork {
       callback: callback,
       type: typeTx,
       txInfo: txInfo,
-      hasRecord: false,
+      hasRecord: txInfo.confirmations >= 0,
       currentBlock: -1,
       nextTime: 0,
       request: async function () {
         let response = {}
         try {
-          if (!this.hasRecord) response = await that.queryTx(this.txInfo.txId)
+          if (!this.hasRecord) {
+            response = await that.queryTx(this.txInfo.txId)
+          }
         } catch (e) {
           if (e === D.error.networkTxNotFound) {
-            console.log('tx not found in btcNetwork, continue. id: ', txInfo.txId)
+            console.log('tx not found in btcNetwork, continue. id: ', this.txInfo.txId)
             return
           }
-          callback(e, this.txInfo)
+          callback(e, D.copy(this.txInfo))
           return
         }
-        let blockNumber = response.blockNumber ? response.blockNumber : txInfo.blockNumber
+        let blockNumber = response.blockNumber ? response.blockNumber : this.txInfo.blockNumber
         let confirmations = blockNumber > 0 ? (that._blockHeight - blockNumber + 1) : 0
 
-        if (confirmations >= 0) this.hasRecord = true
-        if (confirmations >= D.tx.getMatureConfirms(txInfo.coinType)) {
+        if (confirmations >= D.tx.getMatureConfirms(this.txInfo.coinType)) {
           console.log('confirmations enough, remove', this)
           remove(that._requestList, this)
         }
-        if (confirmations > txInfo.confirmations) {
-          txInfo.blockNumber = blockNumber
-          txInfo.confirmations = confirmations
-          callback(D.error.succeed, txInfo)
+        if (confirmations > this.txInfo.confirmations) {
+          if (!this.hasRecord) {
+            this.hasRecord = true
+          }
+          this.txInfo.blockNumber = blockNumber
+          this.txInfo.confirmations = confirmations
+          callback(D.error.succeed, D.copy(this.txInfo))
         }
       }
     })
@@ -204,9 +208,7 @@ export default class ICoinNetwork {
         request: async () => {
           task.request()
             .then(blobs => blobs.forEach(
-              blob => callback(D.error.succeed, blob.addressInfo, blob.txInfo, blob.utxos)))
-            // TODO retry
-            // TODO callback error once
+              blob => callback(D.error.succeed, blob.addressInfo, blob.txInfo)))
             .catch(e => callback(e))
         }
       })
@@ -225,18 +227,6 @@ export default class ICoinNetwork {
   generateAddressTasks (addressInfos) {
     let checkNewTx = async (response, addressInfo) => {
       let newTransaction = async (addressInfo, tx) => {
-        let fee
-        if (D.isEth(this.coinType)) {
-          let gas = new BigInteger(tx.gas)
-          let gasPrice = new BigInteger(tx.gasPrice)
-          fee = gas.multiply(gasPrice).toString(10)
-        } else {
-          fee = 0
-          fee += tx.inputs.reduce((sum, input) => sum + input.value, 0)
-          fee -= tx.outputs.reduce((sum, output) => sum + output.value, 0)
-          fee = fee.toString()
-        }
-
         let txInfo = {
           accountId: addressInfo.accountId,
           coinType: addressInfo.coinType,
@@ -245,56 +235,19 @@ export default class ICoinNetwork {
           blockNumber: tx.blockNumber,
           confirmations: tx.confirmations,
           time: tx.time,
-          fee: fee,
           inputs: tx.inputs,
           outputs: tx.outputs
         }
-        let utxos = []
-        let unspentOutputs = tx.outputs.filter(output => addressInfo.address === output.address)
-        let unspentUtxos = unspentOutputs.map(output => {
-          return {
-            accountId: addressInfo.accountId,
-            coinType: addressInfo.coinType,
-            address: addressInfo.address,
-            path: addressInfo.path,
-            txId: tx.txId,
-            index: output.index,
-            script: output.script,
-            value: output.value,
-            status: tx.confirmations === 0 ? D.utxo.status.unspent_pending : D.utxo.status.unspent
-          }
-        })
-        utxos.push(...unspentUtxos)
-
-        let spentInputs = tx.inputs.filter(input => addressInfo.address === input.prevAddress)
-        if (spentInputs.length > 0) {
-          if (D.isBtc(this.coinType) && !spentInputs[0].prevTxId) {
-            // TODO queryRawTx request speed
-            let formatTx = await this.queryRawTx(txInfo.txId)
-            spentInputs.forEach(input => {
-              input.prevTxId = formatTx.in[input.index].hash
-            })
-          }
-          let spentUtxos = spentInputs.map(input => {
-            return {
-              accountId: addressInfo.accountId,
-              coinType: addressInfo.coinType,
-              address: addressInfo.address,
-              path: addressInfo.path,
-              txId: input.prevTxId,
-              index: input.prevOutIndex,
-              script: input.prevOutScript,
-              value: input.value,
-              status: tx.confirmations === 0 ? D.utxo.status.spent_pending : D.utxo.status.spent
-            }
-          })
-          utxos.push(...spentUtxos)
+        if (D.isEth(addressInfo.coinType)) {
+          txInfo.gas = tx.gas
+          txInfo.gasPrice = tx.gasPrice
         }
-        return {addressInfo, txInfo, utxos}
+        return {addressInfo, txInfo}
       }
 
       let newTxs = response.txs.filter(tx => !addressInfo.txs.some(txId => txId === tx.txId))
-      newTxs.forEach(tx => addressInfo.txs.push(tx.txId))
+      // keep notificate the tx which confirmations = 0, because eth gas may change after confirmed
+      newTxs.filter(tx => tx.confirmations > 0).forEach(tx => addressInfo.txs.push(tx.txId))
       return Promise.all(newTxs.map(async tx => {
         // TODO queryTx request speed
         if (!tx.hasDetails) tx = await this.queryTx(tx.txId)
@@ -371,8 +324,8 @@ export default class ICoinNetwork {
    *    hasDetails: bool,
    *    intputs: [{prevAddress, value(wei)}], // tx.from, always length = 1
    *    outputs: [{address, value(wei)}], // tx.to, always length = 1
-   *    gas: long, // wei
-   *    gasPrice: long // wei
+   *    gas: string, // decimal wei
+   *    gasPrice: string // decimal wei
    * }
    *
    */
