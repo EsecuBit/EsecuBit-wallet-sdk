@@ -233,7 +233,7 @@ export default class CoreWallet {
 
       let basicScript = makeBasicScript(tx)
       let signedTx = D.copy(basicScript)
-      let changePathBuffer = D.address.path.toBuffer(tx.changePath)
+      let changePathBuffer = tx.changePath && D.address.path.toBuffer(tx.changePath)
       // execute in order
       let sequence = Promise.resolve()
       tx.inputs.forEach((input, i) => {
