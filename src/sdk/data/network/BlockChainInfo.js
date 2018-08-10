@@ -113,7 +113,17 @@ export default class BlockchainInfo extends ICoinNetwork {
   }
 
   async queryAddresses (addresses) {
-    let response = await this.get(this._apiUrl + '/multiaddr?cors=true&active=' + addresses.join('|'))
+    let totalReceive = 0
+    let response = []
+    while (true) {
+      let subResponse = await this.get(this._apiUrl + '/multiaddr?cors=true&offset=' + totalReceive + '&n=100&active=' + addresses.join('|'))
+      response = response.push(...subResponse)
+      totalReceive += response.txs.length
+      if (totalReceive === subResponse.n_tx) {
+        break
+      }
+    }
+
     response.txs.forEach(tx => {
       if (!this.indexMap[tx.tx_index]) {
         this.indexMap[tx.tx_index] = tx.hash
@@ -167,7 +177,6 @@ export default class BlockchainInfo extends ICoinNetwork {
       // blockchain.info don't have this field, but we can get it from txs by tx_index,
       // if prevAddress is the address we query. otherwise prevTxId is useless
       let prevTxId = this.indexMap[input.prev_out.tx_index]
-      // TODO query every time now, optimize this
       if (!prevTxId && (input.prev_out.addr === address)) {
         console.debug('tx_index not found, get it by queryRawTx', rTx)
         let response = await this.queryRawTx(rTx.hash)
