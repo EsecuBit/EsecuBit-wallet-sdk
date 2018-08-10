@@ -447,17 +447,23 @@ export default class BtcAccount {
     let totalIn = prepareTx.utxos.reduce((sum, utxo) => sum + utxo.value, 0)
     if (totalIn < prepareTx.total) throw D.error.balanceNotEnough
 
-    let changeAddressInfo = this.addressInfos.find(addressInfo => {
-      return addressInfo.type === D.address.change &&
-        addressInfo.index === this.changePublicKeyIndex
-    })
-    let value = totalIn - prepareTx.total
     let rawTx = {
       inputs: D.copy(prepareTx.utxos),
       outputs: D.copy(prepareTx.outputs),
-      changePath: changeAddressInfo.path
+      changePath: null
     }
-    rawTx.outputs.push({address: changeAddressInfo.address, value: value})
+
+    let changeValue = totalIn - prepareTx.total
+    let changeAddressInfo
+    if (changeValue !== 0) {
+      changeAddressInfo = this.addressInfos.find(addressInfo => {
+        return addressInfo.type === D.address.change &&
+          addressInfo.index === this.changePublicKeyIndex
+      })
+      rawTx.outputs.push({address: changeAddressInfo.address, value: changeValue})
+      rawTx.changePath = changeAddressInfo.path
+    }
+
     console.log('presign tx', rawTx)
     let signedTx = await this._device.signTransaction(this.coinType, rawTx)
     let txInfo = {
@@ -485,7 +491,7 @@ export default class BtcAccount {
       outputs: rawTx.outputs.map((output, index) => {
         return {
           address: output.address,
-          isMine: output.address === changeAddressInfo.address,
+          isMine: output.address === (changeAddressInfo && changeAddressInfo.address),
           index: index,
           script: D.address.makeOutputScript(output.address),
           value: output.value
@@ -496,7 +502,7 @@ export default class BtcAccount {
     // update utxo spent status from unspent to spent pending
     prepareTx.utxos.forEach(utxo => { utxo.status = D.utxo.status.spent_pending })
 
-    let changeValue = totalIn - totalOut - prepareTx.fee
+    // add change utxo if exist
     if (changeValue !== 0) {
       let changeOutput = txInfo.outputs[txInfo.outputs.length - 1]
       let changeAddressBuffer = D.address.toBuffer(changeAddressInfo.address)
