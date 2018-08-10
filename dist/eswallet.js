@@ -42422,7 +42422,7 @@ var BtcAccount = function () {
           while (1) {
             switch (_context7.prev = _context7.next) {
               case 0:
-                console.log('newTransaction', addressInfo, txInfo);
+                console.log('btc newTransaction', addressInfo, txInfo);
 
                 // async operation may lead to disorder. so we need a simple lock
                 // eslint-disable-next-line
@@ -42532,14 +42532,15 @@ var BtcAccount = function () {
 
                   utxos.push.apply(utxos, _toConsumableArray(spentUtxos));
                 }
-                _context7.next = 29;
+                console.log('btc newTransaction 2', addressInfo, txInfo);
+                _context7.next = 30;
                 return this._handleNewTxInner(addressInfo, txInfo, utxos);
 
-              case 29:
+              case 30:
 
                 this.busy = false;
 
-              case 30:
+              case 31:
               case 'end':
                 return _context7.stop();
             }
@@ -43152,7 +43153,8 @@ var BtcAccount = function () {
                   confirmations: -1,
                   time: new Date().getTime(),
                   direction: _D2.default.tx.direction.out,
-                  value: prepareTx.total,
+                  value: prepareTx.total.toString(),
+                  fee: prepareTx.fee,
                   showAddresses: prepareTx.outputs.map(function (output) {
                     return output.address;
                   }),
@@ -43686,7 +43688,7 @@ var D = {
     return Object.values(this.unit.legal);
   },
   supportedCoinTypes: function supportedCoinTypes() {
-    return D.test.coin ? [D.coin.test.btcTestNet3, D.coin.test.ethRinkeby] : [D.coin.main.btc, D.coin.main.eth];
+    return [D.coin.test.btcTestNet3];
   },
   recoverCoinTypes: function recoverCoinTypes() {
     return D.supportedCoinTypes();
@@ -47887,16 +47889,17 @@ var BlockchainInfo = function (_ICoinNetwork) {
       var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(addresses) {
         var _this2 = this;
 
-        var response, selfTx;
-        return regeneratorRuntime.wrap(function _callee3$(_context3) {
+        var response, selfTx, blobs, _loop, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, rAddress;
+
+        return regeneratorRuntime.wrap(function _callee3$(_context4) {
           while (1) {
-            switch (_context3.prev = _context3.next) {
+            switch (_context4.prev = _context4.next) {
               case 0:
-                _context3.next = 2;
+                _context4.next = 2;
                 return this.get(this._apiUrl + '/multiaddr?cors=true&active=' + addresses.join('|'));
 
               case 2:
-                response = _context3.sent;
+                response = _context4.sent;
 
                 response.txs.forEach(function (tx) {
                   if (!_this2.indexMap[tx.tx_index]) {
@@ -47912,24 +47915,100 @@ var BlockchainInfo = function (_ICoinNetwork) {
                   }).includes(address);
                 };
 
-                return _context3.abrupt('return', response.addresses.map(function (rAddress) {
-                  return {
-                    address: rAddress.address,
-                    txCount: rAddress.n_tx,
-                    txs: response.txs.filter(function (rTx) {
-                      return selfTx(rTx, rAddress.address);
-                    }).map(function (rTx) {
-                      return _this2.wrapTx(rTx);
-                    })
-                  };
-                }));
+                blobs = [];
+                _loop = /*#__PURE__*/regeneratorRuntime.mark(function _loop(rAddress) {
+                  var txs;
+                  return regeneratorRuntime.wrap(function _loop$(_context3) {
+                    while (1) {
+                      switch (_context3.prev = _context3.next) {
+                        case 0:
+                          txs = response.txs.filter(function (rTx) {
+                            return selfTx(rTx, rAddress.address);
+                          });
+                          _context3.next = 3;
+                          return Promise.all(txs.map(function (rTx) {
+                            return _this2.wrapTx(rTx, rAddress.address);
+                          }));
 
-              case 6:
+                        case 3:
+                          txs = _context3.sent;
+
+                          blobs.push({
+                            address: rAddress.address,
+                            txCount: rAddress.n_tx,
+                            txs: txs
+                          });
+
+                        case 5:
+                        case 'end':
+                          return _context3.stop();
+                      }
+                    }
+                  }, _loop, _this2);
+                });
+                _iteratorNormalCompletion = true;
+                _didIteratorError = false;
+                _iteratorError = undefined;
+                _context4.prev = 10;
+                _iterator = response.addresses[Symbol.iterator]();
+
+              case 12:
+                if (_iteratorNormalCompletion = (_step = _iterator.next()).done) {
+                  _context4.next = 18;
+                  break;
+                }
+
+                rAddress = _step.value;
+                return _context4.delegateYield(_loop(rAddress), 't0', 15);
+
+              case 15:
+                _iteratorNormalCompletion = true;
+                _context4.next = 12;
+                break;
+
+              case 18:
+                _context4.next = 24;
+                break;
+
+              case 20:
+                _context4.prev = 20;
+                _context4.t1 = _context4['catch'](10);
+                _didIteratorError = true;
+                _iteratorError = _context4.t1;
+
+              case 24:
+                _context4.prev = 24;
+                _context4.prev = 25;
+
+                if (!_iteratorNormalCompletion && _iterator.return) {
+                  _iterator.return();
+                }
+
+              case 27:
+                _context4.prev = 27;
+
+                if (!_didIteratorError) {
+                  _context4.next = 30;
+                  break;
+                }
+
+                throw _iteratorError;
+
+              case 30:
+                return _context4.finish(27);
+
+              case 31:
+                return _context4.finish(24);
+
+              case 32:
+                return _context4.abrupt('return', blobs);
+
+              case 33:
               case 'end':
-                return _context3.stop();
+                return _context4.stop();
             }
           }
-        }, _callee3, this);
+        }, _callee3, this, [[10, 20, 24, 32], [25,, 27, 31]]);
       }));
 
       function queryAddresses(_x) {
@@ -47943,22 +48022,26 @@ var BlockchainInfo = function (_ICoinNetwork) {
     value: function () {
       var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(txId) {
         var response;
-        return regeneratorRuntime.wrap(function _callee4$(_context4) {
+        return regeneratorRuntime.wrap(function _callee4$(_context5) {
           while (1) {
-            switch (_context4.prev = _context4.next) {
+            switch (_context5.prev = _context5.next) {
               case 0:
-                _context4.next = 2;
+                _context5.next = 2;
                 return this.get([this._apiUrl, 'rawtx', txId].join('/') + '?cors=true');
 
               case 2:
-                response = _context4.sent;
+                response = _context5.sent;
 
                 console.warn('queryTx', txId, response);
-                return _context4.abrupt('return', this.wrapTx(response));
+                _context5.next = 6;
+                return this.wrapTx(response);
 
-              case 5:
+              case 6:
+                return _context5.abrupt('return', _context5.sent);
+
+              case 7:
               case 'end':
-                return _context4.stop();
+                return _context5.stop();
             }
           }
         }, _callee4, this);
@@ -47975,20 +48058,20 @@ var BlockchainInfo = function (_ICoinNetwork) {
     value: function () {
       var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(txId) {
         var response;
-        return regeneratorRuntime.wrap(function _callee5$(_context5) {
+        return regeneratorRuntime.wrap(function _callee5$(_context6) {
           while (1) {
-            switch (_context5.prev = _context5.next) {
+            switch (_context6.prev = _context6.next) {
               case 0:
-                _context5.next = 2;
+                _context6.next = 2;
                 return this.get([this._apiUrl, 'rawtx', txId].join('/') + '?cors=true&format=hex');
 
               case 2:
-                response = _context5.sent;
-                return _context5.abrupt('return', _D2.default.parseBitcoinRawTx(response.response));
+                response = _context6.sent;
+                return _context6.abrupt('return', _D2.default.parseBitcoinRawTx(response.response));
 
               case 4:
               case 'end':
-                return _context5.stop();
+                return _context6.stop();
             }
           }
         }, _callee5, this);
@@ -48007,42 +48090,105 @@ var BlockchainInfo = function (_ICoinNetwork) {
     }
   }, {
     key: 'wrapTx',
-    value: function wrapTx(rTx, rTxs, address) {
-      var _this3 = this;
+    value: function () {
+      var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7(rTx, address) {
+        var _this3 = this;
 
-      var confirmations = this._blockHeight - (rTx.block_height || this._blockHeight);
-      var tx = {
-        txId: rTx.hash,
-        version: rTx.ver,
-        blockNumber: rTx.block_height || -1,
-        confirmations: confirmations,
-        time: rTx.time * 1000,
-        hasDetails: true
-      };
-      var index = 0;
-      tx.inputs = rTx.inputs.map(function (input) {
-        // blockchain.info don't have this field, but we can get it from txs by tx_index,
-        // if prevAddress is the address we query. otherwise prevTxId is useless
-        var prevTxId = _this3.indexMap[input.prev_out.tx_index];
-        return {
-          prevAddress: input.prev_out.addr,
-          prevTxId: prevTxId,
-          prevOutIndex: input.prev_out.n,
-          prevOutScript: input.prev_out.script,
-          index: index++,
-          value: input.prev_out.value
-        };
-      });
-      tx.outputs = rTx.out.map(function (output) {
-        return {
-          address: output.addr,
-          value: output.value,
-          index: output.n,
-          script: output.script
-        };
-      });
-      return tx;
-    }
+        var confirmations, tx, index;
+        return regeneratorRuntime.wrap(function _callee7$(_context8) {
+          while (1) {
+            switch (_context8.prev = _context8.next) {
+              case 0:
+                confirmations = this._blockHeight - (rTx.block_height || this._blockHeight);
+                tx = {
+                  txId: rTx.hash,
+                  version: rTx.ver,
+                  blockNumber: rTx.block_height || -1,
+                  confirmations: confirmations,
+                  time: rTx.time * 1000,
+                  hasDetails: true
+                };
+                index = 0;
+                _context8.next = 5;
+                return Promise.all(rTx.inputs.map(function () {
+                  var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6(input) {
+                    var prevTxId, response;
+                    return regeneratorRuntime.wrap(function _callee6$(_context7) {
+                      while (1) {
+                        switch (_context7.prev = _context7.next) {
+                          case 0:
+                            // blockchain.info don't have this field, but we can get it from txs by tx_index,
+                            // if prevAddress is the address we query. otherwise prevTxId is useless
+                            prevTxId = _this3.indexMap[input.prev_out.tx_index];
+                            // TODO query every time now, optimize this
+
+                            if (!(!prevTxId && input.prev_out.addr === address)) {
+                              _context7.next = 8;
+                              break;
+                            }
+
+                            console.debug('tx_index not found, get it by queryRawTx', rTx);
+                            _context7.next = 5;
+                            return _this3.queryRawTx(rTx.hash);
+
+                          case 5:
+                            response = _context7.sent;
+
+                            prevTxId = response.in.find(function (inn) {
+                              return inn.index === input.prev_out.n;
+                            }).hash;
+                            _this3.indexMap[input.prev_out.tx_index] = prevTxId;
+
+                          case 8:
+                            return _context7.abrupt('return', {
+                              prevAddress: input.prev_out.addr,
+                              prevTxId: prevTxId,
+                              prevOutIndex: input.prev_out.n,
+                              prevOutScript: input.prev_out.script,
+                              index: index++,
+                              value: input.prev_out.value
+                            });
+
+                          case 9:
+                          case 'end':
+                            return _context7.stop();
+                        }
+                      }
+                    }, _callee6, _this3);
+                  }));
+
+                  return function (_x6) {
+                    return _ref7.apply(this, arguments);
+                  };
+                }()));
+
+              case 5:
+                tx.inputs = _context8.sent;
+
+                tx.outputs = rTx.out.map(function (output) {
+                  return {
+                    address: output.addr,
+                    value: output.value,
+                    index: output.n,
+                    script: output.script
+                  };
+                });
+                return _context8.abrupt('return', tx);
+
+              case 8:
+              case 'end':
+                return _context8.stop();
+            }
+          }
+        }, _callee7, this);
+      }));
+
+      function wrapTx(_x4, _x5) {
+        return _ref6.apply(this, arguments);
+      }
+
+      return wrapTx;
+    }()
   }]);
 
   return BlockchainInfo;
