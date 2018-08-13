@@ -388,6 +388,7 @@ export default class BtcAccount {
 
     let utxos = this.utxos
       .filter(utxo => utxo.status === D.utxo.status.unspent || utxo.status === D.utxo.status.unspent_pending)
+      .filter(utxo => utxo.value > 0)
       .map(utxo => D.copy(utxo))
     let getEnoughUtxo = (total, sendAll) => {
       let willSpentUtxos = []
