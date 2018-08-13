@@ -230,14 +230,16 @@ export default class EthAccount {
    */
   async prepareTx (details) {
     console.log('prepareTx details', details)
+
+    if (!D.isEth(this.coinType)) throw D.error.coinNotSupported
+    if (D.isDecimal(details.gasPrice)) throw D.error.valueIsDecimal
+    if (D.isDecimal(details.output.value)) throw D.error.valueIsDecimal
+
     let gasPrice = new BigInteger(details.gasPrice)
     let gasLimit = new BigInteger(details.gasLimit || '21000')
     let output = D.copy(details.output)
     let value = new BigInteger(output.value)
 
-    if (!D.isEth(this.coinType)) throw D.error.coinNotSupported
-    if (D.isDecimal(details.gasPrice)) throw D.error.valueIsDecimal
-    if (D.isDecimal(value)) throw D.error.valueIsDecimal
     if (details.data) {
       let data = details.data
       if (data.startsWith('0x')) data = data.slice(2)
