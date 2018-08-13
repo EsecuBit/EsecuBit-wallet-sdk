@@ -122,20 +122,14 @@ export default class ICoinNetwork {
    */
   getRequestPeroid () {
     if (!D.isBtc(this.coinType) && !D.isEth(this.coinType)) throw D.error.coinNotSupported
-    let blockHeightRequestPeriod = 60
-    let txIncludedRequestPeriod = 5
-    if (D.test.coin) {
-      if (D.isBtc(this.coinType)) {
-        blockHeightRequestPeriod = 30
-      } else if (D.isEth(this.coinType)) {
-        blockHeightRequestPeriod = 10
-      }
-    } else {
-      if (D.isBtc(this.coinType)) {
-        blockHeightRequestPeriod = 60
-      } else if (D.isEth(this.coinType)) {
-        blockHeightRequestPeriod = 20
-      }
+    let blockHeightRequestPeriod
+    let txIncludedRequestPeriod
+    if (D.isBtc(this.coinType)) {
+      blockHeightRequestPeriod = 60
+      txIncludedRequestPeriod = 30
+    } else if (D.isEth(this.coinType)) {
+      blockHeightRequestPeriod = 20
+      txIncludedRequestPeriod = 5
     }
     return {blockHeightRequestPeriod, txIncludedRequestPeriod}
   }
@@ -155,7 +149,7 @@ export default class ICoinNetwork {
       callback: callback,
       type: typeTx,
       txInfo: txInfo,
-      hasRecord: txInfo.confirmations >= 0,
+      hasRecord: txInfo.confirmations > 0,
       currentBlock: -1,
       nextTime: 0,
       request: async function () {
@@ -175,14 +169,12 @@ export default class ICoinNetwork {
         let blockNumber = response.blockNumber ? response.blockNumber : this.txInfo.blockNumber
         let confirmations = blockNumber > 0 ? (that._blockHeight - blockNumber + 1) : 0
 
+        if (confirmations > 0) this.hasRecord = true
         if (confirmations >= D.tx.getMatureConfirms(this.txInfo.coinType)) {
           console.log('confirmations enough, remove', this)
           remove(that._requestList, this)
         }
         if (confirmations > this.txInfo.confirmations) {
-          if (!this.hasRecord) {
-            this.hasRecord = true
-          }
           this.txInfo.blockNumber = blockNumber
           this.txInfo.confirmations = confirmations
           callback(D.error.succeed, D.copy(this.txInfo))
