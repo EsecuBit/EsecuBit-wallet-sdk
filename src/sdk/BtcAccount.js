@@ -390,6 +390,7 @@ export default class BtcAccount {
       .filter(utxo => utxo.status === D.utxo.status.unspent || utxo.status === D.utxo.status.unspent_pending)
       .filter(utxo => utxo.value > 0)
       .map(utxo => D.copy(utxo))
+
     let getEnoughUtxo = (total, sendAll) => {
       let willSpentUtxos = []
       let newTotal = 0
@@ -406,19 +407,27 @@ export default class BtcAccount {
       return {newTotal, willSpentUtxos}
     }
 
+    // calculate the fee using uncompressed public key size
+    let calculateFee = (utxos, outputs, sendAll) => {
+      let changeSize = outputs.length
+      let changeValue = 0
+      utxos.forEach(utxo => { changeValue += utxo.value })
+      outputs.forEach(output => { changeValue -= output.value })
+      if (!sendAll && changeValue > 0) changeSize += 1
+
+      return (utxos.length * 180 + 34 * changeSize + 34 + 10) * details.feeRate
+    }
+
     let fee = 0
     let totalOut = details.outputs.reduce((sum, output) => sum + output.value, 0)
     // no output value is ok while sendAll = true
     totalOut = totalOut || 0
-
-    // calculate the fee using uncompressed public key size
-    let calculateFee = (utxos, outputs) => (utxos.length * 180 + 34 * outputs.length + 34 + 10) * details.feeRate
     while (true) {
       if (Number(this.balance) < fee + totalOut) throw D.error.balanceNotEnough
       // noinspection JSUnresolvedVariable
       let {newTotal, willSpentUtxos} = getEnoughUtxo(totalOut + fee, details.sendAll)
       // new fee calculated
-      fee = calculateFee(willSpentUtxos, details.outputs)
+      fee = calculateFee(willSpentUtxos, details.outputs, details.sendAll)
       if (newTotal >= totalOut + fee) {
         if (details.sendAll) {
           details.outputs[0].value = newTotal - fee
