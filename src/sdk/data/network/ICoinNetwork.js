@@ -1,6 +1,5 @@
 
 import D from '../../D'
-import BigInteger from 'bigi'
 
 const typeAddress = 'address'
 const typeTx = 'tx'
@@ -149,7 +148,7 @@ export default class ICoinNetwork {
       callback: callback,
       type: typeTx,
       txInfo: txInfo,
-      hasRecord: txInfo.confirmations > 0,
+      hasRecord: false,
       currentBlock: -1,
       nextTime: 0,
       request: async function () {

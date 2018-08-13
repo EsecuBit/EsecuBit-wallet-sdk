@@ -49,6 +49,12 @@ describe('CoreWallet', function () {
     response.should.not.equal(undefined)
   })
 
+  it('sign by apdu2', async () => {
+    await coreWallet._sendApdu('8082008100', true)
+    let response = await coreWallet._sendApdu('803d01000001b9c0058000002c80000000800000010000000000000002c1058000002c80000000800000010000000100000002c2018a0100000007f4bfd067d30cfee28b5583b162f28f974ac94a9fd4dc77afe7e008c81923855f000000001976a914f6972eef2efb75ff241b6c4423bad4172d8afbfa88acffffffff07c9f4685b863bbf3b627b766b70c4f3fb45574c929a9a5b58418e911815a26f0000000000ffffffffeab44e8d4b519ff1185775ea4a2c1fb720eaf8d7c3ca879e275a8cc8e8ce8fd70000000000fffffffff231a4336e45d328e8a4fd4efa38c929e655c2f415ae25e7f936da49d3454bd80000000000ffffffffd542aacc435ac8cdd95d7d4fb945818dac56ccc9a725dc42a43fe9e0e1603ce70100000000ffffffff16168c0c8662eaa84cdcb35844f228bcc2f8ec14cae1b4b16ccaf11d8595db820000000000ffffffff31d6d60f87570deecdab14a30eb1e8edd00fd68b2d7c9098b0ed852b8fa9caaf0100000000ffffffff02b801a000000000001976a9148e7d0a6515de531fc173c315e60ed0608abdc1e288ac00000000000000001976a914aa91c2165911206e9a096bfa07418bab2ea4f72388ac0000000001000000', true)
+    response.should.not.equal(undefined)
+  })
+
   it('get address', async () => {
     let btcAddr = await coreWallet.getAddress(D.coin.main.btc, "m/44'/0'/0'/0/0")
     D.address.checkBtcAddress(btcAddr)

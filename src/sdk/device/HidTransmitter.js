@@ -24,6 +24,8 @@ let sha1 = (data) => {
 let des112 = (isEnc, data, key) => {
   let customPadding = (data) => {
     let padNum = 8 - data.length % 8
+    if (padNum === 8) return data
+
     let padding = Buffer.alloc(padNum)
     padding[0] = 0x80
     return Buffer.concat([data, padding])
