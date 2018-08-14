@@ -20,7 +20,6 @@ export default class BlockchainInfo extends ICoinNetwork {
     this.indexMap = {}
   }
 
-
   async init () {
     switch (this.coinType) {
       case D.coin.main.btc:
@@ -120,10 +119,11 @@ export default class BlockchainInfo extends ICoinNetwork {
       if (!response) {
         response = subResponse
       } else {
+        // noinspection JSUnusedAssignment
         response.txs.push(...subResponse.txs)
       }
-      totalReceive += response.txs.length
-      if (totalReceive === subResponse.wallet.n_tx) {
+      totalReceive = response.txs.length
+      if (totalReceive >= response.wallet.n_tx) {
         break
       }
     }
