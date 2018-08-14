@@ -29,6 +29,7 @@ const D = {
     pinError: 109,
     operationTimeout: 110,
     deviceNotInit: 111,
+    devicePressKeyTooEarly: 112,
 
     databaseOpenFailed: 201,
     databaseExecFailed: 202,
@@ -70,6 +71,7 @@ const D = {
       if (sw1sw2 === 0x6A81) return D.error.deviceNotInit
       if (sw1sw2 === 0x6FF8) return D.error.userCancel
       if (sw1sw2 === 0x6FF9) return D.error.operationTimeout
+      if (sw1sw2 === 0x6FFE) return D.error.devicePressKeyTooEarly
       if ((sw1sw2 & 0xFFF0) === 0x63C0) return D.error.pinError
       return D.error.deviceProtocol
     }
