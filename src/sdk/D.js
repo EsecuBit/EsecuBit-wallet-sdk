@@ -417,7 +417,7 @@ const D = {
 
     let convertBtc = (value, fromType, toType) => {
       value = value.toString()
-      if (!value.match(/^[0-9]+$/)) throw D.error.valueIsNotDecimal
+      if (!value.match(/^[0-9.]+$/)) throw D.error.valueIsNotDecimal
       let satoshi
       switch (fromType) {
         case D.unit.btc.BTC: { satoshi = mul(value, '100000000'); break }
@@ -436,7 +436,7 @@ const D = {
     }
     let convertEth = (value, fromType, toType) => {
       value = value.toString()
-      if (!value.match(/^[0-9]+$/)) throw D.error.valueIsNotDecimal
+      if (!value.match(/^[0-9.]+$/)) throw D.error.valueIsNotDecimal
       let wei
       switch (fromType) {
         case D.unit.eth.ETH:
