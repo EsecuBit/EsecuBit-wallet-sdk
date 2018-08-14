@@ -94,10 +94,12 @@ export default class EtherScanIo extends ICoinNetwork {
 
     if (rTx.gas.startsWith('0x')) {
       rTx.gas = rTx.gas.slice(2)
+      rTx.gas = rTx.gas.length % 2 == 0 ? '' : '0' + rTx.gas
       rTx.gas = BigInteger.fromHex(rTx.gas).toString(10)
     }
     if (rTx.gasPrice.startsWith('0x')) {
       rTx.gasPrice = rTx.gasPrice.slice(2)
+      rTx.gasPrice = (rTx.gasPrice.length % 2 == 0 ? '' : '0') + rTx.gasPrice
       rTx.gasPrice = BigInteger.fromHex(rTx.gasPrice).toString(10)
     }
     let value = new BigInteger(rTx.value)

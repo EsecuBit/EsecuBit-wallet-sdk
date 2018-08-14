@@ -243,7 +243,7 @@ export default class EthAccount {
     if (details.data) {
       let data = details.data
       if (data.startsWith('0x')) data = data.slice(2)
-      if (data.length % 2 !== 0) throw D.error.invalidDataNotHex
+      data = (data.length % 2 === 0 ? '' : '0') + data
       if (!data.match(/^[0-9a-fA-F]+$/)) throw D.error.invalidDataNotHex
       details.data = '0x' + data
     } else {
@@ -292,9 +292,10 @@ export default class EthAccount {
     let gasPrice = new BigInteger(prepareTx.gasPrice).toString(16)
     gasPrice = '0x' + (gasPrice.length % 2 === 0 ? '' : '0') + gasPrice
     let gasLimit = new BigInteger(prepareTx.gasLimit).toString(16)
-    gasLimit = '0x' + (gasPrice.length % 2 === 0 ? '' : '0') + gasLimit
+    gasLimit = '0x' + (gasLimit.length % 2 === 0 ? '' : '0') + gasLimit
     let value = new BigInteger(output.value).toString(16)
-    value = '0x' + (gasPrice.length % 2 === 0 ? '' : '0') + value
+    value = '0x' + (value.length % 2 === 0 ? '' : '0') + value
+    if (value == '0x00') value = '0x' // '0x00' will be encode as 0x00; '0x', '', null, 0 will be encode as 0x80, shit
 
     let preSignTx = {
       input: {address: prepareTx.input.address, path: prepareTx.input.path},
