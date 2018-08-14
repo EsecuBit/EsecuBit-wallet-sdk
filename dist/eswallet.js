@@ -43358,6 +43358,7 @@ var D = {
     pinError: 109,
     operationTimeout: 110,
     deviceNotInit: 111,
+    devicePressKeyTooEarly: 112,
 
     databaseOpenFailed: 201,
     databaseExecFailed: 202,
@@ -43372,6 +43373,8 @@ var D = {
     networkFeeTooSmall: 405,
     networkTooManyPendingTx: 406,
     networkValueTooSmall: 407,
+    networkGasTooLow: 408,
+    networkGasPriceTooLow: 409,
 
     balanceNotEnough: 501,
 
@@ -43397,6 +43400,7 @@ var D = {
       if (sw1sw2 === 0x6A81) return D.error.deviceNotInit;
       if (sw1sw2 === 0x6FF8) return D.error.userCancel;
       if (sw1sw2 === 0x6FF9) return D.error.operationTimeout;
+      if (sw1sw2 === 0x6FFE) return D.error.devicePressKeyTooEarly;
       if ((sw1sw2 & 0xFFF0) === 0x63C0) return D.error.pinError;
       return D.error.deviceProtocol;
     }
@@ -43440,6 +43444,9 @@ var D = {
         if (buffer.length === 20) return D.address.p2pkh;
         if (buffer.length === 32) return D.address.p2wsh;
         console.info('address', address, 'is bech32 encoded but has invalid length');
+
+        // hardware wallet not support yet
+        if (!D.test.jsWallet) throw D.error.invalidAddress;
       }
 
       // normal address, base58 encoded
@@ -45216,7 +45223,7 @@ var EthAccount = function () {
     key: 'prepareTx',
     value: function () {
       var _ref10 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee10(details) {
-        var gasPrice, gasLimit, output, value, data, input, nonce, fee, balance, total, prepareTx;
+        var gasPrice, gasLimit, output, value, minGas, data, input, nonce, fee, balance, total, prepareTx;
         return regeneratorRuntime.wrap(function _callee10$(_context10) {
           while (1) {
             switch (_context10.prev = _context10.next) {
@@ -45251,9 +45258,18 @@ var EthAccount = function () {
                 gasLimit = new _bigi2.default(details.gasLimit || '21000');
                 output = _D2.default.copy(details.output);
                 value = new _bigi2.default(output.value);
+                minGas = 21000 + (details.data ? 68 * details.data.length : 0);
 
+                if (!(minGas > gasLimit)) {
+                  _context10.next = 14;
+                  break;
+                }
+
+                throw _D2.default.error.networkGasTooLow;
+
+              case 14:
                 if (!details.data) {
-                  _context10.next = 20;
+                  _context10.next = 23;
                   break;
                 }
 
@@ -45263,21 +45279,21 @@ var EthAccount = function () {
                 data = (data.length % 2 === 0 ? '' : '0') + data;
 
                 if (data.match(/^[0-9a-fA-F]+$/)) {
-                  _context10.next = 17;
+                  _context10.next = 20;
                   break;
                 }
 
                 throw _D2.default.error.invalidDataNotHex;
 
-              case 17:
+              case 20:
                 details.data = '0x' + data;
-                _context10.next = 21;
+                _context10.next = 24;
                 break;
 
-              case 20:
+              case 23:
                 details.data = '0x';
 
-              case 21:
+              case 24:
                 input = _D2.default.copy(this.addressInfos[0]);
                 nonce = this.txInfos.filter(function (txInfo) {
                   return txInfo.direction === _D2.default.tx.direction.out;
@@ -45288,35 +45304,35 @@ var EthAccount = function () {
                 // noinspection JSUnresolvedVariable
 
                 if (!details.sendAll) {
-                  _context10.next = 34;
-                  break;
-                }
-
-                if (!(balance.compareTo(fee) < 0)) {
-                  _context10.next = 29;
-                  break;
-                }
-
-                throw _D2.default.error.balanceNotEnough;
-
-              case 29:
-                total = balance;
-                value = total.subtract(fee);
-                output.value = value.toString(10);
-                _context10.next = 37;
-                break;
-
-              case 34:
-                total = value.add(fee);
-
-                if (!(total.compareTo(balance) > 0)) {
                   _context10.next = 37;
                   break;
                 }
 
+                if (!(balance.compareTo(fee) < 0)) {
+                  _context10.next = 32;
+                  break;
+                }
+
                 throw _D2.default.error.balanceNotEnough;
 
+              case 32:
+                total = balance;
+                value = total.subtract(fee);
+                output.value = value.toString(10);
+                _context10.next = 40;
+                break;
+
               case 37:
+                total = value.add(fee);
+
+                if (!(total.compareTo(balance) > 0)) {
+                  _context10.next = 40;
+                  break;
+                }
+
+                throw _D2.default.error.balanceNotEnough;
+
+              case 40:
                 prepareTx = {
                   total: total.toString(10),
                   fee: fee.toString(10),
@@ -45331,7 +45347,7 @@ var EthAccount = function () {
                 console.log('prepareTx', prepareTx);
                 return _context10.abrupt('return', prepareTx);
 
-              case 40:
+              case 43:
               case 'end':
                 return _context10.stop();
             }
@@ -45366,15 +45382,17 @@ var EthAccount = function () {
                 gasPrice = new _bigi2.default(prepareTx.gasPrice).toString(16);
 
                 gasPrice = '0x' + (gasPrice.length % 2 === 0 ? '' : '0') + gasPrice;
+                // '0x00' will be encode as 0x00; '0x', '', null, 0 will be encode as 0x80, shit
+                if (gasPrice === '0x00') gasPrice = '0x';
+
                 gasLimit = new _bigi2.default(prepareTx.gasLimit).toString(16);
 
                 gasLimit = '0x' + (gasLimit.length % 2 === 0 ? '' : '0') + gasLimit;
+                if (gasLimit === '0x00') gasLimit = '0x';
+
                 value = new _bigi2.default(output.value).toString(16);
 
                 value = '0x' + (value.length % 2 === 0 ? '' : '0') + value;
-                // '0x00' will be encode as 0x00; '0x', '', null, 0 will be encode as 0x80, shit
-                if (gasPrice === '0x00') gasPrice = '0x';
-                if (gasLimit === '0x00') gasLimit = '0x';
                 if (value === '0x00') value = '0x';
 
                 preSignTx = {
@@ -47953,11 +47971,12 @@ var BlockchainInfo = function (_ICoinNetwork) {
                 if (!response) {
                   response = subResponse;
                 } else {
+                  // noinspection JSUnusedAssignment
                   (_response$txs = response.txs).push.apply(_response$txs, _toConsumableArray(subResponse.txs));
                 }
-                totalReceive += response.txs.length;
+                totalReceive = response.txs.length;
 
-                if (!(totalReceive === subResponse.wallet.n_tx)) {
+                if (!(totalReceive >= response.wallet.n_tx)) {
                   _context4.next = 10;
                   break;
                 }
@@ -48418,7 +48437,7 @@ var EtherScanIo = function (_ICoinNetwork) {
     key: 'post',
     value: function () {
       var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(url, args) {
-        var response;
+        var response, message;
         return regeneratorRuntime.wrap(function _callee3$(_context3) {
           while (1) {
             switch (_context3.prev = _context3.next) {
@@ -48430,26 +48449,44 @@ var EtherScanIo = function (_ICoinNetwork) {
                 response = _context3.sent;
 
                 if (!response.error) {
-                  _context3.next = 6;
+                  _context3.next = 15;
                   break;
                 }
 
                 console.warn('etherscan.io post error', response.error);
+                message = response.error.message;
+
+                if (!(message === 'transaction underpriced')) {
+                  _context3.next = 10;
+                  break;
+                }
+
+                throw _D2.default.error.networkGasPriceTooLow;
+
+              case 10:
+                if (!(message === 'intrinsic gas too low')) {
+                  _context3.next = 14;
+                  break;
+                }
+
+                throw _D2.default.error.networkGasTooLow;
+
+              case 14:
                 throw _D2.default.error.networkProviderError;
 
-              case 6:
+              case 15:
                 if (response.result) {
-                  _context3.next = 9;
+                  _context3.next = 18;
                   break;
                 }
 
                 console.warn('etherscan.io post result null', response);
                 throw _D2.default.error.networkProviderError;
 
-              case 9:
+              case 18:
                 return _context3.abrupt('return', response.result);
 
-              case 10:
+              case 19:
               case 'end':
                 return _context3.stop();
             }
@@ -50010,8 +50047,9 @@ var ChromeHidDevice = function (_IEsDevice) {
       connect();
     });
 
-    chrome.hid.onDeviceRemoved.addListener(function (device) {
-      console.log('plug out', device);
+    chrome.hid.onDeviceRemoved.addListener(function (connectionId) {
+      if (_this._connectionId !== connectionId) return;
+      console.log('plug out', connectionId);
       _this._deviceId = null;
       _this._connectionId = null;
       _this._listener && _D2.default.dispatch(function () {
