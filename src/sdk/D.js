@@ -113,6 +113,9 @@ const D = {
         if (buffer.length === 20) return D.address.p2pkh
         if (buffer.length === 32) return D.address.p2wsh
         console.info('address', address, 'is bech32 encoded but has invalid length')
+
+        // hardware wallet not support yet
+        if (!D.test.jsWallet) throw D.error.invalidAddress
       }
 
       // normal address, base58 encoded
