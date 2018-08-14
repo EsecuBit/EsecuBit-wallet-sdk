@@ -290,11 +290,11 @@ export default class EthAccount {
   async buildTx (prepareTx) {
     let output = D.copy(prepareTx.output)
     let gasPrice = new BigInteger(prepareTx.gasPrice).toString(16)
-    gasPrice += '0x' + (gasPrice.length % 2 === 0 ? '' : '0')
+    gasPrice = '0x' + (gasPrice.length % 2 === 0 ? '' : '0') + gasPrice
     let gasLimit = new BigInteger(prepareTx.gasLimit).toString(16)
-    gasLimit += '0x' + (gasPrice.length % 2 === 0 ? '' : '0')
+    gasLimit = '0x' + (gasPrice.length % 2 === 0 ? '' : '0') + gasLimit
     let value = new BigInteger(output.value).toString(16)
-    value += '0x' + (gasPrice.length % 2 === 0 ? '' : '0')
+    value = '0x' + (gasPrice.length % 2 === 0 ? '' : '0') + value
 
     let preSignTx = {
       input: {address: prepareTx.input.address, path: prepareTx.input.path},
