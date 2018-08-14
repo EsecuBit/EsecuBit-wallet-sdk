@@ -43,6 +43,8 @@ const D = {
     networkFeeTooSmall: 405,
     networkTooManyPendingTx: 406,
     networkValueTooSmall: 407,
+    networkGasTooLow: 408,
+    networkGasPriceTooLow: 409,
 
     balanceNotEnough: 501,
 

@@ -49,7 +49,14 @@ export default class EtherScanIo extends ICoinNetwork {
     let response = await super.post(url, args)
     if (response.error) {
       console.warn('etherscan.io post error', response.error)
-      throw D.error.networkProviderError
+      let message = response.error.message
+      if (message === 'transaction underpriced') {
+        throw D.error.networkGasPriceTooLow
+      } else if (message === 'intrinsic gas too low') {
+        throw D.error.networkGasTooLow
+      } else {
+        throw D.error.networkProviderError
+      }
     }
     if (!response.result) {
       console.warn('etherscan.io post result null', response)

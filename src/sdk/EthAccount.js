@@ -240,6 +240,9 @@ export default class EthAccount {
     let output = D.copy(details.output)
     let value = new BigInteger(output.value)
 
+    let minGas = 21000 + (details.data ? (68 * details.data.length) : 0)
+    if (minGas > gasLimit) throw D.error.networkGasTooLow
+
     if (details.data) {
       let data = details.data
       if (data.startsWith('0x')) data = data.slice(2)
@@ -292,13 +295,15 @@ export default class EthAccount {
 
     let gasPrice = new BigInteger(prepareTx.gasPrice).toString(16)
     gasPrice = '0x' + (gasPrice.length % 2 === 0 ? '' : '0') + gasPrice
-    let gasLimit = new BigInteger(prepareTx.gasLimit).toString(16)
-    gasLimit = '0x' + (gasLimit.length % 2 === 0 ? '' : '0') + gasLimit
-    let value = new BigInteger(output.value).toString(16)
-    value = '0x' + (value.length % 2 === 0 ? '' : '0') + value
     // '0x00' will be encode as 0x00; '0x', '', null, 0 will be encode as 0x80, shit
     if (gasPrice === '0x00') gasPrice = '0x'
+
+    let gasLimit = new BigInteger(prepareTx.gasLimit).toString(16)
+    gasLimit = '0x' + (gasLimit.length % 2 === 0 ? '' : '0') + gasLimit
     if (gasLimit === '0x00') gasLimit = '0x'
+
+    let value = new BigInteger(output.value).toString(16)
+    value = '0x' + (value.length % 2 === 0 ? '' : '0') + value
     if (value === '0x00') value = '0x'
 
     let preSignTx = {
