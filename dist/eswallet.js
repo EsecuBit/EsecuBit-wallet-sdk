@@ -43022,18 +43022,9 @@ var BtcAccount = function () {
                 // calculate the fee using uncompressed public key size
 
 
-                calculateFee = function calculateFee(utxos, outputs, sendAll) {
-                  var changeSize = outputs.length;
-                  var changeValue = 0;
-                  utxos.forEach(function (utxo) {
-                    changeValue += utxo.value;
-                  });
-                  outputs.forEach(function (output) {
-                    changeValue -= output.value;
-                  });
-                  if (!sendAll && changeValue > 0) changeSize += 1;
-
-                  return (utxos.length * 180 + 34 * changeSize + 34 + 10) * details.feeRate;
+                calculateFee = function calculateFee(utxos, outputs) {
+                  var outputSize = outputs.length + 1; // 1 for change output
+                  return (utxos.length * 180 + 34 * outputSize + 34 + 10) * details.feeRate;
                 };
 
                 fee = 0;
@@ -43059,7 +43050,7 @@ var BtcAccount = function () {
                 _getEnoughUtxo = getEnoughUtxo(totalOut + fee, details.sendAll), newTotal = _getEnoughUtxo.newTotal, willSpentUtxos = _getEnoughUtxo.willSpentUtxos;
                 // new fee calculated
 
-                fee = calculateFee(willSpentUtxos, details.outputs, details.sendAll);
+                fee = calculateFee(willSpentUtxos, details.outputs);
 
                 if (!(newTotal >= totalOut + fee)) {
                   _context13.next = 23;
@@ -43387,8 +43378,9 @@ var D = {
     invalidAddress: 601,
     noAddressCheckSum: 602, // for eth
     invalidAddressChecksum: 603,
-    valueIsDecimal: 604,
-    invalidDataNotHex: 605,
+    valueIsDecimal: 604, // value has decimal
+    invalidDataNotHex: 605, // data is not 0-9 a-f A-F string
+    valueIsNotDecimal: 606, // value is not 0-9 string
 
     offlineModeNotAllowed: 701, // no device ever connected before
     offlineModeUnnecessary: 702, // device has connected
@@ -43752,6 +43744,7 @@ var D = {
 
     var convertBtc = function convertBtc(value, fromType, toType) {
       value = value.toString();
+      if (!value.match(/^[-0-9.]+$/)) throw D.error.valueIsNotDecimal;
       var satoshi = void 0;
       switch (fromType) {
         case D.unit.btc.BTC:
@@ -43782,6 +43775,7 @@ var D = {
     };
     var convertEth = function convertEth(value, fromType, toType) {
       value = value.toString();
+      if (!value.match(/^[-0-9.]+$/)) throw D.error.valueIsNotDecimal;
       var wei = void 0;
       switch (fromType) {
         case D.unit.eth.ETH:
