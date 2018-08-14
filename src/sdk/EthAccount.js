@@ -297,8 +297,8 @@ export default class EthAccount {
     let value = new BigInteger(output.value).toString(16)
     value = '0x' + (value.length % 2 === 0 ? '' : '0') + value
     // '0x00' will be encode as 0x00; '0x', '', null, 0 will be encode as 0x80, shit
-    if (gasPrice === '0x00') value = '0x'
-    if (gasLimit === '0x00') value = '0x'
+    if (gasPrice === '0x00') gasPrice = '0x'
+    if (gasLimit === '0x00') gasLimit = '0x'
     if (value === '0x00') value = '0x'
 
     let preSignTx = {
