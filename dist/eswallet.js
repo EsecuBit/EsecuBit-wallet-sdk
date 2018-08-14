@@ -42532,15 +42532,14 @@ var BtcAccount = function () {
 
                   utxos.push.apply(utxos, _toConsumableArray(spentUtxos));
                 }
-                console.log('btc newTransaction 2', addressInfo, txInfo);
-                _context7.next = 30;
+                _context7.next = 29;
                 return this._handleNewTxInner(addressInfo, txInfo, utxos);
 
-              case 30:
+              case 29:
 
                 this.busy = false;
 
-              case 31:
+              case 30:
               case 'end':
                 return _context7.stop();
             }
@@ -42940,7 +42939,7 @@ var BtcAccount = function () {
     key: 'prepareTx',
     value: function () {
       var _ref13 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee13(details) {
-        var utxos, getEnoughUtxo, fee, totalOut, calculateFee, _getEnoughUtxo, newTotal, willSpentUtxos;
+        var utxos, getEnoughUtxo, calculateFee, fee, totalOut, _getEnoughUtxo, newTotal, willSpentUtxos;
 
         return regeneratorRuntime.wrap(function _callee13$(_context13) {
           while (1) {
@@ -42976,6 +42975,8 @@ var BtcAccount = function () {
 
                 utxos = this.utxos.filter(function (utxo) {
                   return utxo.status === _D2.default.utxo.status.unspent || utxo.status === _D2.default.utxo.status.unspent_pending;
+                }).filter(function (utxo) {
+                  return utxo.value > 0;
                 }).map(function (utxo) {
                   return _D2.default.copy(utxo);
                 });
@@ -43018,6 +43019,23 @@ var BtcAccount = function () {
                   return { newTotal: newTotal, willSpentUtxos: willSpentUtxos };
                 };
 
+                // calculate the fee using uncompressed public key size
+
+
+                calculateFee = function calculateFee(utxos, outputs, sendAll) {
+                  var changeSize = outputs.length;
+                  var changeValue = 0;
+                  utxos.forEach(function (utxo) {
+                    changeValue += utxo.value;
+                  });
+                  outputs.forEach(function (output) {
+                    changeValue -= output.value;
+                  });
+                  if (!sendAll && changeValue > 0) changeSize += 1;
+
+                  return (utxos.length * 180 + 34 * changeSize + 34 + 10) * details.feeRate;
+                };
+
                 fee = 0;
                 totalOut = details.outputs.reduce(function (sum, output) {
                   return sum + output.value;
@@ -43025,12 +43043,6 @@ var BtcAccount = function () {
                 // no output value is ok while sendAll = true
 
                 totalOut = totalOut || 0;
-
-                // calculate the fee using uncompressed public key size
-
-                calculateFee = function calculateFee(utxos, outputs) {
-                  return (utxos.length * 180 + 34 * outputs.length + 34 + 10) * details.feeRate;
-                };
 
               case 15:
                 if (false) {}
@@ -43047,7 +43059,7 @@ var BtcAccount = function () {
                 _getEnoughUtxo = getEnoughUtxo(totalOut + fee, details.sendAll), newTotal = _getEnoughUtxo.newTotal, willSpentUtxos = _getEnoughUtxo.willSpentUtxos;
                 // new fee calculated
 
-                fee = calculateFee(willSpentUtxos, details.outputs);
+                fee = calculateFee(willSpentUtxos, details.outputs, details.sendAll);
 
                 if (!(newTotal >= totalOut + fee)) {
                   _context13.next = 23;
@@ -43098,7 +43110,7 @@ var BtcAccount = function () {
       var _ref14 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee14(prepareTx) {
         var _this6 = this;
 
-        var totalOut, totalIn, changeAddressInfo, value, rawTx, signedTx, txInfo, changeValue, changeOutput, changeAddressBuffer, changeUtxo;
+        var totalOut, totalIn, rawTx, changeValue, changeAddressInfo, signedTx, txInfo, changeOutput, changeAddressBuffer, changeUtxo;
         return regeneratorRuntime.wrap(function _callee14$(_context14) {
           while (1) {
             switch (_context14.prev = _context14.next) {
@@ -43127,17 +43139,22 @@ var BtcAccount = function () {
                 throw _D2.default.error.balanceNotEnough;
 
               case 6:
-                changeAddressInfo = this.addressInfos.find(function (addressInfo) {
-                  return addressInfo.type === _D2.default.address.change && addressInfo.index === _this6.changePublicKeyIndex;
-                });
-                value = totalIn - prepareTx.total;
                 rawTx = {
                   inputs: _D2.default.copy(prepareTx.utxos),
                   outputs: _D2.default.copy(prepareTx.outputs),
-                  changePath: changeAddressInfo.path
+                  changePath: null
                 };
+                changeValue = totalIn - prepareTx.total;
+                changeAddressInfo = void 0;
 
-                rawTx.outputs.push({ address: changeAddressInfo.address, value: value });
+                if (changeValue !== 0) {
+                  changeAddressInfo = this.addressInfos.find(function (addressInfo) {
+                    return addressInfo.type === _D2.default.address.change && addressInfo.index === _this6.changePublicKeyIndex;
+                  });
+                  rawTx.outputs.push({ address: changeAddressInfo.address, value: changeValue });
+                  rawTx.changePath = changeAddressInfo.path;
+                }
+
                 console.log('presign tx', rawTx);
                 _context14.next = 13;
                 return this._device.signTransaction(this.coinType, rawTx);
@@ -43171,7 +43188,7 @@ var BtcAccount = function () {
                   outputs: rawTx.outputs.map(function (output, index) {
                     return {
                       address: output.address,
-                      isMine: output.address === changeAddressInfo.address,
+                      isMine: output.address === (changeAddressInfo && changeAddressInfo.address),
                       index: index,
                       script: _D2.default.address.makeOutputScript(output.address),
                       value: output.value
@@ -43184,8 +43201,7 @@ var BtcAccount = function () {
                   utxo.status = _D2.default.utxo.status.spent_pending;
                 });
 
-                changeValue = totalIn - totalOut - prepareTx.fee;
-
+                // add change utxo if exist
                 if (changeValue !== 0) {
                   changeOutput = txInfo.outputs[txInfo.outputs.length - 1];
                   changeAddressBuffer = _D2.default.address.toBuffer(changeAddressInfo.address);
@@ -43207,7 +43223,7 @@ var BtcAccount = function () {
 
                 return _context14.abrupt('return', { txInfo: txInfo, utxos: prepareTx.utxos, hex: signedTx.hex });
 
-              case 19:
+              case 18:
               case 'end':
                 return _context14.stop();
             }
@@ -45212,68 +45228,62 @@ var EthAccount = function () {
             switch (_context10.prev = _context10.next) {
               case 0:
                 console.log('prepareTx details', details);
-                gasPrice = new _bigi2.default(details.gasPrice);
-                gasLimit = new _bigi2.default(details.gasLimit || '21000');
-                output = _D2.default.copy(details.output);
-                value = new _bigi2.default(output.value);
 
                 if (_D2.default.isEth(this.coinType)) {
-                  _context10.next = 7;
+                  _context10.next = 3;
                   break;
                 }
 
                 throw _D2.default.error.coinNotSupported;
 
-              case 7:
+              case 3:
                 if (!_D2.default.isDecimal(details.gasPrice)) {
-                  _context10.next = 9;
+                  _context10.next = 5;
                   break;
                 }
 
                 throw _D2.default.error.valueIsDecimal;
 
-              case 9:
-                if (!_D2.default.isDecimal(value)) {
-                  _context10.next = 11;
+              case 5:
+                if (!_D2.default.isDecimal(details.output.value)) {
+                  _context10.next = 7;
                   break;
                 }
 
                 throw _D2.default.error.valueIsDecimal;
 
-              case 11:
+              case 7:
+                gasPrice = new _bigi2.default(details.gasPrice);
+                gasLimit = new _bigi2.default(details.gasLimit || '21000');
+                output = _D2.default.copy(details.output);
+                value = new _bigi2.default(output.value);
+
                 if (!details.data) {
-                  _context10.next = 21;
+                  _context10.next = 20;
                   break;
                 }
 
                 data = details.data;
 
                 if (data.startsWith('0x')) data = data.slice(2);
+                data = (data.length % 2 === 0 ? '' : '0') + data;
 
-                if (!(data.length % 2 !== 0)) {
-                  _context10.next = 16;
-                  break;
-                }
-
-                throw _D2.default.error.invalidDataNotHex;
-
-              case 16:
                 if (data.match(/^[0-9a-fA-F]+$/)) {
-                  _context10.next = 18;
+                  _context10.next = 17;
                   break;
                 }
 
                 throw _D2.default.error.invalidDataNotHex;
 
-              case 18:
+              case 17:
                 details.data = '0x' + data;
-                _context10.next = 22;
+                _context10.next = 21;
                 break;
 
-              case 21:
+              case 20:
                 details.data = '0x';
 
-              case 22:
+              case 21:
                 input = _D2.default.copy(this.addressInfos[0]);
                 nonce = this.txInfos.filter(function (txInfo) {
                   return txInfo.direction === _D2.default.tx.direction.out;
@@ -45284,35 +45294,35 @@ var EthAccount = function () {
                 // noinspection JSUnresolvedVariable
 
                 if (!details.sendAll) {
-                  _context10.next = 35;
+                  _context10.next = 34;
                   break;
                 }
 
                 if (!(balance.compareTo(fee) < 0)) {
-                  _context10.next = 30;
+                  _context10.next = 29;
                   break;
                 }
 
                 throw _D2.default.error.balanceNotEnough;
 
-              case 30:
+              case 29:
                 total = balance;
                 value = total.subtract(fee);
                 output.value = value.toString(10);
-                _context10.next = 38;
+                _context10.next = 37;
                 break;
 
-              case 35:
+              case 34:
                 total = value.add(fee);
 
                 if (!(total.compareTo(balance) > 0)) {
-                  _context10.next = 38;
+                  _context10.next = 37;
                   break;
                 }
 
                 throw _D2.default.error.balanceNotEnough;
 
-              case 38:
+              case 37:
                 prepareTx = {
                   total: total.toString(10),
                   fee: fee.toString(10),
@@ -45327,7 +45337,7 @@ var EthAccount = function () {
                 console.log('prepareTx', prepareTx);
                 return _context10.abrupt('return', prepareTx);
 
-              case 41:
+              case 40:
               case 'end':
                 return _context10.stop();
             }
@@ -45359,9 +45369,17 @@ var EthAccount = function () {
             switch (_context11.prev = _context11.next) {
               case 0:
                 output = _D2.default.copy(prepareTx.output);
-                gasPrice = '0x' + new _bigi2.default(prepareTx.gasPrice).toString(16);
-                gasLimit = '0x' + new _bigi2.default(prepareTx.gasLimit).toString(16);
-                value = '0x' + new _bigi2.default(output.value).toString(16);
+                gasPrice = new _bigi2.default(prepareTx.gasPrice).toString(16);
+
+                gasPrice = '0x' + (gasPrice.length % 2 === 0 ? '' : '0') + gasPrice;
+                gasLimit = new _bigi2.default(prepareTx.gasLimit).toString(16);
+
+                gasLimit = '0x' + (gasLimit.length % 2 === 0 ? '' : '0') + gasLimit;
+                value = new _bigi2.default(output.value).toString(16);
+
+                value = '0x' + (value.length % 2 === 0 ? '' : '0') + value;
+                if (value === '0x00') value = '0x'; // '0x00' will be encode as 0x00; '0x', '', null, 0 will be encode as 0x80, shit
+
                 preSignTx = {
                   input: { address: prepareTx.input.address, path: prepareTx.input.path },
                   output: { address: output.address, value: value },
@@ -45372,10 +45390,10 @@ var EthAccount = function () {
                 };
 
                 console.log('preSignTx', preSignTx);
-                _context11.next = 8;
+                _context11.next = 12;
                 return this._device.signTransaction(this.coinType, preSignTx);
 
-              case 8:
+              case 12:
                 signedTx = _context11.sent;
                 return _context11.abrupt('return', {
                   txInfo: {
@@ -45405,7 +45423,7 @@ var EthAccount = function () {
                   hex: signedTx.hex
                 });
 
-              case 10:
+              case 14:
               case 'end':
                 return _context11.stop();
             }
@@ -47731,6 +47749,8 @@ var _D2 = _interopRequireDefault(_D);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
 function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -47915,17 +47935,43 @@ var BlockchainInfo = function (_ICoinNetwork) {
       var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(addresses) {
         var _this2 = this;
 
-        var response, selfTx, blobs, _loop, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, rAddress;
+        var totalReceive, response, subResponse, _response$txs, selfTx, blobs, _loop, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, rAddress;
 
         return regeneratorRuntime.wrap(function _callee3$(_context4) {
           while (1) {
             switch (_context4.prev = _context4.next) {
               case 0:
-                _context4.next = 2;
-                return this.get(this._apiUrl + '/multiaddr?cors=true&active=' + addresses.join('|'));
+                totalReceive = 0;
+                response = void 0;
 
               case 2:
-                response = _context4.sent;
+                if (false) {}
+
+                _context4.next = 5;
+                return this.get(this._apiUrl + '/multiaddr?cors=true&offset=' + totalReceive + '&n=100&active=' + addresses.join('|'));
+
+              case 5:
+                subResponse = _context4.sent;
+
+                if (!response) {
+                  response = subResponse;
+                } else {
+                  (_response$txs = response.txs).push.apply(_response$txs, _toConsumableArray(subResponse.txs));
+                }
+                totalReceive += response.txs.length;
+
+                if (!(totalReceive === subResponse.wallet.n_tx)) {
+                  _context4.next = 10;
+                  break;
+                }
+
+                return _context4.abrupt('break', 12);
+
+              case 10:
+                _context4.next = 2;
+                break;
+
+              case 12:
 
                 response.txs.forEach(function (tx) {
                   if (!_this2.indexMap[tx.tx_index]) {
@@ -47975,66 +48021,66 @@ var BlockchainInfo = function (_ICoinNetwork) {
                 _iteratorNormalCompletion = true;
                 _didIteratorError = false;
                 _iteratorError = undefined;
-                _context4.prev = 10;
+                _context4.prev = 19;
                 _iterator = response.addresses[Symbol.iterator]();
 
-              case 12:
+              case 21:
                 if (_iteratorNormalCompletion = (_step = _iterator.next()).done) {
-                  _context4.next = 18;
+                  _context4.next = 27;
                   break;
                 }
 
                 rAddress = _step.value;
-                return _context4.delegateYield(_loop(rAddress), 't0', 15);
+                return _context4.delegateYield(_loop(rAddress), 't0', 24);
 
-              case 15:
+              case 24:
                 _iteratorNormalCompletion = true;
-                _context4.next = 12;
+                _context4.next = 21;
                 break;
 
-              case 18:
-                _context4.next = 24;
+              case 27:
+                _context4.next = 33;
                 break;
 
-              case 20:
-                _context4.prev = 20;
-                _context4.t1 = _context4['catch'](10);
+              case 29:
+                _context4.prev = 29;
+                _context4.t1 = _context4['catch'](19);
                 _didIteratorError = true;
                 _iteratorError = _context4.t1;
 
-              case 24:
-                _context4.prev = 24;
-                _context4.prev = 25;
+              case 33:
+                _context4.prev = 33;
+                _context4.prev = 34;
 
                 if (!_iteratorNormalCompletion && _iterator.return) {
                   _iterator.return();
                 }
 
-              case 27:
-                _context4.prev = 27;
+              case 36:
+                _context4.prev = 36;
 
                 if (!_didIteratorError) {
-                  _context4.next = 30;
+                  _context4.next = 39;
                   break;
                 }
 
                 throw _iteratorError;
 
-              case 30:
-                return _context4.finish(27);
+              case 39:
+                return _context4.finish(36);
 
-              case 31:
-                return _context4.finish(24);
+              case 40:
+                return _context4.finish(33);
 
-              case 32:
+              case 41:
                 return _context4.abrupt('return', blobs);
 
-              case 33:
+              case 42:
               case 'end':
                 return _context4.stop();
             }
           }
-        }, _callee3, this, [[10, 20, 24, 32], [25,, 27, 31]]);
+        }, _callee3, this, [[19, 29, 33, 41], [34,, 36, 40]]);
       }));
 
       function queryAddresses(_x) {
@@ -48140,7 +48186,6 @@ var BlockchainInfo = function (_ICoinNetwork) {
                             // blockchain.info don't have this field, but we can get it from txs by tx_index,
                             // if prevAddress is the address we query. otherwise prevTxId is useless
                             prevTxId = _this3.indexMap[input.prev_out.tx_index];
-                            // TODO query every time now, optimize this
 
                             if (!(!prevTxId && input.prev_out.addr === address)) {
                               _context7.next = 8;
@@ -48559,10 +48604,12 @@ var EtherScanIo = function (_ICoinNetwork) {
 
       if (rTx.gas.startsWith('0x')) {
         rTx.gas = rTx.gas.slice(2);
+        rTx.gas = rTx.gas.length % 2 === 0 ? '' : '0' + rTx.gas;
         rTx.gas = _bigi2.default.fromHex(rTx.gas).toString(10);
       }
       if (rTx.gasPrice.startsWith('0x')) {
         rTx.gasPrice = rTx.gasPrice.slice(2);
+        rTx.gasPrice = (rTx.gasPrice.length % 2 === 0 ? '' : '0') + rTx.gasPrice;
         rTx.gasPrice = _bigi2.default.fromHex(rTx.gasPrice).toString(10);
       }
       var value = new _bigi2.default(rTx.value);
@@ -48615,10 +48662,6 @@ var _createClass = function () { function defineProperties(target, props) { for 
 var _D = __webpack_require__(/*! ../../D */ "./src/sdk/D.js");
 
 var _D2 = _interopRequireDefault(_D);
-
-var _bigi = __webpack_require__(/*! bigi */ "./node_modules/bigi/lib/index.js");
-
-var _bigi2 = _interopRequireDefault(_bigi);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -48854,20 +48897,14 @@ var ICoinNetwork = function () {
     key: 'getRequestPeroid',
     value: function getRequestPeroid() {
       if (!_D2.default.isBtc(this.coinType) && !_D2.default.isEth(this.coinType)) throw _D2.default.error.coinNotSupported;
-      var blockHeightRequestPeriod = 60;
-      var txIncludedRequestPeriod = 5;
-      if (_D2.default.test.coin) {
-        if (_D2.default.isBtc(this.coinType)) {
-          blockHeightRequestPeriod = 30;
-        } else if (_D2.default.isEth(this.coinType)) {
-          blockHeightRequestPeriod = 10;
-        }
-      } else {
-        if (_D2.default.isBtc(this.coinType)) {
-          blockHeightRequestPeriod = 60;
-        } else if (_D2.default.isEth(this.coinType)) {
-          blockHeightRequestPeriod = 20;
-        }
+      var blockHeightRequestPeriod = void 0;
+      var txIncludedRequestPeriod = void 0;
+      if (_D2.default.isBtc(this.coinType)) {
+        blockHeightRequestPeriod = 60;
+        txIncludedRequestPeriod = 30;
+      } else if (_D2.default.isEth(this.coinType)) {
+        blockHeightRequestPeriod = 20;
+        txIncludedRequestPeriod = 5;
       }
       return { blockHeightRequestPeriod: blockHeightRequestPeriod, txIncludedRequestPeriod: txIncludedRequestPeriod };
     }
@@ -48890,7 +48927,7 @@ var ICoinNetwork = function () {
         callback: callback,
         type: typeTx,
         txInfo: txInfo,
-        hasRecord: txInfo.confirmations >= 0,
+        hasRecord: false,
         currentBlock: -1,
         nextTime: 0,
         request: function () {
@@ -48939,20 +48976,18 @@ var ICoinNetwork = function () {
                     confirmations = blockNumber > 0 ? that._blockHeight - blockNumber + 1 : 0;
 
 
+                    if (confirmations > 0) this.hasRecord = true;
                     if (confirmations >= _D2.default.tx.getMatureConfirms(this.txInfo.coinType)) {
                       console.log('confirmations enough, remove', this);
                       remove(that._requestList, this);
                     }
                     if (confirmations > this.txInfo.confirmations) {
-                      if (!this.hasRecord) {
-                        this.hasRecord = true;
-                      }
                       this.txInfo.blockNumber = blockNumber;
                       this.txInfo.confirmations = confirmations;
                       callback(_D2.default.error.succeed, _D2.default.copy(this.txInfo));
                     }
 
-                  case 19:
+                  case 20:
                   case 'end':
                     return _context4.stop();
                 }
@@ -50533,7 +50568,7 @@ var CoreWallet = function () {
 
                             basicScript = makeBasicScript(tx);
                             signedTx = _D2.default.copy(basicScript);
-                            changePathBuffer = _D2.default.address.path.toBuffer(tx.changePath);
+                            changePathBuffer = tx.changePath && _D2.default.address.path.toBuffer(tx.changePath);
                             // execute in order
 
                             sequence = Promise.resolve();
@@ -50789,6 +50824,8 @@ var sha1 = function sha1(data) {
 var des112 = function des112(isEnc, data, key) {
   var customPadding = function customPadding(data) {
     var padNum = 8 - data.length % 8;
+    if (padNum === 8) return data;
+
     var padding = Buffer.alloc(padNum);
     padding[0] = 0x80;
     return Buffer.concat([data, padding]);
