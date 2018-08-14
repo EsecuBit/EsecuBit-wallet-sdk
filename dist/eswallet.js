@@ -45372,7 +45372,10 @@ var EthAccount = function () {
                 value = new _bigi2.default(output.value).toString(16);
 
                 value = '0x' + (value.length % 2 === 0 ? '' : '0') + value;
-                if (value === '0x00') value = '0x'; // '0x00' will be encode as 0x00; '0x', '', null, 0 will be encode as 0x80, shit
+                // '0x00' will be encode as 0x00; '0x', '', null, 0 will be encode as 0x80, shit
+                if (gasPrice === '0x00') gasPrice = '0x';
+                if (gasLimit === '0x00') gasLimit = '0x';
+                if (value === '0x00') value = '0x';
 
                 preSignTx = {
                   input: { address: prepareTx.input.address, path: prepareTx.input.path },
@@ -45384,10 +45387,10 @@ var EthAccount = function () {
                 };
 
                 console.log('preSignTx', preSignTx);
-                _context11.next = 12;
+                _context11.next = 14;
                 return this._device.signTransaction(this.coinType, preSignTx);
 
-              case 12:
+              case 14:
                 signedTx = _context11.sent;
                 return _context11.abrupt('return', {
                   txInfo: {
@@ -45417,7 +45420,7 @@ var EthAccount = function () {
                   hex: signedTx.hex
                 });
 
-              case 14:
+              case 16:
               case 'end':
                 return _context11.stop();
             }
