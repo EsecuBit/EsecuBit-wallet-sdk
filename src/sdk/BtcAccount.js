@@ -408,14 +408,9 @@ export default class BtcAccount {
     }
 
     // calculate the fee using uncompressed public key size
-    let calculateFee = (utxos, outputs, sendAll) => {
-      let changeSize = outputs.length
-      let changeValue = 0
-      utxos.forEach(utxo => { changeValue += utxo.value })
-      outputs.forEach(output => { changeValue -= output.value })
-      if (!sendAll && changeValue > 0) changeSize += 1
-
-      return (utxos.length * 180 + 34 * changeSize + 34 + 10) * details.feeRate
+    let calculateFee = (utxos, outputs) => {
+      let outputSize = outputs.length + 1 // 1 for change output
+      return (utxos.length * 180 + 34 * outputSize + 34 + 10) * details.feeRate
     }
 
     let fee = 0
@@ -427,7 +422,7 @@ export default class BtcAccount {
       // noinspection JSUnresolvedVariable
       let {newTotal, willSpentUtxos} = getEnoughUtxo(totalOut + fee, details.sendAll)
       // new fee calculated
-      fee = calculateFee(willSpentUtxos, details.outputs, details.sendAll)
+      fee = calculateFee(willSpentUtxos, details.outputs)
       if (newTotal >= totalOut + fee) {
         if (details.sendAll) {
           details.outputs[0].value = newTotal - fee

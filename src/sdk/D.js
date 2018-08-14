@@ -49,8 +49,9 @@ const D = {
     invalidAddress: 601,
     noAddressCheckSum: 602, // for eth
     invalidAddressChecksum: 603,
-    valueIsDecimal: 604,
-    invalidDataNotHex: 605,
+    valueIsDecimal: 604, // value has decimal
+    invalidDataNotHex: 605, // data is not 0-9 a-f A-F string
+    valueIsNotDecimal: 606, // value is not 0-9 string
 
     offlineModeNotAllowed: 701, // no device ever connected before
     offlineModeUnnecessary: 702, // device has connected
@@ -416,6 +417,7 @@ const D = {
 
     let convertBtc = (value, fromType, toType) => {
       value = value.toString()
+      if (!value.match(/^[0-9]+$/)) throw D.error.valueIsNotDecimal
       let satoshi
       switch (fromType) {
         case D.unit.btc.BTC: { satoshi = mul(value, '100000000'); break }
@@ -434,6 +436,7 @@ const D = {
     }
     let convertEth = (value, fromType, toType) => {
       value = value.toString()
+      if (!value.match(/^[0-9]+$/)) throw D.error.valueIsNotDecimal
       let wei
       switch (fromType) {
         case D.unit.eth.ETH:
