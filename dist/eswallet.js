@@ -50047,9 +50047,9 @@ var ChromeHidDevice = function (_IEsDevice) {
       connect();
     });
 
-    chrome.hid.onDeviceRemoved.addListener(function (connectionId) {
-      if (_this._connectionId !== connectionId) return;
-      console.log('plug out', connectionId);
+    chrome.hid.onDeviceRemoved.addListener(function (deviceId) {
+      console.log('plug out', deviceId);
+      if (_this._deviceId !== deviceId) return;
       _this._deviceId = null;
       _this._connectionId = null;
       _this._listener && _D2.default.dispatch(function () {
