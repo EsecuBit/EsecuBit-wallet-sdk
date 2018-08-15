@@ -47,9 +47,9 @@ export default class ChromeHidDevice extends IEsDevice {
       connect()
     })
 
-    chrome.hid.onDeviceRemoved.addListener(connectionId => {
-      if (this._connectionId !== connectionId) return
-      console.log('plug out', connectionId)
+    chrome.hid.onDeviceRemoved.addListener(deviceId => {
+      console.log('plug out', deviceId)
+      if (this._deviceId !== deviceId) return
       this._deviceId = null
       this._connectionId = null
       this._listener && D.dispatch(() => this._listener(D.error.succeed, D.status.plugOut))
