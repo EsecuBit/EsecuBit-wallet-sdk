@@ -15,9 +15,6 @@ export default class ICoinNetwork {
   }
 
   async init () {
-    this._blockHeight = await this.getBlockHeight()
-    console.log(this.coinType, 'current block height', this._blockHeight)
-
     // start the request loop
     this._startQueue = true
     let {txIncludedRequestPeriod} = this.getRequestPeroid()
@@ -48,7 +45,7 @@ export default class ICoinNetwork {
       }
       setTimeout(blockHeightRequest, blockHeightRequestPeriod * 1000)
     }
-    setTimeout(blockHeightRequest, blockHeightRequestPeriod * 1000)
+    setTimeout(blockHeightRequest, 0)
 
     return {blockHeight: this._blockHeight}
   }
