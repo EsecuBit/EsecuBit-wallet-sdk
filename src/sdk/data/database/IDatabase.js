@@ -34,7 +34,7 @@ export default class IDatabase {
     throw D.error.notImplemented
   }
 
-  async saveOrUpdateTxInfo (txInfo) {
+  async saveOrUpdatTxComment (account) {
     throw D.error.notImplemented
   }
 
@@ -71,6 +71,14 @@ export default class IDatabase {
   }
 
   async saveOrUpdateExchange (exchange) {
+    throw D.error.notImplemented
+  }
+
+  async getSettings (coinType) {
+    throw D.error.notImplemented
+  }
+
+  async saveOrUpdateSettings (exchange) {
     throw D.error.notImplemented
   }
 }

@@ -80,6 +80,16 @@ export default class EthAccount {
     this.label = newName
   }
 
+  async updateTxComment (txInfo) {
+    let oldTxInfo = this.txInfos.find(t => (t.txId === txInfo.txId) && (t.accountId === txInfo.accountId))
+    if (!oldTxInfo) {
+      console.warn('this txInfo not in the list', txInfo)
+      throw D.error.unknown
+    }
+    await this._coinData.updateTxComment(txInfo)
+    oldTxInfo.comment = txInfo.comment
+  }
+
   async _generateAddressIfNotExist () {
     if (this.addressInfos.length === 0) {
       let path = D.makeBip44Path(this.coinType, this.index, D.address.external, 0)

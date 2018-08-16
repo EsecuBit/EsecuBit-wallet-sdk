@@ -215,6 +215,10 @@ export default class CoinData {
     return this._db.getUtxos(filter)
   }
 
+  updateTxComment (txInfo, comment) {
+    return this._db.updateTxComment(txInfo, comment)
+  }
+
   async newTx (account, addressInfo, txInfo, utxos) {
     await this._db.newTx(account, addressInfo, txInfo, utxos)
     this._listeners.forEach(listener => D.dispatch(() => listener(D.error.succeed, txInfo)))

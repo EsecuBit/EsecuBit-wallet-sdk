@@ -365,7 +365,7 @@ export default class IndexedDB extends IDatabase {
     })
   }
 
-  saveOrUpdateTxInfo (txInfo) {
+  saveOrUpdatTxComment (txInfo) {
     return new Promise((resolve, reject) => {
       if (this._db === null) {
         reject(D.error.databaseOpenFailed)
@@ -374,15 +374,24 @@ export default class IndexedDB extends IDatabase {
 
       let request = this._db.transaction(['txInfo'], 'readwrite')
         .objectStore('txInfo')
-        .put(txInfo)
+        .get([txInfo.txId, txInfo.accountId])
 
-      request.onsuccess = () => {
-        resolve(txInfo)
-      }
-      request.onerror = (e) => {
-        console.warn('saveOrUpdateTxInfo', e)
+      let error = e => {
+        console.warn('renameAccount', e)
         reject(D.error.databaseExecFailed)
       }
+
+      request.onsuccess = e => {
+        let oldTxInfo = e.target.result
+        oldTxInfo.comment = txInfo.comment
+
+        let request = this._db.transaction(['txInfo'], 'readwrite')
+          .objectStore('txInfo')
+          .put(oldTxInfo)
+        request.onsuccess = e => resolve(e.target.result)
+        request.onerror = error
+      }
+      request.onerror = error
     })
   }
 

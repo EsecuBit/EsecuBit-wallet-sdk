@@ -116,27 +116,6 @@ describe('IndexedDB', function () {
     let [total] = await indexedDB.getTxInfos({accountId: account1.accountId})
     total.should.equal(0)
   })
-  it('saveOrUpdateTxInfo', async () => {
-    let txInfo2 = await indexedDB.saveOrUpdateTxInfo(txInfo)
-    txInfo2.should.deep.equal(txInfo)
-
-    let [total, txs] = await indexedDB.getTxInfos({accountId: account1.accountId})
-    total.should.equal(1)
-    txs.length.should.equal(1)
-    txs[0].should.deep.equal(txInfo)
-  })
-
-  it('updateTxInfos', async () => {
-    txInfo.inputs[0].isMine = true
-    txInfo.value -= txInfo.inputs[0].value
-    let txInfo2 = await indexedDB.saveOrUpdateTxInfo(txInfo)
-    txInfo2.should.deep.equal(txInfo)
-
-    let [total, txs] = await indexedDB.getTxInfos({accountId: account1.accountId})
-    total.should.equal(1)
-    txs.length.should.equal(1)
-    txs[0].should.deep.equal(txInfo)
-  })
 
   it('getAddressInfos', async () => {
     let addressInfos = await indexedDB.getAddressInfos()

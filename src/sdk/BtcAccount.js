@@ -113,6 +113,16 @@ export default class BtcAccount {
     this.label = newName
   }
 
+  async updateTxComment (txInfo) {
+    let oldTxInfo = this.txInfos.find(t => (t.txId === txInfo.txId) && (t.accountId === txInfo.accountId))
+    if (!oldTxInfo) {
+      console.warn('this txInfo not in the list', txInfo)
+      throw D.error.unknown
+    }
+    await this._coinData.updateTxComment(txInfo)
+    oldTxInfo.comment = txInfo.comment
+  }
+
   /**
    * handle new transaction
    * update txInfo, find out new transaction and utxos for specific address
