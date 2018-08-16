@@ -242,6 +242,7 @@ export default class EthAccount {
     console.log('prepareTx details', details)
 
     if (!D.isEth(this.coinType)) throw D.error.coinNotSupported
+    if (D.isDecimal(details.gasLimit)) throw D.error.valueIsDecimal
     if (D.isDecimal(details.gasPrice)) throw D.error.valueIsDecimal
     if (D.isDecimal(details.output.value)) throw D.error.valueIsDecimal
 
