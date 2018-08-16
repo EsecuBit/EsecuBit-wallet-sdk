@@ -97,6 +97,7 @@ export default class EsWallet {
 
     await this._coinData.init(info, this.offlineMode)
     let accounts = await this._coinData.getAccounts()
+    accounts = accounts.filter(account => EsWallet.supportedCoinTypes().includes(account.coinType))
     accounts.forEach(account => {
       let exists = this._esAccounts.some(esAccount => esAccount.accountId === account.accountId)
       if (exists) return
@@ -208,6 +209,7 @@ export default class EsWallet {
     order[D.coin.main.eth] = 1
     order[D.coin.test.btcTestNet3] = 100
     order[D.coin.test.ethRinkeby] = 101
+    order[D.coin.test.ethRopsten] = 102
     return this._esAccounts.sort((a, b) => order[a.coinType] - order[b.coinType])
   }
 
