@@ -74,6 +74,7 @@ export default class IndexedDB extends IDatabase {
          *   inputs: [{prevTxId, prevAddress, prevOutIndex, prevOutScript, index, value, isMine}, ...]
          *   outputs: [{address, index, value, isMine}, ...]
          *   value: string (decimal string satoshi) // value that shows the account balance changes, calculated by inputs and outputs
+         *   comment: string
          * }
          *
          * eth：
@@ -93,6 +94,7 @@ export default class IndexedDB extends IDatabase {
          *   gas: string (decimal string Wei),
          *   gasPrice: string (decimal string Wei),
          *   fee: gas * gasPrice
+         *   comment: string
          * }
          */
         if (!db.objectStoreNames.contains('txInfo')) {
