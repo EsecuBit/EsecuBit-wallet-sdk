@@ -215,8 +215,8 @@ export default class CoinData {
     return this._db.getUtxos(filter)
   }
 
-  updateTxComment (txInfo, comment) {
-    return this._db.updateTxComment(txInfo, comment)
+  updateTxComment (txInfo) {
+    return this._db.saveOrUpdateTxComment(txInfo)
   }
 
   async newTx (account, addressInfo, txInfo, utxos) {

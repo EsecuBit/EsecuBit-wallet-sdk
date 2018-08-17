@@ -367,7 +367,7 @@ export default class IndexedDB extends IDatabase {
     })
   }
 
-  saveOrUpdatTxComment (txInfo) {
+  saveOrUpdateTxComment (txInfo) {
     return new Promise((resolve, reject) => {
       if (this._db === null) {
         reject(D.error.databaseOpenFailed)

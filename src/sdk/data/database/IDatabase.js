@@ -34,7 +34,7 @@ export default class IDatabase {
     throw D.error.notImplemented
   }
 
-  async saveOrUpdatTxComment (account) {
+  async saveOrUpdateTxComment (txInfo) {
     throw D.error.notImplemented
   }
 
