@@ -117,6 +117,7 @@ export default class EtherScanIo extends ICoinNetwork {
       time: rTx.timeStamp * 1000,
       gas: rTx.gasUsed || rTx.gas,
       gasPrice: rTx.gasPrice,
+      data: rTx.input,
       hasDetails: true
     }
     tx.inputs = [{

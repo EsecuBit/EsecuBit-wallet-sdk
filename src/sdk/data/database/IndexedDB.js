@@ -94,6 +94,7 @@ export default class IndexedDB extends IDatabase {
          *   gas: string (decimal string Wei),
          *   gasPrice: string (decimal string Wei),
          *   fee: gas * gasPrice
+         *   data: hex string
          *   comment: string
          * }
          */

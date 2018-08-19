@@ -349,7 +349,8 @@ export default class EthAccount {
         }],
         gas: BigInteger.fromHex(gasLimit.slice(2)).toString(10),
         gasPrice: BigInteger.fromHex(gasPrice.slice(2)).toString(10),
-        fee: prepareTx.fee
+        fee: prepareTx.fee,
+        data: prepareTx.data
       },
       addressInfo: prepareTx.input,
       hex: signedTx.hex
