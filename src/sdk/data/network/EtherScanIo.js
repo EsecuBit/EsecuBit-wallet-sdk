@@ -32,13 +32,16 @@ export default class EtherScanIo extends ICoinNetwork {
     return super.init()
   }
 
-  async get (url) {
+  async get (url, isQueryTx = false) {
     let response = await super.get(url)
     if (response.error) {
       console.warn('etherscan.io get error', response.error)
       throw D.error.networkProviderError
     }
     if (!response.result) {
+      if (isQueryTx) {
+        throw D.error.networkTxNotFound
+      }
       console.warn('etherscan.io get result null', response)
       throw D.error.networkProviderError
     }
@@ -84,7 +87,7 @@ export default class EtherScanIo extends ICoinNetwork {
   }
 
   async queryTx (txId) {
-    let response = await this.get(this._apiUrl + '/api?module=proxy&action=eth_getTransactionByHash&txhash=' + txId)
+    let response = await this.get(this._apiUrl + '/api?module=proxy&action=eth_getTransactionByHash&txhash=' + txId, true)
     return this.wrapTx(response)
   }
 
