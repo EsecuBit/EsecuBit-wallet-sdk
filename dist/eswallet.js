@@ -42405,7 +42405,7 @@ var BtcAccount = function () {
                 return this._checkAddressIndexAndGenerateNew(true);
 
               case 3:
-                checkAddressInfos = this.addressInfos;
+                checkAddressInfos = _D2.default.copy(this.addressInfos);
 
               case 4:
                 if (false) {}
@@ -42417,7 +42417,17 @@ var BtcAccount = function () {
                 blobs = _context4.sent;
                 _context4.next = 10;
                 return Promise.all(blobs.map(function (blob) {
-                  return _this2._handleNewTx(blob.addressInfo, blob.txInfo);
+                  if (blob.removedTxId) {
+                    var removedTxInfo = _this2.txInfos.find(function (txInfo) {
+                      return txInfo.txId === blob.removedTxId;
+                    });
+                    // let the txListener handle the overTime pending tx
+                    if (removedTxInfo && removedTxInfo.confirmations !== _D2.default.tx.confirmation.pending) {
+                      return _this2._handleRemovedTx(blob.addressInfo, blob.removedTxId);
+                    }
+                  } else {
+                    return _this2._handleNewTx(blob.addressInfo, blob.txInfo);
+                  }
                 }));
 
               case 10:
@@ -42428,7 +42438,7 @@ var BtcAccount = function () {
                   break;
                 }
 
-                return _context4.abrupt('break', 20);
+                return _context4.abrupt('break', 22);
 
               case 13:
                 if (!(responses.length === 0)) {
@@ -42436,27 +42446,31 @@ var BtcAccount = function () {
                   break;
                 }
 
-                return _context4.abrupt('break', 20);
+                return _context4.abrupt('break', 22);
 
               case 15:
-                _context4.next = 17;
+                _context4.t0 = _D2.default;
+                _context4.next = 18;
                 return this._checkAddressIndexAndGenerateNew(true);
 
-              case 17:
-                checkAddressInfos = _context4.sent;
+              case 18:
+                _context4.t1 = _context4.sent;
+                checkAddressInfos = _context4.t0.copy.call(_context4.t0, _context4.t1);
                 _context4.next = 4;
                 break;
 
-              case 20:
+              case 22:
 
                 if (firstSync) {
                   listenAddressInfo = this._getAddressInfos(this.externalPublicKeyIndex, this.externalPublicKeyIndex + 1, _D2.default.address.external)[0];
 
                   if (listenAddressInfo && !this._listenedAddresses.includes(listenAddressInfo.address)) {
                     this._listenedAddresses.push(listenAddressInfo.address);
-                    this._coinData.listenAddresses(this.coinType, [listenAddressInfo], this._addressListener);
+                    this._coinData.listenAddresses(this.coinType, [_D2.default.copy(listenAddressInfo)], this._addressListener);
                   }
                   this.txInfos.filter(function (txInfo) {
+                    return txInfo.confirmations !== _D2.default.tx.confirmation.dropped;
+                  }).filter(function (txInfo) {
                     return txInfo.confirmations < _D2.default.tx.getMatureConfirms(_this2.coinType);
                   }).filter(function (txInfo) {
                     return !_this2._listenedTxs.includes(txInfo.txId);
@@ -42466,7 +42480,7 @@ var BtcAccount = function () {
                   });
                 }
 
-              case 21:
+              case 23:
               case 'end':
                 return _context4.stop();
             }
@@ -42588,44 +42602,45 @@ var BtcAccount = function () {
       var _ref8 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8(addressInfo, removedTxId) {
         var _this3 = this;
 
-        var removedTxInfo, oldAddressInfo, removedUtxos, updateUtxos;
+        var removedTxInfo, oldAddressInfo, removeUtxos, updateUtxos;
         return regeneratorRuntime.wrap(function _callee8$(_context8) {
           while (1) {
             switch (_context8.prev = _context8.next) {
               case 0:
                 console.warn('btc removed txId', removedTxId);
-                console.warn('not handle it for now');
                 // async operation may lead to disorder. so we need a simple lock
 
-              case 2:
+              case 1:
                 if (!this.busy) {
-                  _context8.next = 7;
+                  _context8.next = 6;
                   break;
                 }
 
-                _context8.next = 5;
+                _context8.next = 4;
                 return _D2.default.wait(2);
 
-              case 5:
-                _context8.next = 2;
+              case 4:
+                _context8.next = 1;
                 break;
 
-              case 7:
+              case 6:
                 this.busy = true;
 
-                removedTxInfo = this.txInfos.filter(function (txInfo) {
+                removedTxInfo = this.txInfos.find(function (txInfo) {
                   return txInfo.txId === removedTxId;
                 });
 
                 if (removedTxInfo) {
-                  _context8.next = 12;
+                  _context8.next = 11;
                   break;
                 }
 
                 console.warn(this.accountId, 'removed txId not found', removedTxId);
                 return _context8.abrupt('return');
 
-              case 12:
+              case 11:
+                console.log('btc removed txInfo', removedTxInfo);
+
                 removedTxInfo.confirmations = _D2.default.tx.confirmation.dropped;
                 oldAddressInfo = this.addressInfos.find(function (a) {
                   return a.address === addressInfo.address;
@@ -42635,15 +42650,16 @@ var BtcAccount = function () {
                   return txId !== removedTxId;
                 });
 
-                removedUtxos = this.utxos.filter(function (utxo) {
+                removeUtxos = this.utxos.filter(function (utxo) {
                   return utxo.txId === removedTxId;
                 });
 
                 this.utxos = this.utxos.filter(function (utxo) {
-                  return removedUtxos.some(function (u) {
+                  return !removeUtxos.some(function (u) {
                     return u.txId === utxo.txId;
                   });
                 });
+
                 updateUtxos = [];
 
                 removedTxInfo.inputs.forEach(function (input) {
@@ -42655,13 +42671,19 @@ var BtcAccount = function () {
                   updateUtxos.push(revertUtxo);
                 });
 
-                _context8.next = 21;
-                return this._coinData.removeTx(this._toAccountInfo(), _D2.default.copy(oldAddressInfo), _D2.default.copy(removedTxInfo), _D2.default.copy(updateUtxos), _D2.default.copy(removedTxInfo));
+                this.balance = this.utxos.filter(function (utxo) {
+                  return utxo.status === _D2.default.utxo.status.unspent || utxo.status === _D2.default.utxo.status.unspent_pending;
+                }).reduce(function (sum, utxo) {
+                  return sum + utxo.value;
+                }, 0).toString();
 
-              case 21:
-                this.busy = false;
+                _context8.next = 22;
+                return this._coinData.removeTx(this._toAccountInfo(), _D2.default.copy(oldAddressInfo), _D2.default.copy(removedTxInfo), _D2.default.copy(updateUtxos), _D2.default.copy(removeUtxos));
 
               case 22:
+                this.busy = false;
+
+              case 23:
               case 'end':
                 return _context8.stop();
             }
@@ -42892,11 +42914,6 @@ var BtcAccount = function () {
                   return a.address === addressInfo.address;
                 });
 
-                oldAddressInfo.txs.forEach(function (txId) {
-                  if (!addressInfo.txs.includes(txId)) {
-                    addressInfo.txs.push(txId);
-                  }
-                });
                 oldAddressInfo.txs = _D2.default.copy(addressInfo.txs);
 
                 this.balance = this.utxos.filter(function (utxo) {
@@ -42913,10 +42930,10 @@ var BtcAccount = function () {
                 } else {
                   if (this.changePublicKeyIndex < newIndex) this.changePublicKeyIndex = newIndex;
                 }
-                _context10.next = 19;
-                return this._coinData.newTx(this._toAccountInfo(), addressInfo, txInfo, utxos);
+                _context10.next = 18;
+                return this._coinData.newTx(this._toAccountInfo(), _D2.default.copy(oldAddressInfo), txInfo, utxos);
 
-              case 19:
+              case 18:
 
                 if (txInfo.confirmations < _D2.default.tx.getMatureConfirms(this.coinType)) {
                   if (!this._listenedTxs.some(function (tx) {
@@ -42930,7 +42947,7 @@ var BtcAccount = function () {
                 this.innerBusy = false;
                 return _context10.abrupt('return', { addressInfo: addressInfo, txInfo: txInfo, utxos: utxos });
 
-              case 22:
+              case 21:
               case 'end':
                 return _context10.stop();
             }
@@ -43052,7 +43069,7 @@ var BtcAccount = function () {
                 _context12.t2 = _context12.sent;
                 newAddressInfos = _context12.t0.concat.call(_context12.t0, _context12.t1, _context12.t2);
                 _context12.next = 12;
-                return this._coinData.newAddressInfos(this._toAccountInfo(), newAddressInfos);
+                return this._coinData.newAddressInfos(this._toAccountInfo(), _D2.default.copy(newAddressInfos));
 
               case 12:
                 (_addressInfos = this.addressInfos).push.apply(_addressInfos, _toConsumableArray(newAddressInfos));
@@ -43147,7 +43164,7 @@ var BtcAccount = function () {
 
                 if (listenAddressInfo && !this._listenedAddresses.includes(listenAddressInfo.address)) {
                   this._listenedAddresses.push(listenAddressInfo.address);
-                  this._coinData.listenAddresses(this.coinType, [listenAddressInfo], this._addressListener);
+                  this._coinData.listenAddresses(this.coinType, [_D2.default.copy(listenAddressInfo)], this._addressListener);
                 }
 
                 prefix = '';
@@ -43431,7 +43448,7 @@ var BtcAccount = function () {
                   confirmations: -1,
                   time: new Date().getTime(),
                   direction: _D2.default.tx.direction.out,
-                  value: prepareTx.total.toString(),
+                  value: '-' + prepareTx.total.toString(),
                   fee: prepareTx.fee.toString(),
                   showAddresses: prepareTx.outputs.map(function (output) {
                     return output.address;
@@ -45391,6 +45408,8 @@ var EthAccount = function () {
                 return _context9.abrupt('return');
 
               case 11:
+                console.log('eth removed txInfo', removedTxInfo);
+
                 removedTxInfo.confirmations = _D2.default.tx.confirmation.dropped;
                 this.addressInfos[0].txs = this.addressInfos[0].txs.filter(function (txId) {
                   return txId !== removedTxId;
@@ -45410,13 +45429,13 @@ var EthAccount = function () {
                 });
                 this.balance = newBalance.toString(10);
 
-                _context9.next = 19;
+                _context9.next = 20;
                 return this._coinData.removeTx(this._toAccountInfo(), this.addressInfos[0], removedTxInfo);
 
-              case 19:
+              case 20:
                 this.busy = false;
 
-              case 20:
+              case 21:
               case 'end':
                 return _context9.stop();
             }
@@ -48476,7 +48495,12 @@ var BlockchainInfo = function (_ICoinNetwork) {
               }
             } else if (xmlhttp.status === 500) {
               console.warn('BlockChainInfo get', xmlhttp);
-              reject(_D2.default.error.networkProviderError);
+              var response = xmlhttp.responseText;
+              if (response.includes('Transaction not found')) {
+                reject(_D2.default.error.networkTxNotFound);
+              } else {
+                reject(_D2.default.error.networkProviderError);
+              }
             } else {
               console.warn(url, xmlhttp);
               reject(_D2.default.error.networkUnavailable);
@@ -48505,9 +48529,7 @@ var BlockchainInfo = function (_ICoinNetwork) {
             } else if (xmlhttp.status === 500) {
               console.warn('BlockChainInfo post', xmlhttp);
               var response = xmlhttp.responseText;
-              if (response === 'Transaction not found') {
-                reject(_D2.default.error.networkTxNotFound);
-              } else if (response.includes('min relay fee not met')) {
+              if (response.includes('min relay fee not met')) {
                 reject(_D2.default.error.networkFeeTooSmall);
               } else if (response.includes('Too many pending transactions')) {
                 reject(_D2.default.error.networkTooManyPendingTx);
@@ -49334,7 +49356,7 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 var typeAddress = 'address';
 var typeTx = 'tx';
 
-var txNotFoundMaxSeconds = 60;
+var txNotFoundMaxSeconds = 30;
 
 var ICoinNetwork = function () {
   function ICoinNetwork(coinType) {
@@ -49608,7 +49630,7 @@ var ICoinNetwork = function () {
                     response = _context4.sent;
 
                   case 6:
-                    _context4.next = 19;
+                    _context4.next = 24;
                     break;
 
                   case 8:
@@ -49616,12 +49638,13 @@ var ICoinNetwork = function () {
                     _context4.t0 = _context4['catch'](1);
 
                     if (!(_context4.t0 === _D2.default.error.networkTxNotFound)) {
-                      _context4.next = 17;
+                      _context4.next = 22;
                       break;
                     }
 
                     if (txInfo.blockNumber >= 0) {
-                      console.warn('tx dropped by network peer from memory pool');
+                      txInfo.blockNumber == 0 && console.warn('tx dropped by network peer from memory pool');
+                      txInfo.blockNumber > 0 && console.warn('tx became orphan');
                       this.txInfo.confirmations = _D2.default.tx.confirmation.dropped;
                       remove(that._requestList, this);
                       callback(_D2.default.error.succeed, _D2.default.copy(this.txInfo), true);
@@ -49630,21 +49653,27 @@ var ICoinNetwork = function () {
                     currentTime = new Date().getTime();
                     deltaSeconds = (currentTime - this.txInfo.time) / 1000;
 
-                    if (deltaSeconds > txNotFoundMaxSeconds) {
-                      console.warn('tx not found in network in', deltaSeconds, 'seconds, stop wait for it. id: ', this.txInfo.txId);
-                      this.txInfo.confirmations = _D2.default.tx.confirmation.dropped;
-                      remove(that._requestList, this);
-                      callback(_D2.default.error.succeed, _D2.default.copy(this.txInfo), true);
+                    if (!(deltaSeconds > txNotFoundMaxSeconds)) {
+                      _context4.next = 20;
+                      break;
                     }
 
-                    console.log('tx not found in network in', deltaSeconds, 'seconds, continue. id: ', this.txInfo.txId);
+                    console.warn('tx not found in network for', deltaSeconds, 'seconds, stop wait for it. id: ', this.txInfo.txId);
+                    this.txInfo.confirmations = _D2.default.tx.confirmation.dropped;
+                    remove(that._requestList, this);
+                    callback(_D2.default.error.succeed, _D2.default.copy(this.txInfo), true);
                     return _context4.abrupt('return');
 
-                  case 17:
+                  case 20:
+
+                    console.log('tx not found in network for', deltaSeconds, 'seconds, continue. id: ', this.txInfo.txId);
+                    return _context4.abrupt('return');
+
+                  case 22:
                     callback(_context4.t0, _D2.default.copy(this.txInfo));
                     return _context4.abrupt('return');
 
-                  case 19:
+                  case 24:
                     blockNumber = response.blockNumber ? response.blockNumber : this.txInfo.blockNumber;
                     confirmations = blockNumber > 0 ? that._blockHeight - blockNumber + 1 : 0;
 
@@ -49662,7 +49691,7 @@ var ICoinNetwork = function () {
                       callback(_D2.default.error.succeed, _D2.default.copy(this.txInfo));
                     }
 
-                  case 24:
+                  case 29:
                   case 'end':
                     return _context4.stop();
                 }
