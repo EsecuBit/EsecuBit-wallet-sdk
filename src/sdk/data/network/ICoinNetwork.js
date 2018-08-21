@@ -4,7 +4,7 @@ import D from '../../D'
 const typeAddress = 'address'
 const typeTx = 'tx'
 
-const txNotFoundMaxSeconds = 60
+const txNotFoundMaxSeconds = 30
 
 export default class ICoinNetwork {
   constructor (coinType) {
@@ -159,7 +159,8 @@ export default class ICoinNetwork {
         } catch (e) {
           if (e === D.error.networkTxNotFound) {
             if (txInfo.blockNumber >= 0) {
-              console.warn('tx dropped by network peer from memory pool')
+              txInfo.blockNumber == 0 && console.warn('tx dropped by network peer from memory pool')
+              txInfo.blockNumber > 0 && console.warn('tx became orphan')
               this.txInfo.confirmations = D.tx.confirmation.dropped
               remove(that._requestList, this)
               callback(D.error.succeed, D.copy(this.txInfo), true)
@@ -168,13 +169,14 @@ export default class ICoinNetwork {
             let currentTime = new Date().getTime()
             let deltaSeconds = (currentTime - this.txInfo.time) / 1000
             if (deltaSeconds > txNotFoundMaxSeconds) {
-              console.warn('tx not found in network in', deltaSeconds, 'seconds, stop wait for it. id: ', this.txInfo.txId)
+              console.warn('tx not found in network for', deltaSeconds, 'seconds, stop wait for it. id: ', this.txInfo.txId)
               this.txInfo.confirmations = D.tx.confirmation.dropped
               remove(that._requestList, this)
               callback(D.error.succeed, D.copy(this.txInfo), true)
+              return
             }
 
-            console.log('tx not found in network in', deltaSeconds, 'seconds, continue. id: ', this.txInfo.txId)
+            console.log('tx not found in network for', deltaSeconds, 'seconds, continue. id: ', this.txInfo.txId)
             return
           }
           callback(e, D.copy(this.txInfo))

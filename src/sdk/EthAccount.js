@@ -140,6 +140,8 @@ export default class EthAccount {
       console.warn(this.accountId, 'removed txId not found', removedTxId)
       return
     }
+    console.log('eth removed txInfo', removedTxInfo)
+
     removedTxInfo.confirmations = D.tx.confirmation.dropped
     this.addressInfos[0].txs = this.addressInfos[0].txs.filter(txId => txId !== removedTxId)
 

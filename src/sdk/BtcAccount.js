@@ -86,15 +86,25 @@ export default class BtcAccount {
       await this._checkAddressIndexAndGenerateNew(true)
     }
 
-    let checkAddressInfos = this.addressInfos
+    let checkAddressInfos = D.copy(this.addressInfos)
     while (true) {
       // find out all the transactions
       let blobs = await this._coinData.checkAddresses(this.coinType, checkAddressInfos)
-      let responses = await Promise.all(blobs.map(blob => this._handleNewTx(blob.addressInfo, blob.txInfo)))
+      let responses = await Promise.all(blobs.map(blob => {
+        if (blob.removedTxId) {
+          let removedTxInfo = this.txInfos.find(txInfo => txInfo.txId === blob.removedTxId)
+          // let the txListener handle the overTime pending tx
+          if (removedTxInfo && removedTxInfo.confirmations !== D.tx.confirmation.pending) {
+            return this._handleRemovedTx(blob.addressInfo, blob.removedTxId)
+          }
+        } else {
+          return this._handleNewTx(blob.addressInfo, blob.txInfo)
+        }
+      }))
 
       if (offlineMode) break
       if (responses.length === 0) break
-      checkAddressInfos = await this._checkAddressIndexAndGenerateNew(true)
+      checkAddressInfos = D.copy(await this._checkAddressIndexAndGenerateNew(true))
     }
 
     if (firstSync) {
@@ -102,9 +112,11 @@ export default class BtcAccount {
         this.externalPublicKeyIndex, this.externalPublicKeyIndex + 1, D.address.external)[0]
       if (listenAddressInfo && !this._listenedAddresses.includes(listenAddressInfo.address)) {
         this._listenedAddresses.push(listenAddressInfo.address)
-        this._coinData.listenAddresses(this.coinType, [listenAddressInfo], this._addressListener)
+        this._coinData.listenAddresses(this.coinType, [D.copy(listenAddressInfo)], this._addressListener)
       }
-      this.txInfos.filter(txInfo => txInfo.confirmations < D.tx.getMatureConfirms(this.coinType))
+      this.txInfos
+        .filter(txInfo => txInfo.confirmations !== D.tx.confirmation.dropped)
+        .filter(txInfo => txInfo.confirmations < D.tx.getMatureConfirms(this.coinType))
         .filter(txInfo => !this._listenedTxs.includes(txInfo.txId))
         .forEach(txInfo => {
           this._listenedTxs.push(txInfo.txId)
@@ -139,24 +151,26 @@ export default class BtcAccount {
 
   async _handleRemovedTx (addressInfo, removedTxId) {
     console.warn('btc removed txId', removedTxId)
-    console.warn('not handle it for now')
     // async operation may lead to disorder. so we need a simple lock
     while (this.busy) {
       await D.wait(2)
     }
     this.busy = true
 
-    let removedTxInfo = this.txInfos.filter(txInfo => txInfo.txId === removedTxId)
+    let removedTxInfo = this.txInfos.find(txInfo => txInfo.txId === removedTxId)
     if (!removedTxInfo) {
       console.warn(this.accountId, 'removed txId not found', removedTxId)
       return
     }
+    console.log('btc removed txInfo', removedTxInfo)
+
     removedTxInfo.confirmations = D.tx.confirmation.dropped
     let oldAddressInfo = this.addressInfos.find(a => a.address === addressInfo.address)
     oldAddressInfo.txs = oldAddressInfo.txs.filter(txId => txId !== removedTxId)
 
-    let removedUtxos = this.utxos.filter(utxo => utxo.txId === removedTxId)
-    this.utxos = this.utxos.filter(utxo => removedUtxos.some(u => u.txId === utxo.txId))
+    let removeUtxos = this.utxos.filter(utxo => utxo.txId === removedTxId)
+    this.utxos = this.utxos.filter(utxo => !removeUtxos.some(u => u.txId === utxo.txId))
+
     let updateUtxos = []
     removedTxInfo.inputs.forEach(input => {
       if (!input.isMine) return
@@ -165,8 +179,13 @@ export default class BtcAccount {
       updateUtxos.push(revertUtxo)
     })
 
+    this.balance = this.utxos
+      .filter(utxo => utxo.status === D.utxo.status.unspent || utxo.status === D.utxo.status.unspent_pending)
+      .reduce((sum, utxo) => sum + utxo.value, 0)
+      .toString()
+
     await this._coinData.removeTx(this._toAccountInfo(), D.copy(oldAddressInfo),
-      D.copy(removedTxInfo), D.copy(updateUtxos), D.copy(removedTxInfo))
+      D.copy(removedTxInfo), D.copy(updateUtxos), D.copy(removeUtxos))
     this.busy = false
   }
 
@@ -284,11 +303,6 @@ export default class BtcAccount {
       .filter(oldUtxo => !utxos.some(utxo => oldUtxo.txId === utxo.txId && oldUtxo.index === utxo.index))
       .concat(utxos)
     let oldAddressInfo = this.addressInfos.find(a => a.address === addressInfo.address)
-    oldAddressInfo.txs.forEach(txId => {
-      if (!addressInfo.txs.includes(txId)) {
-        addressInfo.txs.push(txId)
-      }
-    })
     oldAddressInfo.txs = D.copy(addressInfo.txs)
 
     this.balance = this.utxos
@@ -303,7 +317,7 @@ export default class BtcAccount {
     } else {
       if (this.changePublicKeyIndex < newIndex) this.changePublicKeyIndex = newIndex
     }
-    await this._coinData.newTx(this._toAccountInfo(), addressInfo, txInfo, utxos)
+    await this._coinData.newTx(this._toAccountInfo(), D.copy(oldAddressInfo), txInfo, utxos)
 
     if (txInfo.confirmations < D.tx.getMatureConfirms(this.coinType)) {
       if (!this._listenedTxs.some(tx => tx === txInfo.txId)) {
@@ -352,7 +366,7 @@ export default class BtcAccount {
     }
 
     let newAddressInfos = [].concat(await checkAndGenerate(D.address.external), await checkAndGenerate(D.address.change))
-    await this._coinData.newAddressInfos(this._toAccountInfo(), newAddressInfos)
+    await this._coinData.newAddressInfos(this._toAccountInfo(), D.copy(newAddressInfos))
     this.addressInfos.push(...newAddressInfos)
     return newAddressInfos
   }
@@ -389,7 +403,7 @@ export default class BtcAccount {
       this.externalPublicKeyIndex, this.externalPublicKeyIndex + 1, D.address.external)[0]
     if (listenAddressInfo && !this._listenedAddresses.includes(listenAddressInfo.address)) {
       this._listenedAddresses.push(listenAddressInfo.address)
-      this._coinData.listenAddresses(this.coinType, [listenAddressInfo], this._addressListener)
+      this._coinData.listenAddresses(this.coinType, [D.copy(listenAddressInfo)], this._addressListener)
     }
 
     let prefix = ''
@@ -537,7 +551,7 @@ export default class BtcAccount {
       confirmations: -1,
       time: new Date().getTime(),
       direction: D.tx.direction.out,
-      value: prepareTx.total.toString(),
+      value: '-' + prepareTx.total.toString(),
       fee: prepareTx.fee.toString(),
       showAddresses: prepareTx.outputs.map(output => output.address),
       inputs: prepareTx.utxos.map(utxo => {

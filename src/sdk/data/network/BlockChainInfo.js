@@ -52,7 +52,12 @@ export default class BlockchainInfo extends ICoinNetwork {
             }
           } else if (xmlhttp.status === 500) {
             console.warn('BlockChainInfo get', xmlhttp)
-            reject(D.error.networkProviderError)
+            let response = xmlhttp.responseText
+            if (response.includes('Transaction not found')) {
+              reject(D.error.networkTxNotFound)
+            } else {
+              reject(D.error.networkProviderError)
+            }
           } else {
             console.warn(url, xmlhttp)
             reject(D.error.networkUnavailable)
@@ -80,9 +85,7 @@ export default class BlockchainInfo extends ICoinNetwork {
           } else if (xmlhttp.status === 500) {
             console.warn('BlockChainInfo post', xmlhttp)
             let response = xmlhttp.responseText
-            if (response === 'Transaction not found') {
-              reject(D.error.networkTxNotFound)
-            } else if (response.includes('min relay fee not met')) {
+            if (response.includes('min relay fee not met')) {
               reject(D.error.networkFeeTooSmall)
             } else if (response.includes('Too many pending transactions')) {
               reject(D.error.networkTooManyPendingTx)
