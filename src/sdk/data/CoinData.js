@@ -220,7 +220,14 @@ export default class CoinData {
   }
 
   async newTx (account, addressInfo, txInfo, utxos) {
+    console.log('newTx', account, addressInfo, txInfo, utxos)
     await this._db.newTx(account, addressInfo, txInfo, utxos)
+    this._listeners.forEach(listener => D.dispatch(() => listener(D.error.succeed, txInfo)))
+  }
+
+  async removeTx (account, addressInfo, txInfo, updateUtxos, removeUtxos) {
+    console.log('removeTx', account, addressInfo, txInfo, updateUtxos, removeUtxos)
+    await this._db.removeTx(account, addressInfo, txInfo, updateUtxos, removeUtxos)
     this._listeners.forEach(listener => D.dispatch(() => listener(D.error.succeed, txInfo)))
   }
 

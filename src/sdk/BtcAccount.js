@@ -18,12 +18,20 @@ export default class BtcAccount {
     this._listenedTxs = []
     this._listenedAddresses = []
 
-    this._txListener = async (error, txInfo) => {
+    this._txListener = async (error, txInfo, isLost = false) => {
       if (error !== D.error.succeed) {
         console.warn('BtcAccount txListener', error)
         return
       }
       console.log('newTransaction status', txInfo)
+
+      if (isLost) {
+        let addressInfos = this.addressInfos.filter(addressInfo => addressInfo.txs.includes(txInfo.txId))
+        for (let addressInfo of addressInfos) {
+          await this._handleRemovedTx(addressInfo, txInfo.txId)
+        }
+        return
+      }
 
       // find out all the self addresses
       let selfAddressInfos = []
@@ -45,14 +53,21 @@ export default class BtcAccount {
           addressInfo.txs.push(txInfo.txId)
         }
       })
-      selfAddressInfos.forEach(addressInfo => {
-        this._handleNewTx(addressInfo, txInfo)
-      })
+      for (let addressInfo of selfAddressInfos) {
+        await this._handleNewTx(addressInfo, txInfo)
+      }
     }
 
-    this._addressListener = async (error, addressInfo, txInfo) => {
+    this._addressListener = async (error, addressInfo, txInfo, removedTxId) => {
       if (error !== D.error.succeed) {
         console.warn('BtcAccount addressListener', error)
+        return
+      }
+
+      addressInfo = D.copy(addressInfo)
+      txInfo = D.copy(txInfo)
+      if (removedTxId) {
+        await this._handleRemovedTx(addressInfo, removedTxId)
         return
       }
       await this._handleNewTx(addressInfo, txInfo)
@@ -66,7 +81,6 @@ export default class BtcAccount {
     this.utxos = await this._coinData.getUtxos({accountId})
   }
 
-  // TODO judge recover from compress or uncompress public key
   async sync (firstSync = false, offlineMode = false) {
     if (!offlineMode) {
       await this._checkAddressIndexAndGenerateNew(true)
@@ -123,6 +137,39 @@ export default class BtcAccount {
     oldTxInfo.comment = txInfo.comment
   }
 
+  async _handleRemovedTx (addressInfo, removedTxId) {
+    console.warn('btc removed txId', removedTxId)
+    console.warn('not handle it for now')
+    // async operation may lead to disorder. so we need a simple lock
+    while (this.busy) {
+      await D.wait(2)
+    }
+    this.busy = true
+
+    let removedTxInfo = this.txInfos.filter(txInfo => txInfo.txId === removedTxId)
+    if (!removedTxInfo) {
+      console.warn(this.accountId, 'removed txId not found', removedTxId)
+      return
+    }
+    removedTxInfo.confirmations = D.tx.confirmation.dropped
+    let oldAddressInfo = this.addressInfos.find(a => a.address === addressInfo.address)
+    oldAddressInfo.txs = oldAddressInfo.txs.filter(txId => txId !== removedTxId)
+
+    let removedUtxos = this.utxos.filter(utxo => utxo.txId === removedTxId)
+    this.utxos = this.utxos.filter(utxo => removedUtxos.some(u => u.txId === utxo.txId))
+    let updateUtxos = []
+    removedTxInfo.inputs.forEach(input => {
+      if (!input.isMine) return
+      let revertUtxo = this.utxos.find(utxo => (input.prevTxId === utxo.txId) && (input.prevOutIndex === utxo.index))
+      revertUtxo.status = D.utxo.status.unspent
+      updateUtxos.push(revertUtxo)
+    })
+
+    await this._coinData.removeTx(this._toAccountInfo(), D.copy(oldAddressInfo),
+      D.copy(removedTxInfo), D.copy(updateUtxos), D.copy(removedTxInfo))
+    this.busy = false
+  }
+
   /**
    * handle new transaction
    * update txInfo, find out new transaction and utxos for specific address
@@ -174,7 +221,7 @@ export default class BtcAccount {
         index: output.index,
         script: output.script,
         value: output.value,
-        status: txInfo.confirmations === 0 ? D.utxo.status.unspent_pending : D.utxo.status.unspent
+        status: txInfo.confirmations === D.tx.confirmation.inMemory ? D.utxo.status.unspent_pending : D.utxo.status.unspent
       }
     })
     utxos.push(...unspentUtxos)
@@ -191,7 +238,7 @@ export default class BtcAccount {
           index: input.prevOutIndex,
           script: input.prevOutScript,
           value: input.value,
-          status: txInfo.confirmations === 0 ? D.utxo.status.spent_pending : D.utxo.status.spent
+          status: txInfo.confirmations === D.tx.confirmation.inMemory ? D.utxo.status.spent_pending : D.utxo.status.spent
         }
       })
       utxos.push(...spentUtxos)

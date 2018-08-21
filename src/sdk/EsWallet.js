@@ -109,7 +109,6 @@ export default class EsWallet {
     await Promise.all(this._esAccounts.map(esAccount => esAccount.init()))
   }
 
-  // TODO some block may forked and became orphan in the future, some txs and utxos may be invalid
   async _sync () {
     if (this._esAccounts.length === 0) {
       if (this.offlineMode) throw D.error.offlineModeNotAllowed

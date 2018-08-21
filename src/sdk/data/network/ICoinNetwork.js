@@ -4,6 +4,8 @@ import D from '../../D'
 const typeAddress = 'address'
 const typeTx = 'tx'
 
+const txNotFoundMaxSeconds = 60
+
 export default class ICoinNetwork {
   constructor (coinType) {
     this.coinType = coinType
@@ -156,7 +158,23 @@ export default class ICoinNetwork {
           }
         } catch (e) {
           if (e === D.error.networkTxNotFound) {
-            console.log('tx not found in btcNetwork, continue. id: ', this.txInfo.txId)
+            if (txInfo.blockNumber >= 0) {
+              console.warn('tx dropped by network peer from memory pool')
+              this.txInfo.confirmations = D.tx.confirmation.dropped
+              remove(that._requestList, this)
+              callback(D.error.succeed, D.copy(this.txInfo), true)
+            }
+
+            let currentTime = new Date().getTime()
+            let deltaSeconds = (currentTime - this.txInfo.time) / 1000
+            if (deltaSeconds > txNotFoundMaxSeconds) {
+              console.warn('tx not found in network in', deltaSeconds, 'seconds, stop wait for it. id: ', this.txInfo.txId)
+              this.txInfo.confirmations = D.tx.confirmation.dropped
+              remove(that._requestList, this)
+              callback(D.error.succeed, D.copy(this.txInfo), true)
+            }
+
+            console.log('tx not found in network in', deltaSeconds, 'seconds, continue. id: ', this.txInfo.txId)
             return
           }
           callback(e, D.copy(this.txInfo))
@@ -165,7 +183,9 @@ export default class ICoinNetwork {
         let blockNumber = response.blockNumber ? response.blockNumber : this.txInfo.blockNumber
         let confirmations = blockNumber > 0 ? (that._blockHeight - blockNumber + 1) : 0
 
-        if (confirmations > 0) this.hasRecord = true
+        if (confirmations > 0) {
+          this.hasRecord = true
+        }
         if (confirmations >= D.tx.getMatureConfirms(this.txInfo.coinType)) {
           console.log('confirmations enough, remove', this)
           remove(that._requestList, this)
@@ -196,7 +216,7 @@ export default class ICoinNetwork {
         request: async () => {
           task.request()
             .then(blobs => blobs.forEach(
-              blob => callback(D.error.succeed, blob.addressInfo, blob.txInfo)))
+              blob => callback(D.error.succeed, blob.addressInfo, blob.txInfo, blob.removedTxId)))
             .catch(e => callback(e))
         }
       })
@@ -213,7 +233,7 @@ export default class ICoinNetwork {
   }
 
   generateAddressTasks (addressInfos) {
-    let checkNewTx = async (response, addressInfo) => {
+    let checkTx = async (response, addressInfo) => {
       let newTransaction = async (addressInfo, tx) => {
         let txInfo = {
           accountId: addressInfo.accountId,
@@ -234,13 +254,26 @@ export default class ICoinNetwork {
       }
 
       let newTxs = response.txs.filter(tx => !addressInfo.txs.some(txId => txId === tx.txId))
-      // keep notificate the tx which confirmations = 0, because eth gas may change after confirmed
-      newTxs.filter(tx => tx.confirmations > 0).forEach(tx => addressInfo.txs.push(tx.txId))
-      return Promise.all(newTxs.map(async tx => {
-        // TODO queryTx request speed
+      newTxs.forEach(tx => addressInfo.txs.push(tx.txId))
+      let newTxBlobs = await Promise.all(newTxs.map(async tx => {
+        // TODO later queryTx request speed for no details
         if (!tx.hasDetails) tx = await this.queryTx(tx.txId)
         return newTransaction(addressInfo, tx)
       }))
+
+      let removedTxIds = addressInfo.txs.filter(txId => !response.txs.some(tx => txId === tx.txId))
+      addressInfo.txs = addressInfo.txs.filter(txId => !removedTxIds.some(id => txId === id))
+      let removedTxBlobs = removedTxIds.map(txId => {
+        return {
+          addressInfo: addressInfo,
+          removedTxId: txId
+        }
+      })
+
+      if (newTxBlobs.length || removedTxBlobs.length) {
+        console.debug('ICoinNetwork checkTx', newTxBlobs, removedTxBlobs)
+      }
+      return newTxBlobs.concat(removedTxBlobs)
     }
 
     const _this = this
@@ -250,13 +283,13 @@ export default class ICoinNetwork {
       let addresses = Object.keys(addressMap)
       return [{request () {
         return _this.queryAddresses(addresses)
-          .then(multiResponses => Promise.all(multiResponses.map(response => checkNewTx(response, addressMap[response.address]))))
+          .then(multiResponses => Promise.all(multiResponses.map(response => checkTx(response, addressMap[response.address]))))
           .then(blobs => blobs.reduce((array, item) => array.concat(item), []))
       }}]
     } else {
       return addressInfos.map(addressInfo => {
         return {request () {
-          return _this.queryAddress(addressInfo.address).then(response => checkNewTx(response, addressInfo))
+          return _this.queryAddress(addressInfo.address).then(response => checkTx(response, addressInfo))
         }}
       })
     }

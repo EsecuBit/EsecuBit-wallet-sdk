@@ -17,12 +17,18 @@ export default class EthAccount {
     this._coinData = coinData
     this._listenedTxs = []
 
-    this._txListener = async (error, txInfo) => {
+    this._txListener = async (error, txInfo, isLost = false) => {
       if (error !== D.error.succeed) {
         console.warn('EthAccount txListener', error)
         return
       }
       console.log('newTransaction status', txInfo)
+
+      if (isLost) {
+        await this._handleRemovedTx(this.addressInfos[0], txInfo.txId)
+        return
+      }
+
       let index = this.txInfos.findIndex(t => t.txId === txInfo.txId)
       if (index === -1) {
         console.warn('this should not happen, add it')
@@ -35,9 +41,13 @@ export default class EthAccount {
       await this._handleNewTx(this.addressInfos[0], this.txInfos[index])
     }
 
-    this._addressListener = async (error, addressInfo, txInfo) => {
+    this._addressListener = async (error, addressInfo, txInfo, removedTxId) => {
       if (error !== D.error.succeed) {
         console.warn('EthAccount addressListener', error)
+        return
+      }
+      if (removedTxId) {
+        await this._handleRemovedTx(addressInfo, removedTxId)
         return
       }
       await this._handleNewTx(addressInfo, txInfo)
@@ -54,10 +64,19 @@ export default class EthAccount {
     if (!offlineMode) await this._generateAddressIfNotExist()
     // find out all the transactions
     let blobs = await this._coinData.checkAddresses(this.coinType, this.addressInfos)
-    await Promise.all(blobs.map(blob => this._handleNewTx(blob.addressInfo, blob.txInfo, blob.utxos)))
+    await Promise.all(blobs.map(blob => {
+      if (blob.removedTxId) {
+        return this._handleRemovedTx(blob.addressInfo, blob.removedTxId)
+      } else {
+        return this._handleNewTx(blob.addressInfo, blob.txInfo, blob.utxos)
+      }
+    }))
+
     if (firstSync) {
       this._coinData.listenAddresses(this.coinType, D.copy(this.addressInfos), this._addressListener)
-      this.txInfos.filter(txInfo => txInfo.confirmations < D.tx.getMatureConfirms(this.coinType))
+      this.txInfos
+        .filter(txInfo => txInfo.confirmations !== D.tx.confirmation.dropped)
+        .filter(txInfo => txInfo.confirmations < D.tx.getMatureConfirms(this.coinType))
         .filter(txInfo => !this._listenedTxs.includes(txInfo.txId))
         .forEach(txInfo => {
           this._listenedTxs.push(txInfo.txId)
@@ -108,22 +127,54 @@ export default class EthAccount {
     }
   }
 
+  async _handleRemovedTx (addressInfo, removedTxId) {
+    console.warn('eth removed txId', removedTxId)
+    // async operation may lead to disorder. so we need a simple lock
+    while (this.busy) {
+      await D.wait(2)
+    }
+    this.busy = true
+
+    let removedTxInfo = this.txInfos.find(txInfo => txInfo.txId === removedTxId)
+    if (!removedTxInfo) {
+      console.warn(this.accountId, 'removed txId not found', removedTxId)
+      return
+    }
+    removedTxInfo.confirmations = D.tx.confirmation.dropped
+    this.addressInfos[0].txs = this.addressInfos[0].txs.filter(txId => txId !== removedTxId)
+
+    // can't use BigInteger.ZERO here, addTo, subTo will modify the value of BigInteger.ZERO
+    let newBalance = new BigInteger()
+    newBalance.fromInt(0)
+    this.txInfos
+      .filter(txInfo => txInfo.confirmations !== D.tx.confirmation.dropped)
+      .forEach(txInfo => {
+        newBalance.addTo(new BigInteger(txInfo.value), newBalance)
+        if (txInfo.direction === D.tx.direction.out) {
+          newBalance.subTo(new BigInteger(txInfo.fee), newBalance)
+        }
+      })
+    this.balance = newBalance.toString(10)
+
+    await this._coinData.removeTx(this._toAccountInfo(), this.addressInfos[0], removedTxInfo)
+    this.busy = false
+  }
+
   /**
    * handle when new transaction comes:
    * 1. store/update new txInfo after filling "isMine" and "value" field
    * 2. store utxo, addressInfo, txInfo
    */
   async _handleNewTx (addressInfo, txInfo) {
-    console.log('newTransaction', addressInfo, txInfo)
-    txInfo = D.copy(txInfo)
-    addressInfo = D.copy(addressInfo)
-
+    console.log('eth newTransaction', addressInfo, txInfo)
     // async operation may lead to disorder. so we need a simple lock
-    // eslint-disable-next-line
     while (this.busy) {
-      await D.wait(5)
+      await D.wait(2)
     }
     this.busy = true
+
+    txInfo = D.copy(txInfo)
+    addressInfo = D.copy(addressInfo)
     txInfo.inputs.forEach(input => {
       input['isMine'] = this.addressInfos.some(a => a.address.toLowerCase() === input.prevAddress.toLowerCase())
     })
@@ -157,21 +208,23 @@ export default class EthAccount {
     // can't use BigInteger.ZERO here, addTo, subTo will modify the value of BigInteger.ZERO
     let newBalance = new BigInteger()
     newBalance.fromInt(0)
-    this.txInfos.forEach(txInfo => {
-      newBalance.addTo(new BigInteger(txInfo.value), newBalance)
-      if (txInfo.direction === D.tx.direction.out) {
-        newBalance.subTo(new BigInteger(txInfo.fee), newBalance)
-      }
-    })
+    this.txInfos
+      .filter(txInfo => txInfo.confirmations !== D.tx.confirmation.dropped)
+      .forEach(txInfo => {
+        newBalance.addTo(new BigInteger(txInfo.value), newBalance)
+        if (txInfo.direction === D.tx.direction.out) {
+          newBalance.subTo(new BigInteger(txInfo.fee), newBalance)
+        }
+      })
     this.balance = newBalance.toString(10)
 
     await this._coinData.newTx(this._toAccountInfo(), addressInfo, txInfo, [])
 
-    if (txInfo.confirmations < D.tx.getMatureConfirms(this.coinType)) {
-      if (!this._listenedTxs.some(tx => tx === txInfo.txId)) {
+    if (txInfo.confirmations !== D.tx.confirmation.dropped &&
+      txInfo.confirmations < D.tx.getMatureConfirms(this.coinType) &&
+      !this._listenedTxs.some(tx => tx === txInfo.txId)) {
         this._listenedTxs.push(txInfo.txId)
         this._coinData.listenTx(this.coinType, D.copy(txInfo), this._txListener)
-      }
     }
 
     this.busy = false
@@ -265,7 +318,10 @@ export default class EthAccount {
     }
 
     let input = D.copy(this.addressInfos[0])
-    let nonce = this.txInfos.filter(txInfo => txInfo.direction === D.tx.direction.out).length
+    let nonce = this.txInfos
+      .filter(txInfo => txInfo.confirmations !== D.tx.confirmation.dropped)
+      .filter(txInfo => txInfo.direction === D.tx.direction.out)
+      .length
     let fee = gasLimit.multiply(gasPrice)
 
     let balance = new BigInteger(this.balance)

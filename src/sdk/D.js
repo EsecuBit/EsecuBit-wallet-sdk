@@ -334,9 +334,23 @@ const D = {
       in: 'in',
       out: 'out'
     },
+
     matureConfirms: {
       btc: 6,
       eth: 6
+    },
+
+    /**
+     *   -2: dropped by btcNetwork peer from memeory pool
+     *   -1: not found in btcNetwork
+     *   0: found in miner's memory pool.
+     *   other: confirmations just for showing the status.
+     *          won't be updated after confirmations >= D.tx.matureConfirms.coinType
+     */
+    confirmation: {
+      dropped: -2,
+      pending: -1,
+      inMemory: 0
     },
 
     getMatureConfirms (coinType) {
