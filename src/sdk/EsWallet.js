@@ -34,7 +34,11 @@ export default class EsWallet {
     this._callback = null
     this._device.listenPlug(async (error, plugStatus) => {
       // ignore the same plug event sent multiple times
-      if (this._status === plugStatus) return
+      if (this._status !== D.status.plugOut) {
+        if (plugStatus === D.status.plugIn) {
+          return
+        }
+      }
 
       // handle error
       this._status = plugStatus
