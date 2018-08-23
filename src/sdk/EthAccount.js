@@ -11,6 +11,7 @@ export default class EthAccount {
       this.index = info.index
       this.balance = info.balance
       this.externalPublicKeyIndex = info.externalPublicKeyIndex
+      this.changePublicKeyIndex = info.changePublicKeyIndex
     }
     assign()
     this._device = device
@@ -225,8 +226,8 @@ export default class EthAccount {
     if (txInfo.confirmations !== D.tx.confirmation.dropped &&
       txInfo.confirmations < D.tx.getMatureConfirms(this.coinType) &&
       !this._listenedTxs.some(tx => tx === txInfo.txId)) {
-        this._listenedTxs.push(txInfo.txId)
-        this._coinData.listenTx(this.coinType, D.copy(txInfo), this._txListener)
+      this._listenedTxs.push(txInfo.txId)
+      this._coinData.listenTx(this.coinType, D.copy(txInfo), this._txListener)
     }
 
     this.busy = false
@@ -238,7 +239,9 @@ export default class EthAccount {
       label: this.label,
       coinType: this.coinType,
       index: this.index,
-      balance: this.balance
+      balance: this.balance,
+      externalPublicKeyIndex: this.externalPublicKeyIndex,
+      changePublicKeyIndex: this.changePublicKeyIndex
     }
   }
 
