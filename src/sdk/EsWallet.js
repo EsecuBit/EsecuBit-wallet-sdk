@@ -26,6 +26,7 @@ export default class EsWallet {
     }
     EsWallet.prototype.Instance = this
 
+    this._info = {}
     this._esAccounts = []
     this._device = D.test.jsWallet ? new Provider.SoftWallet() : new Provider.HardWallet()
     this._coinData = new CoinData()
@@ -51,7 +52,11 @@ export default class EsWallet {
         this._status = D.status.initializing
         this._callback && D.dispatch(() => this._callback(D.error.succeed, this._status))
         try {
-          await this._init()
+          let newInfo = await this._init()
+          if (this._info.walletId !== newInfo.walletId) {
+            this._callback && D.dispatch(() => this._callback(D.error.succeed, D.status.deviceChange))
+          }
+          this._info = newInfo
         } catch (e) {
           console.warn(e)
           this._callback && D.dispatch(() => this._callback(e, this._status))
@@ -87,15 +92,17 @@ export default class EsWallet {
   async enterOfflineMode () {
     if (this._status !== D.status.plugOut) throw D.error.offlineModeUnnecessary
     this.offlineMode = true
-    await this._init()
+    this._info = await this._init()
     await this._sync()
   }
 
   async _init () {
     let info
-    if (!this.offlineMode) info = await this._device.init()
+    if (!this.offlineMode) {
+      info = await this._device.init()
+    }
 
-    await this._coinData.init(info, this.offlineMode)
+    let newInfo = await this._coinData.init(info, this.offlineMode)
     let accounts = await this._coinData.getAccounts()
     accounts = accounts.filter(account => EsWallet.supportedCoinTypes().includes(account.coinType))
     accounts.forEach(account => {
@@ -107,6 +114,8 @@ export default class EsWallet {
       this._esAccounts.push(esAccount)
     })
     await Promise.all(this._esAccounts.map(esAccount => esAccount.init()))
+
+    return newInfo
   }
 
   async _sync () {

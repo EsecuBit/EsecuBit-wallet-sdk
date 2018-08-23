@@ -10,7 +10,8 @@ const D = {
   status: {
     plugIn: 1,
     initializing: 2,
-    syncing: 3,
+    deviceChange: 3,
+    syncing: 5,
     syncFinish: 10,
     plugOut: 99
   },

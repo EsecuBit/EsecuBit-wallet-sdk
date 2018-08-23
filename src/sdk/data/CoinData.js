@@ -75,7 +75,8 @@ export default class CoinData {
         this._exchange[coinType].onUpdateExchange = (fee) => this._db.saveOrUpdateExchange(fee)
       }))
 
-      console.log('coin data init finish', this._db)
+      console.log('coin data init finish', info)
+      return info
     } catch (e) {
       // TODO throw Error instead of int in the whole project
       if (typeof e === 'number') {
