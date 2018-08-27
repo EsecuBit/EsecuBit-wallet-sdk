@@ -101,6 +101,7 @@ export default class EsWallet {
   }
 
   async _init () {
+    this._esAccounts = []
     let info
     if (!this.offlineMode) {
       info = await this._device.init()
