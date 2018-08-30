@@ -43306,12 +43306,12 @@ var BtcAccount = function () {
                   return { newTotal: newTotal, willSpentUtxos: willSpentUtxos };
                 };
 
-                // calculate the fee using uncompressed public key size
+                // calculate the fee using compressed public key size
 
 
                 calculateFee = function calculateFee(utxos, outputs) {
                   var outputSize = outputs.length + 1; // 1 for change output
-                  return (utxos.length * 180 + 34 * outputSize + 34 + 10) * details.feeRate;
+                  return (10 + 148 * utxos.length + 34 * outputSize) * details.feeRate;
                 };
 
                 fee = 0;
@@ -43626,7 +43626,8 @@ var D = {
   status: {
     plugIn: 1,
     initializing: 2,
-    syncing: 3,
+    deviceChange: 3,
+    syncing: 5,
     syncFinish: 10,
     plugOut: 99
   },
@@ -44284,6 +44285,7 @@ var EsWallet = function () {
     }
     EsWallet.prototype.Instance = this;
 
+    this._info = {};
     this._esAccounts = [];
     this._device = _D2.default.test.jsWallet ? new _Provider2.default.SoftWallet() : new _Provider2.default.HardWallet();
     this._coinData = new _CoinData2.default();
@@ -44291,24 +44293,30 @@ var EsWallet = function () {
     this._callback = null;
     this._device.listenPlug(function () {
       var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(error, plugStatus) {
+        var newInfo;
         return regeneratorRuntime.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                if (!(_this._status === plugStatus)) {
-                  _context.next = 2;
+                if (!(_this._status !== _D2.default.status.plugOut)) {
+                  _context.next = 3;
+                  break;
+                }
+
+                if (!(plugStatus === _D2.default.status.plugIn)) {
+                  _context.next = 3;
                   break;
                 }
 
                 return _context.abrupt('return');
 
-              case 2:
+              case 3:
 
                 // handle error
                 _this._status = plugStatus;
 
                 if (!(error !== _D2.default.error.succeed)) {
-                  _context.next = 6;
+                  _context.next = 7;
                   break;
                 }
 
@@ -44317,7 +44325,7 @@ var EsWallet = function () {
                 });
                 return _context.abrupt('return');
 
-              case 6:
+              case 7:
 
                 // send plug status
                 _this._callback && _D2.default.dispatch(function () {
@@ -44325,7 +44333,7 @@ var EsWallet = function () {
                 });
 
                 if (!(_this._status === _D2.default.status.plugIn)) {
-                  _context.next = 41;
+                  _context.next = 45;
                   break;
                 }
 
@@ -44336,17 +44344,25 @@ var EsWallet = function () {
                 _this._callback && _D2.default.dispatch(function () {
                   return _this._callback(_D2.default.error.succeed, _this._status);
                 });
-                _context.prev = 11;
-                _context.next = 14;
+                _context.prev = 12;
+                _context.next = 15;
                 return _this._init();
 
-              case 14:
-                _context.next = 21;
+              case 15:
+                newInfo = _context.sent;
+
+                if (_this._info.walletId !== newInfo.walletId) {
+                  _this._callback && _D2.default.dispatch(function () {
+                    return _this._callback(_D2.default.error.succeed, _D2.default.status.deviceChange);
+                  });
+                }
+                _this._info = newInfo;
+                _context.next = 25;
                 break;
 
-              case 16:
-                _context.prev = 16;
-                _context.t0 = _context['catch'](11);
+              case 20:
+                _context.prev = 20;
+                _context.t0 = _context['catch'](12);
 
                 console.warn(_context.t0);
                 _this._callback && _D2.default.dispatch(function () {
@@ -44354,32 +44370,32 @@ var EsWallet = function () {
                 });
                 return _context.abrupt('return');
 
-              case 21:
+              case 25:
                 if (!(_this._status === _D2.default.status.plugOut)) {
-                  _context.next = 23;
+                  _context.next = 27;
                   break;
                 }
 
                 return _context.abrupt('return');
 
-              case 23:
+              case 27:
 
                 // syncing
                 _this._status = _D2.default.status.syncing;
                 _this._callback && _D2.default.dispatch(function () {
                   return _this._callback(_D2.default.error.succeed, _this._status);
                 });
-                _context.prev = 25;
-                _context.next = 28;
+                _context.prev = 29;
+                _context.next = 32;
                 return _this._sync();
 
-              case 28:
-                _context.next = 35;
+              case 32:
+                _context.next = 39;
                 break;
 
-              case 30:
-                _context.prev = 30;
-                _context.t1 = _context['catch'](25);
+              case 34:
+                _context.prev = 34;
+                _context.t1 = _context['catch'](29);
 
                 console.warn(_context.t1);
                 _this._callback && _D2.default.dispatch(function () {
@@ -44387,36 +44403,36 @@ var EsWallet = function () {
                 });
                 return _context.abrupt('return');
 
-              case 35:
+              case 39:
                 if (!(_this._status === _D2.default.status.plugOut)) {
-                  _context.next = 37;
+                  _context.next = 41;
                   break;
                 }
 
                 return _context.abrupt('return');
 
-              case 37:
+              case 41:
 
                 // syncFinish
                 _this._status = _D2.default.status.syncFinish;
                 _this._callback && _D2.default.dispatch(function () {
                   return _this._callback(_D2.default.error.succeed, _this._status);
                 });
-                _context.next = 42;
+                _context.next = 46;
                 break;
 
-              case 41:
+              case 45:
                 if (_this._status === _D2.default.status.plugOut) {
                   _this.offlineMode = true;
                   _this._release();
                 }
 
-              case 42:
+              case 46:
               case 'end':
                 return _context.stop();
             }
           }
-        }, _callee, _this, [[11, 16], [25, 30]]);
+        }, _callee, _this, [[12, 20], [29, 34]]);
       }));
 
       return function (_x, _x2) {
@@ -44451,10 +44467,11 @@ var EsWallet = function () {
                 return this._init();
 
               case 5:
-                _context2.next = 7;
+                this._info = _context2.sent;
+                _context2.next = 8;
                 return this._sync();
 
-              case 7:
+              case 8:
               case 'end':
                 return _context2.stop();
             }
@@ -44474,33 +44491,35 @@ var EsWallet = function () {
       var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
         var _this2 = this;
 
-        var info, accounts;
+        var info, newInfo, accounts;
         return regeneratorRuntime.wrap(function _callee3$(_context3) {
           while (1) {
             switch (_context3.prev = _context3.next) {
               case 0:
+                this._esAccounts = [];
                 info = void 0;
 
                 if (this.offlineMode) {
-                  _context3.next = 5;
+                  _context3.next = 6;
                   break;
                 }
 
-                _context3.next = 4;
+                _context3.next = 5;
                 return this._device.init();
 
-              case 4:
+              case 5:
                 info = _context3.sent;
 
-              case 5:
-                _context3.next = 7;
+              case 6:
+                _context3.next = 8;
                 return this._coinData.init(info, this.offlineMode);
 
-              case 7:
-                _context3.next = 9;
+              case 8:
+                newInfo = _context3.sent;
+                _context3.next = 11;
                 return this._coinData.getAccounts();
 
-              case 9:
+              case 11:
                 accounts = _context3.sent;
 
                 accounts = accounts.filter(function (account) {
@@ -44514,12 +44533,15 @@ var EsWallet = function () {
                   var esAccount = _D2.default.isEth(account.coinType) ? new _EthAccount2.default(account, _this2._device, _this2._coinData) : new _BtcAccount2.default(account, _this2._device, _this2._coinData);
                   _this2._esAccounts.push(esAccount);
                 });
-                _context3.next = 14;
+                _context3.next = 16;
                 return Promise.all(this._esAccounts.map(function (esAccount) {
                   return esAccount.init();
                 }));
 
-              case 14:
+              case 16:
+                return _context3.abrupt('return', newInfo);
+
+              case 17:
               case 'end':
                 return _context3.stop();
             }
@@ -45008,6 +45030,7 @@ var EthAccount = function () {
       _this.index = info.index;
       _this.balance = info.balance;
       _this.externalPublicKeyIndex = info.externalPublicKeyIndex;
+      _this.changePublicKeyIndex = info.changePublicKeyIndex;
     };
     assign();
     this._device = device;
@@ -45586,7 +45609,9 @@ var EthAccount = function () {
         label: this.label,
         coinType: this.coinType,
         index: this.index,
-        balance: this.balance
+        balance: this.balance,
+        externalPublicKeyIndex: this.externalPublicKeyIndex,
+        changePublicKeyIndex: this.changePublicKeyIndex
       };
     }
   }, {
@@ -46248,31 +46273,30 @@ var CoinData = function () {
 
               case 25:
 
-                console.log('coin data init finish', this._db);
-                _context3.next = 34;
-                break;
+                console.log('coin data init finish', info);
+                return _context3.abrupt('return', info);
 
-              case 28:
-                _context3.prev = 28;
+              case 29:
+                _context3.prev = 29;
                 _context3.t0 = _context3['catch'](0);
 
                 if (!(typeof _context3.t0 === 'number')) {
-                  _context3.next = 32;
+                  _context3.next = 33;
                   break;
                 }
 
                 throw _context3.t0;
 
-              case 32:
+              case 33:
                 console.warn('coin data init got unknown error', _context3.t0);
                 throw _D2.default.error.unknown;
 
-              case 34:
+              case 35:
               case 'end':
                 return _context3.stop();
             }
           }
-        }, _callee3, this, [[0, 28]]);
+        }, _callee3, this, [[0, 29]]);
       }));
 
       function init(_x2) {
@@ -51063,11 +51087,14 @@ var CoreWallet = function () {
                 // bit 0: 0 not save on key / 1 save on key
                 // bit 1: 0 not show on key / 1 show on key
                 // bit 2: 0 public key / 1 address
+                // bit 3: 0 uncompressed / 1 compressed
                 // if bit2 == 0, bit0 == bit1 == 0
-                flag = 0x04;
+                flag = 0;
 
-                flag += isShowing ? 0x02 : 0x00;
                 flag += isStoring ? 0x01 : 0x00;
+                flag += isShowing ? 0x02 : 0x00;
+                flag += 0x04;
+                flag += 0x08;
                 apdu = _buffer.Buffer.allocUnsafe(26);
 
                 _buffer.Buffer.from('803D00001505', 'hex').copy(apdu);
@@ -51076,12 +51103,13 @@ var CoreWallet = function () {
 
                 pathBuffer.copy(apdu, 0x06);
 
-                _context5.next = 10;
+                _context5.next = 12;
                 return this._sendApdu(apdu);
 
-              case 10:
+              case 12:
                 response = _context5.sent;
                 address = String.fromCharCode.apply(null, response);
+                // device only return mainnet address
 
                 if (_D2.default.isBtc(coinType) && _D2.default.test.coin) {
                   addressBuffer = _D2.default.address.toBuffer(address);
@@ -51091,7 +51119,7 @@ var CoreWallet = function () {
                 }
                 return _context5.abrupt('return', address);
 
-              case 14:
+              case 16:
               case 'end':
                 return _context5.stop();
             }

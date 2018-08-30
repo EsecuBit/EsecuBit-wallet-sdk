@@ -203,7 +203,7 @@ export default class CoreWallet {
 
       let makeScriptSig = (r, s, pubKey) => {
         // DER encode
-        let scriptSigLength = 0x03 + 0x22 + 0x22 + 0x01 + 0x42
+        let scriptSigLength = 0x03 + 0x22 + 0x22 + 0x01 + 0x22
         // s must < N/2, r has no limit
         let upperR = r[0] >= 0x80
         if (upperR) scriptSigLength++
@@ -227,9 +227,10 @@ export default class CoreWallet {
         index += s.length
         // hashType
         scriptSig[index++] = 0x01
-        // pubKey
-        scriptSig[index++] = 0x41
-        scriptSig[index++] = 0x04 // uncompress type
+        // pubKey, compressed type
+        scriptSig[index++] = 0x21
+        scriptSig[index++] = pubKey[63] % 2 === 0 ? 0x02 : 0x03
+        pubKey = pubKey.slice(0, 32)
         pubKey.copy(scriptSig, index)
 
         return scriptSig
