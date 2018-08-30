@@ -478,10 +478,10 @@ export default class BtcAccount {
       return {newTotal, willSpentUtxos}
     }
 
-    // calculate the fee using uncompressed public key size
+    // calculate the fee using compressed public key size
     let calculateFee = (utxos, outputs) => {
       let outputSize = outputs.length + 1 // 1 for change output
-      return (utxos.length * 180 + 34 * outputSize + 34 + 10) * details.feeRate
+      return (10 + 148 * utxos.length + 34 * outputSize) * details.feeRate
     }
 
     let fee = 0

@@ -60,10 +60,13 @@ export default class CoreWallet {
     // bit 0: 0 not save on key / 1 save on key
     // bit 1: 0 not show on key / 1 show on key
     // bit 2: 0 public key / 1 address
+    // bit 3: 0 uncompressed / 1 compressed
     // if bit2 == 0, bit0 == bit1 == 0
-    let flag = 0x04
-    flag += isShowing ? 0x02 : 0x00
+    let flag = 0
     flag += isStoring ? 0x01 : 0x00
+    flag += isShowing ? 0x02 : 0x00
+    flag += 0x04
+    flag += 0x08
     let apdu = Buffer.allocUnsafe(26)
     Buffer.from('803D00001505', 'hex').copy(apdu)
     apdu[3] = flag
@@ -72,6 +75,7 @@ export default class CoreWallet {
 
     let response = await this._sendApdu(apdu)
     let address = String.fromCharCode.apply(null, response)
+    // device only return mainnet address
     if (D.isBtc(coinType) && D.test.coin) {
       let addressBuffer = D.address.toBuffer(address)
       addressBuffer = Buffer.concat([Buffer.from('6F', 'hex'), addressBuffer])
