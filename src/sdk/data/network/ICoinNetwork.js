@@ -159,7 +159,7 @@ export default class ICoinNetwork {
         } catch (e) {
           if (e === D.error.networkTxNotFound) {
             if (txInfo.blockNumber >= 0) {
-              txInfo.blockNumber == 0 && console.warn('tx dropped by network peer from memory pool')
+              txInfo.blockNumber === 0 && console.warn('tx dropped by network peer from memory pool')
               txInfo.blockNumber > 0 && console.warn('tx became orphan')
               this.txInfo.confirmations = D.tx.confirmation.dropped
               remove(that._requestList, this)

@@ -177,7 +177,9 @@ export default class BlockchainInfo extends ICoinNetwork {
       blockNumber: rTx.block_height || -1,
       confirmations: confirmations,
       time: rTx.time * 1000,
-      hasDetails: true
+      // if you query a single address, it may missing some outputs. see
+      // https://testnet.blockchain.info/multiaddr?cors=true&offset=0&n=100&active=mkscdDdESTD5KUyvNFAYEGPmhKM8fC9REZ
+      hasDetails: (rTx.inputs.length === rTx.vin_sz) && (rTx.out.length === rTx.vout_sz)
     }
     let index = 0
     tx.inputs = await Promise.all(rTx.inputs.map(async input => {
