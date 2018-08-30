@@ -179,6 +179,7 @@ export default class BlockchainInfo extends ICoinNetwork {
       time: rTx.time * 1000,
       // if you query a single address, it may missing some outputs. see
       // https://testnet.blockchain.info/multiaddr?cors=true&offset=0&n=100&active=mkscdDdESTD5KUyvNFAYEGPmhKM8fC9REZ
+      // this only makes troubles when you transfer coin to your own address and make a change
       hasDetails: (rTx.inputs.length === rTx.vin_sz) && (rTx.out.length === rTx.vout_sz)
     }
     let index = 0
