@@ -48852,7 +48852,10 @@ var BlockchainInfo = function (_ICoinNetwork) {
                   blockNumber: rTx.block_height || -1,
                   confirmations: confirmations,
                   time: rTx.time * 1000,
-                  hasDetails: true
+                  // if you query a single address, it may missing some outputs. see
+                  // https://testnet.blockchain.info/multiaddr?cors=true&offset=0&n=100&active=mkscdDdESTD5KUyvNFAYEGPmhKM8fC9REZ
+                  // this only makes troubles when you transfer coin to your own address and make a change
+                  hasDetails: rTx.inputs.length === rTx.vin_sz && rTx.out.length === rTx.vout_sz
                 };
                 index = 0;
                 _context8.next = 5;
@@ -49667,7 +49670,7 @@ var ICoinNetwork = function () {
                     }
 
                     if (txInfo.blockNumber >= 0) {
-                      txInfo.blockNumber == 0 && console.warn('tx dropped by network peer from memory pool');
+                      txInfo.blockNumber === 0 && console.warn('tx dropped by network peer from memory pool');
                       txInfo.blockNumber > 0 && console.warn('tx became orphan');
                       this.txInfo.confirmations = _D2.default.tx.confirmation.dropped;
                       remove(that._requestList, this);
