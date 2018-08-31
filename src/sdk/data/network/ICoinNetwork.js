@@ -251,6 +251,7 @@ export default class ICoinNetwork {
         if (D.isEth(addressInfo.coinType)) {
           txInfo.gas = tx.gas
           txInfo.gasPrice = tx.gasPrice
+          txInfo.data = tx.data
         }
         return {addressInfo, txInfo}
       }
