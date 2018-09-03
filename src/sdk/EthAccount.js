@@ -309,9 +309,6 @@ export default class EthAccount {
     let output = D.copy(details.output)
     let value = new BigInteger(output.value)
 
-    let minGas = 21000 + (details.data ? (68 * details.data.length) : 0)
-    if (minGas > gasLimit) throw D.error.networkGasTooLow
-
     if (details.data) {
       let data = details.data
       if (data.startsWith('0x')) data = data.slice(2)
@@ -321,6 +318,9 @@ export default class EthAccount {
     } else {
       details.data = '0x'
     }
+
+    let minGas = 21000 + (details.data ? (68 * (details.data.length / 2 - 1)) : 0)
+    if (minGas > gasLimit) throw D.error.networkGasTooLow
 
     let input = D.copy(this.addressInfos[0])
     let nonce = this.txInfos
