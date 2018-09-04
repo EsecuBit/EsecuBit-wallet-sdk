@@ -424,6 +424,7 @@ export default class BtcAccount {
    * @param details
    * {
    *   sendAll: bool,
+   *   oldTxId: string, // resend only
    *   feeRate: string (satoshi),
    *   outputs: [{
    *     address: base58 string,
@@ -462,9 +463,32 @@ export default class BtcAccount {
       .filter(utxo => utxo.value > 0)
       .map(utxo => D.copy(utxo))
 
-    let getEnoughUtxo = (total, sendAll) => {
+    let getEnoughUtxo = (total, sendAll, oldTxId) => {
       let willSpentUtxos = []
       let newTotal = 0
+
+      if (oldTxId) {
+        let oldTxInfo = this.txInfos.find(txInfo => txInfo.txId === oldTxId)
+        if (!oldTxInfo) {
+          console.warn('oldTxId not found in history')
+          throw D.error.unknown
+        }
+
+        oldTxInfo.inputs.forEach(input => {
+          let oldUtxo = this.utxos.find(utxo => utxo.txId === input.prevTxId && utxo.index === input.prevOutIndex)
+          if (!oldUtxo) {
+            console.warn('oldUtxo not found in history', input)
+            throw D.error.unknown
+          }
+          willSpentUtxos.push(oldUtxo)
+          newTotal += oldUtxo.value
+        })
+
+        if (!sendAll && newTotal >= total) {
+          return {newTotal, willSpentUtxos}
+        }
+      }
+
       for (let utxo of utxos) {
         newTotal += utxo.value
         willSpentUtxos.push(utxo)
@@ -491,7 +515,7 @@ export default class BtcAccount {
     while (true) {
       if (Number(this.balance) < fee + totalOut) throw D.error.balanceNotEnough
       // noinspection JSUnresolvedVariable
-      let {newTotal, willSpentUtxos} = getEnoughUtxo(totalOut + fee, details.sendAll)
+      let {newTotal, willSpentUtxos} = getEnoughUtxo(totalOut + fee, details.sendAll, details.oldTxId)
       // new fee calculated
       fee = calculateFee(willSpentUtxos, details.outputs)
       if (newTotal >= totalOut + fee) {

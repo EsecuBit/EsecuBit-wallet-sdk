@@ -121,6 +121,7 @@ export default class EtherScanIo extends ICoinNetwork {
       gas: rTx.gasUsed || rTx.gas,
       gasPrice: rTx.gasPrice,
       data: rTx.input,
+      nonce: rTx.nonce ? parseInt(rTx.nonce) : undefined,
       hasDetails: true
     }
     tx.inputs = [{

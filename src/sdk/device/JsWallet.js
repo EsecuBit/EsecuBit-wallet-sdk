@@ -171,7 +171,7 @@ export default class JsWallet {
         let txb = new bitcoin.TransactionBuilder(this.btcNetwork)
         txb.setVersion(1)
         for (let input of tx.inputs) {
-          txb.addInput(input.txId, input.index)
+          txb.addInput(input.txId, input.index, 0xfffffffd)
         }
         for (let output of tx.outputs) {
           txb.addOutput(output.address, output.value)

@@ -273,6 +273,7 @@ export default class EthAccount {
    * @param details
    * {
    *   sendAll: bool,
+   *   oldTxId: string, // resend only
    *   output: {
    *     address: hex string,
    *     value: string (decimal string Wei)
@@ -323,10 +324,20 @@ export default class EthAccount {
     if (minGas > gasLimit) throw D.error.networkGasTooLow
 
     let input = D.copy(this.addressInfos[0])
-    let nonce = this.txInfos
-      .filter(txInfo => txInfo.confirmations !== D.tx.confirmation.dropped)
-      .filter(txInfo => txInfo.direction === D.tx.direction.out)
-      .length
+    let nonce
+    if (details.oldTxId) {
+      let oldTxInfo = this.txInfos.find(txInfo => txInfo.txId === details.oldTxId)
+      if (!oldTxInfo) {
+        console.warn('oldTxId not found in history')
+        throw D.error.unknown
+      }
+      nonce = oldTxInfo.nonce
+    } else {
+      nonce = this.txInfos
+        .filter(txInfo => txInfo.confirmations !== D.tx.confirmation.dropped)
+        .filter(txInfo => txInfo.direction === D.tx.direction.out)
+        .length
+    }
     let fee = gasLimit.multiply(gasPrice)
 
     let balance = new BigInteger(this.balance)
@@ -411,6 +422,7 @@ export default class EthAccount {
         gas: BigInteger.fromHex(gasLimit.slice(2)).toString(10),
         gasPrice: BigInteger.fromHex(gasPrice.slice(2)).toString(10),
         fee: prepareTx.fee,
+        nonce: prepareTx.nonce,
         data: prepareTx.data
       },
       addressInfo: prepareTx.input,

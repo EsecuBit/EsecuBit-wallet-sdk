@@ -7,6 +7,9 @@ import EthGasStationInfo from './network/fee/EthGasStationInfo'
 import EtherScanIo from './network/EtherScanIo'
 import Provider from '../Provider'
 
+const shouldResendTime = 3 * 3600 * 1000
+const checkShouldResendTime = 60 * 1000
+
 export default class CoinData {
   constructor () {
     if (CoinData.prototype.Instance) {
@@ -75,7 +78,35 @@ export default class CoinData {
         this._exchange[coinType].onUpdateExchange = (fee) => this._db.saveOrUpdateExchange(fee)
       }))
 
+      // check the tx whether it is over time uncomfirmed
+      this._uncomfirmedTxs = null
+      this._unConfirmedCheck = async (firstInit = false) => {
+        if (!firstInit && !this.initialized) return
+        if (!this._uncomfirmedTxs) {
+          this._uncomfirmedTxs = []
+          let {txInfos} = await this._db.getTxInfos()
+          for (let txInfo of txInfos) {
+            this._setTxFlags(txInfo)
+            if (txInfo.canResend && !txInfo.shouldResend) {
+              this._uncomfirmedTxs.push(txInfo)
+            }
+          }
+        }
+
+        for (let txInfo of this._uncomfirmedTxs) {
+          this._setTxFlags(txInfo)
+          if (txInfo.canResend && txInfo.shouldResend) {
+            this._listeners.forEach(listener => D.dispatch(() => listener(D.error.succeed, D.copy(txInfo))))
+            this._uncomfirmedTxs = this._uncomfirmedTxs.filter(t => t.txId !== txInfo.txId)
+          }
+        }
+
+        setTimeout(this._unConfirmedCheck, checkShouldResendTime)
+      }
+      await this._unConfirmedCheck(true)
+
       console.log('coin data init finish', info)
+      this.initialized = true
       return info
     } catch (e) {
       // TODO throw Error instead of int in the whole project
@@ -91,6 +122,8 @@ export default class CoinData {
     this._listeners = []
     await Promise.all(Object.values(this._network).map(network => network.release()))
     if (this._db) await this._db.release()
+    this.initialized = false
+    this._notifiedTxs = null
   }
 
   async getAccounts (filter = {}) {
@@ -208,7 +241,9 @@ export default class CoinData {
 
   async getTxInfos (filter) {
     let {total, txInfos} = await this._db.getTxInfos(filter)
-    txInfos.forEach(txInfo => (txInfo.link = this._network[txInfo.coinType].getTxLink(txInfo)))
+    txInfos.forEach(txInfo => {
+      this._setTxFlags(txInfo)
+    })
     return {total, txInfos}
   }
 
@@ -221,15 +256,36 @@ export default class CoinData {
   }
 
   async newTx (account, addressInfo, txInfo, utxos) {
+    this._setTxFlags(txInfo)
+    this._uncomfirmedTxs.push(txInfo)
+
     console.log('newTx', account, addressInfo, txInfo, utxos)
     await this._db.newTx(account, addressInfo, txInfo, utxos)
-    this._listeners.forEach(listener => D.dispatch(() => listener(D.error.succeed, txInfo)))
+    this._listeners.forEach(listener => D.dispatch(() => listener(D.error.succeed, D.copy(txInfo))))
   }
 
   async removeTx (account, addressInfo, txInfo, updateUtxos, removeUtxos) {
+    this._uncomfirmedTxs = this._uncomfirmedTxs.filter(t => t.txId !== txInfo.txId)
+
     console.log('removeTx', account, addressInfo, txInfo, updateUtxos, removeUtxos)
     await this._db.removeTx(account, addressInfo, txInfo, updateUtxos, removeUtxos)
-    this._listeners.forEach(listener => D.dispatch(() => listener(D.error.succeed, txInfo)))
+    this._listeners.forEach(listener => D.dispatch(() => listener(D.error.succeed, D.copy(txInfo))))
+  }
+
+  /**
+   * txFlags:
+   * link: link of tx details in network provider's website
+   * canResend: this tx can be resent
+   * shoudResend: this tx should be resent
+   */
+  _setTxFlags(txInfo) {
+    if (txInfo.direction === D.tx.direction.out) {
+      txInfo.canResend = txInfo.confirmations === 0
+      if (txInfo.canResend) {
+        txInfo.shouldResend = new Date().getTime() - txInfo.time > shouldResendTime
+      }
+    }
+    txInfo.link = this._network[txInfo.coinType].getTxLink(txInfo)
   }
 
   clearData () {
