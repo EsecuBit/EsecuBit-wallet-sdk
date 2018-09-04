@@ -43203,6 +43203,7 @@ var BtcAccount = function () {
      * @param details
      * {
      *   sendAll: bool,
+     *   oldTxId: string, // resend only
      *   feeRate: string (satoshi),
      *   outputs: [{
      *     address: base58 string,
@@ -43226,6 +43227,8 @@ var BtcAccount = function () {
     key: 'prepareTx',
     value: function () {
       var _ref15 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee15(details) {
+        var _this7 = this;
+
         var utxos, getEnoughUtxo, calculateFee, fee, totalOut, _getEnoughUtxo, newTotal, willSpentUtxos;
 
         return regeneratorRuntime.wrap(function _callee15$(_context15) {
@@ -43268,9 +43271,36 @@ var BtcAccount = function () {
                   return _D2.default.copy(utxo);
                 });
 
-                getEnoughUtxo = function getEnoughUtxo(total, sendAll) {
+                getEnoughUtxo = function getEnoughUtxo(total, sendAll, oldTxId) {
                   var willSpentUtxos = [];
                   var newTotal = 0;
+
+                  if (oldTxId) {
+                    var oldTxInfo = _this7.txInfos.find(function (txInfo) {
+                      return txInfo.txId === oldTxId;
+                    });
+                    if (!oldTxInfo) {
+                      console.warn('oldTxId not found in history');
+                      throw _D2.default.error.unknown;
+                    }
+
+                    oldTxInfo.inputs.forEach(function (input) {
+                      var oldUtxo = _this7.utxos.find(function (utxo) {
+                        return utxo.txId === input.prevTxId && utxo.index === input.prevOutIndex;
+                      });
+                      if (!oldUtxo) {
+                        console.warn('oldUtxo not found in history', input);
+                        throw _D2.default.error.unknown;
+                      }
+                      willSpentUtxos.push(oldUtxo);
+                      newTotal += oldUtxo.value;
+                    });
+
+                    if (!sendAll && newTotal >= total) {
+                      return { newTotal: newTotal, willSpentUtxos: willSpentUtxos };
+                    }
+                  }
+
                   var _iteratorNormalCompletion3 = true;
                   var _didIteratorError3 = false;
                   var _iteratorError3 = undefined;
@@ -43334,7 +43364,7 @@ var BtcAccount = function () {
 
               case 18:
                 // noinspection JSUnresolvedVariable
-                _getEnoughUtxo = getEnoughUtxo(totalOut + fee, details.sendAll), newTotal = _getEnoughUtxo.newTotal, willSpentUtxos = _getEnoughUtxo.willSpentUtxos;
+                _getEnoughUtxo = getEnoughUtxo(totalOut + fee, details.sendAll, details.oldTxId), newTotal = _getEnoughUtxo.newTotal, willSpentUtxos = _getEnoughUtxo.willSpentUtxos;
                 // new fee calculated
 
                 fee = calculateFee(willSpentUtxos, details.outputs);
@@ -43386,7 +43416,7 @@ var BtcAccount = function () {
     key: 'buildTx',
     value: function () {
       var _ref16 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee16(prepareTx) {
-        var _this7 = this;
+        var _this8 = this;
 
         var totalOut, totalIn, rawTx, changeValue, changeAddressInfo, signedTx, txInfo, changeOutput, changeAddressBuffer, changeUtxo;
         return regeneratorRuntime.wrap(function _callee16$(_context16) {
@@ -43427,7 +43457,7 @@ var BtcAccount = function () {
 
                 if (changeValue !== 0) {
                   changeAddressInfo = this.addressInfos.find(function (addressInfo) {
-                    return addressInfo.type === _D2.default.address.change && addressInfo.index === _this7.changePublicKeyIndex;
+                    return addressInfo.type === _D2.default.address.change && addressInfo.index === _this8.changePublicKeyIndex;
                   });
                   rawTx.outputs.push({ address: changeAddressInfo.address, value: changeValue });
                   rawTx.changePath = changeAddressInfo.path;
@@ -43527,7 +43557,7 @@ var BtcAccount = function () {
     key: 'sendTx',
     value: function () {
       var _ref17 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee17(signedTx) {
-        var _this8 = this;
+        var _this9 = this;
 
         var test = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
         var blobs;
@@ -43550,7 +43580,7 @@ var BtcAccount = function () {
                 blobs = {};
 
                 signedTx.utxos.forEach(function (utxo) {
-                  var addressInfo = _D2.default.copy(_this8.addressInfos.find(function (addressInfo) {
+                  var addressInfo = _D2.default.copy(_this9.addressInfos.find(function (addressInfo) {
                     return addressInfo.address === utxo.address;
                   }));
                   if (blobs[addressInfo.address]) {
@@ -43561,7 +43591,7 @@ var BtcAccount = function () {
                   }
                 });
                 Object.values(blobs).forEach(function (blob) {
-                  return _this8._handleNewTxInner(blob.addressInfo, signedTx.txInfo, blob.utxos);
+                  return _this9._handleNewTxInner(blob.addressInfo, signedTx.txInfo, blob.utxos);
                 });
 
               case 7:
@@ -45678,6 +45708,7 @@ var EthAccount = function () {
      * @param details
      * {
      *   sendAll: bool,
+     *   oldTxId: string, // resend only
      *   output: {
      *     address: hex string,
      *     value: string (decimal string Wei)
@@ -45706,7 +45737,7 @@ var EthAccount = function () {
     key: 'prepareTx',
     value: function () {
       var _ref12 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee12(details) {
-        var gasPrice, gasLimit, output, value, minGas, data, input, nonce, fee, balance, total, prepareTx;
+        var gasPrice, gasLimit, output, value, data, minGas, input, nonce, oldTxInfo, fee, balance, total, prepareTx;
         return regeneratorRuntime.wrap(function _callee12$(_context12) {
           while (1) {
             switch (_context12.prev = _context12.next) {
@@ -45749,18 +45780,9 @@ var EthAccount = function () {
                 gasLimit = new _bigi2.default(details.gasLimit || '21000');
                 output = _D2.default.copy(details.output);
                 value = new _bigi2.default(output.value);
-                minGas = 21000 + (details.data ? 68 * details.data.length : 0);
 
-                if (!(minGas > gasLimit)) {
-                  _context12.next = 16;
-                  break;
-                }
-
-                throw _D2.default.error.networkGasTooLow;
-
-              case 16:
                 if (!details.data) {
-                  _context12.next = 25;
+                  _context12.next = 22;
                   break;
                 }
 
@@ -45769,63 +45791,100 @@ var EthAccount = function () {
                 if (data.startsWith('0x')) data = data.slice(2);
                 data = (data.length % 2 === 0 ? '' : '0') + data;
 
-                if (data.match(/^[0-9a-fA-F]+$/)) {
-                  _context12.next = 22;
+                if (data.match(/^[0-9a-fA-F]*$/)) {
+                  _context12.next = 19;
                   break;
                 }
 
                 throw _D2.default.error.invalidDataNotHex;
 
-              case 22:
+              case 19:
                 details.data = '0x' + data;
-                _context12.next = 26;
+                _context12.next = 23;
                 break;
 
-              case 25:
+              case 22:
                 details.data = '0x';
+
+              case 23:
+                minGas = 21000 + (details.data ? 68 * (details.data.length / 2 - 1) : 0);
+
+                if (!(minGas > gasLimit)) {
+                  _context12.next = 26;
+                  break;
+                }
+
+                throw _D2.default.error.networkGasTooLow;
 
               case 26:
                 input = _D2.default.copy(this.addressInfos[0]);
+                nonce = void 0;
+
+                if (!details.oldTxId) {
+                  _context12.next = 36;
+                  break;
+                }
+
+                oldTxInfo = this.txInfos.find(function (txInfo) {
+                  return txInfo.txId === details.oldTxId;
+                });
+
+                if (oldTxInfo) {
+                  _context12.next = 33;
+                  break;
+                }
+
+                console.warn('oldTxId not found in history');
+                throw _D2.default.error.unknown;
+
+              case 33:
+                nonce = oldTxInfo.nonce;
+                _context12.next = 37;
+                break;
+
+              case 36:
                 nonce = this.txInfos.filter(function (txInfo) {
                   return txInfo.confirmations !== _D2.default.tx.confirmation.dropped;
                 }).filter(function (txInfo) {
                   return txInfo.direction === _D2.default.tx.direction.out;
                 }).length;
+
+              case 37:
                 fee = gasLimit.multiply(gasPrice);
                 balance = new _bigi2.default(this.balance);
                 total = void 0;
                 // noinspection JSUnresolvedVariable
 
                 if (!details.sendAll) {
-                  _context12.next = 39;
+                  _context12.next = 48;
                   break;
                 }
 
                 if (!(balance.compareTo(fee) < 0)) {
-                  _context12.next = 34;
+                  _context12.next = 43;
                   break;
                 }
 
                 throw _D2.default.error.balanceNotEnough;
 
-              case 34:
+              case 43:
                 total = balance;
                 value = total.subtract(fee);
                 output.value = value.toString(10);
-                _context12.next = 42;
+                _context12.next = 51;
                 break;
 
-              case 39:
+              case 48:
                 total = value.add(fee);
 
                 if (!(total.compareTo(balance) > 0)) {
-                  _context12.next = 42;
+                  _context12.next = 51;
                   break;
                 }
 
                 throw _D2.default.error.balanceNotEnough;
 
-              case 42:
+              case 51:
                 prepareTx = {
                   total: total.toString(10),
                   fee: fee.toString(10),
@@ -45840,7 +45899,7 @@ var EthAccount = function () {
                 console.log('prepareTx', prepareTx);
                 return _context12.abrupt('return', prepareTx);
 
-              case 45:
+              case 54:
               case 'end':
                 return _context12.stop();
             }
@@ -45926,6 +45985,7 @@ var EthAccount = function () {
                     gas: _bigi2.default.fromHex(gasLimit.slice(2)).toString(10),
                     gasPrice: _bigi2.default.fromHex(gasPrice.slice(2)).toString(10),
                     fee: prepareTx.fee,
+                    nonce: prepareTx.nonce,
                     data: prepareTx.data
                   },
                   addressInfo: prepareTx.input,
@@ -46092,6 +46152,9 @@ function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, a
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+var shouldResendTime = 3 * 3600 * 1000;
+var checkShouldResendTime = 60 * 1000;
+
 var CoinData = function () {
   function CoinData() {
     _classCallCheck(this, CoinData);
@@ -46123,36 +46186,36 @@ var CoinData = function () {
   _createClass(CoinData, [{
     key: 'init',
     value: function () {
-      var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(info) {
+      var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(info) {
         var _this = this;
 
         var offlineMode = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
         var lastWalletId;
-        return regeneratorRuntime.wrap(function _callee3$(_context3) {
+        return regeneratorRuntime.wrap(function _callee4$(_context4) {
           while (1) {
-            switch (_context3.prev = _context3.next) {
+            switch (_context4.prev = _context4.next) {
               case 0:
-                _context3.prev = 0;
+                _context4.prev = 0;
 
                 // db
                 this._globalDb = new _Provider2.default.DB('default');
-                _context3.next = 4;
+                _context4.next = 4;
                 return this._globalDb.init();
 
               case 4:
                 if (!offlineMode) {
-                  _context3.next = 13;
+                  _context4.next = 13;
                   break;
                 }
 
-                _context3.next = 7;
+                _context4.next = 7;
                 return this._globalDb.getSettings('lastWalletId');
 
               case 7:
-                lastWalletId = _context3.sent;
+                lastWalletId = _context4.sent;
 
                 if (lastWalletId) {
-                  _context3.next = 10;
+                  _context4.next = 10;
                   break;
                 }
 
@@ -46160,28 +46223,28 @@ var CoinData = function () {
 
               case 10:
                 info = { walletId: lastWalletId };
-                _context3.next = 15;
+                _context4.next = 15;
                 break;
 
               case 13:
-                _context3.next = 15;
+                _context4.next = 15;
                 return this._globalDb.saveOrUpdateSettings('lastWalletId', info.walletId);
 
               case 15:
 
                 console.log('walletInfo', info);
                 this._db = new _Provider2.default.DB(info.walletId);
-                _context3.next = 19;
+                _context4.next = 19;
                 return this._db.init();
 
               case 19:
-                _context3.next = 21;
+                _context4.next = 21;
                 return Promise.all(Object.values(this._network).map(function (network) {
                   return network.init();
                 }));
 
               case 21:
-                _context3.next = 23;
+                _context4.next = 23;
                 return Promise.all(Object.keys(this._networkFee).map(function () {
                   var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(coinType) {
                     var fee;
@@ -46230,7 +46293,7 @@ var CoinData = function () {
                 }()));
 
               case 23:
-                _context3.next = 25;
+                _context4.next = 25;
                 return Promise.all(Object.keys(this._exchange).map(function () {
                   var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(coinType) {
                     var exchange;
@@ -46273,30 +46336,183 @@ var CoinData = function () {
 
               case 25:
 
-                console.log('coin data init finish', info);
-                return _context3.abrupt('return', info);
+                // check the tx whether it is over time uncomfirmed
+                this._uncomfirmedTxs = null;
+                this._unConfirmedCheck = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
+                  var firstInit = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+
+                  var _ref5, txInfos, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, txInfo, _loop, _iteratorNormalCompletion2, _didIteratorError2, _iteratorError2, _iterator2, _step2, _txInfo;
+
+                  return regeneratorRuntime.wrap(function _callee3$(_context3) {
+                    while (1) {
+                      switch (_context3.prev = _context3.next) {
+                        case 0:
+                          if (!(!firstInit && !_this.initialized)) {
+                            _context3.next = 2;
+                            break;
+                          }
+
+                          return _context3.abrupt('return');
+
+                        case 2:
+                          if (_this._uncomfirmedTxs) {
+                            _context3.next = 27;
+                            break;
+                          }
+
+                          _this._uncomfirmedTxs = [];
+                          _context3.next = 6;
+                          return _this._db.getTxInfos();
+
+                        case 6:
+                          _ref5 = _context3.sent;
+                          txInfos = _ref5.txInfos;
+                          _iteratorNormalCompletion = true;
+                          _didIteratorError = false;
+                          _iteratorError = undefined;
+                          _context3.prev = 11;
+
+                          for (_iterator = txInfos[Symbol.iterator](); !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                            txInfo = _step.value;
+
+                            _this._setTxFlags(txInfo);
+                            if (txInfo.canResend && !txInfo.shouldResend) {
+                              _this._uncomfirmedTxs.push(txInfo);
+                            }
+                          }
+                          _context3.next = 19;
+                          break;
+
+                        case 15:
+                          _context3.prev = 15;
+                          _context3.t0 = _context3['catch'](11);
+                          _didIteratorError = true;
+                          _iteratorError = _context3.t0;
+
+                        case 19:
+                          _context3.prev = 19;
+                          _context3.prev = 20;
+
+                          if (!_iteratorNormalCompletion && _iterator.return) {
+                            _iterator.return();
+                          }
+
+                        case 22:
+                          _context3.prev = 22;
+
+                          if (!_didIteratorError) {
+                            _context3.next = 25;
+                            break;
+                          }
+
+                          throw _iteratorError;
+
+                        case 25:
+                          return _context3.finish(22);
+
+                        case 26:
+                          return _context3.finish(19);
+
+                        case 27:
+                          _loop = function _loop(_txInfo) {
+                            _this._setTxFlags(_txInfo);
+                            if (_txInfo.canResend && _txInfo.shouldResend) {
+                              _this._listeners.forEach(function (listener) {
+                                return _D2.default.dispatch(function () {
+                                  return listener(_D2.default.error.succeed, _D2.default.copy(_txInfo));
+                                });
+                              });
+                              _this._uncomfirmedTxs = _this._uncomfirmedTxs.filter(function (t) {
+                                return t.txId !== _txInfo.txId;
+                              });
+                            }
+                          };
+
+                          _iteratorNormalCompletion2 = true;
+                          _didIteratorError2 = false;
+                          _iteratorError2 = undefined;
+                          _context3.prev = 31;
+
+
+                          for (_iterator2 = _this._uncomfirmedTxs[Symbol.iterator](); !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                            _txInfo = _step2.value;
+
+                            _loop(_txInfo);
+                          }
+
+                          _context3.next = 39;
+                          break;
+
+                        case 35:
+                          _context3.prev = 35;
+                          _context3.t1 = _context3['catch'](31);
+                          _didIteratorError2 = true;
+                          _iteratorError2 = _context3.t1;
+
+                        case 39:
+                          _context3.prev = 39;
+                          _context3.prev = 40;
+
+                          if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                            _iterator2.return();
+                          }
+
+                        case 42:
+                          _context3.prev = 42;
+
+                          if (!_didIteratorError2) {
+                            _context3.next = 45;
+                            break;
+                          }
+
+                          throw _iteratorError2;
+
+                        case 45:
+                          return _context3.finish(42);
+
+                        case 46:
+                          return _context3.finish(39);
+
+                        case 47:
+                          setTimeout(_this._unConfirmedCheck, checkShouldResendTime);
+
+                        case 48:
+                        case 'end':
+                          return _context3.stop();
+                      }
+                    }
+                  }, _callee3, _this, [[11, 15, 19, 27], [20,, 22, 26], [31, 35, 39, 47], [40,, 42, 46]]);
+                }));
+                _context4.next = 29;
+                return this._unConfirmedCheck(true);
 
               case 29:
-                _context3.prev = 29;
-                _context3.t0 = _context3['catch'](0);
 
-                if (!(typeof _context3.t0 === 'number')) {
-                  _context3.next = 33;
+                console.log('coin data init finish', info);
+                this.initialized = true;
+                return _context4.abrupt('return', info);
+
+              case 34:
+                _context4.prev = 34;
+                _context4.t0 = _context4['catch'](0);
+
+                if (!(typeof _context4.t0 === 'number')) {
+                  _context4.next = 38;
                   break;
                 }
 
-                throw _context3.t0;
+                throw _context4.t0;
 
-              case 33:
-                console.warn('coin data init got unknown error', _context3.t0);
+              case 38:
+                console.warn('coin data init got unknown error', _context4.t0);
                 throw _D2.default.error.unknown;
 
-              case 35:
+              case 40:
               case 'end':
-                return _context3.stop();
+                return _context4.stop();
             }
           }
-        }, _callee3, this, [[0, 29]]);
+        }, _callee4, this, [[0, 34]]);
       }));
 
       function init(_x2) {
@@ -46308,60 +46524,31 @@ var CoinData = function () {
   }, {
     key: 'release',
     value: function () {
-      var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4() {
-        return regeneratorRuntime.wrap(function _callee4$(_context4) {
+      var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5() {
+        return regeneratorRuntime.wrap(function _callee5$(_context5) {
           while (1) {
-            switch (_context4.prev = _context4.next) {
+            switch (_context5.prev = _context5.next) {
               case 0:
                 this._listeners = [];
-                _context4.next = 3;
+                _context5.next = 3;
                 return Promise.all(Object.values(this._network).map(function (network) {
                   return network.release();
                 }));
 
               case 3:
                 if (!this._db) {
-                  _context4.next = 6;
+                  _context5.next = 6;
                   break;
                 }
 
-                _context4.next = 6;
+                _context5.next = 6;
                 return this._db.release();
 
               case 6:
-              case 'end':
-                return _context4.stop();
-            }
-          }
-        }, _callee4, this);
-      }));
+                this.initialized = false;
+                this._notifiedTxs = null;
 
-      function release() {
-        return _ref4.apply(this, arguments);
-      }
-
-      return release;
-    }()
-  }, {
-    key: 'getAccounts',
-    value: function () {
-      var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5() {
-        var filter = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-        return regeneratorRuntime.wrap(function _callee5$(_context5) {
-          while (1) {
-            switch (_context5.prev = _context5.next) {
-              case 0:
-                _context5.next = 2;
-                return this._db.getAccounts(filter);
-
-              case 2:
-                _context5.t0 = function (a, b) {
-                  return a.index - b.index;
-                };
-
-                return _context5.abrupt('return', _context5.sent.sort(_context5.t0));
-
-              case 4:
+              case 8:
               case 'end':
                 return _context5.stop();
             }
@@ -46369,8 +46556,41 @@ var CoinData = function () {
         }, _callee5, this);
       }));
 
+      function release() {
+        return _ref6.apply(this, arguments);
+      }
+
+      return release;
+    }()
+  }, {
+    key: 'getAccounts',
+    value: function () {
+      var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6() {
+        var filter = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+        return regeneratorRuntime.wrap(function _callee6$(_context6) {
+          while (1) {
+            switch (_context6.prev = _context6.next) {
+              case 0:
+                _context6.next = 2;
+                return this._db.getAccounts(filter);
+
+              case 2:
+                _context6.t0 = function (a, b) {
+                  return a.index - b.index;
+                };
+
+                return _context6.abrupt('return', _context6.sent.sort(_context6.t0));
+
+              case 4:
+              case 'end':
+                return _context6.stop();
+            }
+          }
+        }, _callee6, this);
+      }));
+
       function getAccounts() {
-        return _ref5.apply(this, arguments);
+        return _ref7.apply(this, arguments);
       }
 
       return getAccounts;
@@ -46415,61 +46635,61 @@ var CoinData = function () {
   }, {
     key: 'newAccount',
     value: function () {
-      var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6(coinType) {
+      var _ref8 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7(coinType) {
         var accountIndex, account;
-        return regeneratorRuntime.wrap(function _callee6$(_context6) {
+        return regeneratorRuntime.wrap(function _callee7$(_context7) {
           while (1) {
-            switch (_context6.prev = _context6.next) {
+            switch (_context7.prev = _context7.next) {
               case 0:
-                _context6.next = 2;
+                _context7.next = 2;
                 return this._newAccountIndex(coinType);
 
               case 2:
-                _context6.next = 4;
-                return _context6.sent;
+                _context7.next = 4;
+                return _context7.sent;
 
               case 4:
-                accountIndex = _context6.sent;
+                accountIndex = _context7.sent;
 
                 if (!(accountIndex === -1)) {
-                  _context6.next = 7;
+                  _context7.next = 7;
                   break;
                 }
 
                 throw _D2.default.error.lastAccountNoTransaction;
 
               case 7:
-                _context6.next = 9;
+                _context7.next = 9;
                 return this._newAccount(coinType, accountIndex);
 
               case 9:
-                account = _context6.sent;
+                account = _context7.sent;
 
                 if (!(_D2.default.test.data && accountIndex === 0 && _D2.default.isBtc(coinType))) {
-                  _context6.next = 13;
+                  _context7.next = 13;
                   break;
                 }
 
-                _context6.next = 13;
+                _context7.next = 13;
                 return this._initTestDbData(account);
 
               case 13:
-                _context6.next = 15;
+                _context7.next = 15;
                 return this._db.newAccount(account);
 
               case 15:
-                return _context6.abrupt('return', account);
+                return _context7.abrupt('return', account);
 
               case 16:
               case 'end':
-                return _context6.stop();
+                return _context7.stop();
             }
           }
-        }, _callee6, this);
+        }, _callee7, this);
       }));
 
-      function newAccount(_x6) {
-        return _ref6.apply(this, arguments);
+      function newAccount(_x7) {
+        return _ref8.apply(this, arguments);
       }
 
       return newAccount;
@@ -46477,11 +46697,11 @@ var CoinData = function () {
   }, {
     key: '_newAccount',
     value: function () {
-      var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7(coinType, accountIndex) {
+      var _ref9 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8(coinType, accountIndex) {
         var makeId, account;
-        return regeneratorRuntime.wrap(function _callee7$(_context7) {
+        return regeneratorRuntime.wrap(function _callee8$(_context8) {
           while (1) {
-            switch (_context7.prev = _context7.next) {
+            switch (_context8.prev = _context8.next) {
               case 0:
                 makeId = function makeId() {
                   var text = '';
@@ -46502,18 +46722,18 @@ var CoinData = function () {
                 };
 
                 console.log('newAccount', account);
-                return _context7.abrupt('return', account);
+                return _context8.abrupt('return', account);
 
               case 4:
               case 'end':
-                return _context7.stop();
+                return _context8.stop();
             }
           }
-        }, _callee7, this);
+        }, _callee8, this);
       }));
 
-      function _newAccount(_x7, _x8) {
-        return _ref7.apply(this, arguments);
+      function _newAccount(_x8, _x9) {
+        return _ref9.apply(this, arguments);
       }
 
       return _newAccount;
@@ -46527,26 +46747,26 @@ var CoinData = function () {
   }, {
     key: '_newAccountIndex',
     value: function () {
-      var _ref8 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8(coinType) {
-        var accounts, lastAccount, _ref9, total;
+      var _ref10 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee9(coinType) {
+        var accounts, lastAccount, _ref11, total;
 
-        return regeneratorRuntime.wrap(function _callee8$(_context8) {
+        return regeneratorRuntime.wrap(function _callee9$(_context9) {
           while (1) {
-            switch (_context8.prev = _context8.next) {
+            switch (_context9.prev = _context9.next) {
               case 0:
                 if (coinType) {
-                  _context8.next = 2;
+                  _context9.next = 2;
                   break;
                 }
 
-                return _context8.abrupt('return', -1);
+                return _context9.abrupt('return', -1);
 
               case 2:
-                _context8.next = 4;
+                _context9.next = 4;
                 return this._db.getAccounts({ coinType: coinType });
 
               case 4:
-                accounts = _context8.sent;
+                accounts = _context9.sent;
 
 
                 // check whether the last spec coinType account has transaction
@@ -46555,14 +46775,14 @@ var CoinData = function () {
                 }, accounts[0]);
 
                 if (lastAccount) {
-                  _context8.next = 8;
+                  _context9.next = 8;
                   break;
                 }
 
-                return _context8.abrupt('return', 0);
+                return _context9.abrupt('return', 0);
 
               case 8:
-                _context8.next = 10;
+                _context9.next = 10;
                 return this._db.getTxInfos({
                   accountId: lastAccount.accountId,
                   startIndex: 0,
@@ -46570,29 +46790,29 @@ var CoinData = function () {
                 });
 
               case 10:
-                _ref9 = _context8.sent;
-                total = _ref9.total;
+                _ref11 = _context9.sent;
+                total = _ref11.total;
 
                 if (!(total === 0)) {
-                  _context8.next = 14;
+                  _context9.next = 14;
                   break;
                 }
 
-                return _context8.abrupt('return', -1);
+                return _context9.abrupt('return', -1);
 
               case 14:
-                return _context8.abrupt('return', lastAccount.index + 1);
+                return _context9.abrupt('return', lastAccount.index + 1);
 
               case 15:
               case 'end':
-                return _context8.stop();
+                return _context9.stop();
             }
           }
-        }, _callee8, this);
+        }, _callee9, this);
       }));
 
-      function _newAccountIndex(_x9) {
-        return _ref8.apply(this, arguments);
+      function _newAccountIndex(_x10) {
+        return _ref10.apply(this, arguments);
       }
 
       return _newAccountIndex;
@@ -46600,27 +46820,27 @@ var CoinData = function () {
   }, {
     key: 'deleteAccount',
     value: function () {
-      var _ref10 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee9(account) {
-        var _ref11, total, addressInfos;
+      var _ref12 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee10(account) {
+        var _ref13, total, addressInfos;
 
-        return regeneratorRuntime.wrap(function _callee9$(_context9) {
+        return regeneratorRuntime.wrap(function _callee10$(_context10) {
           while (1) {
-            switch (_context9.prev = _context9.next) {
+            switch (_context10.prev = _context10.next) {
               case 0:
-                _context9.next = 2;
+                _context10.next = 2;
                 return this._db.getTxInfos({ accountId: account.accountId });
 
               case 2:
-                _ref11 = _context9.sent;
-                total = _ref11.total;
-                _context9.next = 6;
+                _ref13 = _context10.sent;
+                total = _ref13.total;
+                _context10.next = 6;
                 return this._db.getAddressInfos({ accountId: account.accountId });
 
               case 6:
-                addressInfos = _context9.sent;
+                addressInfos = _context10.sent;
 
                 if (!(total !== 0)) {
-                  _context9.next = 10;
+                  _context10.next = 10;
                   break;
                 }
 
@@ -46629,34 +46849,10 @@ var CoinData = function () {
 
               case 10:
                 console.log('delete account', account);
-                _context9.next = 13;
+                _context10.next = 13;
                 return this._db.deleteAccount(account, addressInfos);
 
               case 13:
-              case 'end':
-                return _context9.stop();
-            }
-          }
-        }, _callee9, this);
-      }));
-
-      function deleteAccount(_x10) {
-        return _ref10.apply(this, arguments);
-      }
-
-      return deleteAccount;
-    }()
-  }, {
-    key: 'renameAccount',
-    value: function () {
-      var _ref12 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee10(account) {
-        return regeneratorRuntime.wrap(function _callee10$(_context10) {
-          while (1) {
-            switch (_context10.prev = _context10.next) {
-              case 0:
-                this._db.renameAccount(account);
-
-              case 1:
               case 'end':
                 return _context10.stop();
             }
@@ -46664,24 +46860,23 @@ var CoinData = function () {
         }, _callee10, this);
       }));
 
-      function renameAccount(_x11) {
+      function deleteAccount(_x11) {
         return _ref12.apply(this, arguments);
       }
 
-      return renameAccount;
+      return deleteAccount;
     }()
   }, {
-    key: 'newAddressInfos',
+    key: 'renameAccount',
     value: function () {
-      var _ref13 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee11(account, addressInfos) {
+      var _ref14 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee11(account) {
         return regeneratorRuntime.wrap(function _callee11$(_context11) {
           while (1) {
             switch (_context11.prev = _context11.next) {
               case 0:
-                _context11.next = 2;
-                return this._db.newAddressInfos(account, addressInfos);
+                this._db.renameAccount(account);
 
-              case 2:
+              case 1:
               case 'end':
                 return _context11.stop();
             }
@@ -46689,8 +46884,33 @@ var CoinData = function () {
         }, _callee11, this);
       }));
 
-      function newAddressInfos(_x12, _x13) {
-        return _ref13.apply(this, arguments);
+      function renameAccount(_x12) {
+        return _ref14.apply(this, arguments);
+      }
+
+      return renameAccount;
+    }()
+  }, {
+    key: 'newAddressInfos',
+    value: function () {
+      var _ref15 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee12(account, addressInfos) {
+        return regeneratorRuntime.wrap(function _callee12$(_context12) {
+          while (1) {
+            switch (_context12.prev = _context12.next) {
+              case 0:
+                _context12.next = 2;
+                return this._db.newAddressInfos(account, addressInfos);
+
+              case 2:
+              case 'end':
+                return _context12.stop();
+            }
+          }
+        }, _callee12, this);
+      }));
+
+      function newAddressInfos(_x13, _x14) {
+        return _ref15.apply(this, arguments);
       }
 
       return newAddressInfos;
@@ -46703,38 +46923,38 @@ var CoinData = function () {
   }, {
     key: 'getTxInfos',
     value: function () {
-      var _ref14 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee12(filter) {
+      var _ref16 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee13(filter) {
         var _this2 = this;
 
-        var _ref15, total, txInfos;
+        var _ref17, total, txInfos;
 
-        return regeneratorRuntime.wrap(function _callee12$(_context12) {
+        return regeneratorRuntime.wrap(function _callee13$(_context13) {
           while (1) {
-            switch (_context12.prev = _context12.next) {
+            switch (_context13.prev = _context13.next) {
               case 0:
-                _context12.next = 2;
+                _context13.next = 2;
                 return this._db.getTxInfos(filter);
 
               case 2:
-                _ref15 = _context12.sent;
-                total = _ref15.total;
-                txInfos = _ref15.txInfos;
+                _ref17 = _context13.sent;
+                total = _ref17.total;
+                txInfos = _ref17.txInfos;
 
                 txInfos.forEach(function (txInfo) {
-                  return txInfo.link = _this2._network[txInfo.coinType].getTxLink(txInfo);
+                  _this2._setTxFlags(txInfo);
                 });
-                return _context12.abrupt('return', { total: total, txInfos: txInfos });
+                return _context13.abrupt('return', { total: total, txInfos: txInfos });
 
               case 7:
               case 'end':
-                return _context12.stop();
+                return _context13.stop();
             }
           }
-        }, _callee12, this);
+        }, _callee13, this);
       }));
 
-      function getTxInfos(_x14) {
-        return _ref14.apply(this, arguments);
+      function getTxInfos(_x15) {
+        return _ref16.apply(this, arguments);
       }
 
       return getTxInfos;
@@ -46752,56 +46972,26 @@ var CoinData = function () {
   }, {
     key: 'newTx',
     value: function () {
-      var _ref16 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee13(account, addressInfo, txInfo, utxos) {
-        return regeneratorRuntime.wrap(function _callee13$(_context13) {
-          while (1) {
-            switch (_context13.prev = _context13.next) {
-              case 0:
-                console.log('newTx', account, addressInfo, txInfo, utxos);
-                _context13.next = 3;
-                return this._db.newTx(account, addressInfo, txInfo, utxos);
-
-              case 3:
-                this._listeners.forEach(function (listener) {
-                  return _D2.default.dispatch(function () {
-                    return listener(_D2.default.error.succeed, txInfo);
-                  });
-                });
-
-              case 4:
-              case 'end':
-                return _context13.stop();
-            }
-          }
-        }, _callee13, this);
-      }));
-
-      function newTx(_x15, _x16, _x17, _x18) {
-        return _ref16.apply(this, arguments);
-      }
-
-      return newTx;
-    }()
-  }, {
-    key: 'removeTx',
-    value: function () {
-      var _ref17 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee14(account, addressInfo, txInfo, updateUtxos, removeUtxos) {
+      var _ref18 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee14(account, addressInfo, txInfo, utxos) {
         return regeneratorRuntime.wrap(function _callee14$(_context14) {
           while (1) {
             switch (_context14.prev = _context14.next) {
               case 0:
-                console.log('removeTx', account, addressInfo, txInfo, updateUtxos, removeUtxos);
-                _context14.next = 3;
-                return this._db.removeTx(account, addressInfo, txInfo, updateUtxos, removeUtxos);
+                this._setTxFlags(txInfo);
+                this._uncomfirmedTxs.push(txInfo);
 
-              case 3:
+                console.log('newTx', account, addressInfo, txInfo, utxos);
+                _context14.next = 5;
+                return this._db.newTx(account, addressInfo, txInfo, utxos);
+
+              case 5:
                 this._listeners.forEach(function (listener) {
                   return _D2.default.dispatch(function () {
-                    return listener(_D2.default.error.succeed, txInfo);
+                    return listener(_D2.default.error.succeed, _D2.default.copy(txInfo));
                   });
                 });
 
-              case 4:
+              case 6:
               case 'end':
                 return _context14.stop();
             }
@@ -46809,12 +46999,68 @@ var CoinData = function () {
         }, _callee14, this);
       }));
 
-      function removeTx(_x19, _x20, _x21, _x22, _x23) {
-        return _ref17.apply(this, arguments);
+      function newTx(_x16, _x17, _x18, _x19) {
+        return _ref18.apply(this, arguments);
+      }
+
+      return newTx;
+    }()
+  }, {
+    key: 'removeTx',
+    value: function () {
+      var _ref19 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee15(account, addressInfo, txInfo, updateUtxos, removeUtxos) {
+        return regeneratorRuntime.wrap(function _callee15$(_context15) {
+          while (1) {
+            switch (_context15.prev = _context15.next) {
+              case 0:
+                this._uncomfirmedTxs = this._uncomfirmedTxs.filter(function (t) {
+                  return t.txId !== txInfo.txId;
+                });
+
+                console.log('removeTx', account, addressInfo, txInfo, updateUtxos, removeUtxos);
+                _context15.next = 4;
+                return this._db.removeTx(account, addressInfo, txInfo, updateUtxos, removeUtxos);
+
+              case 4:
+                this._listeners.forEach(function (listener) {
+                  return _D2.default.dispatch(function () {
+                    return listener(_D2.default.error.succeed, _D2.default.copy(txInfo));
+                  });
+                });
+
+              case 5:
+              case 'end':
+                return _context15.stop();
+            }
+          }
+        }, _callee15, this);
+      }));
+
+      function removeTx(_x20, _x21, _x22, _x23, _x24) {
+        return _ref19.apply(this, arguments);
       }
 
       return removeTx;
     }()
+
+    /**
+     * txFlags:
+     * link: link of tx details in network provider's website
+     * canResend: this tx can be resent
+     * shoudResend: this tx should be resent
+     */
+
+  }, {
+    key: '_setTxFlags',
+    value: function _setTxFlags(txInfo) {
+      if (txInfo.direction === _D2.default.tx.direction.out) {
+        txInfo.canResend = txInfo.confirmations === 0;
+        if (txInfo.canResend) {
+          txInfo.shouldResend = new Date().getTime() - txInfo.time > shouldResendTime;
+        }
+      }
+      txInfo.link = this._network[txInfo.coinType].getTxLink(txInfo);
+    }
   }, {
     key: 'clearData',
     value: function clearData() {
@@ -46845,24 +47091,24 @@ var CoinData = function () {
   }, {
     key: 'sendTx',
     value: function () {
-      var _ref18 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee15(account, utxos, txInfo, rawTx) {
-        return regeneratorRuntime.wrap(function _callee15$(_context15) {
+      var _ref20 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee16(account, utxos, txInfo, rawTx) {
+        return regeneratorRuntime.wrap(function _callee16$(_context16) {
           while (1) {
-            switch (_context15.prev = _context15.next) {
+            switch (_context16.prev = _context16.next) {
               case 0:
-                _context15.next = 2;
+                _context16.next = 2;
                 return this._network[account.coinType].sendTx(rawTx);
 
               case 2:
               case 'end':
-                return _context15.stop();
+                return _context16.stop();
             }
           }
-        }, _callee15, this);
+        }, _callee16, this);
       }));
 
-      function sendTx(_x24, _x25, _x26, _x27) {
-        return _ref18.apply(this, arguments);
+      function sendTx(_x25, _x26, _x27, _x28) {
+        return _ref20.apply(this, arguments);
       }
 
       return sendTx;
@@ -46906,23 +47152,23 @@ var CoinData = function () {
   }, {
     key: '_initTestDbData',
     value: function () {
-      var _ref19 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee16() {
-        return regeneratorRuntime.wrap(function _callee16$(_context16) {
+      var _ref21 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee17() {
+        return regeneratorRuntime.wrap(function _callee17$(_context17) {
           while (1) {
-            switch (_context16.prev = _context16.next) {
+            switch (_context17.prev = _context17.next) {
               case 0:
                 console.log('D.test.data add test txInfo');
 
               case 1:
               case 'end':
-                return _context16.stop();
+                return _context17.stop();
             }
           }
-        }, _callee16, this);
+        }, _callee17, this);
       }));
 
       function _initTestDbData() {
-        return _ref19.apply(this, arguments);
+        return _ref21.apply(this, arguments);
       }
 
       return _initTestDbData;
@@ -47629,6 +47875,7 @@ var IndexedDB = function (_IDatabase) {
                      *   gasPrice: string (decimal string Wei),
                      *   fee: gas * gasPrice
                      *   data: hex string
+                     *   nonce: number
                      *   comment: string
                      * }
                      */
@@ -49331,6 +49578,7 @@ var EtherScanIo = function (_ICoinNetwork) {
         gas: rTx.gasUsed || rTx.gas,
         gasPrice: rTx.gasPrice,
         data: rTx.input,
+        nonce: rTx.nonce ? parseInt(rTx.nonce) : undefined,
         hasDetails: true
       };
       tx.inputs = [{
@@ -49850,25 +50098,13 @@ var ICoinNetwork = function () {
                         while (1) {
                           switch (_context7.prev = _context7.next) {
                             case 0:
-                              txInfo = {
-                                accountId: addressInfo.accountId,
-                                coinType: addressInfo.coinType,
-                                txId: tx.txId,
-                                version: tx.version ? tx.version : 0,
-                                blockNumber: tx.blockNumber,
-                                confirmations: tx.confirmations,
-                                time: tx.time,
-                                inputs: tx.inputs,
-                                outputs: tx.outputs
-                              };
+                              txInfo = tx;
 
-                              if (_D2.default.isEth(addressInfo.coinType)) {
-                                txInfo.gas = tx.gas;
-                                txInfo.gasPrice = tx.gasPrice;
-                              }
+                              txInfo.accountId = addressInfo.accountId;
+                              txInfo.coinType = addressInfo.coinType;
                               return _context7.abrupt('return', { addressInfo: addressInfo, txInfo: txInfo });
 
-                            case 3:
+                            case 4:
                             case 'end':
                               return _context7.stop();
                           }
@@ -51269,7 +51505,7 @@ var CoreWallet = function () {
                                     hash: input.txId,
                                     index: input.index,
                                     scriptSig: input.script,
-                                    sequence: 0xFFFFFFFF
+                                    sequence: 0xFFFFFFFD // opt-in full-RBF, BIP 125
                                   };
                                 }),
                                 outputs: tx.outputs.map(function (output) {
@@ -52839,7 +53075,7 @@ var JsWallet = function () {
                             for (_iterator = tx.inputs[Symbol.iterator](); !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
                               input = _step.value;
 
-                              txb.addInput(input.txId, input.index);
+                              txb.addInput(input.txId, input.index, 0xfffffffd); // opt-in full-RBF, BIP 125
                             }
                             _context11.next = 14;
                             break;
