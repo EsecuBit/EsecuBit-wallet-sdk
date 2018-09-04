@@ -177,7 +177,7 @@ export default class CoreWallet {
               hash: input.txId,
               index: input.index,
               scriptSig: input.script,
-              sequence: 0xFFFFFFFF
+              sequence: 0xFFFFFFFD // opt-in full-RBF, BIP 125
             }
           }),
           outputs: tx.outputs.map(output => {

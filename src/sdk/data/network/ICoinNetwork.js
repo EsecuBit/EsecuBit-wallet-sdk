@@ -237,22 +237,9 @@ export default class ICoinNetwork {
   generateAddressTasks (addressInfos) {
     let checkTx = async (response, addressInfo) => {
       let newTransaction = async (addressInfo, tx) => {
-        let txInfo = {
-          accountId: addressInfo.accountId,
-          coinType: addressInfo.coinType,
-          txId: tx.txId,
-          version: tx.version ? tx.version : 0,
-          blockNumber: tx.blockNumber,
-          confirmations: tx.confirmations,
-          time: tx.time,
-          inputs: tx.inputs,
-          outputs: tx.outputs
-        }
-        if (D.isEth(addressInfo.coinType)) {
-          txInfo.gas = tx.gas
-          txInfo.gasPrice = tx.gasPrice
-          txInfo.data = tx.data
-        }
+        let txInfo = tx
+        txInfo.accountId = addressInfo.accountId
+        txInfo.coinType = addressInfo.coinType
         return {addressInfo, txInfo}
       }
 
