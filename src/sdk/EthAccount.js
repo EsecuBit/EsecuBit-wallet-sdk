@@ -202,8 +202,10 @@ export default class EthAccount {
     // update account info
     let index = this.txInfos.findIndex(t => t.txId === txInfo.txId)
     if (index === -1) {
+      txInfo.comment = ''
       this.txInfos.push(txInfo)
     } else {
+      txInfo.comment = this.txInfos[index].comment
       this.txInfos[index] = txInfo
     }
     this.addressInfos.find(a => a.address === addressInfo.address).txs = D.copy(addressInfo.txs)
@@ -281,6 +283,7 @@ export default class EthAccount {
    *   gasPrice: string (=gasPrice, decimal string Wei),
    *   gasLimit: string (decimal string Wei),
    *   data: hex string (optional),
+   *   comment: string (optional)
    * }
    * @returns {Promise<{total: *, fee: number, gasPrice: string, gasLimit: string, nonce: number, input: *, output: *, data: string}>}
    * {
@@ -361,7 +364,8 @@ export default class EthAccount {
       nonce: nonce,
       input: input,
       output: output,
-      data: details.data
+      data: details.data,
+      comment: details.comment || ''
     }
     console.log('prepareTx', prepareTx)
     return prepareTx
@@ -423,7 +427,8 @@ export default class EthAccount {
         gasPrice: BigInteger.fromHex(gasPrice.slice(2)).toString(10),
         fee: prepareTx.fee,
         nonce: prepareTx.nonce,
-        data: prepareTx.data
+        data: prepareTx.data,
+        comment: prepareTx.comment
       },
       addressInfo: prepareTx.input,
       hex: signedTx.hex

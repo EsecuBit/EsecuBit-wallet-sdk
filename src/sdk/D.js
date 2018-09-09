@@ -32,6 +32,11 @@ const D = {
     deviceNotInit: 111,
     devicePressKeyTooEarly: 112,
 
+    fatUnavailable: 121,
+    fatOutOfRange: 122,
+    fatInvalidFile: 123,
+    fatOutOfSpace: 124,
+
     databaseOpenFailed: 201,
     databaseExecFailed: 202,
 

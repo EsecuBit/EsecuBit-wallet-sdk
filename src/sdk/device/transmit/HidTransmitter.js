@@ -1,9 +1,10 @@
 
-import D from '../D'
-import MockDevice from './MockDevice'
+import D from '../../D'
+import MockDevice from './io/MockDevice'
 import JSEncrypt from './jsencrypt'
 import CryptoJS from 'crypto-js'
-import ChromeHidDevice from './ChromeHidDevice'
+import ChromeHidDevice from './io/ChromeHidDevice'
+import {Buffer} from 'buffer'
 
 const factoryPubKeyPem = '-----BEGIN PUBLIC KEY-----' +
   'MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC3IaEDmGWrsHA5rKC8VB++Gkw/' +
@@ -320,7 +321,7 @@ export default class HidTransmitter {
     // 6AA6 means busy, send 00A6000008 immediately to get response
     while (result === 0x6AA6) {
       console.debug('got 0xE0616AA6, resend apdu')
-      let {_result, _response} = this._transmit(Buffer.from('00A6000008'), 'hex')
+      let {_result, _response} = await this._transmit(Buffer.from('00A6000008'), 'hex')
       response = Buffer.concat([response, _response])
       result = _result
       response = _response
@@ -331,7 +332,7 @@ export default class HidTransmitter {
       console.debug('got 0x61XX, get remain data')
       let rApdu = Buffer.from('00C0000000', 'hex')
       rApdu[0x04] = result & 0xFF
-      let {_result, _response} = this._transmit(rApdu)
+      let {_result, _response} = await this._transmit(rApdu)
       response = Buffer.concat([response, _response])
       result = _result
     }

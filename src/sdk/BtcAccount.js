@@ -295,8 +295,10 @@ export default class BtcAccount {
     // update account info
     let index = this.txInfos.findIndex(t => t.txId === txInfo.txId)
     if (index === -1) {
+      txInfo.comment = ''
       this.txInfos.push(txInfo)
     } else {
+      txInfo.comment = this.txInfos[index].comment
       this.txInfos[index] = txInfo
     }
     this.utxos = this.utxos
@@ -429,7 +431,8 @@ export default class BtcAccount {
    *   outputs: [{
    *     address: base58 string,
    *     value: string (satoshi)
-   *   }]
+   *   }],
+   *   comment: string (optional)
    * }
    * @returns {Promise<prepareTx>}
    * {
@@ -528,7 +531,8 @@ export default class BtcAccount {
           outputs: D.copy(details.outputs),
           fee: fee,
           total: totalOut + fee,
-          utxos: willSpentUtxos
+          utxos: willSpentUtxos,
+          comment: details.comment || ''
         }
       }
       // new fee + total out is larger than new total, calculate again
@@ -596,7 +600,8 @@ export default class BtcAccount {
           script: D.address.makeOutputScript(output.address),
           value: output.value
         }
-      })
+      }),
+      comment: prepareTx.comment
     }
 
     // update utxo spent status from unspent to spent pending

@@ -8,7 +8,7 @@
 /** @namespace chrome.runtime.lastError */
 /** @namespace chrome.usb.controlTransfer */
 
-import D from '../D'
+import D from '../../../D'
 import IEsDevice from './IEsDevice'
 
 /**

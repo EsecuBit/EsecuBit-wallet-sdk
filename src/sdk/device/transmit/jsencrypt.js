@@ -1,4 +1,4 @@
-// copy from JSEncrypt and modified to support arraybuffer
+// copy from JSEncrypt and modified to support Buffer
 
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :

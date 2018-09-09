@@ -1,5 +1,5 @@
 
-import D from '../D'
+import D from '../../../D'
 
 export default class IEsDevice {
   async listenPlug (callback) {
