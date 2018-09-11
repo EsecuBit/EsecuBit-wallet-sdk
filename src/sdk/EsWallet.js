@@ -153,6 +153,7 @@ export default class EsWallet {
       } else {
         throw D.error.coinNotSupported
       }
+      this._esAccounts.push(esAccount)
 
       await esAccount.init()
       await esAccount.sync(true)
@@ -168,7 +169,6 @@ export default class EsWallet {
         }
         break
       }
-      this._esAccounts.push(esAccount)
     }
   }
 
