@@ -64,7 +64,7 @@ export default class FatApi {
       throw D.error.deviceProtocol
     }
 
-    let {maxWriteSize} = await this.getGlobalInfo()
+    let {maxWriteSize} = await this._getGlobalInfo()
     let apdu = Buffer.alloc(0x07 + maxWriteSize)
     Buffer.from('80D6000000', 'hex').copy(apdu)
 
@@ -86,7 +86,7 @@ export default class FatApi {
     }
   }
 
-  async getGlobalInfo () {
+  async _getGlobalInfo () {
     if (this._globalInfo) {
       return this._globalInfo
     }
