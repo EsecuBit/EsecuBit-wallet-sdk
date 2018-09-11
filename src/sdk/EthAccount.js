@@ -403,6 +403,7 @@ export default class EthAccount {
     }
     console.log('preSignTx', preSignTx)
     let signedTx = await this._device.signTransaction(this.coinType, preSignTx)
+
     return {
       txInfo: {
         accountId: this.accountId,
@@ -413,6 +414,7 @@ export default class EthAccount {
         time: new Date().getTime(),
         direction: D.tx.direction.out,
         showAddresses: [output.address],
+        value: '-' + output.value,
         inputs: [{
           prevAddress: prepareTx.input.address,
           isMine: true,
