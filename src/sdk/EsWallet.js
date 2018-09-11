@@ -127,7 +127,16 @@ export default class EsWallet {
     if (this._esAccounts.length === 0) {
       if (this.offlineMode) throw D.error.offlineModeNotAllowed
       console.log('no accounts, new wallet, start recovery')
-      await Promise.all(D.recoverCoinTypes().map(coinType => this._recover(coinType)))
+      try {
+        await Promise.all(D.recoverCoinTypes().map(coinType => this._recover(coinType)))
+      } catch (e) {
+        console.warn('recover account failed, deleting all accounts', this._esAccounts)
+        for (let esAccount of this._esAccounts) {
+          await esAccount.delete()
+        }
+        this._esAccounts = []
+        throw e
+      }
     } else {
       await Promise.all(this._esAccounts.map(esAccount => esAccount.sync(true, this.offlineMode)))
     }
@@ -144,6 +153,7 @@ export default class EsWallet {
       } else {
         throw D.error.coinNotSupported
       }
+
       await esAccount.init()
       await esAccount.sync(true)
 

@@ -3,8 +3,8 @@ import FatApi from 'src/sdk/device/fat/FatApi'
 
 /**
  * WalletData store data in files. Currently we have two types of files:
- * 1. wallet info, file name "cnw", only one file
- * 2. account info, file name "cna##coinType##index", number of files = number of accounts
+ * 1. wallet info, file name "cnw"(coin wallet), only one file
+ * 2. account info, file name "cna##coinType##index"(coin account), number of files = number of accounts
  *
  * We using TLV structure to manage files content.
  *
@@ -38,45 +38,67 @@ import FatApi from 'src/sdk/device/fat/FatApi'
  * 4. value is a flexible varible and value.length = length in TLV
  *
  * file content:
- * coinwallet: {
+ *
+ * cnw: {
  *   walletId: string,
  *   walletName: string
+ *   walletDataVersion:
  *   account: {
- *    coinId: int,
+ *    coinType: string,
  *    amount: int
- *   }
+ *   },
  *   account: {
- *    coinId: int,
+ *    coinType: string,
  *    amount: int
  *   }
  *   ...
  * }
  *
- * coinaccount: {
+ * cna#btc#1: {
  *   coinType, int
  *   accountIndex: int
  *   accountName: string
  *   accountExternalIndex: int
  *   accountChangeIndex: int
- *   txs: {
+ *   txInfo: {
  *     txId: string,
  *     txComment: comment,
- *   }
+ *   },
+ *   txInfo: {
+ *     txId: string,
+ *     txComment: comment,
+ *   },
+ *   ...
  * }
  */
 
 const tag = {
   walletId: 0x01,
   walletName: 0x02,
+  walletDataVersion: 0x03,
+  account: 0x04,
+  coinType: 0x05,
+  amount: 0x06,
 
   accountIndex: 0x41,
   accountName: 0x42,
   accountExchangeIndex: 0x43,
   accountChangeIndeX: 0x44,
-  txs: 0x45,
+  txInfo: 0x45,
 
   txId: 0x81,
   txComment: 0x82
+}
+
+const parseTLV = (data) => {
+  let offset = 0
+  while (true) {
+    let tag = data[0]
+  }
+}
+
+const toTLV = (object) => {
+
 }
 
 export default class WalletData {
@@ -88,11 +110,6 @@ export default class WalletData {
     await this._fat.init()
   }
 
-  /**
-   * walletInfo: {
-   * walletId: string
-   * }
-   */
   async getWalletInfo () {
   }
 

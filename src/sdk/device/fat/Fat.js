@@ -4,6 +4,9 @@ import {Buffer} from 'buffer'
 
 const fileAttrSize = 17
 
+/**
+ * Fat is a little-endian file system.
+ */
 export default class Fat {
   constructor (fatApi) {
     this._fatCache = new FatCache(fatApi)
