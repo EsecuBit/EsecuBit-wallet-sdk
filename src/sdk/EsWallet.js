@@ -162,10 +162,10 @@ export default class EsWallet {
       if ((await esAccount.getTxInfos()).total === 0) {
         if (esAccount.index !== 0) {
           console.log(esAccount.accountId, 'has no txInfo, will not recover, delete it')
+          this._esAccounts = this._esAccounts.filter(a => a !== esAccount)
           await esAccount.delete()
         } else {
           console.log(esAccount.accountId, 'has no txInfo, but it is the first account, keep it')
-          this._esAccounts.push(esAccount)
         }
         break
       }
