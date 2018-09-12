@@ -130,6 +130,7 @@ export default class EsWallet {
       try {
         await Promise.all(D.recoverCoinTypes().map(coinType => this._recover(coinType)))
       } catch (e) {
+        console.warn('recover error', e)
         console.warn('recover account failed, deleting all accounts', this._esAccounts)
         for (let esAccount of this._esAccounts) {
           await esAccount.delete()
