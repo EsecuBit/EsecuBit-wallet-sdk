@@ -278,14 +278,19 @@ export default class CoinData {
    * canResend: this tx can be resent
    * shoudResend: this tx should be resent
    */
-  _setTxFlags(txInfo) {
+  _setTxFlags (txInfo) {
     if (txInfo.direction === D.tx.direction.out) {
       txInfo.canResend = txInfo.confirmations === 0
       if (txInfo.canResend) {
         txInfo.shouldResend = new Date().getTime() - txInfo.time > shouldResendTime
       }
     }
-    txInfo.link = this._network[txInfo.coinType].getTxLink(txInfo)
+    if (!this._network[txInfo.coinType]) {
+      // this is a bug but we havn't find it out
+      console.warn('unable to get tx link', txInfo.coinType, txInfo, this._network)
+    } else {
+      txInfo.link = this._network[txInfo.coinType].getTxLink(txInfo)
+    }
   }
 
   clearData () {
