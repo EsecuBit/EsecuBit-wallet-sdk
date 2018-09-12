@@ -288,6 +288,7 @@ export default class CoinData {
     if (!this._network[txInfo.coinType]) {
       // this is a bug but we havn't find it out
       console.warn('unable to get tx link', txInfo.coinType, txInfo, this._network)
+      txInfo.link = ''
     } else {
       txInfo.link = this._network[txInfo.coinType].getTxLink(txInfo)
     }
