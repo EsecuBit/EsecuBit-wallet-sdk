@@ -5,7 +5,7 @@ import D from '../../D'
 /**
  * WalletData store data in files. Currently we have two types of files:
  * 1. wallet info, file name "cnw"(coin wallet), only one file
- * 2. account info, file name "cna##coinType##index"(coin account), number of files = number of accounts
+ * 2. account info, file name "cna#coinType#index"(coin account), number of files = number of accounts
  *
  * We using TLV structure to manage files content.
  *
@@ -80,7 +80,7 @@ const tags = {
   walletId: {tag: 0x03, type: 'string'},
   walletName: {tag: 0x04, type: 'string'},
   walletDataVersion: {tag: 0x04, type: 'number'},
-  account: {tag: 0x11, type: 'complex'},
+  account: {tag: 0x11, type: ['array', 'complex']},
   coinType: {tag: 0x12, type: 'string'},
   amount: {tag: 0x013, type: 'number'},
 
@@ -90,7 +90,7 @@ const tags = {
   accountDataVersion: {tag: 0x44, type: 'string'},
   accountExchangeIndex: {tag: 0x45, type: 'number'},
   accountChangeIndex: {tag: 0x46, type: 'number'},
-  txInfo: {tag: 0x51, type: 'complex'},
+  txInfo: {tag: 0x51, type: ['array', 'complex']},
   txId: {tag: 0x52, type: 'string'},
   txComment: {tag: 0x53, type: 'string'}
 }
@@ -108,17 +108,25 @@ const parseTLV = (data) => {
     let type = result[1].type
 
     let actualValue
-    if (type === 'complex') {
+    if (type.includes('complex')) {
       actualValue = parseTLV(value)
-    } else if (type === 'string') {
+    } else if (type.includes('string')) {
       actualValue = new TextDecoder('utf8').decode(value)
-    } else if (type === 'number') {
+    } else if (type.includes('number')) {
       actualValue = value.readIntLE(0, value.length)
     } else {
       console.warn('parseTLV found unsupport type', field, type)
       throw D.error.unknown
     }
-    this[field] = actualValue
+
+    if (type.includes('array')) {
+      if (!this[field]) {
+        this[field] = []
+      }
+      this[field].append(actualValue)
+    } else {
+      this[field] = actualValue
+    }
   }
 
   try {
@@ -290,25 +298,37 @@ export default class WalletData {
   }
 
   async getWalletInfo () {
+    return parseTLV(await this._fat.readFile('cnw'))
   }
 
-  setWalletInfo () {
-
+  setWalletInfo (walletInfo) {
+    return this._fat.writeFile('cnw', toTLV(walletInfo))
   }
 
-  getAccountInfos () {
+  async getAccountInfos () {
+    let walletInfo = parseTLV(await this._fat.readFile('cnw'))
+    let accountInfos = []
+    for (let account of walletInfo.account) {
+      if (!account.amount || !account.coinType) {
+        console.warn('account data invalid', account, walletInfo)
+        throw D.error.fatInvalidFile
+      }
+      accountInfos[account.coinType] = []
+      for (let i = 0; i < account.amount; i++) {
+        accountInfos[account.coinType].append(await this.getAccountInfo(account.coinType, i))
+      }
+    }
 
+    return accountInfos
   }
 
-  /**
-   *
-   * @param accountIndex
-   */
-  getAccountInfo (accountIndex) {
-
+  async getAccountInfo (coinType, index) {
+    let accountName = 'cna#' + coinType + '#' + index
+    return parseTLV(await this._fat.readFile(accountName))
   }
 
-  setAccountInfo (accountIndex) {
-
+  setAccountInfo (accountInfo) {
+    let accountName = 'cna#' + accountInfo.coinType + '#' + accountInfo.accountIndex
+    return this._fat.writeFile(accountName, toTLV(accountInfo))
   }
 }
