@@ -128,7 +128,13 @@ export default class EsWallet {
       if (this.offlineMode) throw D.error.offlineModeNotAllowed
       console.log('no accounts, new wallet, start recovery')
       try {
-        await Promise.all(D.recoverCoinTypes().map(coinType => this._recover(coinType)))
+        // Here we can't use Promise.all() in recover, because data may be invalid when one
+        // of account occur errors, while other type of account is still running recover.
+        // In this case, deleting all account may failed because account which is still running
+        // may writing account data into database later. We don't have mechanism to make them stop.
+        for (let coinType of D.recoverCoinTypes()) {
+          await this._recover(coinType)
+        }
       } catch (e) {
         console.warn('recover error', e)
         console.warn('recover account failed, deleting all accounts', this._esAccounts)
