@@ -165,7 +165,7 @@ const parseTLV = (data) => {
         }
       }
 
-      let value = data.slice(offset, length)
+      let value = data.slice(offset, offset + length)
       setFieldByTag(object, tag, value)
       offset += length
     }

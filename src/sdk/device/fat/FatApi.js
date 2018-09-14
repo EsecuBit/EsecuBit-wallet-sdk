@@ -2,9 +2,9 @@ import {Buffer} from 'buffer'
 import D from '../../D'
 
 export default class FatApi {
-  constructor (transmitter, allEnc) {
+  constructor (transmitter) {
     this._transmitter = transmitter
-    this._allEnc = allEnc
+    this._allEnc = true
     this._globalInfo = null
   }
 
@@ -17,22 +17,13 @@ export default class FatApi {
     await this._sendApdu(apdu)
   }
 
-  async deleteFile (fileId) {
-    let apdu = Buffer.alloc(0x07)
-    Buffer.from('800E000002', 'hex').copy(apdu)
-    apdu[0x05] = (fileId >> 8) & 0xff
-    apdu[0x06] = fileId & 0xff
-
-    await this._sendApdu(apdu)
-  }
-
   async readFile (offset, size) {
     if (offset >= 0x010000 || size >= 0x010000) {
       console.warn('readFile out of range', offset, size)
       throw D.error.deviceProtocol
     }
 
-    let {maxReadSize} = await this.getGlobalInfo()
+    let {maxReadSize} = await this._getGlobalInfo()
     let apdu = Buffer.alloc(0x07)
     Buffer.from('80B0000000', 'hex').copy(apdu)
 

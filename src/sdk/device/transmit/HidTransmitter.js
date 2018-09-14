@@ -3,8 +3,8 @@ import D from '../../D'
 import MockDevice from './io/MockDevice'
 import JSEncrypt from './jsencrypt'
 import CryptoJS from 'crypto-js'
-import ChromeHidDevice from './io/ChromeHidDevice'
 import {Buffer} from 'buffer'
+import Provider from '../../Provider'
 
 const factoryPubKeyPem = '-----BEGIN PUBLIC KEY-----' +
   'MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC3IaEDmGWrsHA5rKC8VB++Gkw/' +
@@ -75,7 +75,7 @@ let des112 = (isEnc, data, key) => {
  */
 export default class HidTransmitter {
   constructor () {
-    this._device = D.test.mockDevice ? new MockDevice() : new ChromeHidDevice()
+    this._device = Provider.Device
     this._commKey = {
       sKey: null,
       generated: false

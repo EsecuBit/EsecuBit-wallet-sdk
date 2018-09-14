@@ -563,6 +563,7 @@ const D = {
     data: false,
     jsWallet: false,
     sync: false,
+    mockTransmitter: false,
     mockDevice: false,
     // TODO remove when publish
     // sync used for test sync

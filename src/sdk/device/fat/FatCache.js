@@ -99,7 +99,7 @@ export default class FatCache {
     let firstBlockNum = blockNums[0]
     let realFirstBlockNum = isPublic ? firstBlockNum : (firstBlockNum - this.pubBlockNum)
     let firBlockOffset = realFirstBlockNum * this.blockSize
-    return cacheData.slice(firBlockOffset + start, length)
+    return cacheData.slice(firBlockOffset + start, firBlockOffset + start + length)
   }
 
   async writeBlock (blockNum, data, start = 0) {
@@ -128,7 +128,7 @@ export default class FatCache {
       }
 
       // write to device
-      let continuousData = data.slice(i * this.blockSize, continuousBlockSize * this.blockSize - start)
+      let continuousData = data.slice(i * this.blockSize, (i + continuousBlockSize) * this.blockSize - start)
       let deviceFileOffset = this._getBlockOffsetInDevice(blockNum)
       await this._fatApi.writeFile(continuousData, deviceFileOffset + start)
 
@@ -229,7 +229,7 @@ export default class FatCache {
 
     // update fat, part of update
     let fatOffset = fatHeadSize + rfuSize + this.bitmap.length + this.bitmapBackup.length + minBlockNum * 2
-    await this._fatApi.writeFile(this.fat.slice(minBlockNum * 2, (maxBlockNum - minBlockNum + 1) * 2), fatOffset)
+    await this._fatApi.writeFile(this.fat.slice(minBlockNum * 2, (maxBlockNum + 1) * 2), fatOffset)
 
     // update bitmap & bitmap backup, part of update
     let minBitmapIndex = minBlockNum << 3
@@ -237,9 +237,9 @@ export default class FatCache {
     let bitmapOffset = fatHeadSize + rfuSize + minBitmapIndex
     let bitmapBackupOffset = fatHeadSize + rfuSize + this.bitmap.length + minBitmapIndex
     await this._fatApi.writeFile(
-      this.bitmap.slice(minBitmapIndex, Math.ceil(maxBitmapIndex - minBitmapIndex + 1)), bitmapOffset)
+      this.bitmap.slice(minBitmapIndex, Math.ceil(maxBitmapIndex + 1)), bitmapOffset)
     await this._fatApi.writeFile(
-      this.bitmapBackup.slice(minBitmapIndex, Math.ceil(maxBitmapIndex - minBitmapIndex + 1)), bitmapBackupOffset)
+      this.bitmapBackup.slice(minBitmapIndex, Math.ceil(maxBitmapIndex + 1)), bitmapBackupOffset)
   }
 
   _getBlockOffsetInDevice (blockNum) {

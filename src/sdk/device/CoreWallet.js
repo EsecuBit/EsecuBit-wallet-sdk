@@ -6,8 +6,6 @@ import BigInteger from 'bigi'
 import bitPony from 'bitpony'
 import {Buffer} from 'buffer'
 
-let allEnc = true
-
 // rewrite _containKeys to make empty value available, so we can use it to build presign tx
 // noinspection JSPotentiallyInvalidConstructorUsage
 bitPony.prototype._containKeys = function (keys) {
@@ -25,6 +23,7 @@ export default class CoreWallet {
     }
     CoreWallet.prototype.Instance = this
     this._transmitter = new Provider.Transmitter()
+    this._allEnc = true
   }
 
   async init () {
@@ -298,6 +297,6 @@ export default class CoreWallet {
   }
 
   _sendApdu (apdu, isEnc = false) {
-    return this._transmitter.sendApdu(apdu, allEnc || isEnc)
+    return this._transmitter.sendApdu(apdu, this._allEnc || isEnc)
   }
 }

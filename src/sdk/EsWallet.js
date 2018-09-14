@@ -28,7 +28,7 @@ export default class EsWallet {
 
     this._info = {}
     this._esAccounts = []
-    this._device = D.test.jsWallet ? new Provider.SoftWallet() : new Provider.HardWallet()
+    this._device = new Provider.Wallet()
     this._coinData = new CoinData()
     this._status = D.status.plugOut
     this._callback = null
