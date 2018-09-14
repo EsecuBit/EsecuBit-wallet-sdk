@@ -1,7 +1,7 @@
 import D from './D'
 
 /**
- * device has limit of apdu data length = 2k, support up to 45 inputs(no signature) + 2 outputs
+ * device has limit of apdu data length = 2k, support up to 45 inputs + 2 outputs
  * we set a algorithm here:
  * 1. follow bnb algorithm:
  *    https://github.com/bitcoin/bitcoin/blob/6f5372a1714383bb5e47a5ba89dc4d93020a2943/src/wallet/coinselection.cpp
@@ -11,17 +11,9 @@ import D from './D'
 function getEnoughUtxo (utxos, presetUtxos, outputs, feeRate, sendAll) {
   const maxApduDataLength = 2000
   const apduDataHead = 55
-  const calculateApduLength = (inputSize, outputSize) => {
-    return apduDataHead + inputSize * 41 + outputSize * 34
-  }
-
-  let maxInputSize = 45
-  while (calculateApduLength(maxInputSize, outputs.length) > maxApduDataLength) {
-    maxInputSize--
-  }
-  if (maxInputSize <= 0) {
-    console.warn('too many outputs that no space for inputs in apdu')
-    throw D.error.tooManyOutputs
+  const calculateApduLength = (utxos, outputSize) => {
+    let maxToBeSignedOutputScript = utxos.reduce((max, utxo) => Math.max(max, utxo.script.length / 2), 0)
+    return apduDataHead + utxos * 41 + outputSize * 34 + maxToBeSignedOutputScript
   }
 
   let proposalBnb
@@ -42,7 +34,19 @@ function getEnoughUtxo (utxos, presetUtxos, outputs, feeRate, sendAll) {
     return proposalClassic
   }
 
-  utxos = utxos.slice(0, 45)
+  // with limit of apdu data = 2k
+  // and outputscript that going to spent using p2pkh,
+  // and output.length = 2, then maxInputSize = 45
+  let maxInputSize = 45
+  while (calculateApduLength(utxos.slice(0, maxInputSize), outputs.length) > maxApduDataLength) {
+    maxInputSize--
+  }
+  if (maxInputSize <= 0) {
+    console.warn('too many outputs that no space for inputs in apdu')
+    throw D.error.tooManyOutputs
+  }
+
+  utxos = utxos.slice(0, maxInputSize)
   let proposalLimit = _coinSelectClassic(utxos, presetUtxos, 0, outputs, feeRate, true)
   proposalLimit.deviceLimit = true
   return proposalLimit
