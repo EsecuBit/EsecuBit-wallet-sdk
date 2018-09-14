@@ -3,8 +3,16 @@ import D from '../../D'
 
 const typeAddress = 'address'
 const typeTx = 'tx'
+const typeDetail = 'detail'
 
 const txNotFoundMaxSeconds = 30
+
+const remove = (arr, val) => {
+  let index = arr.indexOf(val)
+  if (index > -1) {
+    arr.splice(index, 1)
+  }
+}
 
 export default class ICoinNetwork {
   constructor (coinType) {
@@ -12,7 +20,7 @@ export default class ICoinNetwork {
     this._startQueue = false
     this._blockHeight = -1
     this._supportMultiAddresses = false
-    this._requestRate = 1 // seconds per request
+    this._requestRate = 5 // request per seconds
     this._requestList = []
   }
 
@@ -29,10 +37,14 @@ export default class ICoinNetwork {
           request.currentBlock = this._blockHeight
           request.request()
           break
+        } else if (request.type === typeDetail) {
+          request.request()
+          remove(this._requestList, request)
+          break
         }
       }
       if (this._startQueue) {
-        setTimeout(queue, this._requestRate * 1000)
+        setTimeout(queue, 1 / this._requestRate * 1000)
       }
     }
     setTimeout(queue, 0)
@@ -137,12 +149,6 @@ export default class ICoinNetwork {
    */
   listenTx (txInfo, callback) {
     const that = this
-    let remove = (arr, val) => {
-      let index = arr.indexOf(val)
-      if (index > -1) {
-        arr.splice(index, 1)
-      }
-    }
     this._requestList.push({
       callback: callback,
       type: typeTx,
@@ -247,7 +253,21 @@ export default class ICoinNetwork {
       newTxs.forEach(tx => addressInfo.txs.push(tx.txId))
       let newTxBlobs = await Promise.all(newTxs.map(async tx => {
         // TODO later queryTx request speed for no details
-        if (!tx.hasDetails) tx = await this.queryTx(tx.txId)
+        if (!tx.hasDetails) {
+          console.debug('tx is not completed, get it in queue', tx)
+          const getDetailsTask = (txId) => {
+            let that = this
+            return new Promise((resolve, reject) => {
+              that._requestList.push({
+                type: typeDetail,
+                request: function () {
+                  that.queryTx(txId).then(resolve).catch(reject)
+                }
+              })
+            })
+          }
+          tx = await getDetailsTask(tx.txId)
+        }
         return newTransaction(addressInfo, tx)
       }))
 

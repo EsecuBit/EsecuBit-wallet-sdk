@@ -177,15 +177,18 @@ export default class BlockchainInfo extends ICoinNetwork {
       blockNumber: rTx.block_height || -1,
       confirmations: confirmations,
       time: rTx.time * 1000,
-      // if you query a single address, it may missing some outputs. see
-      // https://testnet.blockchain.info/multiaddr?cors=true&offset=0&n=100&active=mkscdDdESTD5KUyvNFAYEGPmhKM8fC9REZ
-      // this only makes troubles when you transfer coin to your own address and make a change
+      // when query address(es) from blockchain.info, the response of tx may missing some outputs if
+      // one address is in outputs and other outputs is not in your address(es) list.
+      // blockchain.info may think other outputs is not your concern.. but it's really annoying.
+      // see: https://testnet.blockchain.info/multiaddr?cors=true&offset=0&n=100&active=mkscdDdESTD5KUyvNFAYEGPmhKM8fC9REZ
+      // in this case, we need to mark tx as 'not completed' and get the full tx later.
+      // ps: this only makes troubles when you transfer coin to your own address and make a change
       hasDetails: (rTx.inputs.length === rTx.vin_sz) && (rTx.out.length === rTx.vout_sz)
     }
     let index = 0
     tx.inputs = await Promise.all(rTx.inputs.map(async input => {
-      // blockchain.info don't have this field, but we can get it from txs by tx_index,
-      // if prevAddress is the address we query. otherwise prevTxId is useless
+      // blockchain.info don't have this field, but we can get it from txs by tx_index if
+      // prevAddress is one of the addresses we query. otherwise prevTxId is useless
       let prevTxId = this.indexMap[input.prev_out.tx_index]
       if (!prevTxId && (input.prev_out.addr === address)) {
         console.debug('tx_index not found, get it by queryRawTx', rTx)
