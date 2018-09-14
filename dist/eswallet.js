@@ -42901,8 +42901,10 @@ var BtcAccount = function () {
                 });
 
                 if (index === -1) {
+                  txInfo.comment = '';
                   this.txInfos.push(txInfo);
                 } else {
+                  txInfo.comment = this.txInfos[index].comment;
                   this.txInfos[index] = txInfo;
                 }
                 this.utxos = this.utxos.filter(function (oldUtxo) {
@@ -43208,7 +43210,8 @@ var BtcAccount = function () {
      *   outputs: [{
      *     address: base58 string,
      *     value: string (satoshi)
-     *   }]
+     *   }],
+     *   comment: string (optional)
      * }
      * @returns {Promise<prepareTx>}
      * {
@@ -43383,7 +43386,8 @@ var BtcAccount = function () {
                   outputs: _D2.default.copy(details.outputs),
                   fee: fee,
                   total: totalOut + fee,
-                  utxos: willSpentUtxos
+                  utxos: willSpentUtxos,
+                  comment: details.comment || ''
                 });
 
               case 23:
@@ -43501,7 +43505,8 @@ var BtcAccount = function () {
                       script: _D2.default.address.makeOutputScript(output.address),
                       value: output.value
                     };
-                  })
+                  }),
+                  comment: prepareTx.comment
 
                   // update utxo spent status from unspent to spent pending
                 };
@@ -43677,6 +43682,11 @@ var D = {
     operationTimeout: 110,
     deviceNotInit: 111,
     devicePressKeyTooEarly: 112,
+
+    fatUnavailable: 121,
+    fatOutOfRange: 122,
+    fatInvalidFile: 123,
+    fatOutOfSpace: 124,
 
     databaseOpenFailed: 201,
     databaseExecFailed: 202,
@@ -44591,12 +44601,14 @@ var EsWallet = function () {
       var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4() {
         var _this3 = this;
 
+        var _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, coinType, _iteratorNormalCompletion2, _didIteratorError2, _iteratorError2, _iterator2, _step2, esAccount;
+
         return regeneratorRuntime.wrap(function _callee4$(_context4) {
           while (1) {
             switch (_context4.prev = _context4.next) {
               case 0:
                 if (!(this._esAccounts.length === 0)) {
-                  _context4.next = 8;
+                  _context4.next = 67;
                   break;
                 }
 
@@ -44609,27 +44621,152 @@ var EsWallet = function () {
 
               case 3:
                 console.log('no accounts, new wallet, start recovery');
-                _context4.next = 6;
-                return Promise.all(_D2.default.recoverCoinTypes().map(function (coinType) {
-                  return _this3._recover(coinType);
-                }));
+                _context4.prev = 4;
 
-              case 6:
+                // Here we can't use Promise.all() in recover, because data may be invalid when one
+                // of account occur errors, while other type of account is still running recover.
+                // In this case, deleting all account may failed because account which is still running
+                // may writing account data into database later. We don't have mechanism to make them stop.
+                _iteratorNormalCompletion = true;
+                _didIteratorError = false;
+                _iteratorError = undefined;
+                _context4.prev = 8;
+                _iterator = _D2.default.recoverCoinTypes()[Symbol.iterator]();
+
+              case 10:
+                if (_iteratorNormalCompletion = (_step = _iterator.next()).done) {
+                  _context4.next = 17;
+                  break;
+                }
+
+                coinType = _step.value;
+                _context4.next = 14;
+                return this._recover(coinType);
+
+              case 14:
+                _iteratorNormalCompletion = true;
                 _context4.next = 10;
                 break;
 
-              case 8:
-                _context4.next = 10;
+              case 17:
+                _context4.next = 23;
+                break;
+
+              case 19:
+                _context4.prev = 19;
+                _context4.t0 = _context4['catch'](8);
+                _didIteratorError = true;
+                _iteratorError = _context4.t0;
+
+              case 23:
+                _context4.prev = 23;
+                _context4.prev = 24;
+
+                if (!_iteratorNormalCompletion && _iterator.return) {
+                  _iterator.return();
+                }
+
+              case 26:
+                _context4.prev = 26;
+
+                if (!_didIteratorError) {
+                  _context4.next = 29;
+                  break;
+                }
+
+                throw _iteratorError;
+
+              case 29:
+                return _context4.finish(26);
+
+              case 30:
+                return _context4.finish(23);
+
+              case 31:
+                _context4.next = 65;
+                break;
+
+              case 33:
+                _context4.prev = 33;
+                _context4.t1 = _context4['catch'](4);
+
+                console.warn('recover error', _context4.t1);
+                console.warn('recover account failed, deleting all accounts', this._esAccounts);
+                _iteratorNormalCompletion2 = true;
+                _didIteratorError2 = false;
+                _iteratorError2 = undefined;
+                _context4.prev = 40;
+                _iterator2 = this._esAccounts[Symbol.iterator]();
+
+              case 42:
+                if (_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done) {
+                  _context4.next = 49;
+                  break;
+                }
+
+                esAccount = _step2.value;
+                _context4.next = 46;
+                return esAccount.delete();
+
+              case 46:
+                _iteratorNormalCompletion2 = true;
+                _context4.next = 42;
+                break;
+
+              case 49:
+                _context4.next = 55;
+                break;
+
+              case 51:
+                _context4.prev = 51;
+                _context4.t2 = _context4['catch'](40);
+                _didIteratorError2 = true;
+                _iteratorError2 = _context4.t2;
+
+              case 55:
+                _context4.prev = 55;
+                _context4.prev = 56;
+
+                if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                  _iterator2.return();
+                }
+
+              case 58:
+                _context4.prev = 58;
+
+                if (!_didIteratorError2) {
+                  _context4.next = 61;
+                  break;
+                }
+
+                throw _iteratorError2;
+
+              case 61:
+                return _context4.finish(58);
+
+              case 62:
+                return _context4.finish(55);
+
+              case 63:
+                this._esAccounts = [];
+                throw _context4.t1;
+
+              case 65:
+                _context4.next = 69;
+                break;
+
+              case 67:
+                _context4.next = 69;
                 return Promise.all(this._esAccounts.map(function (esAccount) {
                   return esAccount.sync(true, _this3.offlineMode);
                 }));
 
-              case 10:
+              case 69:
               case 'end':
                 return _context4.stop();
             }
           }
-        }, _callee4, this);
+        }, _callee4, this, [[4, 33], [8, 19, 23, 31], [24,, 26, 30], [40, 51, 55, 63], [56,, 58, 62]]);
       }));
 
       function _sync() {
@@ -44642,90 +44779,123 @@ var EsWallet = function () {
     key: '_recover',
     value: function () {
       var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(coinType) {
-        var account, esAccount;
-        return regeneratorRuntime.wrap(function _callee5$(_context5) {
+        var _this4 = this;
+
+        var _loop, _ret;
+
+        return regeneratorRuntime.wrap(function _callee5$(_context6) {
           while (1) {
-            switch (_context5.prev = _context5.next) {
+            switch (_context6.prev = _context6.next) {
               case 0:
+                _loop = /*#__PURE__*/regeneratorRuntime.mark(function _loop() {
+                  var account, esAccount;
+                  return regeneratorRuntime.wrap(function _loop$(_context5) {
+                    while (1) {
+                      switch (_context5.prev = _context5.next) {
+                        case 0:
+                          _context5.next = 2;
+                          return _this4._coinData.newAccount(coinType);
+
+                        case 2:
+                          account = _context5.sent;
+                          esAccount = void 0;
+
+                          if (!_D2.default.isBtc(coinType)) {
+                            _context5.next = 8;
+                            break;
+                          }
+
+                          esAccount = new _BtcAccount2.default(account, _this4._device, _this4._coinData);
+                          _context5.next = 13;
+                          break;
+
+                        case 8:
+                          if (!_D2.default.isEth(coinType)) {
+                            _context5.next = 12;
+                            break;
+                          }
+
+                          esAccount = new _EthAccount2.default(account, _this4._device, _this4._coinData);
+                          _context5.next = 13;
+                          break;
+
+                        case 12:
+                          throw _D2.default.error.coinNotSupported;
+
+                        case 13:
+                          _this4._esAccounts.push(esAccount);
+
+                          _context5.next = 16;
+                          return esAccount.init();
+
+                        case 16:
+                          _context5.next = 18;
+                          return esAccount.sync(true);
+
+                        case 18:
+                          _context5.next = 20;
+                          return esAccount.getTxInfos();
+
+                        case 20:
+                          _context5.t0 = _context5.sent.total;
+
+                          if (!(_context5.t0 === 0)) {
+                            _context5.next = 31;
+                            break;
+                          }
+
+                          if (!(esAccount.index !== 0)) {
+                            _context5.next = 29;
+                            break;
+                          }
+
+                          console.log(esAccount.accountId, 'has no txInfo, will not recover, delete it');
+                          _this4._esAccounts = _this4._esAccounts.filter(function (a) {
+                            return a !== esAccount;
+                          });
+                          _context5.next = 27;
+                          return esAccount.delete();
+
+                        case 27:
+                          _context5.next = 30;
+                          break;
+
+                        case 29:
+                          console.log(esAccount.accountId, 'has no txInfo, but it is the first account, keep it');
+
+                        case 30:
+                          return _context5.abrupt('return', 'break');
+
+                        case 31:
+                        case 'end':
+                          return _context5.stop();
+                      }
+                    }
+                  }, _loop, _this4);
+                });
+
+              case 1:
                 if (false) {}
 
-                _context5.next = 3;
-                return this._coinData.newAccount(coinType);
+                return _context6.delegateYield(_loop(), 't0', 3);
 
               case 3:
-                account = _context5.sent;
-                esAccount = void 0;
+                _ret = _context6.t0;
 
-                if (!_D2.default.isBtc(coinType)) {
-                  _context5.next = 9;
+                if (!(_ret === 'break')) {
+                  _context6.next = 6;
                   break;
                 }
 
-                esAccount = new _BtcAccount2.default(account, this._device, this._coinData);
-                _context5.next = 14;
+                return _context6.abrupt('break', 8);
+
+              case 6:
+                _context6.next = 1;
                 break;
 
-              case 9:
-                if (!_D2.default.isEth(coinType)) {
-                  _context5.next = 13;
-                  break;
-                }
-
-                esAccount = new _EthAccount2.default(account, this._device, this._coinData);
-                _context5.next = 14;
-                break;
-
-              case 13:
-                throw _D2.default.error.coinNotSupported;
-
-              case 14:
-                _context5.next = 16;
-                return esAccount.init();
-
-              case 16:
-                _context5.next = 18;
-                return esAccount.sync(true);
-
-              case 18:
-                _context5.next = 20;
-                return esAccount.getTxInfos();
-
-              case 20:
-                _context5.t0 = _context5.sent.total;
-
-                if (!(_context5.t0 === 0)) {
-                  _context5.next = 31;
-                  break;
-                }
-
-                if (!(esAccount.index !== 0)) {
-                  _context5.next = 28;
-                  break;
-                }
-
-                console.log(esAccount.accountId, 'has no txInfo, will not recover, delete it');
-                _context5.next = 26;
-                return esAccount.delete();
-
-              case 26:
-                _context5.next = 30;
-                break;
-
-              case 28:
-                console.log(esAccount.accountId, 'has no txInfo, but it is the first account, keep it');
-                this._esAccounts.push(esAccount);
-
-              case 30:
-                return _context5.abrupt('break', 34);
-
-              case 31:
-                this._esAccounts.push(esAccount);
-                _context5.next = 0;
-                break;
-
-              case 34:
+              case 8:
               case 'end':
-                return _context5.stop();
+                return _context6.stop();
             }
           }
         }, _callee5, this);
@@ -44826,9 +44996,9 @@ var EsWallet = function () {
     value: function () {
       var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6(filter) {
         var order;
-        return regeneratorRuntime.wrap(function _callee6$(_context6) {
+        return regeneratorRuntime.wrap(function _callee6$(_context7) {
           while (1) {
-            switch (_context6.prev = _context6.next) {
+            switch (_context7.prev = _context7.next) {
               case 0:
                 order = {};
 
@@ -44837,13 +45007,13 @@ var EsWallet = function () {
                 order[_D2.default.coin.test.btcTestNet3] = 100;
                 order[_D2.default.coin.test.ethRinkeby] = 101;
                 order[_D2.default.coin.test.ethRopsten] = 102;
-                return _context6.abrupt('return', this._esAccounts.sort(function (a, b) {
+                return _context7.abrupt('return', this._esAccounts.sort(function (a, b) {
                   return order[a.coinType] - order[b.coinType];
                 }));
 
               case 7:
               case 'end':
-                return _context6.stop();
+                return _context7.stop();
             }
           }
         }, _callee6, this);
@@ -44860,30 +45030,30 @@ var EsWallet = function () {
     value: function () {
       var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7(coinType) {
         var account, esAccount;
-        return regeneratorRuntime.wrap(function _callee7$(_context7) {
+        return regeneratorRuntime.wrap(function _callee7$(_context8) {
           while (1) {
-            switch (_context7.prev = _context7.next) {
+            switch (_context8.prev = _context8.next) {
               case 0:
-                _context7.next = 2;
+                _context8.next = 2;
                 return this._coinData.newAccount(coinType);
 
               case 2:
-                account = _context7.sent;
+                account = _context8.sent;
                 esAccount = _D2.default.isBtc(coinType) ? new _BtcAccount2.default(account, this._device, this._coinData) : new _EthAccount2.default(account, this._device, this._coinData);
-                _context7.next = 6;
+                _context8.next = 6;
                 return esAccount.init();
 
               case 6:
-                _context7.next = 8;
+                _context8.next = 8;
                 return esAccount.sync();
 
               case 8:
                 this._esAccounts.push(esAccount);
-                return _context7.abrupt('return', esAccount);
+                return _context8.abrupt('return', esAccount);
 
               case 10:
               case 'end':
-                return _context7.stop();
+                return _context8.stop();
             }
           }
         }, _callee7, this);
@@ -44899,84 +45069,84 @@ var EsWallet = function () {
     key: 'availableNewAccountCoinTypes',
     value: function () {
       var _ref8 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8() {
-        var availables, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, coinType;
+        var availables, _iteratorNormalCompletion3, _didIteratorError3, _iteratorError3, _iterator3, _step3, coinType;
 
-        return regeneratorRuntime.wrap(function _callee8$(_context8) {
+        return regeneratorRuntime.wrap(function _callee8$(_context9) {
           while (1) {
-            switch (_context8.prev = _context8.next) {
+            switch (_context9.prev = _context9.next) {
               case 0:
                 availables = [];
-                _iteratorNormalCompletion = true;
-                _didIteratorError = false;
-                _iteratorError = undefined;
-                _context8.prev = 4;
-                _iterator = _D2.default.supportedCoinTypes()[Symbol.iterator]();
+                _iteratorNormalCompletion3 = true;
+                _didIteratorError3 = false;
+                _iteratorError3 = undefined;
+                _context9.prev = 4;
+                _iterator3 = _D2.default.supportedCoinTypes()[Symbol.iterator]();
 
               case 6:
-                if (_iteratorNormalCompletion = (_step = _iterator.next()).done) {
-                  _context8.next = 16;
+                if (_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done) {
+                  _context9.next = 16;
                   break;
                 }
 
-                coinType = _step.value;
-                _context8.next = 10;
+                coinType = _step3.value;
+                _context9.next = 10;
                 return this._coinData._newAccountIndex(coinType);
 
               case 10:
-                _context8.t0 = _context8.sent;
+                _context9.t0 = _context9.sent;
 
-                if (!(_context8.t0 >= 0)) {
-                  _context8.next = 13;
+                if (!(_context9.t0 >= 0)) {
+                  _context9.next = 13;
                   break;
                 }
 
                 availables.push(coinType);
 
               case 13:
-                _iteratorNormalCompletion = true;
-                _context8.next = 6;
+                _iteratorNormalCompletion3 = true;
+                _context9.next = 6;
                 break;
 
               case 16:
-                _context8.next = 22;
+                _context9.next = 22;
                 break;
 
               case 18:
-                _context8.prev = 18;
-                _context8.t1 = _context8['catch'](4);
-                _didIteratorError = true;
-                _iteratorError = _context8.t1;
+                _context9.prev = 18;
+                _context9.t1 = _context9['catch'](4);
+                _didIteratorError3 = true;
+                _iteratorError3 = _context9.t1;
 
               case 22:
-                _context8.prev = 22;
-                _context8.prev = 23;
+                _context9.prev = 22;
+                _context9.prev = 23;
 
-                if (!_iteratorNormalCompletion && _iterator.return) {
-                  _iterator.return();
+                if (!_iteratorNormalCompletion3 && _iterator3.return) {
+                  _iterator3.return();
                 }
 
               case 25:
-                _context8.prev = 25;
+                _context9.prev = 25;
 
-                if (!_didIteratorError) {
-                  _context8.next = 28;
+                if (!_didIteratorError3) {
+                  _context9.next = 28;
                   break;
                 }
 
-                throw _iteratorError;
+                throw _iteratorError3;
 
               case 28:
-                return _context8.finish(25);
+                return _context9.finish(25);
 
               case 29:
-                return _context8.finish(22);
+                return _context9.finish(22);
 
               case 30:
-                return _context8.abrupt('return', availables);
+                return _context9.abrupt('return', availables);
 
               case 31:
               case 'end':
-                return _context8.stop();
+                return _context9.stop();
             }
           }
         }, _callee8, this, [[4, 18, 22, 30], [23,, 25, 29]]);
@@ -45581,8 +45751,10 @@ var EthAccount = function () {
                 });
 
                 if (index === -1) {
+                  txInfo.comment = '';
                   this.txInfos.push(txInfo);
                 } else {
+                  txInfo.comment = this.txInfos[index].comment;
                   this.txInfos[index] = txInfo;
                 }
                 this.addressInfos.find(function (a) {
@@ -45716,6 +45888,7 @@ var EthAccount = function () {
      *   gasPrice: string (=gasPrice, decimal string Wei),
      *   gasLimit: string (decimal string Wei),
      *   data: hex string (optional),
+     *   comment: string (optional)
      * }
      * @returns {Promise<{total: *, fee: number, gasPrice: string, gasLimit: string, nonce: number, input: *, output: *, data: string}>}
      * {
@@ -45893,7 +46066,8 @@ var EthAccount = function () {
                   nonce: nonce,
                   input: input,
                   output: output,
-                  data: details.data
+                  data: details.data,
+                  comment: details.comment || ''
                 };
 
                 console.log('prepareTx', prepareTx);
@@ -45972,6 +46146,7 @@ var EthAccount = function () {
                     time: new Date().getTime(),
                     direction: _D2.default.tx.direction.out,
                     showAddresses: [output.address],
+                    value: '-' + output.value,
                     inputs: [{
                       prevAddress: prepareTx.input.address,
                       isMine: true,
@@ -45986,7 +46161,8 @@ var EthAccount = function () {
                     gasPrice: _bigi2.default.fromHex(gasPrice.slice(2)).toString(10),
                     fee: prepareTx.fee,
                     nonce: prepareTx.nonce,
-                    data: prepareTx.data
+                    data: prepareTx.data,
+                    comment: prepareTx.comment
                   },
                   addressInfo: prepareTx.input,
                   hex: signedTx.hex
@@ -46086,7 +46262,7 @@ var _CoreWallet = __webpack_require__(/*! ./device/CoreWallet */ "./src/sdk/devi
 
 var _CoreWallet2 = _interopRequireDefault(_CoreWallet);
 
-var _HidTransmitter = __webpack_require__(/*! ./device/HidTransmitter */ "./src/sdk/device/HidTransmitter.js");
+var _HidTransmitter = __webpack_require__(/*! ./device/transmit/HidTransmitter */ "./src/sdk/device/transmit/HidTransmitter.js");
 
 var _HidTransmitter2 = _interopRequireDefault(_HidTransmitter);
 
@@ -47059,7 +47235,13 @@ var CoinData = function () {
           txInfo.shouldResend = new Date().getTime() - txInfo.time > shouldResendTime;
         }
       }
-      txInfo.link = this._network[txInfo.coinType].getTxLink(txInfo);
+      if (!this._network[txInfo.coinType]) {
+        // this is a bug but we havn't find it out
+        console.warn('unable to get tx link', txInfo.coinType, txInfo, this._network);
+        txInfo.link = '';
+      } else {
+        txInfo.link = this._network[txInfo.coinType].getTxLink(txInfo);
+      }
     }
   }, {
     key: 'clearData',
@@ -49099,9 +49281,12 @@ var BlockchainInfo = function (_ICoinNetwork) {
                   blockNumber: rTx.block_height || -1,
                   confirmations: confirmations,
                   time: rTx.time * 1000,
-                  // if you query a single address, it may missing some outputs. see
-                  // https://testnet.blockchain.info/multiaddr?cors=true&offset=0&n=100&active=mkscdDdESTD5KUyvNFAYEGPmhKM8fC9REZ
-                  // this only makes troubles when you transfer coin to your own address and make a change
+                  // when query address(es) from blockchain.info, the response of tx may missing some outputs if
+                  // one address is in outputs and other outputs is not in your address(es) list.
+                  // blockchain.info may think other outputs is not your concern.. but it's really annoying.
+                  // see: https://testnet.blockchain.info/multiaddr?cors=true&offset=0&n=100&active=mkscdDdESTD5KUyvNFAYEGPmhKM8fC9REZ
+                  // in this case, we need to mark tx as 'not completed' and get the full tx later.
+                  // ps: this only makes troubles when you transfer coin to your own address and make a change
                   hasDetails: rTx.inputs.length === rTx.vin_sz && rTx.out.length === rTx.vout_sz
                 };
                 index = 0;
@@ -49113,8 +49298,8 @@ var BlockchainInfo = function (_ICoinNetwork) {
                       while (1) {
                         switch (_context7.prev = _context7.next) {
                           case 0:
-                            // blockchain.info don't have this field, but we can get it from txs by tx_index,
-                            // if prevAddress is the address we query. otherwise prevTxId is useless
+                            // blockchain.info don't have this field, but we can get it from txs by tx_index if
+                            // prevAddress is one of the addresses we query. otherwise prevTxId is useless
                             prevTxId = _this3.indexMap[input.prev_out.tx_index];
 
                             if (!(!prevTxId && input.prev_out.addr === address)) {
@@ -49630,8 +49815,16 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 
 var typeAddress = 'address';
 var typeTx = 'tx';
+var typeDetail = 'detail';
 
 var txNotFoundMaxSeconds = 30;
+
+var remove = function remove(arr, val) {
+  var index = arr.indexOf(val);
+  if (index > -1) {
+    arr.splice(index, 1);
+  }
+};
 
 var ICoinNetwork = function () {
   function ICoinNetwork(coinType) {
@@ -49641,7 +49834,7 @@ var ICoinNetwork = function () {
     this._startQueue = false;
     this._blockHeight = -1;
     this._supportMultiAddresses = false;
-    this._requestRate = 1; // seconds per request
+    this._requestRate = 5; // request per seconds
     this._requestList = [];
   }
 
@@ -49677,6 +49870,10 @@ var ICoinNetwork = function () {
                         request.currentBlock = _this2._blockHeight;
                         request.request();
                         break;
+                      } else if (request.type === typeDetail) {
+                        request.request();
+                        remove(_this2._requestList, request);
+                        break;
                       }
                     }
                   } catch (err) {
@@ -49695,7 +49892,7 @@ var ICoinNetwork = function () {
                   }
 
                   if (_this2._startQueue) {
-                    setTimeout(queue, _this2._requestRate * 1000);
+                    setTimeout(queue, 1 / _this2._requestRate * 1000);
                   }
                 };
 
@@ -49870,12 +50067,6 @@ var ICoinNetwork = function () {
     key: 'listenTx',
     value: function listenTx(txInfo, callback) {
       var that = this;
-      var remove = function remove(arr, val) {
-        var index = arr.indexOf(val);
-        if (index > -1) {
-          arr.splice(index, 1);
-        }
-      };
       this._requestList.push({
         callback: callback,
         type: typeTx,
@@ -50129,25 +50320,40 @@ var ICoinNetwork = function () {
                   _context9.next = 5;
                   return Promise.all(newTxs.map(function () {
                     var _ref9 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8(tx) {
+                      var getDetailsTask;
                       return regeneratorRuntime.wrap(function _callee8$(_context8) {
                         while (1) {
                           switch (_context8.prev = _context8.next) {
                             case 0:
                               if (tx.hasDetails) {
-                                _context8.next = 4;
+                                _context8.next = 6;
                                 break;
                               }
 
-                              _context8.next = 3;
-                              return _this4.queryTx(tx.txId);
+                              console.debug('tx is not completed, get it in queue', tx);
 
-                            case 3:
-                              tx = _context8.sent;
+                              getDetailsTask = function getDetailsTask(txId) {
+                                var that = _this4;
+                                return new Promise(function (resolve, reject) {
+                                  that._requestList.push({
+                                    type: typeDetail,
+                                    request: function request() {
+                                      that.queryTx(txId).then(resolve).catch(reject);
+                                    }
+                                  });
+                                });
+                              };
 
-                            case 4:
-                              return _context8.abrupt('return', newTransaction(addressInfo, tx));
+                              _context8.next = 5;
+                              return getDetailsTask(tx.txId);
 
                             case 5:
+                              tx = _context8.sent;
+
+                            case 6:
+                              return _context8.abrupt('return', newTransaction(addressInfo, tx));
+
+                            case 7:
                             case 'end':
                               return _context8.stop();
                           }
@@ -50918,184 +51124,6 @@ exports.default = FeeBitCoinEarn;
 
 /***/ }),
 
-/***/ "./src/sdk/device/ChromeHidDevice.js":
-/*!*******************************************!*\
-  !*** ./src/sdk/device/ChromeHidDevice.js ***!
-  \*******************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _D = __webpack_require__(/*! ../D */ "./src/sdk/D.js");
-
-var _D2 = _interopRequireDefault(_D);
-
-var _IEsDevice2 = __webpack_require__(/*! ./IEsDevice */ "./src/sdk/device/IEsDevice.js");
-
-var _IEsDevice3 = _interopRequireDefault(_IEsDevice2);
-
-var _buffer = __webpack_require__(/*! buffer */ "./node_modules/node-libs-browser/node_modules/buffer/index.js");
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-/** @namespace chrome */
-/** @namespace chrome.hid */
-/** @namespace chrome.hid.connect */
-/** @namespace chrome.hid.onDeviceAdded */
-/** @namespace chrome.hid.onDeviceRemoved */
-/** @namespace chrome.hid.getDevices */
-/** @namespace chrome.runtime.lastError */
-/** @namespace chrome.hid.sendFeatureReport */
-/** @namespace chrome.hid.receiveFeatureReport */
-
-var ChromeHidDevice = function (_IEsDevice) {
-  _inherits(ChromeHidDevice, _IEsDevice);
-
-  function ChromeHidDevice() {
-    _classCallCheck(this, ChromeHidDevice);
-
-    var _this = _possibleConstructorReturn(this, (ChromeHidDevice.__proto__ || Object.getPrototypeOf(ChromeHidDevice)).call(this));
-
-    _this._deviceId = null;
-    _this._connectionId = null;
-    _this._listener = null;
-
-    if (!chrome || !chrome.hid) {
-      console.warn('chrome.hid not in chrome app env, exit');
-      return _possibleConstructorReturn(_this);
-    }
-
-    var connect = function connect() {
-      chrome.hid.connect(_this._deviceId, function (connection) {
-        if (chrome.runtime.lastError) {
-          console.warn('chrome.hid.connect error: ' + chrome.runtime.lastError.message);
-          _this._deviceId = null;
-          _this._listener && _D2.default.dispatch(function () {
-            return _this._listener(_D2.default.error.deviceConnectFailed, _D2.default.status.plugIn);
-          });
-          return;
-        }
-
-        _this._connectionId = connection.connectionId;
-        console.log('Connected to the HID device!', _this._deviceId, _this._connectionId);
-        _this._listener && _D2.default.dispatch(function () {
-          return _this._listener(_D2.default.error.succeed, _D2.default.status.plugIn);
-        });
-      });
-    };
-
-    chrome.hid.onDeviceAdded.addListener(function (device) {
-      console.log('plug in vid=' + device.vendorId + ', pid=' + device.productId);
-      if (_this._deviceId) return;
-      _this._deviceId = device.deviceId;
-      connect();
-    });
-
-    chrome.hid.onDeviceRemoved.addListener(function (deviceId) {
-      console.log('plug out', deviceId);
-      if (_this._deviceId !== deviceId) return;
-      _this._deviceId = null;
-      _this._connectionId = null;
-      _this._listener && _D2.default.dispatch(function () {
-        return _this._listener(_D2.default.error.succeed, _D2.default.status.plugOut);
-      });
-    });
-
-    chrome.hid.getDevices({}, function (foundDevices) {
-      if (chrome.runtime.lastError) {
-        console.warn('chrome.hid.getDevices error: ' + chrome.runtime.lastError.message);
-        return;
-      }
-
-      if (_this._deviceId) return;
-      if (foundDevices.length === 0) return;
-      var device = foundDevices[0];
-      console.log('found device: vid=' + device.vendorId + ', pid=' + device.productId);
-      _this._deviceId = device.deviceId;
-      connect(device);
-    });
-    return _this;
-  }
-
-  _createClass(ChromeHidDevice, [{
-    key: 'send',
-    value: function send(reportId, command) {
-      var _this2 = this;
-
-      if (this._deviceId === null || this._connectionId === null) {
-        throw _D2.default.error.noDevice;
-      }
-
-      if (typeof command === 'string') {
-        command = _buffer.Buffer.from(command, 'hex');
-      }
-
-      console.debug('send package', reportId, command.toString('hex'));
-      return new Promise(function (resolve, reject) {
-        chrome.hid.sendFeatureReport(_this2._connectionId, reportId, command.buffer, function () {
-          if (chrome.runtime.lastError) {
-            console.warn('hid send error: ' + chrome.runtime.lastError.message);
-            reject(_D2.default.error.deviceComm);
-          }
-          resolve();
-        });
-      });
-    }
-  }, {
-    key: 'receive',
-    value: function receive() {
-      var _this3 = this;
-
-      if (this._deviceId === null || this._connectionId === null) {
-        throw _D2.default.error.noDevice;
-      }
-
-      return new Promise(function (resolve, reject) {
-        chrome.hid.receiveFeatureReport(_this3._connectionId, 51, function (data) {
-          if (chrome.runtime.lastError) {
-            console.warn('receive error: ' + chrome.runtime.lastError.message);
-            reject(_D2.default.error.deviceComm);
-          }
-          data = _buffer.Buffer.from(data);
-          console.debug('receive package', data.toString('hex'));
-          resolve(data);
-        });
-      });
-    }
-  }, {
-    key: 'listenPlug',
-    value: function listenPlug(callback) {
-      var _this4 = this;
-
-      this._listener = callback;
-      if (this._deviceId !== null && this._connectionId !== null) {
-        _D2.default.dispatch(function () {
-          return _this4._listener(_D2.default.error.succeed, _D2.default.status.plugIn);
-        });
-      }
-    }
-  }]);
-
-  return ChromeHidDevice;
-}(_IEsDevice3.default);
-
-exports.default = ChromeHidDevice;
-
-/***/ }),
-
 /***/ "./src/sdk/device/CoreWallet.js":
 /*!**************************************!*\
   !*** ./src/sdk/device/CoreWallet.js ***!
@@ -51762,836 +51790,6 @@ var CoreWallet = function () {
 }();
 
 exports.default = CoreWallet;
-
-/***/ }),
-
-/***/ "./src/sdk/device/HidTransmitter.js":
-/*!******************************************!*\
-  !*** ./src/sdk/device/HidTransmitter.js ***!
-  \******************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-/* WEBPACK VAR INJECTION */(function(Buffer) {
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _D = __webpack_require__(/*! ../D */ "./src/sdk/D.js");
-
-var _D2 = _interopRequireDefault(_D);
-
-var _MockDevice = __webpack_require__(/*! ./MockDevice */ "./src/sdk/device/MockDevice.js");
-
-var _MockDevice2 = _interopRequireDefault(_MockDevice);
-
-var _jsencrypt = __webpack_require__(/*! ./jsencrypt */ "./src/sdk/device/jsencrypt.js");
-
-var _jsencrypt2 = _interopRequireDefault(_jsencrypt);
-
-var _cryptoJs = __webpack_require__(/*! crypto-js */ "./node_modules/crypto-js/index.js");
-
-var _cryptoJs2 = _interopRequireDefault(_cryptoJs);
-
-var _ChromeHidDevice = __webpack_require__(/*! ./ChromeHidDevice */ "./src/sdk/device/ChromeHidDevice.js");
-
-var _ChromeHidDevice2 = _interopRequireDefault(_ChromeHidDevice);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var factoryPubKeyPem = '-----BEGIN PUBLIC KEY-----' + 'MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC3IaEDmGWrsHA5rKC8VB++Gkw/' + '9wdhn2j8zR9Zysw50jEKW6Hos54XnlUul7MFhUwCduNWr+Bu1v2aGWn+mz68mIml' + 'xfAEmESfpB7hL7O+IUDz2v+/QHXs34wE3zQ7uFNH05xrdznf1a2Buy4Jrc3BeVmo' + 'nnYX4pewrrbfoITl4QIDAQAB' + '-----END PUBLIC KEY-----';
-
-var sha1 = function sha1(data) {
-  if (typeof data === 'string') {
-    data = Buffer.from(data, 'hex');
-  }
-  var input = _cryptoJs2.default.lib.WordArray.create(data);
-  var plaintext = _cryptoJs2.default.SHA1(input);
-  return Buffer.from(plaintext.toString(), 'hex');
-};
-
-var des112 = function des112(isEnc, data, key) {
-  var customPadding = function customPadding(data) {
-    var padNum = 8 - data.length % 8;
-    if (padNum === 8) return data;
-
-    var padding = Buffer.alloc(padNum);
-    padding[0] = 0x80;
-    return Buffer.concat([data, padding]);
-  };
-
-  var removeCustomPadding = function removeCustomPadding(data) {
-    if (typeof data === 'string') {
-      data = Buffer.from(data, 'hex');
-    }
-    var padNum = data[0];
-    return data.slice(1, data.length - padNum);
-  };
-
-  if (typeof data === 'string') {
-    data = Buffer.from(data, 'hex');
-  }
-  if (typeof key === 'string') {
-    key = Buffer.from(key, 'hex');
-  }
-
-  if (isEnc) {
-    data = customPadding(data);
-  }
-  var des168Key = Buffer.concat([key, key.slice(0, 8)]); // des112 => des 168
-  var input = _cryptoJs2.default.lib.WordArray.create(data);
-  var pass = _cryptoJs2.default.lib.WordArray.create(des168Key);
-  if (isEnc) {
-    var encData = _cryptoJs2.default.TripleDES.encrypt(input, pass, {
-      mode: _cryptoJs2.default.mode.ECB,
-      padding: _cryptoJs2.default.pad.NoPadding
-    });
-    return Buffer.from(encData.ciphertext.toString(_cryptoJs2.default.enc.Hex), 'hex');
-  } else {
-    var plaintext = _cryptoJs2.default.TripleDES.decrypt({ ciphertext: input }, pass, {
-      mode: _cryptoJs2.default.mode.ECB,
-      padding: _cryptoJs2.default.pad.NoPadding
-    });
-    plaintext = plaintext.toString(_cryptoJs2.default.enc.Hex);
-    return removeCustomPadding(plaintext);
-  }
-};
-
-/**
- * Hardware apdu protocol
- */
-
-var HidTransmitter = function () {
-  function HidTransmitter() {
-    var _this = this;
-
-    _classCallCheck(this, HidTransmitter);
-
-    this._device = _D2.default.test.mockDevice ? new _MockDevice2.default() : new _ChromeHidDevice2.default();
-    this._commKey = {
-      sKey: null,
-      generated: false
-    };
-
-    this._plugListener = function () {};
-    this._device.listenPlug(function (error, status) {
-      if (status === _D2.default.status.plugOut) {
-        _this._commKey = {
-          sKey: null,
-          generated: false
-        };
-      }
-      _D2.default.dispatch(function () {
-        return _this._plugListener(error, status);
-      });
-    });
-  }
-
-  _createClass(HidTransmitter, [{
-    key: 'listenPlug',
-    value: function listenPlug(callback) {
-      if (callback) this._plugListener = callback;
-    }
-
-    /**
-     * handshake using rsa and 3DES112
-     */
-
-  }, {
-    key: '_doHandShake',
-    value: function () {
-      var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
-        var generateRsa1024KeyPair, modLen, genHandShakeApdu, parseHandShakeResponse, _genHandShakeApdu, tempKeyPair, apdu, response, _parseHandShakeRespon, sKey, sKeyCount;
-
-        return regeneratorRuntime.wrap(function _callee$(_context) {
-          while (1) {
-            switch (_context.prev = _context.next) {
-              case 0:
-                if (!this._commKey.generated) {
-                  _context.next = 2;
-                  break;
-                }
-
-                return _context.abrupt('return');
-
-              case 2:
-                generateRsa1024KeyPair = function generateRsa1024KeyPair() {
-                  var keyPair = new _jsencrypt2.default();
-                  if (_D2.default.test.mockDevice) {
-                    var testKeyPair = _MockDevice2.default.getTestTempRsaKeyPair();
-                    keyPair.setPrivateKey(testKeyPair.privKey);
-                    return keyPair;
-                  }
-
-                  while (true) {
-                    // if keyPair don't have keys, generate random keypair immediately
-                    keyPair.getKey();
-                    // n.MSB must be 1
-                    var n = keyPair.key.n.toString(16);
-                    if (n.length !== 256 || n[0] < '8') {
-                      console.debug('n MSB == 0, regenerate');
-                      keyPair.key = undefined;
-                      continue;
-                    }
-                    break;
-                  }
-                  return keyPair;
-                };
-
-                modLen = 0x80; // RSA1024
-
-                genHandShakeApdu = function genHandShakeApdu() {
-                  var tempKeyPair = generateRsa1024KeyPair();
-                  var apdu = Buffer.allocUnsafe(0x8B);
-                  Buffer.from('80334B4E00008402000000', 'hex').copy(apdu);
-                  var n = Buffer.from(tempKeyPair.key.n.toString(16), 'hex');
-                  n = Buffer.concat([Buffer.alloc(128 - n.length), n]);
-                  n.copy(apdu, 0x0B);
-                  return { tempKeyPair: tempKeyPair, apdu: apdu };
-                };
-
-                parseHandShakeResponse = function parseHandShakeResponse(hostKey, response, apdu) {
-                  var removePadding = function removePadding(data) {
-                    var pos = 0;
-                    if (data[pos++] !== 0x00) {
-                      console.warn('decrypted device cert invalid padding, dataView[0] != 0x00', data.toString('hex'));
-                      throw _D2.default.error.handShake;
-                    }
-                    var type = data[pos++];
-                    while (data[pos]) {
-                      if (type === 0x01 && data[pos] !== 0xFF) {
-                        console.warn('decrypted device cert invalid padding, type === 0x01 but dataView[0] != 0xFF', data.toString('hex'));
-                      }
-                      pos++;
-                    }
-                    if (data[pos++] !== 0x00) {
-                      console.warn('decrypted device cert invalid padding dataView[last_padding] != 0x00', data.toString('hex'));
-                      throw _D2.default.error.handShake;
-                    }
-                    return data.slice(pos);
-                  };
-
-                  var buildPemPublicKeyHex = function buildPemPublicKeyHex(publicKey) {
-                    var firstBit = publicKey[0] & 0x80;
-                    var prefix = firstBit ? '30819f300d06092a864886f70d010101050003818d0030818902818100' : '30819e300d06092a864886f70d010101050003818c00308188028180';
-                    prefix = Buffer.from(prefix, 'hex');
-                    return Buffer.concat([prefix, publicKey, Buffer.from('0203010001', 'hex')]);
-                  };
-
-                  if (response.length - modLen < 0) {
-                    console.warn('handshake apdu response length invalid, length: ', response.length);
-                    throw _D2.default.error.handShake;
-                  }
-                  var recvNoSign = Buffer.allocUnsafe(response.length - modLen);
-                  response.copy(recvNoSign, 0, 0, response.length - modLen);
-                  var factoryKey = new _jsencrypt2.default();
-                  factoryKey.setPublicKey(factoryPubKeyPem);
-
-                  var devCert = response.slice(0, modLen);
-                  var encSKey = response.slice(modLen, modLen * 2);
-                  var devSign = response.slice(modLen * 2, modLen * 3);
-
-                  // verify device cert by ca public key(factoryKey)
-                  var decDevCert = factoryKey.encrypt(devCert.toString('hex'));
-                  if (!decDevCert) {
-                    console.warn('decrypted device cert encrypt failed');
-                    throw _D2.default.error.handShake;
-                  }
-                  decDevCert = Buffer.from(decDevCert, 'hex');
-                  var orgDevCert = removePadding(decDevCert);
-
-                  var oidSha1 = Buffer.from('3021300906052b0e03021a05000414', 'hex');
-                  if (orgDevCert.slice(0, 15).toString('hex') !== oidSha1.toString('hex')) {
-                    console.warn('decrypted device cert oid != sha1 ', orgDevCert.toString('hex'));
-                    throw _D2.default.error.handShake;
-                  }
-
-                  var tempLen = modLen - 0x2E;
-                  var devPubHash = orgDevCert.slice(15, 35);
-                  var devPubKey = orgDevCert.slice(35, 35 + tempLen);
-
-                  // decrypt sKey by temp rsa key pair(hostKey)
-                  var decSKey = hostKey.decrypt(encSKey.toString('hex'));
-                  if (!decSKey) {
-                    console.warn('decrypted enc skey failed', encSKey.toString('hex'));
-                    throw _D2.default.error.handShake;
-                  }
-                  decSKey = Buffer.from(decSKey, 'hex');
-                  var orgSKey = removePadding(decSKey);
-
-                  devPubKey = Buffer.concat([devPubKey, orgSKey.slice(0, 46)]);
-
-                  var devPubSha1 = sha1(devPubKey);
-                  if (devPubSha1.toString('hex') !== devPubHash.toString('hex')) {
-                    console.warn('sha1(devPubKey) != debPubHash', devPubKey.toString('hex'), devPubHash.toString('hex'));
-                    throw _D2.default.error.handShake;
-                  }
-
-                  var sKeyCount = orgSKey.slice(46, 50);
-                  var sKey = orgSKey.slice(50, 66);
-
-                  // verify device sign by device public key(devPubKey)
-                  devPubKey = buildPemPublicKeyHex(devPubKey);
-                  var devPubKeyObj = new _jsencrypt2.default();
-                  devPubKeyObj.setPublicKey(devPubKey.toString('hex'));
-                  var orgDevSign = devPubKeyObj.encrypt(devSign.toString('hex'));
-                  if (!orgDevSign) {
-                    console.warn('device signature encrypt failed');
-                    throw _D2.default.error.handShake;
-                  }
-                  orgDevSign = Buffer.from(orgDevSign, 'hex');
-                  orgDevSign = removePadding(orgDevSign);
-
-                  var hashOrgValue = Buffer.concat([apdu.slice(7), devCert, encSKey]);
-                  var hashResult = sha1(hashOrgValue);
-
-                  var toSign = Buffer.concat([oidSha1, hashResult]);
-                  if (toSign.toString('hex') !== orgDevSign.toString('hex')) {
-                    console.warn('sign data not match');
-                    throw _D2.default.error.handShake;
-                  }
-                  return { sKey: sKey, sKeyCount: sKeyCount };
-                };
-
-                console.log('start hand shake');
-                _genHandShakeApdu = genHandShakeApdu(), tempKeyPair = _genHandShakeApdu.tempKeyPair, apdu = _genHandShakeApdu.apdu;
-                _context.next = 10;
-                return this._sendApdu(apdu);
-
-              case 10:
-                response = _context.sent;
-                _parseHandShakeRespon = parseHandShakeResponse(tempKeyPair, response, apdu), sKey = _parseHandShakeRespon.sKey, sKeyCount = _parseHandShakeRespon.sKeyCount;
-
-                this._commKey.sKey = sKey;
-                this._commKey.sKeyCount = sKeyCount;
-                this._commKey.generated = true;
-                console.log('finish hand shake');
-
-              case 16:
-              case 'end':
-                return _context.stop();
-            }
-          }
-        }, _callee, this);
-      }));
-
-      function _doHandShake() {
-        return _ref.apply(this, arguments);
-      }
-
-      return _doHandShake;
-    }()
-  }, {
-    key: 'sendApdu',
-    value: function () {
-      var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(apdu) {
-        var _this2 = this;
-
-        var isEnc = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
-        var makeEncApdu, decryptResponse, response;
-        return regeneratorRuntime.wrap(function _callee2$(_context2) {
-          while (1) {
-            switch (_context2.prev = _context2.next) {
-              case 0:
-                makeEncApdu = function makeEncApdu(apdu) {
-                  var encryptedApdu = des112(true, apdu, _this2._commKey.sKey);
-
-                  // 8033 534D Lc    00 00 00 PaddingNum(1) SKeyCount(4) EncApdu
-                  var padNum = encryptedApdu.length - apdu.length;
-                  var apduDataLen = 4 + _this2._commKey.sKeyCount.length + encryptedApdu.length;
-                  var apduData = Buffer.allocUnsafe(apduDataLen);
-                  apduData[0x03] = padNum & 0xFF;
-                  _this2._commKey.sKeyCount.copy(apduData, 0x04);
-                  encryptedApdu.copy(apduData, 0x08);
-
-                  var encApduHead = Buffer.from('8033534D000000', 'hex');
-                  encApduHead[0x04] = apduDataLen >> 16 & 0xFF;
-                  encApduHead[0x05] = apduDataLen >> 8 & 0xFF;
-                  encApduHead[0x06] = apduDataLen & 0xFF;
-                  return Buffer.concat([encApduHead, apduData]);
-                };
-
-                decryptResponse = function decryptResponse(response) {
-                  var decResponse = des112(false, response, _this2._commKey.sKey);
-
-                  var length = decResponse.length;
-                  var result = (decResponse[length - 2] << 8) + decResponse[length - 1];
-                  _this2._checkSw1Sw2(result);
-                  return decResponse.slice(0, -2);
-                };
-
-                // a simple lock to guarantee apdu order
-
-
-              case 2:
-                if (!this.busy) {
-                  _context2.next = 7;
-                  break;
-                }
-
-                _context2.next = 5;
-                return _D2.default.wait(5);
-
-              case 5:
-                _context2.next = 2;
-                break;
-
-              case 7:
-                this.busy = true;
-
-                if (typeof apdu === 'string') {
-                  apdu = Buffer.from(apdu, 'hex');
-                }
-                _context2.prev = 9;
-
-                console.log('send apdu', apdu.toString('hex'), 'isEnc', isEnc);
-
-                if (!isEnc) {
-                  _context2.next = 16;
-                  break;
-                }
-
-                _context2.next = 14;
-                return this._doHandShake().catch(function () {
-                  return _this2._doHandShake();
-                }).catch(function () {
-                  return _this2._doHandShake();
-                });
-
-              case 14:
-                apdu = makeEncApdu(apdu);
-                console.debug('send enc apdu', apdu.toString('hex'));
-
-              case 16:
-                _context2.next = 18;
-                return this._sendApdu(apdu);
-
-              case 18:
-                response = _context2.sent;
-
-                if (isEnc) {
-                  console.debug('got enc response', response.toString('hex'), 'isEnc', isEnc);
-                  response = decryptResponse(response);
-                }
-                console.log('got response', response.toString('hex'), 'isEnc', isEnc);
-                return _context2.abrupt('return', response);
-
-              case 24:
-                _context2.prev = 24;
-                _context2.t0 = _context2['catch'](9);
-                throw _context2.t0;
-
-              case 27:
-                _context2.prev = 27;
-
-                this.busy = false;
-                return _context2.finish(27);
-
-              case 30:
-              case 'end':
-                return _context2.stop();
-            }
-          }
-        }, _callee2, this, [[9, 24, 27, 30]]);
-      }));
-
-      function sendApdu(_x2) {
-        return _ref2.apply(this, arguments);
-      }
-
-      return sendApdu;
-    }()
-  }, {
-    key: '_sendApdu',
-    value: function () {
-      var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(apdu) {
-        var _ref4, result, response, _transmit2, _result, _response, rApdu, _transmit3, _result2, _response2;
-
-        return regeneratorRuntime.wrap(function _callee3$(_context3) {
-          while (1) {
-            switch (_context3.prev = _context3.next) {
-              case 0:
-                _context3.next = 2;
-                return this._transmit(apdu);
-
-              case 2:
-                _ref4 = _context3.sent;
-                result = _ref4.result;
-                response = _ref4.response;
-
-
-                // 6AA6 means busy, send 00A6000008 immediately to get response
-                while (result === 0x6AA6) {
-                  console.debug('got 0xE0616AA6, resend apdu');
-                  _transmit2 = this._transmit(Buffer.from('00A6000008'), 'hex'), _result = _transmit2._result, _response = _transmit2._response;
-
-                  response = Buffer.concat([response, _response]);
-                  result = _result;
-                  response = _response;
-                }
-
-                // 61XX means there are still XX bytes to get
-                while ((result & 0xFF00) === 0x6100) {
-                  console.debug('got 0x61XX, get remain data');
-                  rApdu = Buffer.from('00C0000000', 'hex');
-
-                  rApdu[0x04] = result & 0xFF;
-                  _transmit3 = this._transmit(rApdu), _result2 = _transmit3._result, _response2 = _transmit3._response;
-
-                  response = Buffer.concat([response, _response2]);
-                  result = _result2;
-                }
-                this._checkSw1Sw2(result);
-
-                return _context3.abrupt('return', response);
-
-              case 9:
-              case 'end':
-                return _context3.stop();
-            }
-          }
-        }, _callee3, this);
-      }));
-
-      function _sendApdu(_x3) {
-        return _ref3.apply(this, arguments);
-      }
-
-      return _sendApdu;
-    }()
-
-    // noinspection JSMethodCanBeStatic
-
-  }, {
-    key: '_checkSw1Sw2',
-    value: function _checkSw1Sw2(sw1sw2) {
-      var errorCode = _D2.default.error.checkSw1Sw2(sw1sw2);
-      if (errorCode !== _D2.default.error.succeed) throw errorCode;
-    }
-  }, {
-    key: '_transmit',
-    value: function () {
-      var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(apdu) {
-        var _this3 = this;
-
-        var packHidCmd, unpackHidCmd, sendAndReceive, _packHidCmd, reportId, pack, received, response;
-
-        return regeneratorRuntime.wrap(function _callee5$(_context5) {
-          while (1) {
-            switch (_context5.prev = _context5.next) {
-              case 0:
-                if (typeof apdu === 'string') {
-                  apdu = Buffer.from(apdu, 'hex');
-                }
-                // HID command format: u1PaddingNum 04 pu1Send[u4SendLen] Padding
-
-                packHidCmd = function packHidCmd(apdu) {
-                  // additional length of {u1PaddingNum 04}
-                  var reportId = 0x00;
-                  var reportSize = apdu.length + 0x03;
-                  if (reportSize <= 0x110) {
-                    if ((reportSize & 0x07) !== 0x00) {
-                      reportSize &= ~0x07;
-                      reportSize += 0x08;
-                    }
-                    reportId = reportSize >> 0x03;
-                  } else if (reportSize <= 0x210) {
-                    reportSize -= 0x110;
-                    if ((reportSize & 0x3F) !== 0x00) {
-                      reportSize &= ~0x3F;
-                      reportSize += 0x40;
-                    }
-                    reportId = 0x22 + (reportSize >> 0x06);
-                    reportSize += 0x110;
-                  } else if (reportSize <= 0x410) {
-                    reportSize -= 0x210;
-                    if ((reportSize & 0x7F) !== 0x00) {
-                      reportSize &= ~0x7F;
-                      reportSize += 0x80;
-                    }
-                    reportId = 0x26 + (reportSize >> 0x07);
-                    reportSize += 0x210;
-                  } else {
-                    reportSize -= 0x410;
-                    if ((reportSize & 0xFF) !== 0x00) {
-                      reportSize &= ~0xFF;
-                      reportSize += 0x100;
-                    }
-                    reportId = 0x2A + (reportSize >> 0x08);
-                    reportSize += 0x410;
-                  }
-
-                  var padNum = reportSize - apdu.length - 0x03;
-                  // don't set feature id in hid command, chrome.hid will add it automatically to the head
-                  var pack = Buffer.alloc(reportSize - 0x01);
-                  pack[0x00] = padNum;
-                  pack[0x01] = 0x04; // opCode
-                  apdu.copy(pack, 0x02);
-                  return { reportId: reportId, pack: pack };
-                };
-
-                // HID response format: u1ReportId u1PaddingNum 04 RESPONSE SW1 SW2 Padding[PaddingNum]
-
-
-                unpackHidCmd = function unpackHidCmd(response) {
-                  if (response[0x02] !== 0x04) {
-                    console.warn('opCode != 0x04 not supported', response.toString('hex'));
-                    throw _D2.default.error.deviceComm;
-                  }
-
-                  var throwLengthError = function throwLengthError() {
-                    console.warn('unpackHidCmd hid response length incorrect', response);
-                    throw _D2.default.error.deviceComm;
-                  };
-
-                  // get report size from report id
-                  var reportSize = void 0;
-                  if (response[0x00] <= 0x22) {
-                    reportSize = response[0x00] * 0x08;
-                    if (response[0x01] > 0x07) throw throwLengthError();
-                  } else if (response[0x00] <= 0x26) {
-                    reportSize = 0x110 + (response[0x00] - 0x22) * 0x40;
-                    if (response[0x01] > 0x3F) throw throwLengthError();
-                  } else if (response[0x00] <= 0x2A) {
-                    reportSize = 0x210 + (response[0x00] - 0x26) * 0x80;
-                    if (response[0x01] > 0x7F) throw throwLengthError();
-                  } else {
-                    reportSize = 0x410 + (response[0x00] - 0x2A) * 0x100;
-                  }
-
-                  if (reportSize < response[0x01] + 0x03) throw throwLengthError();
-                  reportSize -= response[0x01] + 0x03;
-                  if (reportSize < 0x02) throwLengthError();
-                  reportSize -= 0x02;
-
-                  var result = (response[0x03 + reportSize] << 8) + response[0x04 + reportSize];
-                  response = response.slice(3, 3 + reportSize);
-                  return { result: result, response: response };
-                };
-
-                sendAndReceive = function () {
-                  var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(reportId, pack) {
-                    var _received, delayMills, _delayMills;
-
-                    return regeneratorRuntime.wrap(function _callee4$(_context4) {
-                      while (1) {
-                        switch (_context4.prev = _context4.next) {
-                          case 0:
-                            _context4.next = 2;
-                            return _this3._device.send(reportId, pack);
-
-                          case 2:
-                            if (false) {}
-
-                            _context4.next = 5;
-                            return _this3._device.receive();
-
-                          case 5:
-                            _received = _context4.sent;
-
-                            if (!(_received[0x00] !== 0x00 && _received[0x02] === 0x00)) {
-                              _context4.next = 27;
-                              break;
-                            }
-
-                            if (!(_received[0x07] === 0x60)) {
-                              _context4.next = 24;
-                              break;
-                            }
-
-                            if (!(_received[0x05] === 0x02)) {
-                              _context4.next = 16;
-                              break;
-                            }
-
-                            // 01 00 00 00 00 02 xx 60: delay xx seconds before get response again
-                            delayMills = _received[0x06] * 1000 + 100; // additional 100ms
-
-                            console.debug('device busy 02, delay ' + delayMills + ' and resend');
-                            _context4.next = 13;
-                            return _D2.default.wait(delayMills);
-
-                          case 13:
-                            return _context4.abrupt('continue', 2);
-
-                          case 16:
-                            if (!(_received[0x05] === 0x03)) {
-                              _context4.next = 22;
-                              break;
-                            }
-
-                            // 01 00 00 00 00 03 xx 60: delay xx * 5 millseconds before get response again
-                            _delayMills = _received[0x06] * 5;
-
-                            console.debug('device busy 03, delay ' + _delayMills + ' and resend');
-                            _context4.next = 21;
-                            return _D2.default.wait(_delayMills);
-
-                          case 21:
-                            return _context4.abrupt('continue', 2);
-
-                          case 22:
-                            _context4.next = 27;
-                            break;
-
-                          case 24:
-                            if (!(_received[0x07] === 0x00)) {
-                              _context4.next = 27;
-                              break;
-                            }
-
-                            if (!(_received[0x06] !== 0x86)) {
-                              _context4.next = 27;
-                              break;
-                            }
-
-                            throw _D2.default.error.needPressKey;
-
-                          case 27:
-                            return _context4.abrupt('return', _received);
-
-                          case 30:
-                          case 'end':
-                            return _context4.stop();
-                        }
-                      }
-                    }, _callee4, _this3);
-                  }));
-
-                  return function sendAndReceive(_x5, _x6) {
-                    return _ref6.apply(this, arguments);
-                  };
-                }();
-
-                console.debug('transmit send apdu', apdu.toString('hex'));
-                _packHidCmd = packHidCmd(apdu), reportId = _packHidCmd.reportId, pack = _packHidCmd.pack;
-                _context5.next = 8;
-                return sendAndReceive(reportId, pack);
-
-              case 8:
-                received = _context5.sent;
-                response = unpackHidCmd(received);
-
-                console.debug('transmit got response', response.result.toString(16), response.response.toString('hex'));
-                return _context5.abrupt('return', response);
-
-              case 12:
-              case 'end':
-                return _context5.stop();
-            }
-          }
-        }, _callee5, this);
-      }));
-
-      function _transmit(_x4) {
-        return _ref5.apply(this, arguments);
-      }
-
-      return _transmit;
-    }()
-  }]);
-
-  return HidTransmitter;
-}();
-
-exports.default = HidTransmitter;
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../../../node_modules/node-libs-browser/node_modules/buffer/index.js */ "./node_modules/node-libs-browser/node_modules/buffer/index.js").Buffer))
-
-/***/ }),
-
-/***/ "./src/sdk/device/IEsDevice.js":
-/*!*************************************!*\
-  !*** ./src/sdk/device/IEsDevice.js ***!
-  \*************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _D = __webpack_require__(/*! ../D */ "./src/sdk/D.js");
-
-var _D2 = _interopRequireDefault(_D);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var IEsDevice = function () {
-  function IEsDevice() {
-    _classCallCheck(this, IEsDevice);
-  }
-
-  _createClass(IEsDevice, [{
-    key: 'listenPlug',
-    value: function () {
-      var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(callback) {
-        return regeneratorRuntime.wrap(function _callee$(_context) {
-          while (1) {
-            switch (_context.prev = _context.next) {
-              case 0:
-                throw _D2.default.error.notImplemented;
-
-              case 1:
-              case 'end':
-                return _context.stop();
-            }
-          }
-        }, _callee, this);
-      }));
-
-      function listenPlug(_x) {
-        return _ref.apply(this, arguments);
-      }
-
-      return listenPlug;
-    }()
-  }, {
-    key: 'sendAndReceive',
-    value: function () {
-      var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(apdu) {
-        return regeneratorRuntime.wrap(function _callee2$(_context2) {
-          while (1) {
-            switch (_context2.prev = _context2.next) {
-              case 0:
-                throw _D2.default.error.notImplemented;
-
-              case 1:
-              case 'end':
-                return _context2.stop();
-            }
-          }
-        }, _callee2, this);
-      }));
-
-      function sendAndReceive(_x2) {
-        return _ref2.apply(this, arguments);
-      }
-
-      return sendAndReceive;
-    }()
-  }]);
-
-  return IEsDevice;
-}();
-
-exports.default = IEsDevice;
 
 /***/ }),
 
@@ -53401,10 +52599,10 @@ exports.default = JsWallet;
 
 /***/ }),
 
-/***/ "./src/sdk/device/MockDevice.js":
-/*!**************************************!*\
-  !*** ./src/sdk/device/MockDevice.js ***!
-  \**************************************/
+/***/ "./src/sdk/device/transmit/HidTransmitter.js":
+/*!***************************************************!*\
+  !*** ./src/sdk/device/transmit/HidTransmitter.js ***!
+  \***************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -53417,11 +52615,1043 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _D = __webpack_require__(/*! ../D */ "./src/sdk/D.js");
+var _D = __webpack_require__(/*! ../../D */ "./src/sdk/D.js");
 
 var _D2 = _interopRequireDefault(_D);
 
-var _IEsDevice2 = __webpack_require__(/*! ./IEsDevice */ "./src/sdk/device/IEsDevice.js");
+var _MockDevice = __webpack_require__(/*! ./io/MockDevice */ "./src/sdk/device/transmit/io/MockDevice.js");
+
+var _MockDevice2 = _interopRequireDefault(_MockDevice);
+
+var _jsencrypt = __webpack_require__(/*! ./jsencrypt */ "./src/sdk/device/transmit/jsencrypt.js");
+
+var _jsencrypt2 = _interopRequireDefault(_jsencrypt);
+
+var _cryptoJs = __webpack_require__(/*! crypto-js */ "./node_modules/crypto-js/index.js");
+
+var _cryptoJs2 = _interopRequireDefault(_cryptoJs);
+
+var _ChromeHidDevice = __webpack_require__(/*! ./io/ChromeHidDevice */ "./src/sdk/device/transmit/io/ChromeHidDevice.js");
+
+var _ChromeHidDevice2 = _interopRequireDefault(_ChromeHidDevice);
+
+var _buffer = __webpack_require__(/*! buffer */ "./node_modules/node-libs-browser/node_modules/buffer/index.js");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var factoryPubKeyPem = '-----BEGIN PUBLIC KEY-----' + 'MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC3IaEDmGWrsHA5rKC8VB++Gkw/' + '9wdhn2j8zR9Zysw50jEKW6Hos54XnlUul7MFhUwCduNWr+Bu1v2aGWn+mz68mIml' + 'xfAEmESfpB7hL7O+IUDz2v+/QHXs34wE3zQ7uFNH05xrdznf1a2Buy4Jrc3BeVmo' + 'nnYX4pewrrbfoITl4QIDAQAB' + '-----END PUBLIC KEY-----';
+
+var sha1 = function sha1(data) {
+  if (typeof data === 'string') {
+    data = _buffer.Buffer.from(data, 'hex');
+  }
+  var input = _cryptoJs2.default.lib.WordArray.create(data);
+  var plaintext = _cryptoJs2.default.SHA1(input);
+  return _buffer.Buffer.from(plaintext.toString(), 'hex');
+};
+
+var des112 = function des112(isEnc, data, key) {
+  var customPadding = function customPadding(data) {
+    var padNum = 8 - data.length % 8;
+    if (padNum === 8) return data;
+
+    var padding = _buffer.Buffer.alloc(padNum);
+    padding[0] = 0x80;
+    return _buffer.Buffer.concat([data, padding]);
+  };
+
+  var removeCustomPadding = function removeCustomPadding(data) {
+    if (typeof data === 'string') {
+      data = _buffer.Buffer.from(data, 'hex');
+    }
+    var padNum = data[0];
+    return data.slice(1, data.length - padNum);
+  };
+
+  if (typeof data === 'string') {
+    data = _buffer.Buffer.from(data, 'hex');
+  }
+  if (typeof key === 'string') {
+    key = _buffer.Buffer.from(key, 'hex');
+  }
+
+  if (isEnc) {
+    data = customPadding(data);
+  }
+  var des168Key = _buffer.Buffer.concat([key, key.slice(0, 8)]); // des112 => des 168
+  var input = _cryptoJs2.default.lib.WordArray.create(data);
+  var pass = _cryptoJs2.default.lib.WordArray.create(des168Key);
+  if (isEnc) {
+    var encData = _cryptoJs2.default.TripleDES.encrypt(input, pass, {
+      mode: _cryptoJs2.default.mode.ECB,
+      padding: _cryptoJs2.default.pad.NoPadding
+    });
+    return _buffer.Buffer.from(encData.ciphertext.toString(_cryptoJs2.default.enc.Hex), 'hex');
+  } else {
+    var plaintext = _cryptoJs2.default.TripleDES.decrypt({ ciphertext: input }, pass, {
+      mode: _cryptoJs2.default.mode.ECB,
+      padding: _cryptoJs2.default.pad.NoPadding
+    });
+    plaintext = plaintext.toString(_cryptoJs2.default.enc.Hex);
+    return removeCustomPadding(plaintext);
+  }
+};
+
+/**
+ * Hardware apdu protocol
+ */
+
+var HidTransmitter = function () {
+  function HidTransmitter() {
+    var _this = this;
+
+    _classCallCheck(this, HidTransmitter);
+
+    this._device = _D2.default.test.mockDevice ? new _MockDevice2.default() : new _ChromeHidDevice2.default();
+    this._commKey = {
+      sKey: null,
+      generated: false
+    };
+
+    this._plugListener = function () {};
+    this._device.listenPlug(function (error, status) {
+      if (status === _D2.default.status.plugOut) {
+        _this._commKey = {
+          sKey: null,
+          generated: false
+        };
+      }
+      _D2.default.dispatch(function () {
+        return _this._plugListener(error, status);
+      });
+    });
+  }
+
+  _createClass(HidTransmitter, [{
+    key: 'listenPlug',
+    value: function listenPlug(callback) {
+      if (callback) this._plugListener = callback;
+    }
+
+    /**
+     * handshake using rsa and 3DES112
+     */
+
+  }, {
+    key: '_doHandShake',
+    value: function () {
+      var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+        var generateRsa1024KeyPair, modLen, genHandShakeApdu, parseHandShakeResponse, _genHandShakeApdu, tempKeyPair, apdu, response, _parseHandShakeRespon, sKey, sKeyCount;
+
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                if (!this._commKey.generated) {
+                  _context.next = 2;
+                  break;
+                }
+
+                return _context.abrupt('return');
+
+              case 2:
+                generateRsa1024KeyPair = function generateRsa1024KeyPair() {
+                  var keyPair = new _jsencrypt2.default();
+                  if (_D2.default.test.mockDevice) {
+                    var testKeyPair = _MockDevice2.default.getTestTempRsaKeyPair();
+                    keyPair.setPrivateKey(testKeyPair.privKey);
+                    return keyPair;
+                  }
+
+                  while (true) {
+                    // if keyPair don't have keys, generate random keypair immediately
+                    keyPair.getKey();
+                    // n.MSB must be 1
+                    var n = keyPair.key.n.toString(16);
+                    if (n.length !== 256 || n[0] < '8') {
+                      console.debug('n MSB == 0, regenerate');
+                      keyPair.key = undefined;
+                      continue;
+                    }
+                    break;
+                  }
+                  return keyPair;
+                };
+
+                modLen = 0x80; // RSA1024
+
+                genHandShakeApdu = function genHandShakeApdu() {
+                  var tempKeyPair = generateRsa1024KeyPair();
+                  var apdu = _buffer.Buffer.allocUnsafe(0x8B);
+                  _buffer.Buffer.from('80334B4E00008402000000', 'hex').copy(apdu);
+                  var n = _buffer.Buffer.from(tempKeyPair.key.n.toString(16), 'hex');
+                  n = _buffer.Buffer.concat([_buffer.Buffer.alloc(128 - n.length), n]);
+                  n.copy(apdu, 0x0B);
+                  return { tempKeyPair: tempKeyPair, apdu: apdu };
+                };
+
+                parseHandShakeResponse = function parseHandShakeResponse(hostKey, response, apdu) {
+                  var removePadding = function removePadding(data) {
+                    var pos = 0;
+                    if (data[pos++] !== 0x00) {
+                      console.warn('decrypted device cert invalid padding, dataView[0] != 0x00', data.toString('hex'));
+                      throw _D2.default.error.handShake;
+                    }
+                    var type = data[pos++];
+                    while (data[pos]) {
+                      if (type === 0x01 && data[pos] !== 0xFF) {
+                        console.warn('decrypted device cert invalid padding, type === 0x01 but dataView[0] != 0xFF', data.toString('hex'));
+                      }
+                      pos++;
+                    }
+                    if (data[pos++] !== 0x00) {
+                      console.warn('decrypted device cert invalid padding dataView[last_padding] != 0x00', data.toString('hex'));
+                      throw _D2.default.error.handShake;
+                    }
+                    return data.slice(pos);
+                  };
+
+                  var buildPemPublicKeyHex = function buildPemPublicKeyHex(publicKey) {
+                    var firstBit = publicKey[0] & 0x80;
+                    var prefix = firstBit ? '30819f300d06092a864886f70d010101050003818d0030818902818100' : '30819e300d06092a864886f70d010101050003818c00308188028180';
+                    prefix = _buffer.Buffer.from(prefix, 'hex');
+                    return _buffer.Buffer.concat([prefix, publicKey, _buffer.Buffer.from('0203010001', 'hex')]);
+                  };
+
+                  if (response.length - modLen < 0) {
+                    console.warn('handshake apdu response length invalid, length: ', response.length);
+                    throw _D2.default.error.handShake;
+                  }
+                  var recvNoSign = _buffer.Buffer.allocUnsafe(response.length - modLen);
+                  response.copy(recvNoSign, 0, 0, response.length - modLen);
+                  var factoryKey = new _jsencrypt2.default();
+                  factoryKey.setPublicKey(factoryPubKeyPem);
+
+                  var devCert = response.slice(0, modLen);
+                  var encSKey = response.slice(modLen, modLen * 2);
+                  var devSign = response.slice(modLen * 2, modLen * 3);
+
+                  // verify device cert by ca public key(factoryKey)
+                  var decDevCert = factoryKey.encrypt(devCert.toString('hex'));
+                  if (!decDevCert) {
+                    console.warn('decrypted device cert encrypt failed');
+                    throw _D2.default.error.handShake;
+                  }
+                  decDevCert = _buffer.Buffer.from(decDevCert, 'hex');
+                  var orgDevCert = removePadding(decDevCert);
+
+                  var oidSha1 = _buffer.Buffer.from('3021300906052b0e03021a05000414', 'hex');
+                  if (orgDevCert.slice(0, 15).toString('hex') !== oidSha1.toString('hex')) {
+                    console.warn('decrypted device cert oid != sha1 ', orgDevCert.toString('hex'));
+                    throw _D2.default.error.handShake;
+                  }
+
+                  var tempLen = modLen - 0x2E;
+                  var devPubHash = orgDevCert.slice(15, 35);
+                  var devPubKey = orgDevCert.slice(35, 35 + tempLen);
+
+                  // decrypt sKey by temp rsa key pair(hostKey)
+                  var decSKey = hostKey.decrypt(encSKey.toString('hex'));
+                  if (!decSKey) {
+                    console.warn('decrypted enc skey failed', encSKey.toString('hex'));
+                    throw _D2.default.error.handShake;
+                  }
+                  decSKey = _buffer.Buffer.from(decSKey, 'hex');
+                  var orgSKey = removePadding(decSKey);
+
+                  devPubKey = _buffer.Buffer.concat([devPubKey, orgSKey.slice(0, 46)]);
+
+                  var devPubSha1 = sha1(devPubKey);
+                  if (devPubSha1.toString('hex') !== devPubHash.toString('hex')) {
+                    console.warn('sha1(devPubKey) != debPubHash', devPubKey.toString('hex'), devPubHash.toString('hex'));
+                    throw _D2.default.error.handShake;
+                  }
+
+                  var sKeyCount = orgSKey.slice(46, 50);
+                  var sKey = orgSKey.slice(50, 66);
+
+                  // verify device sign by device public key(devPubKey)
+                  devPubKey = buildPemPublicKeyHex(devPubKey);
+                  var devPubKeyObj = new _jsencrypt2.default();
+                  devPubKeyObj.setPublicKey(devPubKey.toString('hex'));
+                  var orgDevSign = devPubKeyObj.encrypt(devSign.toString('hex'));
+                  if (!orgDevSign) {
+                    console.warn('device signature encrypt failed');
+                    throw _D2.default.error.handShake;
+                  }
+                  orgDevSign = _buffer.Buffer.from(orgDevSign, 'hex');
+                  orgDevSign = removePadding(orgDevSign);
+
+                  var hashOrgValue = _buffer.Buffer.concat([apdu.slice(7), devCert, encSKey]);
+                  var hashResult = sha1(hashOrgValue);
+
+                  var toSign = _buffer.Buffer.concat([oidSha1, hashResult]);
+                  if (toSign.toString('hex') !== orgDevSign.toString('hex')) {
+                    console.warn('sign data not match');
+                    throw _D2.default.error.handShake;
+                  }
+                  return { sKey: sKey, sKeyCount: sKeyCount };
+                };
+
+                console.log('start hand shake');
+                _genHandShakeApdu = genHandShakeApdu(), tempKeyPair = _genHandShakeApdu.tempKeyPair, apdu = _genHandShakeApdu.apdu;
+                _context.next = 10;
+                return this._sendApdu(apdu);
+
+              case 10:
+                response = _context.sent;
+                _parseHandShakeRespon = parseHandShakeResponse(tempKeyPair, response, apdu), sKey = _parseHandShakeRespon.sKey, sKeyCount = _parseHandShakeRespon.sKeyCount;
+
+                this._commKey.sKey = sKey;
+                this._commKey.sKeyCount = sKeyCount;
+                this._commKey.generated = true;
+                console.log('finish hand shake');
+
+              case 16:
+              case 'end':
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function _doHandShake() {
+        return _ref.apply(this, arguments);
+      }
+
+      return _doHandShake;
+    }()
+  }, {
+    key: 'sendApdu',
+    value: function () {
+      var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(apdu) {
+        var _this2 = this;
+
+        var isEnc = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+        var makeEncApdu, decryptResponse, response;
+        return regeneratorRuntime.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                makeEncApdu = function makeEncApdu(apdu) {
+                  var encryptedApdu = des112(true, apdu, _this2._commKey.sKey);
+
+                  // 8033 534D Lc    00 00 00 PaddingNum(1) SKeyCount(4) EncApdu
+                  var padNum = encryptedApdu.length - apdu.length;
+                  var apduDataLen = 4 + _this2._commKey.sKeyCount.length + encryptedApdu.length;
+                  var apduData = _buffer.Buffer.allocUnsafe(apduDataLen);
+                  apduData[0x03] = padNum & 0xFF;
+                  _this2._commKey.sKeyCount.copy(apduData, 0x04);
+                  encryptedApdu.copy(apduData, 0x08);
+
+                  var encApduHead = _buffer.Buffer.from('8033534D000000', 'hex');
+                  encApduHead[0x04] = apduDataLen >> 16 & 0xFF;
+                  encApduHead[0x05] = apduDataLen >> 8 & 0xFF;
+                  encApduHead[0x06] = apduDataLen & 0xFF;
+                  return _buffer.Buffer.concat([encApduHead, apduData]);
+                };
+
+                decryptResponse = function decryptResponse(response) {
+                  var decResponse = des112(false, response, _this2._commKey.sKey);
+
+                  var length = decResponse.length;
+                  var result = (decResponse[length - 2] << 8) + decResponse[length - 1];
+                  _this2._checkSw1Sw2(result);
+                  return decResponse.slice(0, -2);
+                };
+
+                // a simple lock to guarantee apdu order
+
+
+              case 2:
+                if (!this.busy) {
+                  _context2.next = 7;
+                  break;
+                }
+
+                _context2.next = 5;
+                return _D2.default.wait(5);
+
+              case 5:
+                _context2.next = 2;
+                break;
+
+              case 7:
+                this.busy = true;
+
+                if (typeof apdu === 'string') {
+                  apdu = _buffer.Buffer.from(apdu, 'hex');
+                }
+                _context2.prev = 9;
+
+                console.log('send apdu', apdu.toString('hex'), 'isEnc', isEnc);
+
+                if (!isEnc) {
+                  _context2.next = 16;
+                  break;
+                }
+
+                _context2.next = 14;
+                return this._doHandShake().catch(function () {
+                  return _this2._doHandShake();
+                }).catch(function () {
+                  return _this2._doHandShake();
+                });
+
+              case 14:
+                apdu = makeEncApdu(apdu);
+                console.debug('send enc apdu', apdu.toString('hex'));
+
+              case 16:
+                _context2.next = 18;
+                return this._sendApdu(apdu);
+
+              case 18:
+                response = _context2.sent;
+
+                if (isEnc) {
+                  console.debug('got enc response', response.toString('hex'), 'isEnc', isEnc);
+                  response = decryptResponse(response);
+                }
+                console.log('got response', response.toString('hex'), 'isEnc', isEnc);
+                return _context2.abrupt('return', response);
+
+              case 24:
+                _context2.prev = 24;
+                _context2.t0 = _context2['catch'](9);
+                throw _context2.t0;
+
+              case 27:
+                _context2.prev = 27;
+
+                this.busy = false;
+                return _context2.finish(27);
+
+              case 30:
+              case 'end':
+                return _context2.stop();
+            }
+          }
+        }, _callee2, this, [[9, 24, 27, 30]]);
+      }));
+
+      function sendApdu(_x2) {
+        return _ref2.apply(this, arguments);
+      }
+
+      return sendApdu;
+    }()
+  }, {
+    key: '_sendApdu',
+    value: function () {
+      var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(apdu) {
+        var _ref4, result, response, _ref5, _result, _response, rApdu, _ref6, _result2, _response2;
+
+        return regeneratorRuntime.wrap(function _callee3$(_context3) {
+          while (1) {
+            switch (_context3.prev = _context3.next) {
+              case 0:
+                _context3.next = 2;
+                return this._transmit(apdu);
+
+              case 2:
+                _ref4 = _context3.sent;
+                result = _ref4.result;
+                response = _ref4.response;
+
+              case 5:
+                if (!(result === 0x6AA6)) {
+                  _context3.next = 17;
+                  break;
+                }
+
+                console.debug('got 0xE0616AA6, resend apdu');
+                _context3.next = 9;
+                return this._transmit(_buffer.Buffer.from('00A6000008'), 'hex');
+
+              case 9:
+                _ref5 = _context3.sent;
+                _result = _ref5._result;
+                _response = _ref5._response;
+
+                response = _buffer.Buffer.concat([response, _response]);
+                result = _result;
+                response = _response;
+                _context3.next = 5;
+                break;
+
+              case 17:
+                if (!((result & 0xFF00) === 0x6100)) {
+                  _context3.next = 30;
+                  break;
+                }
+
+                console.debug('got 0x61XX, get remain data');
+                rApdu = _buffer.Buffer.from('00C0000000', 'hex');
+
+                rApdu[0x04] = result & 0xFF;
+                _context3.next = 23;
+                return this._transmit(rApdu);
+
+              case 23:
+                _ref6 = _context3.sent;
+                _result2 = _ref6._result;
+                _response2 = _ref6._response;
+
+                response = _buffer.Buffer.concat([response, _response2]);
+                result = _result2;
+                _context3.next = 17;
+                break;
+
+              case 30:
+                this._checkSw1Sw2(result);
+
+                return _context3.abrupt('return', response);
+
+              case 32:
+              case 'end':
+                return _context3.stop();
+            }
+          }
+        }, _callee3, this);
+      }));
+
+      function _sendApdu(_x3) {
+        return _ref3.apply(this, arguments);
+      }
+
+      return _sendApdu;
+    }()
+
+    // noinspection JSMethodCanBeStatic
+
+  }, {
+    key: '_checkSw1Sw2',
+    value: function _checkSw1Sw2(sw1sw2) {
+      var errorCode = _D2.default.error.checkSw1Sw2(sw1sw2);
+      if (errorCode !== _D2.default.error.succeed) throw errorCode;
+    }
+  }, {
+    key: '_transmit',
+    value: function () {
+      var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(apdu) {
+        var _this3 = this;
+
+        var packHidCmd, unpackHidCmd, sendAndReceive, _packHidCmd, reportId, pack, received, response;
+
+        return regeneratorRuntime.wrap(function _callee5$(_context5) {
+          while (1) {
+            switch (_context5.prev = _context5.next) {
+              case 0:
+                if (typeof apdu === 'string') {
+                  apdu = _buffer.Buffer.from(apdu, 'hex');
+                }
+                // HID command format: u1PaddingNum 04 pu1Send[u4SendLen] Padding
+
+                packHidCmd = function packHidCmd(apdu) {
+                  // additional length of {u1PaddingNum 04}
+                  var reportId = 0x00;
+                  var reportSize = apdu.length + 0x03;
+                  if (reportSize <= 0x110) {
+                    if ((reportSize & 0x07) !== 0x00) {
+                      reportSize &= ~0x07;
+                      reportSize += 0x08;
+                    }
+                    reportId = reportSize >> 0x03;
+                  } else if (reportSize <= 0x210) {
+                    reportSize -= 0x110;
+                    if ((reportSize & 0x3F) !== 0x00) {
+                      reportSize &= ~0x3F;
+                      reportSize += 0x40;
+                    }
+                    reportId = 0x22 + (reportSize >> 0x06);
+                    reportSize += 0x110;
+                  } else if (reportSize <= 0x410) {
+                    reportSize -= 0x210;
+                    if ((reportSize & 0x7F) !== 0x00) {
+                      reportSize &= ~0x7F;
+                      reportSize += 0x80;
+                    }
+                    reportId = 0x26 + (reportSize >> 0x07);
+                    reportSize += 0x210;
+                  } else {
+                    reportSize -= 0x410;
+                    if ((reportSize & 0xFF) !== 0x00) {
+                      reportSize &= ~0xFF;
+                      reportSize += 0x100;
+                    }
+                    reportId = 0x2A + (reportSize >> 0x08);
+                    reportSize += 0x410;
+                  }
+
+                  var padNum = reportSize - apdu.length - 0x03;
+                  // don't set feature id in hid command, chrome.hid will add it automatically to the head
+                  var pack = _buffer.Buffer.alloc(reportSize - 0x01);
+                  pack[0x00] = padNum;
+                  pack[0x01] = 0x04; // opCode
+                  apdu.copy(pack, 0x02);
+                  return { reportId: reportId, pack: pack };
+                };
+
+                // HID response format: u1ReportId u1PaddingNum 04 RESPONSE SW1 SW2 Padding[PaddingNum]
+
+
+                unpackHidCmd = function unpackHidCmd(response) {
+                  if (response[0x02] !== 0x04) {
+                    console.warn('opCode != 0x04 not supported', response.toString('hex'));
+                    throw _D2.default.error.deviceComm;
+                  }
+
+                  var throwLengthError = function throwLengthError() {
+                    console.warn('unpackHidCmd hid response length incorrect', response);
+                    throw _D2.default.error.deviceComm;
+                  };
+
+                  // get report size from report id
+                  var reportSize = void 0;
+                  if (response[0x00] <= 0x22) {
+                    reportSize = response[0x00] * 0x08;
+                    if (response[0x01] > 0x07) throw throwLengthError();
+                  } else if (response[0x00] <= 0x26) {
+                    reportSize = 0x110 + (response[0x00] - 0x22) * 0x40;
+                    if (response[0x01] > 0x3F) throw throwLengthError();
+                  } else if (response[0x00] <= 0x2A) {
+                    reportSize = 0x210 + (response[0x00] - 0x26) * 0x80;
+                    if (response[0x01] > 0x7F) throw throwLengthError();
+                  } else {
+                    reportSize = 0x410 + (response[0x00] - 0x2A) * 0x100;
+                  }
+
+                  if (reportSize < response[0x01] + 0x03) throw throwLengthError();
+                  reportSize -= response[0x01] + 0x03;
+                  if (reportSize < 0x02) throwLengthError();
+                  reportSize -= 0x02;
+
+                  var result = (response[0x03 + reportSize] << 8) + response[0x04 + reportSize];
+                  response = response.slice(3, 3 + reportSize);
+                  return { result: result, response: response };
+                };
+
+                sendAndReceive = function () {
+                  var _ref8 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(reportId, pack) {
+                    var _received, delayMills, _delayMills;
+
+                    return regeneratorRuntime.wrap(function _callee4$(_context4) {
+                      while (1) {
+                        switch (_context4.prev = _context4.next) {
+                          case 0:
+                            _context4.next = 2;
+                            return _this3._device.send(reportId, pack);
+
+                          case 2:
+                            if (false) {}
+
+                            _context4.next = 5;
+                            return _this3._device.receive();
+
+                          case 5:
+                            _received = _context4.sent;
+
+                            if (!(_received[0x00] !== 0x00 && _received[0x02] === 0x00)) {
+                              _context4.next = 27;
+                              break;
+                            }
+
+                            if (!(_received[0x07] === 0x60)) {
+                              _context4.next = 24;
+                              break;
+                            }
+
+                            if (!(_received[0x05] === 0x02)) {
+                              _context4.next = 16;
+                              break;
+                            }
+
+                            // 01 00 00 00 00 02 xx 60: delay xx seconds before get response again
+                            delayMills = _received[0x06] * 1000 + 100; // additional 100ms
+
+                            console.debug('device busy 02, delay ' + delayMills + ' and resend');
+                            _context4.next = 13;
+                            return _D2.default.wait(delayMills);
+
+                          case 13:
+                            return _context4.abrupt('continue', 2);
+
+                          case 16:
+                            if (!(_received[0x05] === 0x03)) {
+                              _context4.next = 22;
+                              break;
+                            }
+
+                            // 01 00 00 00 00 03 xx 60: delay xx * 5 millseconds before get response again
+                            _delayMills = _received[0x06] * 5;
+
+                            console.debug('device busy 03, delay ' + _delayMills + ' and resend');
+                            _context4.next = 21;
+                            return _D2.default.wait(_delayMills);
+
+                          case 21:
+                            return _context4.abrupt('continue', 2);
+
+                          case 22:
+                            _context4.next = 27;
+                            break;
+
+                          case 24:
+                            if (!(_received[0x07] === 0x00)) {
+                              _context4.next = 27;
+                              break;
+                            }
+
+                            if (!(_received[0x06] !== 0x86)) {
+                              _context4.next = 27;
+                              break;
+                            }
+
+                            throw _D2.default.error.needPressKey;
+
+                          case 27:
+                            return _context4.abrupt('return', _received);
+
+                          case 30:
+                          case 'end':
+                            return _context4.stop();
+                        }
+                      }
+                    }, _callee4, _this3);
+                  }));
+
+                  return function sendAndReceive(_x5, _x6) {
+                    return _ref8.apply(this, arguments);
+                  };
+                }();
+
+                console.debug('transmit send apdu', apdu.toString('hex'));
+                _packHidCmd = packHidCmd(apdu), reportId = _packHidCmd.reportId, pack = _packHidCmd.pack;
+                _context5.next = 8;
+                return sendAndReceive(reportId, pack);
+
+              case 8:
+                received = _context5.sent;
+                response = unpackHidCmd(received);
+
+                console.debug('transmit got response', response.result.toString(16), response.response.toString('hex'));
+                return _context5.abrupt('return', response);
+
+              case 12:
+              case 'end':
+                return _context5.stop();
+            }
+          }
+        }, _callee5, this);
+      }));
+
+      function _transmit(_x4) {
+        return _ref7.apply(this, arguments);
+      }
+
+      return _transmit;
+    }()
+  }]);
+
+  return HidTransmitter;
+}();
+
+exports.default = HidTransmitter;
+
+/***/ }),
+
+/***/ "./src/sdk/device/transmit/io/ChromeHidDevice.js":
+/*!*******************************************************!*\
+  !*** ./src/sdk/device/transmit/io/ChromeHidDevice.js ***!
+  \*******************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _D = __webpack_require__(/*! ../../../D */ "./src/sdk/D.js");
+
+var _D2 = _interopRequireDefault(_D);
+
+var _IEsDevice2 = __webpack_require__(/*! ./IEsDevice */ "./src/sdk/device/transmit/io/IEsDevice.js");
+
+var _IEsDevice3 = _interopRequireDefault(_IEsDevice2);
+
+var _buffer = __webpack_require__(/*! buffer */ "./node_modules/node-libs-browser/node_modules/buffer/index.js");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+/** @namespace chrome */
+/** @namespace chrome.hid */
+/** @namespace chrome.hid.connect */
+/** @namespace chrome.hid.onDeviceAdded */
+/** @namespace chrome.hid.onDeviceRemoved */
+/** @namespace chrome.hid.getDevices */
+/** @namespace chrome.runtime.lastError */
+/** @namespace chrome.hid.sendFeatureReport */
+/** @namespace chrome.hid.receiveFeatureReport */
+
+var ChromeHidDevice = function (_IEsDevice) {
+  _inherits(ChromeHidDevice, _IEsDevice);
+
+  function ChromeHidDevice() {
+    _classCallCheck(this, ChromeHidDevice);
+
+    var _this = _possibleConstructorReturn(this, (ChromeHidDevice.__proto__ || Object.getPrototypeOf(ChromeHidDevice)).call(this));
+
+    _this._deviceId = null;
+    _this._connectionId = null;
+    _this._listener = null;
+
+    if (!chrome || !chrome.hid) {
+      console.warn('chrome.hid not in chrome app env, exit');
+      return _possibleConstructorReturn(_this);
+    }
+
+    var connect = function connect() {
+      chrome.hid.connect(_this._deviceId, function (connection) {
+        if (chrome.runtime.lastError) {
+          console.warn('chrome.hid.connect error: ' + chrome.runtime.lastError.message);
+          _this._deviceId = null;
+          _this._listener && _D2.default.dispatch(function () {
+            return _this._listener(_D2.default.error.deviceConnectFailed, _D2.default.status.plugIn);
+          });
+          return;
+        }
+
+        _this._connectionId = connection.connectionId;
+        console.log('Connected to the HID device!', _this._deviceId, _this._connectionId);
+        _this._listener && _D2.default.dispatch(function () {
+          return _this._listener(_D2.default.error.succeed, _D2.default.status.plugIn);
+        });
+      });
+    };
+
+    chrome.hid.onDeviceAdded.addListener(function (device) {
+      console.log('plug in vid=' + device.vendorId + ', pid=' + device.productId);
+      if (_this._deviceId) return;
+      _this._deviceId = device.deviceId;
+      connect();
+    });
+
+    chrome.hid.onDeviceRemoved.addListener(function (deviceId) {
+      console.log('plug out', deviceId);
+      if (_this._deviceId !== deviceId) return;
+      _this._deviceId = null;
+      _this._connectionId = null;
+      _this._listener && _D2.default.dispatch(function () {
+        return _this._listener(_D2.default.error.succeed, _D2.default.status.plugOut);
+      });
+    });
+
+    chrome.hid.getDevices({}, function (foundDevices) {
+      if (chrome.runtime.lastError) {
+        console.warn('chrome.hid.getDevices error: ' + chrome.runtime.lastError.message);
+        return;
+      }
+
+      if (_this._deviceId) return;
+      if (foundDevices.length === 0) return;
+      var device = foundDevices[0];
+      console.log('found device: vid=' + device.vendorId + ', pid=' + device.productId);
+      _this._deviceId = device.deviceId;
+      connect(device);
+    });
+    return _this;
+  }
+
+  _createClass(ChromeHidDevice, [{
+    key: 'send',
+    value: function send(reportId, command) {
+      var _this2 = this;
+
+      if (this._deviceId === null || this._connectionId === null) {
+        throw _D2.default.error.noDevice;
+      }
+
+      if (typeof command === 'string') {
+        command = _buffer.Buffer.from(command, 'hex');
+      }
+
+      console.debug('send package', reportId, command.toString('hex'));
+      return new Promise(function (resolve, reject) {
+        chrome.hid.sendFeatureReport(_this2._connectionId, reportId, command.buffer, function () {
+          if (chrome.runtime.lastError) {
+            console.warn('hid send error: ' + chrome.runtime.lastError.message);
+            reject(_D2.default.error.deviceComm);
+          }
+          resolve();
+        });
+      });
+    }
+  }, {
+    key: 'receive',
+    value: function receive() {
+      var _this3 = this;
+
+      if (this._deviceId === null || this._connectionId === null) {
+        throw _D2.default.error.noDevice;
+      }
+
+      return new Promise(function (resolve, reject) {
+        chrome.hid.receiveFeatureReport(_this3._connectionId, 51, function (data) {
+          if (chrome.runtime.lastError) {
+            console.warn('receive error: ' + chrome.runtime.lastError.message);
+            reject(_D2.default.error.deviceComm);
+          }
+          data = _buffer.Buffer.from(data);
+          console.debug('receive package', data.toString('hex'));
+          resolve(data);
+        });
+      });
+    }
+  }, {
+    key: 'listenPlug',
+    value: function listenPlug(callback) {
+      var _this4 = this;
+
+      this._listener = callback;
+      if (this._deviceId !== null && this._connectionId !== null) {
+        _D2.default.dispatch(function () {
+          return _this4._listener(_D2.default.error.succeed, _D2.default.status.plugIn);
+        });
+      }
+    }
+  }]);
+
+  return ChromeHidDevice;
+}(_IEsDevice3.default);
+
+exports.default = ChromeHidDevice;
+
+/***/ }),
+
+/***/ "./src/sdk/device/transmit/io/IEsDevice.js":
+/*!*************************************************!*\
+  !*** ./src/sdk/device/transmit/io/IEsDevice.js ***!
+  \*************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _D = __webpack_require__(/*! ../../../D */ "./src/sdk/D.js");
+
+var _D2 = _interopRequireDefault(_D);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var IEsDevice = function () {
+  function IEsDevice() {
+    _classCallCheck(this, IEsDevice);
+  }
+
+  _createClass(IEsDevice, [{
+    key: 'listenPlug',
+    value: function () {
+      var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(callback) {
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                throw _D2.default.error.notImplemented;
+
+              case 1:
+              case 'end':
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function listenPlug(_x) {
+        return _ref.apply(this, arguments);
+      }
+
+      return listenPlug;
+    }()
+  }, {
+    key: 'sendAndReceive',
+    value: function () {
+      var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(apdu) {
+        return regeneratorRuntime.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                throw _D2.default.error.notImplemented;
+
+              case 1:
+              case 'end':
+                return _context2.stop();
+            }
+          }
+        }, _callee2, this);
+      }));
+
+      function sendAndReceive(_x2) {
+        return _ref2.apply(this, arguments);
+      }
+
+      return sendAndReceive;
+    }()
+  }]);
+
+  return IEsDevice;
+}();
+
+exports.default = IEsDevice;
+
+/***/ }),
+
+/***/ "./src/sdk/device/transmit/io/MockDevice.js":
+/*!**************************************************!*\
+  !*** ./src/sdk/device/transmit/io/MockDevice.js ***!
+  \**************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _D = __webpack_require__(/*! ../../../D */ "./src/sdk/D.js");
+
+var _D2 = _interopRequireDefault(_D);
+
+var _IEsDevice2 = __webpack_require__(/*! ./IEsDevice */ "./src/sdk/device/transmit/io/IEsDevice.js");
 
 var _IEsDevice3 = _interopRequireDefault(_IEsDevice2);
 
@@ -53528,10 +53758,10 @@ exports.default = MockDevice;
 
 /***/ }),
 
-/***/ "./src/sdk/device/jsencrypt.js":
-/*!*************************************!*\
-  !*** ./src/sdk/device/jsencrypt.js ***!
-  \*************************************/
+/***/ "./src/sdk/device/transmit/jsencrypt.js":
+/*!**********************************************!*\
+  !*** ./src/sdk/device/transmit/jsencrypt.js ***!
+  \**********************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -53540,7 +53770,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-// copy from JSEncrypt and modified to support arraybuffer
+// copy from JSEncrypt and modified to support Buffer
 
 (function (global, factory) {
     ( false ? undefined : _typeof(exports)) === 'object' && typeof module !== 'undefined' ? factory(exports) :  true ? !(__WEBPACK_AMD_DEFINE_ARRAY__ = [exports], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory),
