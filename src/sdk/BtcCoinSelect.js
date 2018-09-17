@@ -12,8 +12,8 @@ function getEnoughUtxo (utxos, presetUtxos, outputs, feeRate, sendAll) {
   const maxApduDataLength = 2000
   const apduDataHead = 55
   const calculateApduLength = (utxos, outputSize) => {
-    let maxToBeSignedOutputScript = utxos.reduce((max, utxo) => Math.max(max, utxo.script.length / 2), 0)
-    return apduDataHead + utxos * 41 + outputSize * 34 + maxToBeSignedOutputScript
+    let maxToBeSignedOutputScriptLength = utxos.reduce((max, utxo) => Math.max(max, utxo.script.length / 2), 0)
+    return apduDataHead + utxos.length * 41 + outputSize * 34 + maxToBeSignedOutputScriptLength
   }
 
   let proposalBnb
@@ -21,7 +21,7 @@ function getEnoughUtxo (utxos, presetUtxos, outputs, feeRate, sendAll) {
     proposalBnb = _coinSelectBnb(utxos, presetUtxos, outputs, feeRate, sendAll)
   }
   if (proposalBnb) {
-    let apduDataLength = calculateApduLength(proposalBnb.willSpentUtxos.length, outputs.length)
+    let apduDataLength = calculateApduLength(proposalBnb.willSpentUtxos, outputs.length)
     if (apduDataLength <= maxApduDataLength) {
       return proposalBnb
     }
@@ -30,7 +30,7 @@ function getEnoughUtxo (utxos, presetUtxos, outputs, feeRate, sendAll) {
   // recalculate utxos and use utxos as few as possible
   utxos = utxos.sort((a, b) => b.value - a.value) // sort max => min
   let proposalClassic = _coinSelectClassic(utxos, presetUtxos, outputs, feeRate, sendAll)
-  if (calculateApduLength(proposalClassic.willSpentUtxos.length, outputs.length) <= maxApduDataLength) {
+  if (calculateApduLength(proposalClassic.willSpentUtxos, outputs.length) <= maxApduDataLength) {
     return proposalClassic
   }
 
@@ -47,7 +47,7 @@ function getEnoughUtxo (utxos, presetUtxos, outputs, feeRate, sendAll) {
   }
 
   utxos = utxos.slice(0, maxInputSize)
-  let proposalLimit = _coinSelectClassic(utxos, presetUtxos, 0, outputs, feeRate, true)
+  let proposalLimit = _coinSelectClassic(utxos, presetUtxos, outputs, feeRate, true)
   proposalLimit.deviceLimit = true
   return proposalLimit
 }
@@ -69,7 +69,12 @@ function _coinSelectBnb (utxos, presetUtxos, outputs, feeRate, sendAll) {
     return null
   }
   utxos = utxos.sort((a, b) => a.value - b.value) // sort min => max
-  return _coinSelectClassic(utxos, presetUtxos, outputs, feeRate, sendAll)
+  try {
+    return _coinSelectClassic(utxos, presetUtxos, outputs, feeRate, sendAll)
+  } catch (e) {
+    console.warn('_coinSelectBnb', e)
+    return null
+  }
 }
 
 function _coinSelectClassic (utxos, presetUtxos, outputs, feeRate, sendAll) {

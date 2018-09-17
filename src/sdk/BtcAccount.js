@@ -499,14 +499,14 @@ export default class BtcAccount {
     let totalOut = proposal.willSpentUtxos.reduce((sum, utxo) => utxo.value + sum, 0)
     // reset the output[0].value if this two flags = true
     if (details.sendAll || proposal.deviceLimit) {
-      details.outputs[0].value = totalOut
+      details.outputs[0].value = totalOut - proposal.fee
     }
 
     return {
       feeRate: details.feeRate,
       outputs: details.outputs,
       fee: proposal.fee,
-      total: totalOut + proposal.fee,
+      total: totalOut,
       utxos: proposal.willSpentUtxos,
       comment: details.comment || '',
       // deviceLimit = true means device can not carry more utxos to sign, this is the largest value that device can sent
