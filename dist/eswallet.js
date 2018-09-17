@@ -42080,6 +42080,10 @@ var _D = __webpack_require__(/*! ./D */ "./src/sdk/D.js");
 
 var _D2 = _interopRequireDefault(_D);
 
+var _BtcCoinSelect = __webpack_require__(/*! ./BtcCoinSelect */ "./src/sdk/BtcCoinSelect.js");
+
+var _BtcCoinSelect2 = _interopRequireDefault(_BtcCoinSelect);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
@@ -43205,7 +43209,7 @@ var BtcAccount = function () {
      * @param details
      * {
      *   sendAll: bool,
-     *   oldTxId: string, // resend only
+     *   oldTxId: string, // resend mode only
      *   feeRate: string (satoshi),
      *   outputs: [{
      *     address: base58 string,
@@ -43222,7 +43226,8 @@ var BtcAccount = function () {
      *   outputs: [{
      *     address: base58 string,
      *     value: number (satoshi)
-     *   }]
+     *   }],
+     *   deviceLimit: bool
      * }
      */
 
@@ -43232,8 +43237,7 @@ var BtcAccount = function () {
       var _ref15 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee15(details) {
         var _this7 = this;
 
-        var utxos, getEnoughUtxo, calculateFee, fee, totalOut, _getEnoughUtxo, newTotal, willSpentUtxos;
-
+        var utxos, oldUtxos, oldTxInfo, proposal, totalUtxos, totalOut, prepareTxData;
         return regeneratorRuntime.wrap(function _callee15$(_context15) {
           while (1) {
             switch (_context15.prev = _context15.next) {
@@ -43273,126 +43277,70 @@ var BtcAccount = function () {
                 }).map(function (utxo) {
                   return _D2.default.copy(utxo);
                 });
+                oldUtxos = [];
 
-                getEnoughUtxo = function getEnoughUtxo(total, sendAll, oldTxId) {
-                  var willSpentUtxos = [];
-                  var newTotal = 0;
-
-                  if (oldTxId) {
-                    var oldTxInfo = _this7.txInfos.find(function (txInfo) {
-                      return txInfo.txId === oldTxId;
-                    });
-                    if (!oldTxInfo) {
-                      console.warn('oldTxId not found in history');
-                      throw _D2.default.error.unknown;
-                    }
-
-                    oldTxInfo.inputs.forEach(function (input) {
-                      var oldUtxo = _this7.utxos.find(function (utxo) {
-                        return utxo.txId === input.prevTxId && utxo.index === input.prevOutIndex;
-                      });
-                      if (!oldUtxo) {
-                        console.warn('oldUtxo not found in history', input);
-                        throw _D2.default.error.unknown;
-                      }
-                      willSpentUtxos.push(oldUtxo);
-                      newTotal += oldUtxo.value;
-                    });
-
-                    if (!sendAll && newTotal >= total) {
-                      return { newTotal: newTotal, willSpentUtxos: willSpentUtxos };
-                    }
-                  }
-
-                  var _iteratorNormalCompletion3 = true;
-                  var _didIteratorError3 = false;
-                  var _iteratorError3 = undefined;
-
-                  try {
-                    for (var _iterator3 = utxos[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-                      var utxo = _step3.value;
-
-                      newTotal += utxo.value;
-                      willSpentUtxos.push(utxo);
-                      if (!sendAll && newTotal >= total) {
-                        break;
-                      }
-                    }
-                  } catch (err) {
-                    _didIteratorError3 = true;
-                    _iteratorError3 = err;
-                  } finally {
-                    try {
-                      if (!_iteratorNormalCompletion3 && _iterator3.return) {
-                        _iterator3.return();
-                      }
-                    } finally {
-                      if (_didIteratorError3) {
-                        throw _iteratorError3;
-                      }
-                    }
-                  }
-
-                  if (newTotal < total) {
-                    throw _D2.default.error.balanceNotEnough;
-                  }
-                  return { newTotal: newTotal, willSpentUtxos: willSpentUtxos };
-                };
-
-                // calculate the fee using compressed public key size
-
-
-                calculateFee = function calculateFee(utxos, outputs) {
-                  var outputSize = outputs.length + 1; // 1 for change output
-                  return (10 + 148 * utxos.length + 34 * outputSize) * details.feeRate;
-                };
-
-                fee = 0;
-                totalOut = details.outputs.reduce(function (sum, output) {
-                  return sum + output.value;
-                }, 0);
-                // no output value is ok while sendAll = true
-
-                totalOut = totalOut || 0;
-
-              case 15:
-                if (false) {}
-
-                if (!(Number(this.balance) < fee + totalOut)) {
+                if (!details.oldTxId) {
                   _context15.next = 18;
                   break;
                 }
 
-                throw _D2.default.error.balanceNotEnough;
+                oldTxInfo = this.txInfos.find(function (txInfo) {
+                  return txInfo.txId === details.oldTxId;
+                });
 
-              case 18:
-                // noinspection JSUnresolvedVariable
-                _getEnoughUtxo = getEnoughUtxo(totalOut + fee, details.sendAll, details.oldTxId), newTotal = _getEnoughUtxo.newTotal, willSpentUtxos = _getEnoughUtxo.willSpentUtxos;
-                // new fee calculated
-
-                fee = calculateFee(willSpentUtxos, details.outputs);
-
-                if (!(newTotal >= totalOut + fee)) {
-                  _context15.next = 23;
+                if (oldTxInfo) {
+                  _context15.next = 16;
                   break;
                 }
 
-                if (details.sendAll) {
-                  details.outputs[0].value = newTotal - fee;
-                  totalOut = details.outputs[0].value;
-                }
-                return _context15.abrupt('return', {
-                  feeRate: details.feeRate,
-                  outputs: _D2.default.copy(details.outputs),
-                  fee: fee,
-                  total: totalOut + fee,
-                  utxos: willSpentUtxos,
-                  comment: details.comment || ''
+                console.warn('oldTxId not found in history');
+                throw _D2.default.error.unknown;
+
+              case 16:
+
+                oldTxInfo.inputs.forEach(function (input) {
+                  var oldUtxo = _this7.utxos.find(function (utxo) {
+                    return utxo.txId === input.prevTxId && utxo.index === input.prevOutIndex;
+                  });
+                  if (!oldUtxo) {
+                    console.warn('oldUtxo not found in history', input);
+                    throw _D2.default.error.unknown;
+                  }
+                  oldUtxos.push(oldUtxo);
+                });
+                utxos = utxos.filter(function (utxo) {
+                  return !oldUtxos.some(function (u) {
+                    return u.txId === utxo.txId && u.index === utxo.index;
+                  });
                 });
 
-              case 23:
-                _context15.next = 15;
-                break;
+              case 18:
+                proposal = _BtcCoinSelect2.default.getEnoughUtxo(utxos, oldUtxos, details.outputs, details.feeRate, details.sendAll);
+                totalUtxos = proposal.willSpentUtxos.reduce(function (sum, utxo) {
+                  return utxo.value + sum;
+                }, 0);
+                // reset the output[0].value if this two flags = true
+
+                if (details.sendAll || proposal.deviceLimit) {
+                  details.outputs[0].value = totalUtxos - proposal.fee;
+                }
+                totalOut = details.outputs.reduce(function (sum, output) {
+                  return sum + output.value;
+                }, 0);
+                prepareTxData = {
+                  feeRate: details.feeRate,
+                  outputs: details.outputs,
+                  fee: proposal.fee,
+                  total: totalOut + proposal.fee,
+                  utxos: proposal.willSpentUtxos,
+                  comment: details.comment || ''
+                };
+
+                if (proposal.deviceLimit) {
+                  // deviceLimit = true means device can not carry more utxos to sign, this is the largest value that device can sent
+                  prepareTxData.deviceLimit = proposal.deviceLimit;
+                }
+                return _context15.abrupt('return', prepareTxData);
 
               case 25:
               case 'end':
@@ -43622,6 +43570,188 @@ exports.default = BtcAccount;
 
 /***/ }),
 
+/***/ "./src/sdk/BtcCoinSelect.js":
+/*!**********************************!*\
+  !*** ./src/sdk/BtcCoinSelect.js ***!
+  \**********************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _D = __webpack_require__(/*! ./D */ "./src/sdk/D.js");
+
+var _D2 = _interopRequireDefault(_D);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+/**
+ * device has limit of apdu data length = 2k, support up to 45 inputs + 2 outputs
+ * we set a algorithm here:
+ * 1. follow bnb algorithm:
+ *    https://github.com/bitcoin/bitcoin/blob/6f5372a1714383bb5e47a5ba89dc4d93020a2943/src/wallet/coinselection.cpp
+ * 2. if tx length exceed the limit, recalculate utxos and use utxos as few as possible
+ * 3. if tx length exceed the limit with the least utxos, and return an warning field
+ */
+function getEnoughUtxo(utxos, presetUtxos, outputs, feeRate, sendAll) {
+  var maxApduDataLength = 2000;
+  var calculateApduLength = function calculateApduLength(utxos, outputSize) {
+    // const of apdu with change output
+    var apduDataHead = 47;
+    var constTxField = 14;
+    var maxToBeSignedOutputScriptLength = utxos.reduce(function (max, utxo) {
+      return Math.max(max, utxo.script.length / 2);
+    }, 0);
+    return apduDataHead + constTxField + utxos.length * 41 + (outputSize + 1) * 34 + maxToBeSignedOutputScriptLength;
+  };
+
+  var proposalBnb = void 0;
+  if (!sendAll) {
+    proposalBnb = _coinSelectBnb(utxos, presetUtxos, outputs, feeRate, sendAll);
+  }
+  if (proposalBnb) {
+    var apduDataLength = calculateApduLength(proposalBnb.willSpentUtxos, outputs.length);
+    if (apduDataLength <= maxApduDataLength) {
+      return proposalBnb;
+    }
+  }
+
+  // recalculate utxos and use utxos as few as possible
+  utxos = utxos.sort(function (a, b) {
+    return b.value - a.value;
+  }); // sort max => min
+  var proposalClassic = _coinSelectClassic(utxos, presetUtxos, outputs, feeRate, sendAll);
+  if (calculateApduLength(proposalClassic.willSpentUtxos, outputs.length) <= maxApduDataLength) {
+    return proposalClassic;
+  }
+
+  // with limit of apdu data = 2k
+  // and outputscript that going to spent using p2pkh,
+  // and output.length = 2, then maxInputSize = 45
+  var maxInputSize = 45;
+  while (calculateApduLength(utxos.slice(0, maxInputSize), outputs.length) > maxApduDataLength) {
+    maxInputSize--;
+  }
+  if (maxInputSize <= 0) {
+    console.warn('too many outputs that no space for inputs in apdu');
+    throw _D2.default.error.tooManyOutputs;
+  }
+
+  utxos = utxos.slice(0, maxInputSize);
+  var proposalLimit = _coinSelectClassic(utxos, presetUtxos, [], feeRate, true);
+  proposalLimit.deviceLimit = true;
+  return proposalLimit;
+}
+
+// calculate tx length using compressed public key size
+function calculateFee(utxos, outputs, feeRate, needChange) {
+  var outputSize = outputs.length + needChange ? 1 : 0;
+  // input length range = [147, 148], use larger one here
+  var txLength = 10 + 148 * utxos.length + 34 * outputSize;
+  return txLength * feeRate;
+}
+
+function _coinSelectBnb(utxos, presetUtxos, outputs, feeRate, sendAll) {
+  // TODO implement bnb algorithm
+
+  // this simple algorithm will use utxo as much as possible
+  // to reduce utxo amount when utxos.length >= 20
+  if (utxos.length <= 20) {
+    return null;
+  }
+  utxos = utxos.sort(function (a, b) {
+    return a.value - b.value;
+  }); // sort min => max
+  try {
+    return _coinSelectClassic(utxos, presetUtxos, outputs, feeRate, sendAll);
+  } catch (e) {
+    console.warn('_coinSelectBnb', e);
+    return null;
+  }
+}
+
+function _coinSelectClassic(utxos, presetUtxos, outputs, feeRate, sendAll) {
+  var totalOut = outputs.reduce(function (sum, output) {
+    return output.value + sum;
+  }, 0);
+  var totalAvailable = utxos.reduce(function (sum, utxo) {
+    return utxo.value + sum;
+  }, 0) + presetUtxos.reduce(function (sum, utxo) {
+    return utxo.value + sum;
+  }, 0);
+
+  var fee = 0;
+  while (true) {
+    if (totalAvailable < fee + totalOut) throw _D2.default.error.balanceNotEnough;
+
+    // noinspection JSUnresolvedVariable
+
+    var _getEnoughUtxo2 = _getEnoughUtxo(utxos, presetUtxos, totalOut + fee, sendAll),
+        totalUtxo = _getEnoughUtxo2.totalUtxo,
+        willSpentUtxos = _getEnoughUtxo2.willSpentUtxos;
+    // new fee calculated
+
+
+    fee = calculateFee(willSpentUtxos, outputs, feeRate, totalOut + fee === totalUtxo);
+    if (totalUtxo >= totalOut + fee) {
+      return { willSpentUtxos: willSpentUtxos, fee: fee };
+    }
+    // new fee + total out is larger than new total, calculate again
+  }
+}
+
+function _getEnoughUtxo(utxos, presetUtxos, total, sendAll) {
+  var willSpentUtxos = Array.from(presetUtxos);
+  var totalUtxo = willSpentUtxos.reduce(function (sum, utxo) {
+    return utxo.value + sum;
+  }, 0);
+
+  var _iteratorNormalCompletion = true;
+  var _didIteratorError = false;
+  var _iteratorError = undefined;
+
+  try {
+    for (var _iterator = utxos[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+      var utxo = _step.value;
+
+      if (!sendAll && totalUtxo >= total) {
+        break;
+      }
+      totalUtxo += utxo.value;
+      willSpentUtxos.push(utxo);
+    }
+  } catch (err) {
+    _didIteratorError = true;
+    _iteratorError = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion && _iterator.return) {
+        _iterator.return();
+      }
+    } finally {
+      if (_didIteratorError) {
+        throw _iteratorError;
+      }
+    }
+  }
+
+  if (totalUtxo < total) {
+    throw _D2.default.error.balanceNotEnough;
+  }
+  return { totalUtxo: totalUtxo, willSpentUtxos: willSpentUtxos };
+}
+
+exports.default = {
+  getEnoughUtxo: getEnoughUtxo
+};
+
+/***/ }),
+
 /***/ "./src/sdk/D.js":
 /*!**********************!*\
   !*** ./src/sdk/D.js ***!
@@ -43705,6 +43835,7 @@ var D = {
     networkGasPriceTooLow: 409,
 
     balanceNotEnough: 501,
+    tooManyOutputs: 502,
 
     invalidAddress: 601,
     noAddressCheckSum: 602, // for eth
