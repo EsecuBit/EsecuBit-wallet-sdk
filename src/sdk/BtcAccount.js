@@ -449,8 +449,7 @@ export default class BtcAccount {
    *     address: base58 string,
    *     value: number (satoshi)
    *   }],
-   *   deviceLimit: bool,
-   *   deviceLimitValue: string (satoshi)
+   *   deviceLimit: bool
    * }
    */
   async prepareTx (details) {
