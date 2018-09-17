@@ -496,22 +496,26 @@ export default class BtcAccount {
 
     let proposal = BtcCoinSelect.getEnoughUtxo(
       utxos, oldUtxos, details.outputs, details.feeRate, details.sendAll)
-    let totalOut = proposal.willSpentUtxos.reduce((sum, utxo) => utxo.value + sum, 0)
+    let totalUtxos = proposal.willSpentUtxos.reduce((sum, utxo) => utxo.value + sum, 0)
     // reset the output[0].value if this two flags = true
     if (details.sendAll || proposal.deviceLimit) {
-      details.outputs[0].value = totalOut - proposal.fee
+      details.outputs[0].value = totalUtxos - proposal.fee
     }
+    let totalOut = details.outputs.reduce((sum, output) => sum + output.value, 0)
 
-    return {
+    let prepareTxData = {
       feeRate: details.feeRate,
       outputs: details.outputs,
       fee: proposal.fee,
-      total: totalOut,
+      total: totalOut + proposal.fee,
       utxos: proposal.willSpentUtxos,
       comment: details.comment || '',
-      // deviceLimit = true means device can not carry more utxos to sign, this is the largest value that device can sent
-      deviceLimit: proposal.deviceLimit
     }
+    if (proposal.deviceLimit) {
+      // deviceLimit = true means device can not carry more utxos to sign, this is the largest value that device can sent
+      prepareTxData.deviceLimit = proposal.deviceLimit
+    }
+    return prepareTxData
   }
 
   /**

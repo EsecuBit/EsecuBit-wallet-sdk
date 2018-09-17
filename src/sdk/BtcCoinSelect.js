@@ -10,10 +10,12 @@ import D from './D'
  */
 function getEnoughUtxo (utxos, presetUtxos, outputs, feeRate, sendAll) {
   const maxApduDataLength = 2000
-  const apduDataHead = 55
   const calculateApduLength = (utxos, outputSize) => {
+    // const of apdu with change output
+    const apduDataHead = 47
+    const constTxField = 14
     let maxToBeSignedOutputScriptLength = utxos.reduce((max, utxo) => Math.max(max, utxo.script.length / 2), 0)
-    return apduDataHead + utxos.length * 41 + outputSize * 34 + maxToBeSignedOutputScriptLength
+    return apduDataHead + constTxField + utxos.length * 41 + (outputSize + 1) * 34 + maxToBeSignedOutputScriptLength
   }
 
   let proposalBnb
@@ -47,7 +49,7 @@ function getEnoughUtxo (utxos, presetUtxos, outputs, feeRate, sendAll) {
   }
 
   utxos = utxos.slice(0, maxInputSize)
-  let proposalLimit = _coinSelectClassic(utxos, presetUtxos, outputs, feeRate, true)
+  let proposalLimit = _coinSelectClassic(utxos, presetUtxos, [], feeRate, true)
   proposalLimit.deviceLimit = true
   return proposalLimit
 }
