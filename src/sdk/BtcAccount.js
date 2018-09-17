@@ -1,5 +1,6 @@
 
 import D from './D'
+import BtcCoinSelect from './BtcCoinSelect'
 
 export default class BtcAccount {
   constructor (info, device, coinData) {
@@ -367,14 +368,17 @@ export default class BtcAccount {
       return addressInfos
     }
 
-    let newAddressInfos = [].concat(await checkAndGenerate(D.address.external), await checkAndGenerate(D.address.change))
+    let newAddressInfos = [].concat(
+      await checkAndGenerate(D.address.external),
+      await checkAndGenerate(D.address.change))
     await this._coinData.newAddressInfos(this._toAccountInfo(), D.copy(newAddressInfos))
     this.addressInfos.push(...newAddressInfos)
     return newAddressInfos
   }
 
   _getAddressInfos (startIndex, stopIndex, type, copy = true) {
-    let addressInfos = this.addressInfos.filter(a => a.type === type && a.index >= startIndex && a.index < stopIndex)
+    let addressInfos = this.addressInfos.filter(
+      a => a.type === type && a.index >= startIndex && a.index < stopIndex)
     if (copy) addressInfos = addressInfos.map(addressInfo => D.copy(addressInfo))
     return addressInfos
   }
@@ -398,7 +402,8 @@ export default class BtcAccount {
 
   async getAddress (isStoring = false) {
     let address = await this._device.getAddress(this.coinType,
-      D.makeBip44Path(this.coinType, this.index, D.address.external, this.externalPublicKeyIndex), true, isStoring)
+      D.makeBip44Path(this.coinType, this.index, D.address.external, this.externalPublicKeyIndex),
+      true, isStoring)
 
     await this._checkAddressIndexAndGenerateNew()
     let listenAddressInfo = this._getAddressInfos(
@@ -426,7 +431,7 @@ export default class BtcAccount {
    * @param details
    * {
    *   sendAll: bool,
-   *   oldTxId: string, // resend only
+   *   oldTxId: string, // resend mode only
    *   feeRate: string (satoshi),
    *   outputs: [{
    *     address: base58 string,
@@ -443,7 +448,9 @@ export default class BtcAccount {
    *   outputs: [{
    *     address: base58 string,
    *     value: number (satoshi)
-   *   }]
+   *   }],
+   *   deviceLimit: bool,
+   *   deviceLimitValue: string (satoshi)
    * }
    */
   async prepareTx (details) {
@@ -462,80 +469,49 @@ export default class BtcAccount {
     })
 
     let utxos = this.utxos
-      .filter(utxo => utxo.status === D.utxo.status.unspent || utxo.status === D.utxo.status.unspent_pending)
+      .filter(utxo => utxo.status === D.utxo.status.unspent ||
+        utxo.status === D.utxo.status.unspent_pending)
       .filter(utxo => utxo.value > 0)
       .map(utxo => D.copy(utxo))
 
-    let getEnoughUtxo = (total, sendAll, oldTxId) => {
-      let willSpentUtxos = []
-      let newTotal = 0
+    let oldUtxos = []
+    if (details.oldTxId) {
+      let oldTxInfo = this.txInfos.find(txInfo => txInfo.txId === details.oldTxId)
+      if (!oldTxInfo) {
+        console.warn('oldTxId not found in history')
+        throw D.error.unknown
+      }
 
-      if (oldTxId) {
-        let oldTxInfo = this.txInfos.find(txInfo => txInfo.txId === oldTxId)
-        if (!oldTxInfo) {
-          console.warn('oldTxId not found in history')
+      oldTxInfo.inputs.forEach(input => {
+        let oldUtxo = this.utxos.find(
+          utxo => utxo.txId === input.prevTxId && utxo.index === input.prevOutIndex)
+        if (!oldUtxo) {
+          console.warn('oldUtxo not found in history', input)
           throw D.error.unknown
         }
-
-        oldTxInfo.inputs.forEach(input => {
-          let oldUtxo = this.utxos.find(utxo => utxo.txId === input.prevTxId && utxo.index === input.prevOutIndex)
-          if (!oldUtxo) {
-            console.warn('oldUtxo not found in history', input)
-            throw D.error.unknown
-          }
-          willSpentUtxos.push(oldUtxo)
-          newTotal += oldUtxo.value
-        })
-
-        if (!sendAll && newTotal >= total) {
-          return {newTotal, willSpentUtxos}
-        }
-      }
-
-      for (let utxo of utxos) {
-        newTotal += utxo.value
-        willSpentUtxos.push(utxo)
-        if (!sendAll && newTotal >= total) {
-          break
-        }
-      }
-      if (newTotal < total) {
-        throw D.error.balanceNotEnough
-      }
-      return {newTotal, willSpentUtxos}
+        oldUtxos.push(oldUtxo)
+      })
+      utxos = utxos.filter(utxo => !oldUtxos.some(
+        u => u.txId === utxo.txId && u.index === utxo.index))
     }
 
-    // calculate the fee using compressed public key size
-    let calculateFee = (utxos, outputs) => {
-      let outputSize = outputs.length + 1 // 1 for change output
-      return (10 + 148 * utxos.length + 34 * outputSize) * details.feeRate
+    let proposal = BtcCoinSelect.getEnoughUtxo(
+      utxos, oldUtxos, details.outputs, details.feeRate, details.sendAll)
+    let totalOut = proposal.willSpentUtxos.reduce((sum, utxo) => utxo.value + sum, 0)
+    // reset the output[0].value if this two flags = true
+    if (details.sendAll || proposal.deviceLimit) {
+      details.outputs[0].value = totalOut
     }
 
-    let fee = 0
-    let totalOut = details.outputs.reduce((sum, output) => sum + output.value, 0)
-    // no output value is ok while sendAll = true
-    totalOut = totalOut || 0
-    while (true) {
-      if (Number(this.balance) < fee + totalOut) throw D.error.balanceNotEnough
-      // noinspection JSUnresolvedVariable
-      let {newTotal, willSpentUtxos} = getEnoughUtxo(totalOut + fee, details.sendAll, details.oldTxId)
-      // new fee calculated
-      fee = calculateFee(willSpentUtxos, details.outputs)
-      if (newTotal >= totalOut + fee) {
-        if (details.sendAll) {
-          details.outputs[0].value = newTotal - fee
-          totalOut = details.outputs[0].value
-        }
-        return {
-          feeRate: details.feeRate,
-          outputs: D.copy(details.outputs),
-          fee: fee,
-          total: totalOut + fee,
-          utxos: willSpentUtxos,
-          comment: details.comment || ''
-        }
-      }
-      // new fee + total out is larger than new total, calculate again
+    return {
+      feeRate: details.feeRate,
+      outputs: details.outputs,
+      fee: proposal.fee,
+      total: totalOut + proposal.fee,
+      utxos: proposal.willSpentUtxos,
+      comment: details.comment || '',
+      // deviceLimit = true means device can not carry more utxos to sign, this is the largest value that device can sent
+      deviceLimit: proposal.deviceLimit
     }
   }
 

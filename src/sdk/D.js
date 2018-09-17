@@ -54,6 +54,7 @@ const D = {
     networkGasPriceTooLow: 409,
 
     balanceNotEnough: 501,
+    tooManyOutputs: 502,
 
     invalidAddress: 601,
     noAddressCheckSum: 602, // for eth
