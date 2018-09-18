@@ -8,7 +8,7 @@ import D from './D'
  * 2. if tx length exceed the limit, recalculate utxos and use utxos as few as possible
  * 3. if tx length exceed the limit with the least utxos, and return an warning field
  */
-function getEnoughUtxo (utxos, presetUtxos, outputs, feeRate, sendAll) {
+function selectCoinSet (utxos, presetUtxos, outputs, feeRate, sendAll) {
   const maxApduDataLength = 2000
   const calculateApduLength = (utxos, outputSize) => {
     // const of apdu with change output
@@ -49,17 +49,32 @@ function getEnoughUtxo (utxos, presetUtxos, outputs, feeRate, sendAll) {
   }
 
   utxos = utxos.slice(0, maxInputSize)
-  let proposalLimit = _coinSelectClassic(utxos, presetUtxos, [], feeRate, true)
+  outputs.forEach(output => output.value = 0)
+  let proposalLimit = _coinSelectClassic(utxos, presetUtxos, outputs, feeRate, true)
   proposalLimit.deviceLimit = true
   return proposalLimit
 }
 
 // calculate tx length using compressed public key size
 function calculateFee (utxos, outputs, feeRate, needChange) {
-  let outputSize = outputs.length + needChange ? 1 : 0
+  let totalOut = outputs.reduce((sum, output) => output.value + sum, 0)
+  let totalUtxos = utxos.reduce((sum, utxo) => utxo.value + sum, 0)
+
   // input length range = [147, 148], use larger one here
-  let txLength = 10 + 148 * utxos.length + 34 * outputSize
-  return txLength * feeRate
+  let txLength = 10 + 148 * utxos.length + 34 * outputs.length
+  let fee = txLength * feeRate
+  let changeValue = totalUtxos - totalOut - fee
+
+  if (changeValue >= 0 && changeValue <= 34 * feeRate) {
+    // in this case, it's unnecessary for a change which is too small
+    fee += changeValue
+    return fee
+  }
+  if (needChange) {
+    // add fee for change utxo length
+    fee += 34 * feeRate
+  }
+  return fee
 }
 
 function _coinSelectBnb (utxos, presetUtxos, outputs, feeRate, sendAll) {
@@ -91,7 +106,7 @@ function _coinSelectClassic (utxos, presetUtxos, outputs, feeRate, sendAll) {
     // noinspection JSUnresolvedVariable
     let {totalUtxo, willSpentUtxos} = _getEnoughUtxo(utxos, presetUtxos, totalOut + fee, sendAll)
     // new fee calculated
-    fee = calculateFee(willSpentUtxos, outputs, feeRate, totalOut + fee === totalUtxo)
+    fee = calculateFee(willSpentUtxos, outputs, feeRate, !sendAll)
     if (totalUtxo >= totalOut + fee) {
       return {willSpentUtxos, fee}
     }
@@ -110,12 +125,12 @@ function _getEnoughUtxo (utxos, presetUtxos, total, sendAll) {
     totalUtxo += utxo.value
     willSpentUtxos.push(utxo)
   }
-  if (totalUtxo < total) {
+  if (!sendAll && totalUtxo < total) {
     throw D.error.balanceNotEnough
   }
   return {totalUtxo, willSpentUtxos}
 }
 
 export default {
-  getEnoughUtxo
+  selectCoinSet
 }

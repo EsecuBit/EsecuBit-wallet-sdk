@@ -494,7 +494,7 @@ export default class BtcAccount {
         u => u.txId === utxo.txId && u.index === utxo.index))
     }
 
-    let proposal = BtcCoinSelect.getEnoughUtxo(
+    let proposal = BtcCoinSelect.selectCoinSet(
       utxos, oldUtxos, details.outputs, details.feeRate, details.sendAll)
     let totalUtxos = proposal.willSpentUtxos.reduce((sum, utxo) => utxo.value + sum, 0)
     // reset the output[0].value if this two flags = true
