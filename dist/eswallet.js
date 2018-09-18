@@ -43315,7 +43315,7 @@ var BtcAccount = function () {
                 });
 
               case 18:
-                proposal = _BtcCoinSelect2.default.getEnoughUtxo(utxos, oldUtxos, details.outputs, details.feeRate, details.sendAll);
+                proposal = _BtcCoinSelect2.default.selectCoinSet(utxos, oldUtxos, details.outputs, details.feeRate, details.sendAll);
                 totalUtxos = proposal.willSpentUtxos.reduce(function (sum, utxo) {
                   return utxo.value + sum;
                 }, 0);
@@ -43407,19 +43407,28 @@ var BtcAccount = function () {
                 changeValue = totalIn - prepareTx.total;
                 changeAddressInfo = void 0;
 
-                if (changeValue !== 0) {
-                  changeAddressInfo = this.addressInfos.find(function (addressInfo) {
-                    return addressInfo.type === _D2.default.address.change && addressInfo.index === _this8.changePublicKeyIndex;
-                  });
-                  rawTx.outputs.push({ address: changeAddressInfo.address, value: changeValue });
-                  rawTx.changePath = changeAddressInfo.path;
+                if (!(changeValue !== 0)) {
+                  _context16.next = 15;
+                  break;
                 }
 
+                _context16.next = 12;
+                return this._checkAddressIndexAndGenerateNew();
+
+              case 12:
+                changeAddressInfo = this.addressInfos.find(function (addressInfo) {
+                  return addressInfo.type === _D2.default.address.change && addressInfo.index === _this8.changePublicKeyIndex;
+                });
+                rawTx.outputs.push({ address: changeAddressInfo.address, value: changeValue });
+                rawTx.changePath = changeAddressInfo.path;
+
+              case 15:
+
                 console.log('presign tx', rawTx);
-                _context16.next = 13;
+                _context16.next = 18;
                 return this._device.signTransaction(this.coinType, rawTx);
 
-              case 13:
+              case 18:
                 signedTx = _context16.sent;
                 txInfo = {
                   accountId: this.accountId,
@@ -43484,7 +43493,7 @@ var BtcAccount = function () {
 
                 return _context16.abrupt('return', { txInfo: txInfo, utxos: prepareTx.utxos, hex: signedTx.hex });
 
-              case 18:
+              case 23:
               case 'end':
                 return _context16.stop();
             }
@@ -43598,7 +43607,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
  * 2. if tx length exceed the limit, recalculate utxos and use utxos as few as possible
  * 3. if tx length exceed the limit with the least utxos, and return an warning field
  */
-function getEnoughUtxo(utxos, presetUtxos, outputs, feeRate, sendAll) {
+function selectCoinSet(utxos, presetUtxos, outputs, feeRate, sendAll) {
   var maxApduDataLength = 2000;
   var calculateApduLength = function calculateApduLength(utxos, outputSize) {
     // const of apdu with change output
@@ -43643,17 +43652,38 @@ function getEnoughUtxo(utxos, presetUtxos, outputs, feeRate, sendAll) {
   }
 
   utxos = utxos.slice(0, maxInputSize);
-  var proposalLimit = _coinSelectClassic(utxos, presetUtxos, [], feeRate, true);
+  outputs.forEach(function (output) {
+    return output.value = 0;
+  });
+  var proposalLimit = _coinSelectClassic(utxos, presetUtxos, outputs, feeRate, true);
   proposalLimit.deviceLimit = true;
   return proposalLimit;
 }
 
 // calculate tx length using compressed public key size
 function calculateFee(utxos, outputs, feeRate, needChange) {
-  var outputSize = outputs.length + needChange ? 1 : 0;
+  var totalOut = outputs.reduce(function (sum, output) {
+    return output.value + sum;
+  }, 0);
+  var totalUtxos = utxos.reduce(function (sum, utxo) {
+    return utxo.value + sum;
+  }, 0);
+
   // input length range = [147, 148], use larger one here
-  var txLength = 10 + 148 * utxos.length + 34 * outputSize;
-  return txLength * feeRate;
+  var txLength = 10 + 148 * utxos.length + 34 * outputs.length;
+  var fee = txLength * feeRate;
+  var changeValue = totalUtxos - totalOut - fee;
+
+  if (changeValue >= 0 && changeValue <= 34 * feeRate) {
+    // in this case, it's unnecessary for a change which is too small
+    fee += changeValue;
+    return fee;
+  }
+  if (needChange) {
+    // add fee for change utxo length
+    fee += 34 * feeRate;
+  }
+  return fee;
 }
 
 function _coinSelectBnb(utxos, presetUtxos, outputs, feeRate, sendAll) {
@@ -43697,7 +43727,7 @@ function _coinSelectClassic(utxos, presetUtxos, outputs, feeRate, sendAll) {
     // new fee calculated
 
 
-    fee = calculateFee(willSpentUtxos, outputs, feeRate, totalOut + fee === totalUtxo);
+    fee = calculateFee(willSpentUtxos, outputs, feeRate, !sendAll);
     if (totalUtxo >= totalOut + fee) {
       return { willSpentUtxos: willSpentUtxos, fee: fee };
     }
@@ -43740,14 +43770,14 @@ function _getEnoughUtxo(utxos, presetUtxos, total, sendAll) {
     }
   }
 
-  if (totalUtxo < total) {
+  if (!sendAll && totalUtxo < total) {
     throw _D2.default.error.balanceNotEnough;
   }
   return { totalUtxo: totalUtxo, willSpentUtxos: willSpentUtxos };
 }
 
 exports.default = {
-  getEnoughUtxo: getEnoughUtxo
+  selectCoinSet: selectCoinSet
 };
 
 /***/ }),
@@ -49174,51 +49204,42 @@ var BlockchainInfo = function (_ICoinNetwork) {
       var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(addresses) {
         var _this2 = this;
 
-        var totalReceive, response, subResponse, _response$txs, selfTx, blobs, _loop, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, rAddress;
+        var maxAddressesSize, response, offset, _response$txs, _response$addresses, querySize, subResponse, selfTx, blobs, _loop, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, rAddress;
 
         return regeneratorRuntime.wrap(function _callee3$(_context4) {
           while (1) {
             switch (_context4.prev = _context4.next) {
               case 0:
-                totalReceive = 0;
-                response = void 0;
+                // blockchain.info return 502 when addresses.length > 141, it seems a bug of them
+                maxAddressesSize = 140;
+                response = {
+                  txs: [],
+                  addresses: []
+                };
+                offset = 0;
 
-              case 2:
-                if (false) {}
-
-                _context4.next = 5;
-                return this.get(this._apiUrl + '/multiaddr?cors=true&offset=' + totalReceive + '&n=100&active=' + addresses.join('|'));
-
-              case 5:
-                subResponse = _context4.sent;
-
-                if (!response) {
-                  response = subResponse;
-                } else {
-                  // noinspection JSUnusedAssignment
-                  (_response$txs = response.txs).push.apply(_response$txs, _toConsumableArray(subResponse.txs));
-                }
-                totalReceive = response.txs.length;
-
-                if (!(totalReceive >= response.wallet.n_tx)) {
-                  _context4.next = 10;
+              case 3:
+                if (!(offset < addresses.length)) {
+                  _context4.next = 14;
                   break;
                 }
 
-                return _context4.abrupt('break', 12);
+                querySize = addresses.length - offset;
 
-              case 10:
-                _context4.next = 2;
+                if (querySize > maxAddressesSize) querySize = maxAddressesSize;
+                _context4.next = 8;
+                return this._queryAddresses(addresses.slice(offset, offset + querySize));
+
+              case 8:
+                subResponse = _context4.sent;
+
+                (_response$txs = response.txs).push.apply(_response$txs, _toConsumableArray(subResponse.txs));
+                (_response$addresses = response.addresses).push.apply(_response$addresses, _toConsumableArray(subResponse.addresses));
+                offset += querySize;
+                _context4.next = 3;
                 break;
 
-              case 12:
-
-                response.txs.forEach(function (tx) {
-                  if (!_this2.indexMap[tx.tx_index]) {
-                    _this2.indexMap[tx.tx_index] = tx.hash;
-                  }
-                });
-
+              case 14:
                 selfTx = function selfTx(rTx, address) {
                   return rTx.inputs.map(function (input) {
                     return input.prev_out.addr;
@@ -49261,66 +49282,66 @@ var BlockchainInfo = function (_ICoinNetwork) {
                 _iteratorNormalCompletion = true;
                 _didIteratorError = false;
                 _iteratorError = undefined;
-                _context4.prev = 19;
+                _context4.prev = 20;
                 _iterator = response.addresses[Symbol.iterator]();
 
-              case 21:
+              case 22:
                 if (_iteratorNormalCompletion = (_step = _iterator.next()).done) {
-                  _context4.next = 27;
+                  _context4.next = 28;
                   break;
                 }
 
                 rAddress = _step.value;
-                return _context4.delegateYield(_loop(rAddress), 't0', 24);
+                return _context4.delegateYield(_loop(rAddress), 't0', 25);
 
-              case 24:
+              case 25:
                 _iteratorNormalCompletion = true;
-                _context4.next = 21;
+                _context4.next = 22;
                 break;
 
-              case 27:
-                _context4.next = 33;
+              case 28:
+                _context4.next = 34;
                 break;
 
-              case 29:
-                _context4.prev = 29;
-                _context4.t1 = _context4['catch'](19);
+              case 30:
+                _context4.prev = 30;
+                _context4.t1 = _context4['catch'](20);
                 _didIteratorError = true;
                 _iteratorError = _context4.t1;
 
-              case 33:
-                _context4.prev = 33;
+              case 34:
                 _context4.prev = 34;
+                _context4.prev = 35;
 
                 if (!_iteratorNormalCompletion && _iterator.return) {
                   _iterator.return();
                 }
 
-              case 36:
-                _context4.prev = 36;
+              case 37:
+                _context4.prev = 37;
 
                 if (!_didIteratorError) {
-                  _context4.next = 39;
+                  _context4.next = 40;
                   break;
                 }
 
                 throw _iteratorError;
 
-              case 39:
-                return _context4.finish(36);
-
               case 40:
-                return _context4.finish(33);
+                return _context4.finish(37);
 
               case 41:
-                return _context4.abrupt('return', blobs);
+                return _context4.finish(34);
 
               case 42:
+                return _context4.abrupt('return', blobs);
+
+              case 43:
               case 'end':
                 return _context4.stop();
             }
           }
-        }, _callee3, this, [[19, 29, 33, 41], [34,, 36, 40]]);
+        }, _callee3, this, [[20, 30, 34, 42], [35,, 37, 41]]);
       }));
 
       function queryAddresses(_x) {
@@ -49330,22 +49351,59 @@ var BlockchainInfo = function (_ICoinNetwork) {
       return queryAddresses;
     }()
   }, {
-    key: 'queryTx',
+    key: '_queryAddresses',
     value: function () {
-      var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(txId) {
-        var response;
+      var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(addresses) {
+        var _this3 = this;
+
+        var totalReceive, response, subResponse, _response$txs2;
+
         return regeneratorRuntime.wrap(function _callee4$(_context5) {
           while (1) {
             switch (_context5.prev = _context5.next) {
               case 0:
-                _context5.next = 2;
-                return this.get([this._apiUrl, 'rawtx', txId].join('/') + '?cors=true');
+                totalReceive = 0;
+                response = void 0;
 
               case 2:
-                response = _context5.sent;
-                return _context5.abrupt('return', this.wrapTx(response));
+                if (false) {}
 
-              case 4:
+                _context5.next = 5;
+                return this.get(this._apiUrl + '/multiaddr?cors=true&offset=' + totalReceive + '&n=100&active=' + addresses.join('|'));
+
+              case 5:
+                subResponse = _context5.sent;
+
+                if (!response) {
+                  response = subResponse;
+                } else {
+                  // noinspection JSUnusedAssignment
+                  (_response$txs2 = response.txs).push.apply(_response$txs2, _toConsumableArray(subResponse.txs));
+                }
+                totalReceive = response.txs.length;
+
+                if (!(totalReceive >= response.wallet.n_tx)) {
+                  _context5.next = 10;
+                  break;
+                }
+
+                return _context5.abrupt('break', 12);
+
+              case 10:
+                _context5.next = 2;
+                break;
+
+              case 12:
+
+                response.txs.forEach(function (tx) {
+                  if (!_this3.indexMap[tx.tx_index]) {
+                    _this3.indexMap[tx.tx_index] = tx.hash;
+                  }
+                });
+
+                return _context5.abrupt('return', response);
+
+              case 14:
               case 'end':
                 return _context5.stop();
             }
@@ -49353,14 +49411,14 @@ var BlockchainInfo = function (_ICoinNetwork) {
         }, _callee4, this);
       }));
 
-      function queryTx(_x2) {
+      function _queryAddresses(_x2) {
         return _ref4.apply(this, arguments);
       }
 
-      return queryTx;
+      return _queryAddresses;
     }()
   }, {
-    key: 'queryRawTx',
+    key: 'queryTx',
     value: function () {
       var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(txId) {
         var response;
@@ -49369,11 +49427,11 @@ var BlockchainInfo = function (_ICoinNetwork) {
             switch (_context6.prev = _context6.next) {
               case 0:
                 _context6.next = 2;
-                return this.get([this._apiUrl, 'rawtx', txId].join('/') + '?cors=true&format=hex');
+                return this.get([this._apiUrl, 'rawtx', txId].join('/') + '?cors=true');
 
               case 2:
                 response = _context6.sent;
-                return _context6.abrupt('return', _D2.default.parseBitcoinRawTx(response.response));
+                return _context6.abrupt('return', this.wrapTx(response));
 
               case 4:
               case 'end':
@@ -49383,8 +49441,38 @@ var BlockchainInfo = function (_ICoinNetwork) {
         }, _callee5, this);
       }));
 
-      function queryRawTx(_x3) {
+      function queryTx(_x3) {
         return _ref5.apply(this, arguments);
+      }
+
+      return queryTx;
+    }()
+  }, {
+    key: 'queryRawTx',
+    value: function () {
+      var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6(txId) {
+        var response;
+        return regeneratorRuntime.wrap(function _callee6$(_context7) {
+          while (1) {
+            switch (_context7.prev = _context7.next) {
+              case 0:
+                _context7.next = 2;
+                return this.get([this._apiUrl, 'rawtx', txId].join('/') + '?cors=true&format=hex');
+
+              case 2:
+                response = _context7.sent;
+                return _context7.abrupt('return', _D2.default.parseBitcoinRawTx(response.response));
+
+              case 4:
+              case 'end':
+                return _context7.stop();
+            }
+          }
+        }, _callee6, this);
+      }));
+
+      function queryRawTx(_x4) {
+        return _ref6.apply(this, arguments);
       }
 
       return queryRawTx;
@@ -49397,13 +49485,13 @@ var BlockchainInfo = function (_ICoinNetwork) {
   }, {
     key: 'wrapTx',
     value: function () {
-      var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7(rTx, address) {
-        var _this3 = this;
+      var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8(rTx, address) {
+        var _this4 = this;
 
         var confirmations, tx, index;
-        return regeneratorRuntime.wrap(function _callee7$(_context8) {
+        return regeneratorRuntime.wrap(function _callee8$(_context9) {
           while (1) {
-            switch (_context8.prev = _context8.next) {
+            switch (_context9.prev = _context9.next) {
               case 0:
                 confirmations = this._blockHeight - (rTx.block_height || this._blockHeight);
                 tx = {
@@ -49421,37 +49509,37 @@ var BlockchainInfo = function (_ICoinNetwork) {
                   hasDetails: rTx.inputs.length === rTx.vin_sz && rTx.out.length === rTx.vout_sz
                 };
                 index = 0;
-                _context8.next = 5;
+                _context9.next = 5;
                 return Promise.all(rTx.inputs.map(function () {
-                  var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6(input) {
+                  var _ref8 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7(input) {
                     var prevTxId, response;
-                    return regeneratorRuntime.wrap(function _callee6$(_context7) {
+                    return regeneratorRuntime.wrap(function _callee7$(_context8) {
                       while (1) {
-                        switch (_context7.prev = _context7.next) {
+                        switch (_context8.prev = _context8.next) {
                           case 0:
                             // blockchain.info don't have this field, but we can get it from txs by tx_index if
                             // prevAddress is one of the addresses we query. otherwise prevTxId is useless
-                            prevTxId = _this3.indexMap[input.prev_out.tx_index];
+                            prevTxId = _this4.indexMap[input.prev_out.tx_index];
 
                             if (!(!prevTxId && input.prev_out.addr === address)) {
-                              _context7.next = 8;
+                              _context8.next = 8;
                               break;
                             }
 
                             console.debug('tx_index not found, get it by queryRawTx', rTx);
-                            _context7.next = 5;
-                            return _this3.queryRawTx(rTx.hash);
+                            _context8.next = 5;
+                            return _this4.queryRawTx(rTx.hash);
 
                           case 5:
-                            response = _context7.sent;
+                            response = _context8.sent;
 
                             prevTxId = response.in.find(function (inn) {
                               return inn.index === input.prev_out.n;
                             }).hash;
-                            _this3.indexMap[input.prev_out.tx_index] = prevTxId;
+                            _this4.indexMap[input.prev_out.tx_index] = prevTxId;
 
                           case 8:
-                            return _context7.abrupt('return', {
+                            return _context8.abrupt('return', {
                               prevAddress: input.prev_out.addr,
                               prevTxId: prevTxId,
                               prevOutIndex: input.prev_out.n,
@@ -49462,19 +49550,19 @@ var BlockchainInfo = function (_ICoinNetwork) {
 
                           case 9:
                           case 'end':
-                            return _context7.stop();
+                            return _context8.stop();
                         }
                       }
-                    }, _callee6, _this3);
+                    }, _callee7, _this4);
                   }));
 
-                  return function (_x6) {
-                    return _ref7.apply(this, arguments);
+                  return function (_x7) {
+                    return _ref8.apply(this, arguments);
                   };
                 }()));
 
               case 5:
-                tx.inputs = _context8.sent;
+                tx.inputs = _context9.sent;
 
                 tx.outputs = rTx.out.map(function (output) {
                   return {
@@ -49484,18 +49572,18 @@ var BlockchainInfo = function (_ICoinNetwork) {
                     script: output.script
                   };
                 });
-                return _context8.abrupt('return', tx);
+                return _context9.abrupt('return', tx);
 
               case 8:
               case 'end':
-                return _context8.stop();
+                return _context9.stop();
             }
           }
-        }, _callee7, this);
+        }, _callee8, this);
       }));
 
-      function wrapTx(_x4, _x5) {
-        return _ref6.apply(this, arguments);
+      function wrapTx(_x5, _x6) {
+        return _ref7.apply(this, arguments);
       }
 
       return wrapTx;
