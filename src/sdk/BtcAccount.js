@@ -539,6 +539,7 @@ export default class BtcAccount {
     let changeValue = totalIn - prepareTx.total
     let changeAddressInfo
     if (changeValue !== 0) {
+      await this._checkAddressIndexAndGenerateNew()
       changeAddressInfo = this.addressInfos.find(addressInfo => {
         return addressInfo.type === D.address.change &&
           addressInfo.index === this.changePublicKeyIndex
