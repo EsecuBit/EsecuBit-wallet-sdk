@@ -16,6 +16,7 @@ export default class FatCache {
     await this._fatApi.selectFile(pubFileId)
 
     let fatHeadData = await this._fatApi.readFile(0x00, fatHeadSize)
+    console.warn('??', fatHeadData.toString('hex'))
     let fatHead = {
       majorVersion: fatHeadData.readUInt16LE(0x00),
       minorVersion: fatHeadData.readUInt16LE(0x02),
@@ -30,26 +31,29 @@ export default class FatCache {
     console.debug('fat head', fatHead)
 
     let isFormat = fatHeadData.readUInt16LE(0x97) === 0x55AA
-    if (isFormat) {
-      this.isFormat = true
-      this.blockSize = fatHead.blockSize
-      this.pubBlockNum = fatHead.pubDataSize / fatHead.blockSize
-      this.priBlockNum = fatHead.priDataSize / fatHead.blockSize
-      this.bitmap = Buffer.allocUnsafe(fatHead.bitmapSize)
-      this.bitmapBackup = Buffer.allocUnsafe(fatHead.bitmapSize)
-      this.readFlag = Buffer.alloc(fatHead.bitmapSize)
-      this.fat = Buffer.allocUnsafe(fatHead.fatSize)
-      this.pubData = Buffer.allocUnsafe(fatHead.pubDataSize)
-      this.priData = Buffer.allocUnsafe(fatHead.priDataSize)
-      this.currentFileId = pubFileId
-
-      // loadFatData:
-      // BlkFatHead + rfu + bipmap + bimapbackup + fat
-      let response = await this._fatApi.readFile(fatHeadSize, rfuSize + fatHead.bitmapSize * 2 + fatHead.fatSize)
-      response.copy(this.bitmap, 0, rfuSize, fatHead.bitmapSize)
-      response.copy(this.bitmapBackup, 0, rfuSize + fatHead.bitmapSize, fatHead.bitmapSize)
-      response.copy(this.fat, 0, rfuSize + fatHead.bitmapSize * 2, fatHead.fatSize)
+    if (!isFormat) {
+      console.warn('fat is not format')
+      throw D.error.fatUnavailable
     }
+
+    this.isFormat = true
+    this.blockSize = fatHead.blockSize
+    this.pubBlockNum = fatHead.pubDataSize / fatHead.blockSize
+    this.priBlockNum = fatHead.priDataSize / fatHead.blockSize
+    this.bitmap = Buffer.allocUnsafe(fatHead.bitmapSize)
+    this.bitmapBackup = Buffer.allocUnsafe(fatHead.bitmapSize)
+    this.readFlag = Buffer.alloc(fatHead.bitmapSize)
+    this.fat = Buffer.allocUnsafe(fatHead.fatSize)
+    this.pubData = Buffer.allocUnsafe(fatHead.pubDataSize)
+    this.priData = Buffer.allocUnsafe(fatHead.priDataSize)
+    this.currentFileId = pubFileId
+
+    // loadFatData:
+    // BlkFatHead + rfu + bipmap + bimapbackup + fat
+    let response = await this._fatApi.readFile(fatHeadSize, rfuSize + fatHead.bitmapSize * 2 + fatHead.fatSize)
+    response.copy(this.bitmap, 0, rfuSize, fatHead.bitmapSize)
+    response.copy(this.bitmapBackup, 0, rfuSize + fatHead.bitmapSize, fatHead.bitmapSize)
+    response.copy(this.fat, 0, rfuSize + fatHead.bitmapSize * 2, fatHead.fatSize)
   }
 
   async readBlock (blockNum, start = 0, length = 0) {
@@ -130,7 +134,7 @@ export default class FatCache {
       // write to device
       let continuousData = data.slice(i * this.blockSize, (i + continuousBlockSize) * this.blockSize - start)
       let deviceFileOffset = this._getBlockOffsetInDevice(blockNum)
-      await this._fatApi.writeFile(continuousData, deviceFileOffset + start)
+      await this._fatApi.writeFile(deviceFileOffset + start, continuousData)
 
       // update cache
       let cacheOffset = blockNum * this.blockSize
@@ -229,17 +233,17 @@ export default class FatCache {
 
     // update fat, part of update
     let fatOffset = fatHeadSize + rfuSize + this.bitmap.length + this.bitmapBackup.length + minBlockNum * 2
-    await this._fatApi.writeFile(this.fat.slice(minBlockNum * 2, (maxBlockNum + 1) * 2), fatOffset)
+    await this._fatApi.writeFile(fatOffset, this.fat.slice(minBlockNum * 2, (maxBlockNum + 1) * 2))
 
     // update bitmap & bitmap backup, part of update
     let minBitmapIndex = minBlockNum << 3
     let maxBitmapIndex = maxBlockNum << 3
     let bitmapOffset = fatHeadSize + rfuSize + minBitmapIndex
     let bitmapBackupOffset = fatHeadSize + rfuSize + this.bitmap.length + minBitmapIndex
-    await this._fatApi.writeFile(
-      this.bitmap.slice(minBitmapIndex, Math.ceil(maxBitmapIndex + 1)), bitmapOffset)
-    await this._fatApi.writeFile(
-      this.bitmapBackup.slice(minBitmapIndex, Math.ceil(maxBitmapIndex + 1)), bitmapBackupOffset)
+    await this._fatApi.writeFile(bitmapOffset,
+      this.bitmap.slice(minBitmapIndex, Math.ceil(maxBitmapIndex + 1)))
+    await this._fatApi.writeFile(bitmapBackupOffset,
+      this.bitmapBackup.slice(minBitmapIndex, Math.ceil(maxBitmapIndex + 1)))
   }
 
   _getBlockOffsetInDevice (blockNum) {

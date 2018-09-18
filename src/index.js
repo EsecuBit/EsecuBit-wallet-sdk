@@ -7,9 +7,13 @@
 // data generate
 // import './test/GenerateTestNetTestSyncData.test'
 
-// component
+// devie
 // import './test/device/JsWallet.test'
 // import './test/device/CoreWallet.test'
+// import './test/device/fat/FatApi.test'
+import './test/device/fat/FatCache.test'
+
+// data
 // import './test/data/database/IndexedDB.test'
 // import './test/data/btcNetwork/fee/BitcoinEarn.test'
 // import './test/data/btcNetwork/ChainSo.test'
@@ -19,5 +23,5 @@
 
 // main class
 // import './test/EsWallet.test'
-import './test/BtcAccount.test'
+// import './test/BtcAccount.test'
 // import './test/EthAccount.test'

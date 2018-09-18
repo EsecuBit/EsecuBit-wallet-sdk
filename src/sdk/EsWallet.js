@@ -28,10 +28,11 @@ export default class EsWallet {
 
     this._info = {}
     this._esAccounts = []
-    this._device = new Provider.Wallet()
     this._coinData = new CoinData()
     this._status = D.status.plugOut
     this._callback = null
+
+    this._device = new Provider.Wallet()
     this._device.listenPlug(async (error, plugStatus) => {
       // ignore the same plug event sent multiple times
       if (this._status !== D.status.plugOut) {

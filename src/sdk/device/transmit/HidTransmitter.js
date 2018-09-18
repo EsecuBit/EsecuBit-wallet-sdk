@@ -75,7 +75,7 @@ let des112 = (isEnc, data, key) => {
  */
 export default class HidTransmitter {
   constructor () {
-    this._device = Provider.Device
+    this._device = new Provider.Device()
     this._commKey = {
       sKey: null,
       generated: false

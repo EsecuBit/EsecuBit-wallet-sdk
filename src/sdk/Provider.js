@@ -10,16 +10,8 @@ import MockDevice from './device/transmit/io/MockDevice'
 const Provider = {
   DB: IndexedDB,
 
-  HardWallet: CoreWallet,
-  SoftWallet: JSWallet,
-  Wallet: D.test.jsWallet ? this.SoftWallet : this.HardWallet,
-
-  HardTransmitter: HidTransmitter,
-  MockTransmitter: MockTransmitter,
-  Transmitter: D.test.mockTransmitter ? this.MockTransmitter : this.HardTransmitter,
-
-  HardDevice: ChromeHidDevice,
-  MockDevice: MockDevice,
-  Device: D.test.mockDevice ? this.MockDevice : this.HardDevice
+  Wallet: D.test.jsWallet ? JSWallet : CoreWallet,
+  Transmitter: D.test.mockTransmitter ? MockTransmitter : HidTransmitter,
+  Device: D.test.mockDevice ? MockDevice : ChromeHidDevice
 }
 export default Provider

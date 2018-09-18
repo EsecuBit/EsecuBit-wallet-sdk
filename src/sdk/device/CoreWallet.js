@@ -22,6 +22,7 @@ export default class CoreWallet {
       return CoreWallet.prototype.Instance
     }
     CoreWallet.prototype.Instance = this
+
     this._transmitter = new Provider.Transmitter()
     this._allEnc = true
   }

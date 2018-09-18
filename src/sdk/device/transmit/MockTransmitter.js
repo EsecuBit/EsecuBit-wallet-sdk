@@ -3,24 +3,40 @@ import D from '../../D'
 const fileSize = 10 * 1024 // 0x2800
 
 export default class MockTransmitter {
-  listenPlug (callback) {
-    D.dispatch(() => callback(D.error.ok, D.status.plugIn))
+  constructor () {
     this.currentFileId = 0
     this.file = {
       pub: Buffer.alloc(fileSize),
       pri: Buffer.alloc(fileSize)
     }
+    let fatHead = Buffer.from(
+      '00000000000000000000000000000000' +
+      '00000000000000000000000000000000' +
+      '00000000000000000000000000000000' +
+      '00000000000000000000285000002800' +
+      '00002800004000000000000000000000' +
+      '00000000000000000000000000000000' +
+      '00000000000000000000000000000000' +
+      '00000000000000000000000000000000' +
+      '00000000000000000000000000000000' +
+      '00000000000000AA5500000000000000', 'hex')
+    fatHead.copy(this.file.pub)
+  }
+
+  listenPlug (callback) {
+    D.dispatch(() => callback(D.error.ok, D.status.plugIn))
   }
 
   sendApdu (apdu) {
-    let hexApdu = apdu.toString('hex')
+    let hexApdu = apdu.toString('hex').toUpperCase()
+    console.debug('mock apdu', hexApdu)
 
     // fat command
     // select fileId
     if (hexApdu.startsWith('00A4000002')) {
       let fileId = (apdu[0x05] << 8) + apdu[0x06]
-      if (fileId !== 0x1EA8 || fileId !== 0x1000) {
-        console.warn('mock select fileId invalid', hexApdu)
+      if (fileId !== 0x1EA8 && fileId !== 0x1000) {
+        console.warn('mock select fileId invalid', hexApdu, fileId.toString(16))
         throw D.error.deviceProtocol
       }
       this.currentFileId = fileId
@@ -31,7 +47,7 @@ export default class MockTransmitter {
     if (hexApdu.startsWith('80B0')) {
       let offset = (apdu[0x02] << 8) + apdu[0x03]
       let length = (apdu[0x05] << 8) + apdu[0x06]
-      if (offset + length >= fileSize) {
+      if (offset + length > fileSize) {
         console.warn('mock read file out of range', hexApdu)
         throw D.error.deviceProtocol
       }
@@ -47,14 +63,14 @@ export default class MockTransmitter {
         throw D.error.deviceProtocol
       }
 
-      return data.slice(offset, length)
+      return data.slice(offset, offset + length)
     }
 
     // write file
     if (hexApdu.startsWith('80D6')) {
       let offset = (apdu[0x02] << 8) + apdu[0x03]
       let length = (apdu[0x05] << 8) + apdu[0x06]
-      if (offset + length >= fileSize) {
+      if (offset + length > fileSize) {
         console.warn('mock write file out of range', hexApdu)
         throw D.error.deviceProtocol
       }
@@ -70,12 +86,17 @@ export default class MockTransmitter {
         throw D.error.deviceProtocol
       }
 
-      apdu.copy(data, offset, 0x07, apdu.length)
+      apdu.slice(0x07, apdu.length).copy(data, offset)
+      return
     }
 
     // global info (part of)
     if (hexApdu.startsWith('803300000DBB0B')) {
-      return Buffer.from('000004000400', 'hex')
+      return Buffer.from('000004000400', 'hex') // max read / write size = 1k
     }
+
+    console.warn('not supported mock apdu', apdu)
+    throw D.error.unknown
   }
 }
+MockTransmitter.fileSize = fileSize

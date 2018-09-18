@@ -38,17 +38,17 @@ export default class FatApi {
       apdu[0x06] = readSize & 0xff
 
       let response = await this._sendApdu(apdu)
+      let dataOffset = currentOffset - offset
+      response.slice(0, readSize).copy(fileData, dataOffset)
+
       remainReadSize -= readSize
       currentOffset += readSize
-
-      let readLength = currentOffset - offset
-      response.copy(fileData, readLength)
     }
 
     return fileData
   }
 
-  async writeFile (data, offset) {
+  async writeFile (offset, data) {
     let size = data.length
     if (offset >= 0x010000 || size >= 0x010000) {
       console.warn('writeFile out of range', offset, size)
@@ -68,8 +68,8 @@ export default class FatApi {
       apdu[0x05] = (writeSize >> 8) & 0xff
       apdu[0x06] = writeSize & 0xff
 
-      let wroteLength = currentOffset - offset
-      data.slice(wroteLength, writeSize).copy(apdu, 0x07)
+      let dataOffset = currentOffset - offset
+      data.slice(dataOffset, dataOffset + writeSize).copy(apdu, 0x07)
       await this._sendApdu(apdu.slice(0, 0x07 + writeSize))
 
       remainWriteSize -= writeSize
