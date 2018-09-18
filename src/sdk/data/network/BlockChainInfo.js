@@ -115,6 +115,42 @@ export default class BlockchainInfo extends ICoinNetwork {
   }
 
   async queryAddresses (addresses) {
+    // blockchain.info return 502 when addresses.length > 141, it seems a bug of them
+    const maxAddressesSize = 140
+    let response = {
+      txs: [],
+      addresses: []
+    }
+    let offset = 0
+    while (offset < addresses.length) {
+      let querySize = addresses.length - offset
+      if (querySize > maxAddressesSize) querySize = maxAddressesSize
+      let subResponse = await this._queryAddresses(addresses.slice(offset, offset + querySize))
+      response.txs.push(...subResponse.txs)
+      response.addresses.push(...subResponse.addresses)
+      offset += querySize
+    }
+
+    let selfTx = (rTx, address) => {
+      return rTx.inputs.map(input => input.prev_out.addr).includes(address) ||
+        rTx.out.map(output => output.addr).includes(address)
+    }
+
+    let blobs = []
+    for (let rAddress of response.addresses) {
+      let txs = response.txs.filter(rTx => selfTx(rTx, rAddress.address))
+      txs = await Promise.all(txs.map(rTx => this.wrapTx(rTx, rAddress.address)))
+      blobs.push({
+        address: rAddress.address,
+        txCount: rAddress.n_tx,
+        txs: txs
+      })
+    }
+
+    return blobs
+  }
+
+  async _queryAddresses (addresses) {
     let totalReceive = 0
     let response
     while (true) {
@@ -137,22 +173,7 @@ export default class BlockchainInfo extends ICoinNetwork {
       }
     })
 
-    let selfTx = (rTx, address) => {
-      return rTx.inputs.map(input => input.prev_out.addr).includes(address) ||
-        rTx.out.map(output => output.addr).includes(address)
-    }
-
-    let blobs = []
-    for (let rAddress of response.addresses) {
-      let txs = response.txs.filter(rTx => selfTx(rTx, rAddress.address))
-      txs = await Promise.all(txs.map(rTx => this.wrapTx(rTx, rAddress.address)))
-      blobs.push({
-        address: rAddress.address,
-        txCount: rAddress.n_tx,
-        txs: txs
-      })
-    }
-    return blobs
+    return response
   }
 
   async queryTx (txId) {
