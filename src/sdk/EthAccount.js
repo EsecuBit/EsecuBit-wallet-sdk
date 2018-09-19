@@ -303,6 +303,11 @@ export default class EthAccount {
   async prepareTx (details) {
     console.log('prepareTx details', details)
 
+    if (Number(details.gasPrice) === 0) {
+      console.warn('fee can not be 0')
+      throw D.error.networkFeeTooSmall
+    }
+
     if (!D.isEth(this.coinType)) throw D.error.coinNotSupported
     if (D.isDecimal(details.gasLimit)) throw D.error.valueIsDecimal
     if (D.isDecimal(details.gasPrice)) throw D.error.valueIsDecimal
