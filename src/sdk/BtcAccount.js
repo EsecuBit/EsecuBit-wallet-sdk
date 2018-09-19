@@ -176,6 +176,10 @@ export default class BtcAccount {
     removedTxInfo.inputs.forEach(input => {
       if (!input.isMine) return
       let revertUtxo = this.utxos.find(utxo => (input.prevTxId === utxo.txId) && (input.prevOutIndex === utxo.index))
+      if (!revertUtxo) {
+        console.warn('revertUtxo not found', input)
+        return
+      }
       revertUtxo.status = D.utxo.status.unspent
       updateUtxos.push(revertUtxo)
     })
@@ -454,6 +458,11 @@ export default class BtcAccount {
    */
   async prepareTx (details) {
     console.log('prepareTx details', details)
+
+    if (Number(details.feeRate) === 0) {
+      console.warn('fee can not be 0')
+      throw D.error.networkFeeTooSmall
+    }
 
     if (!D.isBtc(this.coinType)) throw D.error.coinNotSupported
     if (D.isDecimal(details.feeRate)) throw D.error.valueIsDecimal
