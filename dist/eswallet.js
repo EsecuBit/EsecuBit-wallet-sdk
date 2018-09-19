@@ -42671,6 +42671,10 @@ var BtcAccount = function () {
                   var revertUtxo = _this3.utxos.find(function (utxo) {
                     return input.prevTxId === utxo.txId && input.prevOutIndex === utxo.index;
                   });
+                  if (!revertUtxo) {
+                    console.warn('revertUtxo not found', input);
+                    return;
+                  }
                   revertUtxo.status = _D2.default.utxo.status.unspent;
                   updateUtxos.push(revertUtxo);
                 });
@@ -43244,22 +43248,31 @@ var BtcAccount = function () {
               case 0:
                 console.log('prepareTx details', details);
 
+                if (!(Number(details.feeRate) === 0)) {
+                  _context15.next = 4;
+                  break;
+                }
+
+                console.warn('fee can not be 0');
+                throw _D2.default.error.networkFeeTooSmall;
+
+              case 4:
                 if (_D2.default.isBtc(this.coinType)) {
-                  _context15.next = 3;
+                  _context15.next = 6;
                   break;
                 }
 
                 throw _D2.default.error.coinNotSupported;
 
-              case 3:
+              case 6:
                 if (!_D2.default.isDecimal(details.feeRate)) {
-                  _context15.next = 5;
+                  _context15.next = 8;
                   break;
                 }
 
                 throw _D2.default.error.valueIsDecimal;
 
-              case 5:
+              case 8:
                 details.outputs.forEach(function (output) {
                   if (_D2.default.isDecimal(output.value)) throw _D2.default.error.valueIsDecimal;
                 });
@@ -43280,7 +43293,7 @@ var BtcAccount = function () {
                 oldUtxos = [];
 
                 if (!details.oldTxId) {
-                  _context15.next = 18;
+                  _context15.next = 21;
                   break;
                 }
 
@@ -43289,14 +43302,14 @@ var BtcAccount = function () {
                 });
 
                 if (oldTxInfo) {
-                  _context15.next = 16;
+                  _context15.next = 19;
                   break;
                 }
 
                 console.warn('oldTxId not found in history');
                 throw _D2.default.error.unknown;
 
-              case 16:
+              case 19:
 
                 oldTxInfo.inputs.forEach(function (input) {
                   var oldUtxo = _this7.utxos.find(function (utxo) {
@@ -43314,7 +43327,7 @@ var BtcAccount = function () {
                   });
                 });
 
-              case 18:
+              case 21:
                 proposal = _BtcCoinSelect2.default.selectCoinSet(utxos, oldUtxos, details.outputs, details.feeRate, details.sendAll);
                 totalUtxos = proposal.willSpentUtxos.reduce(function (sum, utxo) {
                   return utxo.value + sum;
@@ -43342,7 +43355,7 @@ var BtcAccount = function () {
                 }
                 return _context15.abrupt('return', prepareTxData);
 
-              case 25:
+              case 28:
               case 'end':
                 return _context15.stop();
             }
@@ -46078,45 +46091,54 @@ var EthAccount = function () {
               case 0:
                 console.log('prepareTx details', details);
 
+                if (!(Number(details.gasPrice) === 0)) {
+                  _context12.next = 4;
+                  break;
+                }
+
+                console.warn('fee can not be 0');
+                throw _D2.default.error.networkFeeTooSmall;
+
+              case 4:
                 if (_D2.default.isEth(this.coinType)) {
-                  _context12.next = 3;
+                  _context12.next = 6;
                   break;
                 }
 
                 throw _D2.default.error.coinNotSupported;
 
-              case 3:
+              case 6:
                 if (!_D2.default.isDecimal(details.gasLimit)) {
-                  _context12.next = 5;
+                  _context12.next = 8;
                   break;
                 }
 
                 throw _D2.default.error.valueIsDecimal;
 
-              case 5:
+              case 8:
                 if (!_D2.default.isDecimal(details.gasPrice)) {
-                  _context12.next = 7;
+                  _context12.next = 10;
                   break;
                 }
 
                 throw _D2.default.error.valueIsDecimal;
 
-              case 7:
+              case 10:
                 if (!_D2.default.isDecimal(details.output.value)) {
-                  _context12.next = 9;
+                  _context12.next = 12;
                   break;
                 }
 
                 throw _D2.default.error.valueIsDecimal;
 
-              case 9:
+              case 12:
                 gasPrice = new _bigi2.default(details.gasPrice);
                 gasLimit = new _bigi2.default(details.gasLimit || '21000');
                 output = _D2.default.copy(details.output);
                 value = new _bigi2.default(output.value);
 
                 if (!details.data) {
-                  _context12.next = 22;
+                  _context12.next = 25;
                   break;
                 }
 
@@ -46126,36 +46148,36 @@ var EthAccount = function () {
                 data = (data.length % 2 === 0 ? '' : '0') + data;
 
                 if (data.match(/^[0-9a-fA-F]*$/)) {
-                  _context12.next = 19;
+                  _context12.next = 22;
                   break;
                 }
 
                 throw _D2.default.error.invalidDataNotHex;
 
-              case 19:
+              case 22:
                 details.data = '0x' + data;
-                _context12.next = 23;
+                _context12.next = 26;
                 break;
 
-              case 22:
+              case 25:
                 details.data = '0x';
 
-              case 23:
+              case 26:
                 minGas = 21000 + (details.data ? 68 * (details.data.length / 2 - 1) : 0);
 
                 if (!(minGas > gasLimit)) {
-                  _context12.next = 26;
+                  _context12.next = 29;
                   break;
                 }
 
                 throw _D2.default.error.networkGasTooLow;
 
-              case 26:
+              case 29:
                 input = _D2.default.copy(this.addressInfos[0]);
                 nonce = void 0;
 
                 if (!details.oldTxId) {
-                  _context12.next = 36;
+                  _context12.next = 39;
                   break;
                 }
 
@@ -46164,61 +46186,61 @@ var EthAccount = function () {
                 });
 
                 if (oldTxInfo) {
-                  _context12.next = 33;
+                  _context12.next = 36;
                   break;
                 }
 
                 console.warn('oldTxId not found in history');
                 throw _D2.default.error.unknown;
 
-              case 33:
+              case 36:
                 nonce = oldTxInfo.nonce;
-                _context12.next = 37;
+                _context12.next = 40;
                 break;
 
-              case 36:
+              case 39:
                 nonce = this.txInfos.filter(function (txInfo) {
                   return txInfo.confirmations !== _D2.default.tx.confirmation.dropped;
                 }).filter(function (txInfo) {
                   return txInfo.direction === _D2.default.tx.direction.out;
                 }).length;
 
-              case 37:
+              case 40:
                 fee = gasLimit.multiply(gasPrice);
                 balance = new _bigi2.default(this.balance);
                 total = void 0;
                 // noinspection JSUnresolvedVariable
 
                 if (!details.sendAll) {
-                  _context12.next = 48;
-                  break;
-                }
-
-                if (!(balance.compareTo(fee) < 0)) {
-                  _context12.next = 43;
-                  break;
-                }
-
-                throw _D2.default.error.balanceNotEnough;
-
-              case 43:
-                total = balance;
-                value = total.subtract(fee);
-                output.value = value.toString(10);
-                _context12.next = 51;
-                break;
-
-              case 48:
-                total = value.add(fee);
-
-                if (!(total.compareTo(balance) > 0)) {
                   _context12.next = 51;
                   break;
                 }
 
+                if (!(balance.compareTo(fee) < 0)) {
+                  _context12.next = 46;
+                  break;
+                }
+
                 throw _D2.default.error.balanceNotEnough;
 
+              case 46:
+                total = balance;
+                value = total.subtract(fee);
+                output.value = value.toString(10);
+                _context12.next = 54;
+                break;
+
               case 51:
+                total = value.add(fee);
+
+                if (!(total.compareTo(balance) > 0)) {
+                  _context12.next = 54;
+                  break;
+                }
+
+                throw _D2.default.error.balanceNotEnough;
+
+              case 54:
                 prepareTx = {
                   total: total.toString(10),
                   fee: fee.toString(10),
@@ -46234,7 +46256,7 @@ var EthAccount = function () {
                 console.log('prepareTx', prepareTx);
                 return _context12.abrupt('return', prepareTx);
 
-              case 54:
+              case 57:
               case 'end':
                 return _context12.stop();
             }
