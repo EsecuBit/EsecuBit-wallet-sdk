@@ -8,7 +8,7 @@ chai.should()
 describe('FatApi', function () {
   this.timeout(60 * 1000)
 
-  // caution! if you use real device to runing these tests, the fat system will destroied!
+  // caution! if you use real device to runing these tests, the fat system will be destroied!
   const fatApi = new FatApi(new MockTransmitter())
   const mockFileSize = MockTransmitter.fileSize
 
@@ -28,6 +28,7 @@ describe('FatApi', function () {
   })
 
   it('readFile', async function () {
+    await fatApi.selectFile(0x1EA8)
     await fatApi.readFile(0, 1000)
     await fatApi.readFile(0, 2000)
     await fatApi.readFile(0, 4000)
@@ -39,11 +40,25 @@ describe('FatApi', function () {
     let error = D.error.succeed
     await fatApi.readFile(1, mockFileSize).catch(e => { error = e })
     error.should.equal(D.error.deviceProtocol)
+
+    await fatApi.selectFile(0x1000)
+    await fatApi.readFile(0, 1000)
+    await fatApi.readFile(0, 2000)
+    await fatApi.readFile(0, 4000)
+    await fatApi.readFile(0, 8000)
+    await fatApi.readFile(0, 10 * 1024)
+    await fatApi.readFile(2000, 6000)
+    await fatApi.readFile(5000, 5000)
+
+    error = D.error.succeed
+    await fatApi.readFile(1, mockFileSize).catch(e => { error = e })
+    error.should.equal(D.error.deviceProtocol)
   })
 
   it('writeFile', async function () {
     let data = Buffer.alloc(mockFileSize)
 
+    await fatApi.selectFile(0x1EA8)
     await fatApi.writeFile(0, data.slice(0, 1000))
     await fatApi.writeFile(0, data.slice(0, 2000))
     await fatApi.writeFile(0, data.slice(0, 4000))
@@ -53,6 +68,19 @@ describe('FatApi', function () {
     await fatApi.writeFile(5000, data.slice(5000, 5000))
 
     let error = D.error.succeed
+    await fatApi.writeFile(1, data).catch(e => { error = e })
+    error.should.equal(D.error.deviceProtocol)
+
+    await fatApi.selectFile(0x1000)
+    await fatApi.writeFile(0, data.slice(0, 1000))
+    await fatApi.writeFile(0, data.slice(0, 2000))
+    await fatApi.writeFile(0, data.slice(0, 4000))
+    await fatApi.writeFile(0, data.slice(0, 8000))
+    await fatApi.writeFile(0, data)
+    await fatApi.writeFile(2000, data.slice(2000, 6000))
+    await fatApi.writeFile(5000, data.slice(5000, 5000))
+
+    error = D.error.succeed
     await fatApi.writeFile(1, data).catch(e => { error = e })
     error.should.equal(D.error.deviceProtocol)
   })

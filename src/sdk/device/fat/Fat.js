@@ -16,6 +16,9 @@ export default class Fat {
     await this._fatCache.init()
   }
 
+  /**
+   * read file data.
+   */
   async readFile (fileName, offset = 0, length = 0, isPublic = true) {
     if (!this._fatCache.isFormat) throw D.error.fatUnavailable
 
@@ -32,19 +35,26 @@ export default class Fat {
     return this._fatCache.readBlocks(blockNums, offset, length)
   }
 
+  /**
+   * write file data. auto create if not exist
+   */
   async writeFile (fileName, data, offset = 0, isPublic = true) {
     if (!this._fatCache.isFormat) throw D.error.fatUnavailable
 
     let fileAttr = await this.findFile(fileName, isPublic)
     if (!fileAttr) {
       // no file
-      fileAttr = await this._createFile(fileName, offset + data.length, isPublic)
+      fileAttr = await this.createFile(fileName, offset + data.length, isPublic)
     } else if (this._getFileOccupiedSpace(fileAttr) < offset + data.length) {
       // file space not enough
       fileAttr = await this._resizeFile(fileAttr, offset + data.length, isPublic)
     }
     let blockNums = this._getProcessingBlockNums(fileAttr, offset, data.length)
     await this._fatCache.writeBlocks(blockNums, data, offset)
+  }
+
+  async createFile (fileName, fileLen, isPublic = true) {
+    return this._buildFile(fileName, fileLen, isPublic, false)
   }
 
   async deleteFile (fileName, isPublic = true) {
@@ -97,14 +107,10 @@ export default class Fat {
   }
 
   /**
-   * Enlarge file occupied space. Shrink file not support yet (unecessary for now)
+   * Enlarge file occupied space. Shrink file will be ignore (keep current file size)
    */
   async _resizeFile (fileAttr, newFileLen, isPublic = true) {
     return this._buildFile(fileAttr.fileName, newFileLen, isPublic, true)
-  }
-
-  async _createFile (fileName, fileLen, isPublic = true) {
-    return this._buildFile(fileName, fileLen, isPublic, false)
   }
 
   async _getFileOccupiedSpace (fileAttr) {
@@ -148,6 +154,13 @@ export default class Fat {
     let needBlockLen = Math.ceil((fileAttrSize + fileName.length + fileLen) / this._fatCache.blockSize)
     // let file size be times of 2 * blockSize, to make fat less fragment
     needBlockLen += needBlockLen % 2
+    if (resize) {
+      needBlockLen -= this._getFileOccupiedSpace(oldFileAttr)
+      if (needBlockLen <= 0) {
+        // shrink file ignore
+        return
+      }
+    }
 
     let startBlockNum = isPublic ? 0 : this._fatCache.pubBlockNum
     let blockLen = isPublic ? this._fatCache.pubBlockNum : this._fatCache.priBlockNum
@@ -179,7 +192,7 @@ export default class Fat {
       firstBlock = fileAttr.firstBlock
     } else {
       // write fileAttr
-      // here we don't use fileId for search, so make it constant
+      // here we don't use fileId, so make it constant
       const fileId = 0xffff
       firstBlock = willUsedBlocks[0]
       fileAttr = {

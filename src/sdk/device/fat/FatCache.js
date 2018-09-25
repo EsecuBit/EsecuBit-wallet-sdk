@@ -56,8 +56,8 @@ export default class FatCache {
     response.copy(this.fat, 0, rfuSize + fatHead.bitmapSize * 2, fatHead.fatSize)
   }
 
-  async readBlock (blockNum, start = 0, length = undefined) {
-    length = length === undefined ? this.blockSize : length
+  async readBlock (blockNum, start = 0, length = -1) {
+    length = length === -1 ? this.blockSize : length
     return this.readBlocks([blockNum], start, length)
   }
 
@@ -119,10 +119,11 @@ export default class FatCache {
       // read from device
       let deviceFileOffset = this._getBlockOffsetInDevice(blockNum)
       let response = await this._fatApi.readFile(deviceFileOffset, continuousBlockSize * this.blockSize)
-      console.debug('readBlocks read uncached', continuousBlockSize, index, blockNum, response.toString('hex'))
+      console.debug('readBlocks read uncached', continuousBlockSize, blockNum, response.toString('hex'))
 
       // update cache
-      let cacheOffset = blockNum * this.blockSize
+      let realBlockNum = isPublic ? blockNum : (blockNum - this.pubBlockNum)
+      let cacheOffset = realBlockNum * this.blockSize
       response.copy(cacheData, cacheOffset)
       index += continuousBlockSize
       while (continuousBlockSize--) {
@@ -140,10 +141,11 @@ export default class FatCache {
       readBlockLength = Math.min(readBlockLength, remainLength)
 
       let cacheOffset = realBlockNum * this.blockSize + blockOffset
-      console.debug('readBlocks copy cached', blockOffset, length - remainLength,
+      let dataOffset = length - remainLength
+      console.debug('readBlocks copy cached', blockOffset, blockNum, dataOffset,
         cacheData.slice(cacheOffset, cacheOffset + readBlockLength).toString('hex'))
       cacheData.slice(cacheOffset, cacheOffset + readBlockLength)
-        .copy(data, length - remainLength)
+        .copy(data, dataOffset)
 
       blockOffset = 0
       remainLength -= readBlockLength
@@ -215,7 +217,8 @@ export default class FatCache {
       await this._fatApi.writeFile(deviceFileOffset + start, continuousData)
 
       // update cache
-      let cacheOffset = blockNum * this.blockSize
+      let realBlockNum = isPublic ? blockNum : (blockNum - this.pubBlockNum)
+      let cacheOffset = realBlockNum * this.blockSize
       continuousData.copy(cacheData, cacheOffset + start)
 
       // set cached flag

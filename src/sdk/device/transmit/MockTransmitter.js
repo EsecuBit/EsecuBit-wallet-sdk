@@ -9,7 +9,8 @@ export default class MockTransmitter {
       pub: Buffer.alloc(fileSize),
       pri: Buffer.alloc(fileSize)
     }
-    // bitmap = 0x28, fat = 0x280, pub = 0x2200, pri = 0x2800
+    // bitmap = 0x28, fat = 0x280, pub = 0x2200, pri = 0x2800, blockSize = 0x40
+    // pubBlockNum = 136, priBlockNum = 160
     let fatHead = Buffer.from(
       '00000000000000000000000000000000' +
       '00000000000000000000000000000000' +
