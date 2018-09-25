@@ -204,13 +204,13 @@ export default class Fat {
   _getProcessingBlockNums (fileAttr, offset, length) {
     if (!this._fatCache.isFormat) throw D.error.fatUnavailable
 
+    // add pendding of fileAttr and fileName
+    offset += fileAttrSize + fileAttr.fileNameLen
+
     if (offset + length > fileAttr.fileSize) {
       console.warn('readWriteFile params out of range', offset, length, fileAttr)
       throw D.error.fatOutOfRange
     }
-
-    // add pendding of fileAttr and fileName
-    offset += fileAttrSize + fileAttr.fileNameLen
 
     // read / write size
     let dataLength = offset & (this._fatCache.blockSize - 0x01)

@@ -16,7 +16,6 @@ export default class FatCache {
     await this._fatApi.selectFile(pubFileId)
 
     let fatHeadData = await this._fatApi.readFile(0x00, fatHeadSize)
-    console.warn('??', fatHeadData.toString('hex'))
     let fatHead = {
       majorVersion: fatHeadData.readUInt16LE(0x00),
       minorVersion: fatHeadData.readUInt16LE(0x02),
@@ -47,6 +46,7 @@ export default class FatCache {
     this.pubData = Buffer.allocUnsafe(fatHead.pubDataSize)
     this.priData = Buffer.allocUnsafe(fatHead.priDataSize)
     this.currentFileId = pubFileId
+    console.debug('fat cache', this)
 
     // loadFatData:
     // BlkFatHead + rfu + bipmap + bimapbackup + fat
@@ -56,113 +56,198 @@ export default class FatCache {
     response.copy(this.fat, 0, rfuSize + fatHead.bitmapSize * 2, fatHead.fatSize)
   }
 
-  async readBlock (blockNum, start = 0, length = 0) {
-    length = length || this.blockSize
+  async readBlock (blockNum, start = 0, length = undefined) {
+    length = length === undefined ? this.blockSize : length
     return this.readBlocks([blockNum], start, length)
   }
 
-  // read continuous blocks, blocks must be all public or all private
+  // read blocks, blocks must be all public or all private
   async readBlocks (blockNums, start, length) {
+    if (!blockNums || blockNums.length === 0) {
+      return
+    }
+
+    if (start + length > blockNums.length * this.blockSize) {
+      console.warn('start + read length > provided blocks size', start, length, blockNums.length)
+      throw D.error.fatOutOfRange
+    }
+
+    // skip the blocks that don't need to read
+    let startIndex = 0
+    while (start > this.blockSize) {
+      start -= this.blockSize
+      startIndex++
+    }
+    let endIndex = startIndex
+    while (length > (endIndex - startIndex) * this.blockSize) {
+      endIndex++
+    }
+    endIndex += 1
+    blockNums = blockNums.slice(startIndex, endIndex)
+
     let isPublic = await this._selectBigFileForBlockNums(blockNums)
     let cacheData = isPublic ? this.pubData : this.priData
 
+    for (let blockNum of blockNums) {
+      if (!this.isUsed(blockNum)) {
+        console.warn('try to read unused block')
+        throw D.error.fatUnavailable
+      }
+    }
+
     // cache all the blocks
-    for (let i = 0; i < blockNums.length;) {
-      let blockNum = blockNums[i]
-      // skip cached block
+    for (let index = 0; index < blockNums.length;) {
+      let blockNum = blockNums[index]
       if (this._isCached(blockNum)) {
-        i++
+        index++
         continue
       }
 
-      // find continuous uncached blocks to improve proformance
-      let nextBlockNum = blockNum
+      // find continuous uncached blocks in one time for better proformance
       let continuousBlockSize = 1
-      while (nextBlockNum !== -1) {
-        let nextNextBlockNum = this.nextBlockNum(nextBlockNum)
-        if (nextNextBlockNum !== nextBlockNum + 1) {
+      while (index + continuousBlockSize < blockNums.length) {
+        let newIndex = index + continuousBlockSize
+        if (blockNums[newIndex] !== blockNums[newIndex - 1] + 1) {
           break
         }
-        nextBlockNum = nextNextBlockNum
+        if (this._isCached(newIndex)) {
+          break
+        }
         continuousBlockSize++
       }
 
       // read from device
-      let deviceFileOffset = this._getBlockOffsetInDevice(blockNum * this.blockSize)
+      let deviceFileOffset = this._getBlockOffsetInDevice(blockNum)
       let response = await this._fatApi.readFile(deviceFileOffset, continuousBlockSize * this.blockSize)
+      console.debug('readBlocks read uncached', continuousBlockSize, index, blockNum, response.toString('hex'))
 
       // update cache
       let cacheOffset = blockNum * this.blockSize
       response.copy(cacheData, cacheOffset)
-      i += continuousBlockSize
+      index += continuousBlockSize
       while (continuousBlockSize--) {
         this._setCached(blockNum++)
       }
     }
 
-    let firstBlockNum = blockNums[0]
-    let realFirstBlockNum = isPublic ? firstBlockNum : (firstBlockNum - this.pubBlockNum)
-    let firBlockOffset = realFirstBlockNum * this.blockSize
-    return cacheData.slice(firBlockOffset + start, firBlockOffset + start + length)
+    let data = Buffer.allocUnsafe(length)
+    let blockOffset = start
+    let remainLength = length
+    for (let blockNum of blockNums) {
+      let realBlockNum = isPublic ? blockNum : (blockNum - this.pubBlockNum)
+      let readBlockLength = this.blockSize - blockOffset
+      readBlockLength = Math.max(readBlockLength, 0)
+      readBlockLength = Math.min(readBlockLength, remainLength)
+
+      let cacheOffset = realBlockNum * this.blockSize + blockOffset
+      console.debug('readBlocks copy cached', blockOffset, length - remainLength,
+        cacheData.slice(cacheOffset, cacheOffset + readBlockLength).toString('hex'))
+      cacheData.slice(cacheOffset, cacheOffset + readBlockLength)
+        .copy(data, length - remainLength)
+
+      blockOffset = 0
+      remainLength -= readBlockLength
+    }
+
+    return data
   }
 
   async writeBlock (blockNum, data, start = 0) {
     return this.writeBlocks([blockNum], data, start)
   }
 
-  // write continuous blocks, blocks must be all public or all private
+  // write blocks, blocks must be all public or all private
   async writeBlocks (blockNums, data, start = 0) {
+    if (!blockNums || blockNums.length === 0) {
+      return
+    }
+
+    if (start + data.length > blockNums.length * this.blockSize) {
+      console.warn('start + data.length > provided blocks size')
+      throw D.error.fatOutOfRange
+    }
+
+    // skip the blocks that don't need to write
+    let startIndex = 0
+    while (start > this.blockSize) {
+      start -= this.blockSize
+      startIndex++
+    }
+    let endIndex = startIndex
+    while (data.length > (endIndex - startIndex) * this.blockSize) {
+      endIndex++
+    }
+    endIndex += 1
+    blockNums = blockNums.slice(startIndex, endIndex)
+
     let isPublic = await this._selectBigFileForBlockNums(blockNums)
     let cacheData = isPublic ? this.pubData : this.priData
 
-    // write all the blocks data to device
-    for (let i = 0; i < blockNums.length;) {
-      let blockNum = blockNums[i]
+    for (let blockNum of blockNums) {
+      if (!this.isUsed(blockNum)) {
+        console.warn('try to write unused block')
+        throw D.error.fatUnavailable
+      }
+    }
 
-      // find continuous uncached blocks to improve proformance
-      let nextBlockNum = blockNum
+    // write all the blocks data to device
+    let index = 0
+    let dataOffset = 0
+    while (dataOffset < data.length) {
+      // find continuous blocks and write in one time for better proformance
       let continuousBlockSize = 1
-      while (nextBlockNum !== -1) {
-        let nextNextBlockNum = this.nextBlockNum(nextBlockNum)
-        if (nextNextBlockNum !== nextBlockNum + 1) {
+      while (index + continuousBlockSize < blockNums.length) {
+        let newIndex = index + continuousBlockSize
+        if (blockNums[newIndex] !== blockNums[newIndex - 1] + 1) {
           break
         }
-        nextBlockNum = nextNextBlockNum
         continuousBlockSize++
       }
 
       // write to device
-      let continuousData = data.slice(i * this.blockSize, (i + continuousBlockSize) * this.blockSize - start)
+      let continuousDataLength = continuousBlockSize * this.blockSize - start
+      continuousDataLength = Math.min(continuousDataLength, data.length - dataOffset)
+
+      let continuousData = data.slice(dataOffset, dataOffset + continuousDataLength)
+      let blockNum = blockNums[index]
       let deviceFileOffset = this._getBlockOffsetInDevice(blockNum)
+      console.debug('writeBlocks write', start, index, blockNum, dataOffset, continuousData.toString('hex'))
       await this._fatApi.writeFile(deviceFileOffset + start, continuousData)
 
       // update cache
       let cacheOffset = blockNum * this.blockSize
       continuousData.copy(cacheData, cacheOffset + start)
-      i += continuousBlockSize
 
+      // set cached flag
       // caution: if a block is not cached, and we are not fully write the block:
       // 1. start != 0
       // 2. (length - start) !== n * blockSize, n >= 1
       // this block will miss some part of data
-      // in this case, we can not _setCached for this block
-      let wroteLength = continuousData.length
+      // in this case, we can not _setCached() for this block
+      let wroteLength = continuousDataLength
       let currentBlockOffset = start
-      while (continuousBlockSize > 0) {
+      let remainBlockSize = continuousBlockSize
+      while (remainBlockSize > 0) {
         if (currentBlockOffset === 0 && wroteLength >= this.blockSize) {
           this._setCached(blockNum)
         }
         wroteLength -= this.blockSize - currentBlockOffset
         currentBlockOffset = 0
         blockNum++
-        continuousBlockSize--
+        remainBlockSize--
       }
 
+      dataOffset += continuousDataLength
+      index += continuousBlockSize
       start = 0
     }
   }
 
   async setUsedBlocks (willUsedBlockNums, prevBlockNum = -1) {
+    if (!willUsedBlockNums || willUsedBlockNums.length === 0) {
+      return
+    }
+
     await this._selectBigFileForBlockNums(willUsedBlockNums)
 
     let backup = {
@@ -176,14 +261,12 @@ export default class FatCache {
       let firstBlock = willUsedBlockNums[0]
       let lastBlock = willUsedBlockNums[willUsedBlockNums.length - 1]
 
-      this._setUsed(firstBlock)
-      if (prevBlockNum !== -1) {
+      if (prevBlockNum === -1) {
         this._setFirstBlock(firstBlock)
       } else {
         this._setNextBlock(prevBlockNum, firstBlock)
       }
-      this._setNextBlock(willUsedBlockNums[0], willUsedBlockNums[1])
-      for (let i = 1; i < length - 1; i++) {
+      for (let i = 0; i < length - 1; i++) {
         this._setUsed(willUsedBlockNums[i])
         this._setNextBlock(willUsedBlockNums[i], willUsedBlockNums[i + 1])
       }
@@ -213,7 +296,7 @@ export default class FatCache {
     try {
       for (let blockNum of willUnusedBlockNums) {
         this._clearUsed(blockNum)
-        this._setNextBlock(blockNum, 0x0000)
+        this._clearNextBlock(blockNum)
         this._clearCached(blockNum)
       }
       await this._updateFatFileSystem(willUnusedBlockNums)
@@ -287,7 +370,7 @@ export default class FatCache {
   }
 
   /**
-   * pubData & priData shares flag data: bitmap, bitmapBackup, readFlag, fat
+   * pubData & priData shares fat flag data: bitmap, bitmapBackup, readFlag, fat
    * so when pubData block 0, blockNum = 0; block = 1, blockNum = 1
    * and priData block = 0, blockNum = pubBlockNum; block = 1, blockNum = pubBlockNum + 1
    */
@@ -298,7 +381,7 @@ export default class FatCache {
 
   isLastBlock (blockNum) {
     let fatFlag = this.fat.readUInt16LE(blockNum * 2)
-    return fatFlag === (fatFlag & 0x3fff)
+    return (fatFlag & 0x3fff) === 0x3fff
   }
 
   nextBlockNum (blockNum) {
@@ -320,7 +403,12 @@ export default class FatCache {
   }
 
   _setNextBlock (blockNum, nextBlockNum) {
-    this.fat[blockNum] = nextBlockNum
+    let fatFlag = this.fat.readUInt16LE(blockNum * 2)
+    this.fat.writeUInt16LE((fatFlag & 0xc000) + nextBlockNum, blockNum * 2)
+  }
+
+  _clearNextBlock (blockNum) {
+    this.fat.writeUInt16LE(0x0000, blockNum * 2)
   }
 
   isUsed (blockNum) {
