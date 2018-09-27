@@ -32,22 +32,9 @@ export default class CoinData {
     this._listeners = []
   }
 
-  async init (info, offlineMode = false) {
+  async init (info) {
     try {
       // db
-      this._globalDb = new Provider.DB('default')
-      await this._globalDb.init()
-      if (offlineMode) {
-        let lastWalletId = await this._globalDb.getSettings('lastWalletId')
-        if (!lastWalletId) {
-          // noinspection ExceptionCaughtLocallyJS
-          throw D.error.offlineModeNotAllowed
-        }
-        info = {walletId: lastWalletId}
-      } else {
-        await this._globalDb.saveOrUpdateSettings('lastWalletId', info.walletId)
-      }
-
       console.log('walletInfo', info)
       this._db = new Provider.DB(info.walletId)
       await this._db.init()
@@ -107,7 +94,6 @@ export default class CoinData {
 
       console.log('coin data init finish', info)
       this.initialized = true
-      return info
     } catch (e) {
       // TODO throw Error instead of int in the whole project
       if (typeof e === 'number') {
@@ -123,7 +109,7 @@ export default class CoinData {
     await Promise.all(Object.values(this._network).map(network => network.release()))
     if (this._db) await this._db.release()
     this.initialized = false
-    this._notifiedTxs = null
+    this._uncomfirmedTxs = null
   }
 
   async getAccounts (filter = {}) {
@@ -165,9 +151,6 @@ export default class CoinData {
     if (accountIndex === -1) throw D.error.lastAccountNoTransaction
 
     let account = await this._newAccount(coinType, accountIndex)
-    if (D.test.data && accountIndex === 0 && (D.isBtc(coinType))) {
-      await this._initTestDbData(account)
-    }
     await this._db.newAccount(account)
     return account
   }
@@ -346,13 +329,5 @@ export default class CoinData {
     } else {
       return D.convertValue(coinType, value, fromType, toType).toString()
     }
-  }
-
-  /*
-   * Test data when test.data = true
-   * @deprecated
-   */
-  async _initTestDbData () {
-    console.log('D.test.data add test txInfo')
   }
 }

@@ -9,16 +9,9 @@ describe('EsWallet', function () {
   this.timeout(200000)
   let esWallet = null
 
-  // it('clearDatabase', async () => {
-  //   let indexedDB = new IndexedDB(D.test.syncWalletId)
-  //   await indexedDB.init()
-  //   await indexedDB.clearDatabase()
-  // })
-
   // new EsWallet may trigger sync, so make it lazy
   it('init', async () => {
     D.test.coin = true
-    D.test.sync = true
     D.test.jsWallet = true
     esWallet = new EsWallet()
   })

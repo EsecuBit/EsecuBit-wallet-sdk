@@ -565,13 +565,6 @@ const D = {
     jsWallet: false,
     sync: false,
     mockDevice: false,
-    // TODO remove when publish
-    // sync used for test sync
-    syncWalletId: 'aa49342d805682f345135afcba79ffa7d50c2999944b91d88e01e1d38b80ca63',
-    syncSeed: 'aa49342d805682f345135afcba79ffa7d50c2999944b91d88e01e1d38b80ca63',
-    // sync used for test transaction
-    txWalletId: '00000000805682f345135afcba79ffa7d50c2999944b91d88e01e1d300000000',
-    txSeed: '00000000805682f345135afcba79ffa7d50c2999944b91d88e01e1d300000000',
 
     generateSeed () {
       return D.getRandomHex(64)

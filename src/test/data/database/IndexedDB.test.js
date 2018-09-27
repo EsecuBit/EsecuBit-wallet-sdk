@@ -4,7 +4,7 @@ import D from '../../../sdk/D'
 import IndexedDB from '../../../sdk/data/database/IndexedDB'
 
 chai.should()
-const indexedDB = new IndexedDB(D.test.syncWalletId)
+const indexedDB = new IndexedDB('test')
 describe('IndexedDB', function () {
   let account1 = {
     accountId: '123',

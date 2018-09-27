@@ -9,7 +9,6 @@ describe('JsWallet Bitcoin', function () {
   const jsWallet = new JsWallet()
 
   it('init', async () => {
-    D.test.sync = true
     D.test.coin = true
     await jsWallet.init()
   })
@@ -64,7 +63,6 @@ describe('JsWallet Ethernum', function () {
   it('getAddress', async () => {
     let address = await jsWallet.getAddress(D.coin.test.ethRinkeby, "m/44'/60'/0'/0/0")
     address.should.equal('0x79c744891902a0319b1322787190efaba5dbea72')
-    D.test.sync = false
   })
 
   it('signTransaction', async () => {

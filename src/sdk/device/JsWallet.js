@@ -16,14 +16,12 @@ export default class JsWallet {
     this.cache = {}
   }
 
-  init (initSeed) {
-    const btcNetwork = D.test.coin ? bitcoin.networks.testnet : bitcoin.networks.btc
-    const defaultSeed = D.test.sync ? D.test.syncSeed : D.test.txSeed
+  async init (seed) {
     let walletId = D.test.coin ? '01' : '00'
     walletId += D.test.jsWallet ? '01' : '00'
-    walletId += D.test.sync ? D.test.syncWalletId : D.test.txWalletId
+    walletId += D.address.toBuffer(await this.getAddress(D.coin.main.btc, "m/44'/0'/0'/0/0")).toString('hex')
 
-    let seed = initSeed || defaultSeed
+    const btcNetwork = D.test.coin ? bitcoin.networks.testnet : bitcoin.networks.btc
     this.btcNetwork = btcNetwork
     this._root = bitcoin.HDNode.fromSeedHex(seed, btcNetwork)
     console.log('seed', seed)

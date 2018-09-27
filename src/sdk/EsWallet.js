@@ -4,6 +4,7 @@ import CoinData from './data/CoinData'
 import BtcAccount from './BtcAccount'
 import EthAccount from './EthAccount'
 import Provider from './Provider'
+import Settings from './Settings'
 
 export default class EsWallet {
   /**
@@ -102,9 +103,29 @@ export default class EsWallet {
 
   async _init () {
     this._esAccounts = []
+    this.settings = new Settings()
+
+    // testSeed for soft wallet
+    let testSeed
+    if (D.test.jsWallet) {
+      testSeed = await this.getTestSeed()
+      if (!testSeed) {
+        testSeed = D.test.generateSeed()
+        await this.setTestSeed(testSeed)
+      }
+    }
+
     let info
     if (!this.offlineMode) {
-      info = await this._device.init()
+      info = await this._device.init(testSeed)
+      await this.settings.setSetting('lastWalletId', info.walletId)
+    } else {
+      let lastWalletId = await this.settings.getSetting('lastWalletId')
+      if (!lastWalletId) {
+        // noinspection ExceptionCaughtLocallyJS
+        throw D.error.offlineModeNotAllowed
+      }
+      info = {walletId: lastWalletId}
     }
 
     let newInfo = await this._coinData.init(info, this.offlineMode)
@@ -277,5 +298,13 @@ export default class EsWallet {
    */
   convertValue (coinType, value, fromUnit, toUnit) {
     return this._coinData.convertValue(coinType, value, fromUnit, toUnit)
+  }
+
+  async setTestSeed (testSeed) {
+    await this.settings.setSetting('testSeed', testSeed)
+  }
+
+  getTestSeed () {
+    this.settings.getSetting('testSeed')
   }
 }
