@@ -187,7 +187,7 @@ export default class BtcAccount {
         txInfo.confirmations !== D.tx.confirmation.dropped &&
         txInfo.inputs.some(i =>
           i.prevAddress === input.prevAddress &&
-          i.prevOutIndex == input.prevOutIndex))
+          i.prevOutIndex === input.prevOutIndex))
       if (reusedTxInfo) {
         console.info('utxo has been reused', input, removedTxInfo)
       } else {
