@@ -151,7 +151,7 @@ export default class BtcAccount {
   }
 
   async _handleRemovedTx (addressInfo, removedTxId) {
-    console.warn('btc removed txId', removedTxId)
+    console.warn('btc removed txId', addressInfo, removedTxId)
     // async operation may lead to disorder. so we need a simple lock
     while (this.busy) {
       await D.wait(2)
@@ -169,6 +169,7 @@ export default class BtcAccount {
     let oldAddressInfo = this.addressInfos.find(a => a.address === addressInfo.address)
     oldAddressInfo.txs = oldAddressInfo.txs.filter(txId => txId !== removedTxId)
 
+    // remove utxos come from this tx
     let removeUtxos = this.utxos.filter(utxo => utxo.txId === removedTxId)
     this.utxos = this.utxos.filter(utxo => !removeUtxos.some(u => u.txId === utxo.txId))
 
@@ -180,8 +181,19 @@ export default class BtcAccount {
         console.warn('revertUtxo not found', input)
         return
       }
-      revertUtxo.status = D.utxo.status.unspent
-      updateUtxos.push(revertUtxo)
+
+      // the spent utxo may be reused again before detected(e.g. resend tx), we need to check
+      let reusedTxInfo = this.txInfos.filter(txInfo =>
+        txInfo.confirmations !== D.tx.confirmation.dropped &&
+        txInfo.inputs.some(i =>
+          i.prevAddress === input.prevAddress &&
+          i.prevOutIndex == input.prevOutIndex))
+      if (reusedTxInfo) {
+        console.info('utxo has been reused', input, removedTxInfo)
+      } else {
+        revertUtxo.status = D.utxo.status.unspent
+        updateUtxos.push(revertUtxo)
+      }
     })
 
     this.balance = this.utxos
@@ -453,7 +465,8 @@ export default class BtcAccount {
    *     address: base58 string,
    *     value: number (satoshi)
    *   }],
-   *   deviceLimit: bool
+   *   deviceLimit: bool,
+   *   oldTxInfo: txInfo // exist if resend
    * }
    */
   async prepareTx (details) {
@@ -483,8 +496,9 @@ export default class BtcAccount {
       .map(utxo => D.copy(utxo))
 
     let oldUtxos = []
+    let oldTxInfo
     if (details.oldTxId) {
-      let oldTxInfo = this.txInfos.find(txInfo => txInfo.txId === details.oldTxId)
+      oldTxInfo = this.txInfos.find(txInfo => txInfo.txId === details.oldTxId)
       if (!oldTxInfo) {
         console.warn('oldTxId not found in history')
         throw D.error.unknown
@@ -523,6 +537,9 @@ export default class BtcAccount {
     if (proposal.deviceLimit) {
       // deviceLimit = true means device can not carry more utxos to sign, this is the largest value that device can sent
       prepareTxData.deviceLimit = proposal.deviceLimit
+    }
+    if (oldTxInfo) {
+      prepareTxData.oldTxInfo = D.copy(oldTxInfo)
     }
     return prepareTxData
   }
@@ -615,7 +632,12 @@ export default class BtcAccount {
       prepareTx.utxos.push(changeUtxo)
     }
 
-    return {txInfo: txInfo, utxos: prepareTx.utxos, hex: signedTx.hex}
+    return {
+      txInfo: txInfo,
+      utxos: prepareTx.utxos,
+      hex: signedTx.hex,
+      oldTxInfo: prepareTx.oldTxInfo
+    }
   }
 
   /**
@@ -629,6 +651,15 @@ export default class BtcAccount {
     console.log('sendTx', signedTx)
     if (!test) await this._coinData.sendTx(this._toAccountInfo(), signedTx.utxos, signedTx.txInfo, signedTx.hex)
     let blobs = {}
+
+    if (signedTx.oldTxInfo) {
+      let addressInfos = this.addressInfos.filter(
+        addressInfo => addressInfo.txs.includes(signedTx.oldTxInfo.txId))
+      for (let addressInfo of addressInfos) {
+        await this._handleRemovedTx(addressInfo, signedTx.oldTxInfo.txId)
+      }
+    }
+
     signedTx.utxos.forEach(utxo => {
       let addressInfo = D.copy(this.addressInfos.find(addressInfo => addressInfo.address === utxo.address))
       if (blobs[addressInfo.address]) {
@@ -638,6 +669,8 @@ export default class BtcAccount {
         addressInfo.txs.push(signedTx.txInfo.txId)
       }
     })
-    Object.values(blobs).forEach(blob => this._handleNewTxInner(blob.addressInfo, signedTx.txInfo, blob.utxos))
+    for (let blob of Object.values(blobs)) {
+      await this._handleNewTxInner(blob.addressInfo, signedTx.txInfo, blob.utxos)
+    }
   }
 }
