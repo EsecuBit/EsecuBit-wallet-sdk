@@ -1,5 +1,5 @@
 import Provider from './Provider'
-import JsWallet from './device/JsWallet'
+import D from './D'
 
 /**
  * Settings for Application.
@@ -29,6 +29,6 @@ export default class Settings {
     if (!this._settingDb) {
       await this._init()
     }
-    return this._settingDb.saveOrUpdateSettings(key, value)
+    await this._settingDb.saveOrUpdateSettings(key, value)
   }
 }

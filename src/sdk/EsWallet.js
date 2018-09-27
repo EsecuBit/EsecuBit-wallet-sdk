@@ -109,10 +109,6 @@ export default class EsWallet {
     let testSeed
     if (D.test.jsWallet) {
       testSeed = await this.getTestSeed()
-      if (!testSeed) {
-        testSeed = D.test.generateSeed()
-        await this.setTestSeed(testSeed)
-      }
     }
 
     let info
@@ -304,7 +300,17 @@ export default class EsWallet {
     await this._settings.setSetting('testSeed', testSeed)
   }
 
-  getTestSeed () {
-    return this._settings.getSetting('testSeed')
+  async getTestSeed () {
+    while (this.busy) await D.wait(2)
+    this.busy = true
+
+    let testSeed = await this._settings.getSetting('testSeed')
+    if (!testSeed) {
+      testSeed = D.test.generateSeed()
+      await this.setTestSeed(testSeed)
+    }
+
+    this.busy = false
+    return testSeed
   }
 }
