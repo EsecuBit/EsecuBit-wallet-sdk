@@ -16,9 +16,7 @@
     "babel-preset-stage-0": "^6.24.1",
     "babelify": "^8.0.0",
     "chai": "^4.1.2",
-    "create-hmac": "^1.1.7",
     "css-loader": "^0.28.11",
-    "ecurve": "^1.0.6",
     "eslint": "^4.19.1",
     "eslint-config-standard": "^11.0.0",
     "eslint-friendly-formatter": "^4.0.1",
@@ -61,6 +59,8 @@
     "buffer": "^5.1.0",
     "crypto-js": "^3.1.9-1",
     "keccak": "^1.4.0",
-    "rlp": "^2.0.0"
+    "rlp": "^2.0.0",
+    "ecurve": "^1.0.6",
+    "create-hmac": "^1.1.7"
   }
 }
