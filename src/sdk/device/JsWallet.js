@@ -17,13 +17,13 @@ export default class JsWallet {
   }
 
   async init (seed) {
-    let walletId = D.test.coin ? '01' : '00'
-    walletId += D.test.jsWallet ? '01' : '00'
-    walletId += D.address.toBuffer(await this.getAddress(D.coin.main.btc, "m/44'/0'/0'/0/0")).toString('hex')
-
     const btcNetwork = D.test.coin ? bitcoin.networks.testnet : bitcoin.networks.btc
     this.btcNetwork = btcNetwork
     this._root = bitcoin.HDNode.fromSeedHex(seed, btcNetwork)
+
+    let walletId = D.test.coin ? '01' : '00'
+    walletId += D.test.jsWallet ? '01' : '00'
+    walletId += D.address.toBuffer(await this.getAddress(D.coin.main.btc, "m/44'/0'/0'/0/0")).toString('hex')
     console.log('seed', seed)
     console.log('walletId', walletId)
     return {walletId: walletId}

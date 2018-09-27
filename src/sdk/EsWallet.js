@@ -128,7 +128,7 @@ export default class EsWallet {
       info = {walletId: lastWalletId}
     }
 
-    let newInfo = await this._coinData.init(info, this.offlineMode)
+    await this._coinData.init(info, this.offlineMode)
     let accounts = await this._coinData.getAccounts()
     accounts = accounts.filter(account => EsWallet.supportedCoinTypes().includes(account.coinType))
     accounts.forEach(account => {
@@ -141,7 +141,7 @@ export default class EsWallet {
     })
     await Promise.all(this._esAccounts.map(esAccount => esAccount.init()))
 
-    return newInfo
+    return info
   }
 
   async _sync () {

@@ -6,15 +6,16 @@ import JsWallet from './device/JsWallet'
  */
 export default class Settings {
   constructor () {
-    if (JsWallet.prototype.Instance) {
-      return JsWallet.prototype.Instance
+    if (Settings.prototype.Instance) {
+      return Settings.prototype.Instance
     }
-    JsWallet.prototype.Instance = this
+    Settings.prototype.Instance = this
   }
 
   async _init () {
-    this._settingDb = new Provider.DB('settings')
-    await this._settingDb.init()
+    let db = new Provider.DB('default')
+    await db.init()
+    this._settingDb = db
   }
 
   async getSetting (key) {
