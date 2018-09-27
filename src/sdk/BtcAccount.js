@@ -27,10 +27,7 @@ export default class BtcAccount {
       console.log('newTransaction status', txInfo)
 
       if (isLost) {
-        let addressInfos = this.addressInfos.filter(addressInfo => addressInfo.txs.includes(txInfo.txId))
-        for (let addressInfo of addressInfos) {
-          await this._handleRemovedTx(addressInfo, txInfo.txId)
-        }
+        await this._handleRemovedTx(txInfo.txId)
         return
       }
 
@@ -68,7 +65,7 @@ export default class BtcAccount {
       addressInfo = D.copy(addressInfo)
       txInfo = D.copy(txInfo)
       if (removedTxId) {
-        await this._handleRemovedTx(addressInfo, removedTxId)
+        await this._handleRemovedTx(removedTxId)
         return
       }
       await this._handleNewTx(addressInfo, txInfo)
@@ -96,7 +93,7 @@ export default class BtcAccount {
           let removedTxInfo = this.txInfos.find(txInfo => txInfo.txId === blob.removedTxId)
           // let the txListener handle the overTime pending tx
           if (removedTxInfo && removedTxInfo.confirmations !== D.tx.confirmation.pending) {
-            return this._handleRemovedTx(blob.addressInfo, blob.removedTxId)
+            return this._handleRemovedTx(blob.removedTxId)
           }
         } else {
           return this._handleNewTx(blob.addressInfo, blob.txInfo)
@@ -150,29 +147,36 @@ export default class BtcAccount {
     oldTxInfo.comment = txInfo.comment
   }
 
-  async _handleRemovedTx (addressInfo, removedTxId) {
-    console.warn('btc removed txId', addressInfo, removedTxId)
+  async _handleRemovedTx (removedTxId) {
+    console.warn('btc removed txId', removedTxId)
     // async operation may lead to disorder. so we need a simple lock
     while (this.busy) {
       await D.wait(2)
     }
     this.busy = true
 
+    // update removed txInfo
     let removedTxInfo = this.txInfos.find(txInfo => txInfo.txId === removedTxId)
     if (!removedTxInfo) {
       console.warn(this.accountId, 'removed txId not found', removedTxId)
       return
     }
     console.log('btc removed txInfo', removedTxInfo)
-
     removedTxInfo.confirmations = D.tx.confirmation.dropped
-    let oldAddressInfo = this.addressInfos.find(a => a.address === addressInfo.address)
-    oldAddressInfo.txs = oldAddressInfo.txs.filter(txId => txId !== removedTxId)
+
+    // update addressInfos
+    let addressInfos = this.addressInfos.filter(
+      addressInfo => addressInfo.txs.includes(removedTxId))
+    for (let addressInfo of addressInfos) {
+      let oldAddressInfo = this.addressInfos.find(a => a.address === addressInfo.address)
+      oldAddressInfo.txs = oldAddressInfo.txs.filter(txId => txId !== removedTxId)
+    }
 
     // remove utxos come from this tx
     let removeUtxos = this.utxos.filter(utxo => utxo.txId === removedTxId)
     this.utxos = this.utxos.filter(utxo => !removeUtxos.some(u => u.txId === utxo.txId))
 
+    // revert utxos using by this tx
     let updateUtxos = []
     removedTxInfo.inputs.forEach(input => {
       if (!input.isMine) return
@@ -201,7 +205,7 @@ export default class BtcAccount {
       .reduce((sum, utxo) => sum + utxo.value, 0)
       .toString()
 
-    await this._coinData.removeTx(this._toAccountInfo(), D.copy(oldAddressInfo),
+    await this._coinData.removeTx(this._toAccountInfo(), D.copy(addressInfos),
       D.copy(removedTxInfo), D.copy(updateUtxos), D.copy(removeUtxos))
     this.busy = false
   }
@@ -653,11 +657,7 @@ export default class BtcAccount {
     let blobs = {}
 
     if (signedTx.oldTxInfo) {
-      let addressInfos = this.addressInfos.filter(
-        addressInfo => addressInfo.txs.includes(signedTx.oldTxInfo.txId))
-      for (let addressInfo of addressInfos) {
-        await this._handleRemovedTx(addressInfo, signedTx.oldTxInfo.txId)
-      }
+      await this._handleRemovedTx(signedTx.oldTxInfo.txId)
     }
 
     signedTx.utxos.forEach(utxo => {
