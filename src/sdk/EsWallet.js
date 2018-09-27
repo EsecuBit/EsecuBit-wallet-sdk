@@ -27,6 +27,7 @@ export default class EsWallet {
     }
     EsWallet.prototype.Instance = this
 
+    this._settings = new Settings()
     this._info = {}
     this._esAccounts = []
     this._device = D.test.jsWallet ? new Provider.SoftWallet() : new Provider.HardWallet()
@@ -103,7 +104,6 @@ export default class EsWallet {
 
   async _init () {
     this._esAccounts = []
-    this.settings = new Settings()
 
     // testSeed for soft wallet
     let testSeed
@@ -118,9 +118,9 @@ export default class EsWallet {
     let info
     if (!this.offlineMode) {
       info = await this._device.init(testSeed)
-      await this.settings.setSetting('lastWalletId', info.walletId)
+      await this._settings.setSetting('lastWalletId', info.walletId)
     } else {
-      let lastWalletId = await this.settings.getSetting('lastWalletId')
+      let lastWalletId = await this._settings.getSetting('lastWalletId')
       if (!lastWalletId) {
         // noinspection ExceptionCaughtLocallyJS
         throw D.error.offlineModeNotAllowed
@@ -301,10 +301,10 @@ export default class EsWallet {
   }
 
   async setTestSeed (testSeed) {
-    await this.settings.setSetting('testSeed', testSeed)
+    await this._settings.setSetting('testSeed', testSeed)
   }
 
   getTestSeed () {
-    this.settings.getSetting('testSeed')
+    return this._settings.getSetting('testSeed')
   }
 }
