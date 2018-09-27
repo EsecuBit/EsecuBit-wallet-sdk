@@ -31,29 +31,7 @@ export default class BtcAccount {
         return
       }
 
-      // find out all the self addresses
-      let selfAddressInfos = []
-      txInfo.inputs.filter(input => input.isMine).forEach(input => {
-        let addressInfo = this.addressInfos.find(a => input.prevAddress === a.address)
-        if (!selfAddressInfos.includes(addressInfo)) {
-          selfAddressInfos.push(D.copy(addressInfo))
-        }
-      })
-      txInfo.outputs.filter(output => output.isMine).forEach(output => {
-        let addressInfo = this.addressInfos.find(a => output.address === a.address)
-        if (!selfAddressInfos.includes(addressInfo)) {
-          selfAddressInfos.push(D.copy(addressInfo))
-        }
-      })
-      // add txId to selfAddressInfos
-      selfAddressInfos.forEach(addressInfo => {
-        if (!addressInfo.txs.includes(txInfo.txId)) {
-          addressInfo.txs.push(txInfo.txId)
-        }
-      })
-      for (let addressInfo of selfAddressInfos) {
-        await this._handleNewTx(addressInfo, txInfo)
-      }
+      await this._handleNewTx(txInfo)
     }
 
     this._addressListener = async (error, addressInfo, txInfo, removedTxId) => {
@@ -68,7 +46,7 @@ export default class BtcAccount {
         await this._handleRemovedTx(removedTxId)
         return
       }
-      await this._handleNewTx(addressInfo, txInfo)
+      await this._handleNewTx(txInfo)
     }
   }
 
@@ -96,7 +74,7 @@ export default class BtcAccount {
             return this._handleRemovedTx(blob.removedTxId)
           }
         } else {
-          return this._handleNewTx(blob.addressInfo, blob.txInfo)
+          return this._handleNewTx(blob.txInfo)
         }
       }))
 
@@ -212,10 +190,10 @@ export default class BtcAccount {
 
   /**
    * handle new transaction
-   * update txInfo, find out new transaction and utxos for specific address
+   * complete txInfo, generate utxos
    */
-  async _handleNewTx (addressInfo, txInfo) {
-    console.log('btc newTransaction', addressInfo, txInfo)
+  async _handleNewTx (txInfo) {
+    console.log('btc newTransaction', txInfo)
 
     // async operation may lead to disorder. so we need a simple lock
     // eslint-disable-next-line
@@ -224,18 +202,21 @@ export default class BtcAccount {
     }
     this.busy = true
 
-    // update txInfo
+    // update txInfo and addressInfos
     txInfo.inputs.forEach(input => {
-      input['isMine'] = this.addressInfos.some(a => a.address === input.prevAddress)
+      input.isMine = this.addressInfos.some(a => a.address === input.prevAddress)
     })
     txInfo.outputs.forEach(output => {
-      output['isMine'] = this.addressInfos.some(a => a.address === output.address)
+      output.isMine = this.addressInfos.some(a => a.address === output.address)
     })
+
+    // calculate value
     let value = 0
     value -= txInfo.inputs.reduce((sum, input) => sum + (input.isMine ? input.value : 0), 0)
     value += txInfo.outputs.reduce((sum, output) => sum + (output.isMine ? output.value : 0), 0)
     txInfo.value = value.toString()
 
+    // calculate fee
     let fee = 0
     fee += txInfo.inputs.reduce((sum, input) => sum + input.value, 0)
     fee -= txInfo.outputs.reduce((sum, output) => sum + output.value, 0)
@@ -250,8 +231,9 @@ export default class BtcAccount {
 
     // find out utxos for address
     let utxos = []
-    let unspentOutputs = txInfo.outputs.filter(output => addressInfo.address === output.address)
+    let unspentOutputs = txInfo.outputs.filter(output => output.isMine)
     let unspentUtxos = unspentOutputs.map(output => {
+      let addressInfo = this.addressInfos.find(a => a.address === output.address)
       return {
         accountId: addressInfo.accountId,
         coinType: addressInfo.coinType,
@@ -266,9 +248,10 @@ export default class BtcAccount {
     })
     utxos.push(...unspentUtxos)
 
-    let spentInputs = txInfo.inputs.filter(input => addressInfo.address === input.prevAddress)
+    let spentInputs = txInfo.inputs.filter(input => input.isMine)
     if (spentInputs.length > 0) {
       let spentUtxos = spentInputs.map(input => {
+        let addressInfo = this.addressInfos.find(a => a.address === input.prevAddress)
         return {
           accountId: addressInfo.accountId,
           coinType: addressInfo.coinType,
@@ -283,7 +266,7 @@ export default class BtcAccount {
       })
       utxos.push(...spentUtxos)
     }
-    await this._handleNewTxInner(addressInfo, txInfo, utxos)
+    await this._handleNewTxInner(txInfo, utxos)
 
     this.busy = false
   }
@@ -292,15 +275,25 @@ export default class BtcAccount {
    * handle new transaction
    * update account, store utxo, addressInfo, txInfo
    */
-  async _handleNewTxInner (addressInfo, txInfo, utxos) {
-    console.log('newTransaction, utxos', addressInfo, txInfo, utxos)
+  async _handleNewTxInner (txInfo, utxos) {
+    console.log('newTransaction, utxos', txInfo, utxos)
 
     while (this.innerBusy) {
       await D.wait(2)
     }
     this.innerBusy = true
 
-    // check utxo update.
+    // update account info
+    let index = this.txInfos.findIndex(t => t.txId === txInfo.txId)
+    if (index === -1) {
+      txInfo.comment = ''
+      this.txInfos.push(txInfo)
+    } else {
+      txInfo.comment = this.txInfos[index].comment
+      this.txInfos[index] = txInfo
+    }
+
+    // update utxos
     // unspent_pending can update to other state
     // unspent can update to pending_spent and spent
     // pending_spent can update to spent
@@ -312,35 +305,57 @@ export default class BtcAccount {
       if (oldUtxo.status === D.utxo.status.spent_pending) return utxo.status === D.utxo.status.spent
       return false
     })
-
-    // update account info
-    let index = this.txInfos.findIndex(t => t.txId === txInfo.txId)
-    if (index === -1) {
-      txInfo.comment = ''
-      this.txInfos.push(txInfo)
-    } else {
-      txInfo.comment = this.txInfos[index].comment
-      this.txInfos[index] = txInfo
-    }
     this.utxos = this.utxos
       .filter(oldUtxo => !utxos.some(utxo => oldUtxo.txId === utxo.txId && oldUtxo.index === utxo.index))
       .concat(utxos)
-    let oldAddressInfo = this.addressInfos.find(a => a.address === addressInfo.address)
-    oldAddressInfo.txs = D.copy(addressInfo.txs)
 
+    // update balance
     this.balance = this.utxos
       .filter(utxo => utxo.status === D.utxo.status.unspent || utxo.status === D.utxo.status.unspent_pending)
       .reduce((sum, utxo) => sum + utxo.value, 0)
       .toString()
 
-    // update and addressIndex and listen new address
-    let newIndex = addressInfo.index + 1
-    if (addressInfo.type === D.address.external) {
-      if (this.externalPublicKeyIndex < newIndex) this.externalPublicKeyIndex = newIndex
-    } else {
-      if (this.changePublicKeyIndex < newIndex) this.changePublicKeyIndex = newIndex
-    }
-    await this._coinData.newTx(this._toAccountInfo(), D.copy(oldAddressInfo), txInfo, utxos)
+    // update addressInfos
+    let relativeAddresses = []
+    let maxExternalIndex = this.externalPublicKeyIndex
+    let maxChangeIndex = this.changePublicKeyIndex
+    txInfo.inputs.filter(input => input.isMine).forEach(input => {
+      let addressInfo = this.addressInfos.find(a => a.address === input.prevAddress)
+      if (!relativeAddresses.some(a => a.address === addressInfo.address)) {
+        relativeAddresses.push(addressInfo)
+        if (!addressInfo.txs.includes(txInfo.txId)) {
+          addressInfo.txs.push(txInfo.txId)
+        }
+
+        if (addressInfo.type === D.address.external) {
+          maxExternalIndex = Math.max(maxExternalIndex, addressInfo.index)
+        } else {
+          maxChangeIndex = Math.max(maxChangeIndex, addressInfo.index)
+        }
+      }
+    })
+    txInfo.outputs.filter(input => input.isMine).forEach(output => {
+      let addressInfo = this.addressInfos.find(a => a.address === output.address)
+      if (!relativeAddresses.some(a => a.address === addressInfo.address)) {
+        relativeAddresses.push(addressInfo)
+        if (!addressInfo.txs.includes(txInfo.txId)) {
+          addressInfo.txs.push(txInfo.txId)
+        }
+
+        if (addressInfo.type === D.address.external) {
+          maxExternalIndex = Math.max(maxExternalIndex, addressInfo.index + 1)
+        } else {
+          maxChangeIndex = Math.max(maxChangeIndex, addressInfo.index + 1)
+        }
+      }
+    })
+
+    // update addressIndex
+    this.externalPublicKeyIndex = Math.max(maxExternalIndex, this.externalPublicKeyIndex)
+    this.changePublicKeyIndex = Math.max(maxChangeIndex, this.changePublicKeyIndex)
+
+    // listen unmatured tx
+    await this._coinData.newTx(this._toAccountInfo(), D.copy(relativeAddresses), D.copy(txInfo), D.copy(utxos))
 
     if (txInfo.confirmations < D.tx.getMatureConfirms(this.coinType)) {
       if (!this._listenedTxs.some(tx => tx === txInfo.txId)) {
@@ -350,7 +365,6 @@ export default class BtcAccount {
     }
 
     this.innerBusy = false
-    return {addressInfo, txInfo, utxos}
   }
 
   /**
@@ -638,7 +652,6 @@ export default class BtcAccount {
 
     return {
       txInfo: txInfo,
-      utxos: prepareTx.utxos,
       hex: signedTx.hex,
       oldTxInfo: prepareTx.oldTxInfo
     }
@@ -653,24 +666,12 @@ export default class BtcAccount {
   async sendTx (signedTx, test = false) {
     // broadcast transaction to network
     console.log('sendTx', signedTx)
-    if (!test) await this._coinData.sendTx(this._toAccountInfo(), signedTx.utxos, signedTx.txInfo, signedTx.hex)
-    let blobs = {}
+    if (!test) await this._coinData.sendTx(this._toAccountInfo(), signedTx.hex)
 
     if (signedTx.oldTxInfo) {
       await this._handleRemovedTx(signedTx.oldTxInfo.txId)
     }
 
-    signedTx.utxos.forEach(utxo => {
-      let addressInfo = D.copy(this.addressInfos.find(addressInfo => addressInfo.address === utxo.address))
-      if (blobs[addressInfo.address]) {
-        blobs[addressInfo.address].utxos.push(utxo)
-      } else {
-        blobs[addressInfo.address] = {addressInfo: addressInfo, utxos: [utxo]}
-        addressInfo.txs.push(signedTx.txInfo.txId)
-      }
-    })
-    for (let blob of Object.values(blobs)) {
-      await this._handleNewTxInner(blob.addressInfo, signedTx.txInfo, blob.utxos)
-    }
+    await this._handleNewTx(signedTx.txInfo)
   }
 }

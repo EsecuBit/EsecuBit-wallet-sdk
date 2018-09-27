@@ -238,12 +238,12 @@ export default class CoinData {
     return this._db.saveOrUpdateTxComment(txInfo)
   }
 
-  async newTx (account, addressInfo, txInfo, utxos) {
+  async newTx (account, addressInfos, txInfo, utxos) {
     this._setTxFlags(txInfo)
     this._uncomfirmedTxs.push(txInfo)
 
-    console.log('newTx', account, addressInfo, txInfo, utxos)
-    await this._db.newTx(account, addressInfo, txInfo, utxos)
+    console.log('newTx', account, addressInfos, txInfo, utxos)
+    await this._db.newTx(account, addressInfos, txInfo, utxos)
     this._listeners.forEach(listener => D.dispatch(() => listener(D.error.succeed, D.copy(txInfo))))
   }
 
@@ -299,7 +299,7 @@ export default class CoinData {
     return this._network[coinType].removeListener(callback)
   }
 
-  async sendTx (account, utxos, txInfo, rawTx) {
+  async sendTx (account, rawTx) {
     await this._network[account.coinType].sendTx(rawTx)
   }
 

@@ -159,7 +159,7 @@ export default class EthAccount {
       })
     this.balance = newBalance.toString(10)
 
-    await this._coinData.removeTx(this._toAccountInfo(), this.addressInfos[0], removedTxInfo)
+    await this._coinData.removeTx(this._toAccountInfo(), D.copy([this.addressInfos[0]]), D.copy(removedTxInfo))
     this.busy = false
   }
 
@@ -223,7 +223,7 @@ export default class EthAccount {
       })
     this.balance = newBalance.toString(10)
 
-    await this._coinData.newTx(this._toAccountInfo(), addressInfo, txInfo, [])
+    await this._coinData.newTx(this._toAccountInfo(), D.copy([addressInfo]), D.copy(txInfo), [])
 
     if (txInfo.confirmations !== D.tx.confirmation.dropped &&
       txInfo.confirmations < D.tx.getMatureConfirms(this.coinType) &&

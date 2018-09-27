@@ -548,12 +548,14 @@ export default class IndexedDB extends IDatabase {
     })
   }
 
-  newTx (account, addressInfo, txInfo, utxos = []) {
+  newTx (account, addressInfos, txInfo, utxos = []) {
     return new Promise((resolve, reject) => {
       let objectStores = ['account', 'addressInfo', 'txInfo', 'utxo']
       let transaction = this._db.transaction(objectStores, 'readwrite')
       transaction.objectStore('account').put(account)
-      transaction.objectStore('addressInfo').put(addressInfo)
+      for (let addressInfo of addressInfos) {
+        transaction.objectStore('addressInfo').put(addressInfo)
+      }
       transaction.objectStore('txInfo').put(txInfo)
       for (let utxo of utxos) {
         transaction.objectStore('utxo').put(utxo)
