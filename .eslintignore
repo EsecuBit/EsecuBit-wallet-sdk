@@ -2,6 +2,5 @@
 /config/
 /dist/
 /node_modules/
-/webpack/*.js
 /test/
 /*.js
