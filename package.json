@@ -1,5 +1,5 @@
 {
-  "name": "EsecuBit-wallet-sdk",
+  "name": "esecubit-wallet-sdk",
   "version": "0.4.0",
   "description": "SDK for EsecuBit wallet.",
   "main": "index.js",
