@@ -47,8 +47,8 @@
     "url": "https://github.com/EsecuBit/EsecuBit-wallet-sdk"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "EsecuBit",
+  "license": "LGPLv3",
   "dependencies": {
     "bitcoinjs-lib": "^3.3.2",
     "bech32": "^1.1.3",
