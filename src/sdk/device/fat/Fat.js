@@ -3,6 +3,7 @@ import FatCache from './FatCache'
 import {Buffer} from 'buffer'
 
 const fileAttrSize = 17
+const maxFileNameLength = 32
 
 /**
  * Fat is a little-endian file system.
@@ -19,20 +20,19 @@ export default class Fat {
   /**
    * read file data.
    */
-  async readFile (fileName, offset = 0, length = 0, isPublic = true) {
+  async readFile (fileName, offset = 0, length = -1, isPublic = true) {
     if (!this._fatCache.isFormat) throw D.error.fatUnavailable
 
     let fileAttr = await this.findFile(fileName, isPublic)
-    if (!fileAttr) return null
-    // if don't provided length, default all the file
-    if (length <= 0) {
-      length = fileAttr.fileSize
+    if (!fileAttr) throw D.error.fatFileNotExists
+    // if don't provide length, default to the end of file
+    if (length < 0) {
+      length = fileAttr.fileSize - offset
     }
 
-    let blockNums = this._getProcessingBlockNums(fileAttr, offset, length)
+    let {startOffset, blockNums} = this._getProcessingBlockNums(fileAttr, offset, length)
 
-    offset += fileAttrSize + fileAttr.fileNameLen
-    return this._fatCache.readBlocks(blockNums, offset, length)
+    return this._fatCache.readBlocks(blockNums, startOffset, length)
   }
 
   /**
@@ -45,16 +45,17 @@ export default class Fat {
     if (!fileAttr) {
       // no file
       fileAttr = await this.createFile(fileName, offset + data.length, isPublic)
-    } else if (this._getFileOccupiedSpace(fileAttr) < offset + data.length) {
-      // file space not enough
+    } else if (fileAttr.fileSize < offset + data.length) {
+      // fileSize not enough
       fileAttr = await this._resizeFile(fileAttr, offset + data.length, isPublic)
     }
-    let blockNums = this._getProcessingBlockNums(fileAttr, offset, data.length)
-    await this._fatCache.writeBlocks(blockNums, data, offset)
+    let {startOffset, blockNums} = this._getProcessingBlockNums(fileAttr, offset, data.length)
+
+    await this._fatCache.writeBlocks(blockNums, data, startOffset)
   }
 
-  async createFile (fileName, fileLen, isPublic = true) {
-    return this._buildFile(fileName, fileLen, isPublic, false)
+  async createFile (fileName, fileSize, isPublic = true) {
+    return this._buildFile(fileName, fileSize, isPublic, false)
   }
 
   async deleteFile (fileName, isPublic = true) {
@@ -68,7 +69,7 @@ export default class Fat {
     let willUnusedBlockNums = []
     let nextBlockNum = fileAttr.firstBlock
     while (nextBlockNum !== -1) {
-      willUnusedBlockNums.append(nextBlockNum)
+      willUnusedBlockNums.push(nextBlockNum)
       nextBlockNum = this._fatCache.nextBlockNum(nextBlockNum)
     }
 
@@ -102,34 +103,34 @@ export default class Fat {
         return fileAttr
       }
     }
-    console.log('findFile failed', fileName)
+    console.info('findFile failed', fileName)
     return null
   }
 
   /**
    * Enlarge file occupied space. Shrink file will be ignore (keep current file size)
    */
-  async _resizeFile (fileAttr, newFileLen, isPublic = true) {
-    return this._buildFile(fileAttr.fileName, newFileLen, isPublic, true)
+  async _resizeFile (fileAttr, newfileSize, isPublic = true) {
+    return this._buildFile(fileAttr.fileName, newfileSize, isPublic, true)
   }
 
-  async _getFileOccupiedSpace (fileAttr) {
-    let length = 0
+  _getFileOccupiedBlocks (fileAttr) {
     let nextBlockNum = fileAttr.firstBlock
+    let blockNums = []
     while (nextBlockNum !== -1) {
-      length += this._fatCache.blockSize
+      blockNums.push(nextBlockNum)
       nextBlockNum = this._fatCache.nextBlockNum(nextBlockNum)
     }
-    length -= fileAttrSize + fileAttr.fileNameLen
-    return length
+    console.info('_getFileOccupiedBlocks', fileAttr, blockNums)
+    return blockNums
   }
 
-  async _buildFile (fileName, fileLen, isPublic, resize) {
+  async _buildFile (fileName, fileSize, isPublic, resize) {
     if (!this._fatCache.isFormat) throw D.error.fatUnavailable
 
-    if (fileName.length >= 32) {
+    if (fileName.length > maxFileNameLength) {
       console.warn('file name too long', fileName)
-      throw D.error.fatOutOfRange
+      throw D.error.fatInvalidFile
     }
 
     let oldFileAttr = await this.findFile(fileName, isPublic)
@@ -142,7 +143,7 @@ export default class Fat {
     }
 
     // if it's resize file, we need to find out the pervious last block to connect the new blocks
-    let prevBlockNum = resize ? -1 : oldFileAttr.firstBlock
+    let prevBlockNum = resize ? oldFileAttr.firstBlock : -1
     if (resize) {
       let nextBlockNum = oldFileAttr.firstBlock
       while (nextBlockNum !== -1) {
@@ -151,14 +152,19 @@ export default class Fat {
       }
     }
 
-    let needBlockLen = Math.ceil((fileAttrSize + fileName.length + fileLen) / this._fatCache.blockSize)
-    // let file size be times of 2 * blockSize, to make fat less fragment
+    let needBlockLen = Math.ceil((fileAttrSize + fileName.length + fileSize) / this._fatCache.blockSize)
+    // let file size be the times of 2 * blockSize, to make fat less fragment
     needBlockLen += needBlockLen % 2
+    console.info('needBlockLen', needBlockLen, fileAttrSize + fileName.length, fileSize)
     if (resize) {
-      needBlockLen -= this._getFileOccupiedSpace(oldFileAttr)
-      if (needBlockLen <= 0) {
-        // shrink file ignore
-        return
+      let oldBlocks = this._getFileOccupiedBlocks(oldFileAttr)
+      let oldBlockLen = oldBlocks.length
+      if (needBlockLen <= oldBlockLen) {
+        console.info('no need to enlarge fat file occupied space', oldFileAttr, oldBlockLen, needBlockLen)
+        needBlockLen = 0
+      } else {
+        console.info(`enlarge fat file occupied space from ${oldBlockLen} to ${needBlockLen}`, oldFileAttr)
+        needBlockLen -= oldBlockLen
       }
     }
 
@@ -171,24 +177,24 @@ export default class Fat {
     while (willUsedBlocks.length < needBlockLen) {
       // find unused block
       while (
-        currentBlockNum < needBlockLen &&
         currentBlockNum < endBlockNum &&
-        !this._fatCache.isUsed(currentBlockNum)) {
+        this._fatCache.isUsed(currentBlockNum)) {
         currentBlockNum++
       }
       if (currentBlockNum === endBlockNum) {
-        console.warn('create file out of space', fileName, fileLen, needBlockLen)
+        console.warn('create file out of space', fileName, resize, fileSize, needBlockLen, willUsedBlocks)
         throw D.error.fatOutOfSpace
       }
 
-      willUsedBlocks.append(currentBlockNum)
-      startBlockNum = currentBlockNum + 1
+      willUsedBlocks.push(currentBlockNum)
+      currentBlockNum++
     }
 
     let fileAttr
     let firstBlock
     if (resize) {
       fileAttr = oldFileAttr
+      fileAttr.fileSize = fileSize
       firstBlock = fileAttr.firstBlock
     } else {
       // write fileAttr
@@ -199,61 +205,67 @@ export default class Fat {
         fileId: fileId,
         fileType: isPublic ? 0x01 : 0x02,
         firstBlock: firstBlock,
-        fileSize: fileLen,
+        fileSize: fileSize,
         fileState: 0x5A,
         fileNameLen: fileName.length,
-        rfu: Buffer.alloc(1),
+        rfu: 0x00,
         fileName: fileName
       }
     }
 
     let fileAttrData = Fat._fileAttrToData(fileAttr)
-    await this._fatCache.writeBlock(firstBlock, fileAttrData)
 
     // update fat file system info
     await this._fatCache.setUsedBlocks(willUsedBlocks, prevBlockNum)
+
+    await this._fatCache.writeBlock(firstBlock, fileAttrData)
+    console.info(`${resize ? 'resizeFile' : 'createFile'} ${fileName} with blocks [${willUsedBlocks}]`)
+
+    return fileAttr
   }
 
   _getProcessingBlockNums (fileAttr, offset, length) {
     if (!this._fatCache.isFormat) throw D.error.fatUnavailable
 
-    // add pendding of fileAttr and fileName
-    offset += fileAttrSize + fileAttr.fileNameLen
-
     if (offset + length > fileAttr.fileSize) {
-      console.warn('readWriteFile params out of range', offset, length, fileAttr)
+      console.warn('readWriteFile fileSize too small, offset + length > fileAttr.fileSize', offset, length, fileAttr)
       throw D.error.fatOutOfRange
     }
 
-    // read / write size
-    let dataLength = offset & (this._fatCache.blockSize - 0x01)
-    let blockNum = fileAttr.firstBlock
-    let remainOffset = offset
-    while (remainOffset && blockNum >= 0) {
-      remainOffset -= dataLength
-      blockNum = this._fatCache.nextBlockNum(blockNum)
-      dataLength = this._fatCache.blockSize
+    // add pendding of fileAttr and fileName
+    let dataOffset = offset + fileAttrSize + fileAttr.fileNameLen
+
+    // find startBlockNum
+    let startBlockNum = fileAttr.firstBlock
+    let startOffset = dataOffset
+    while (startOffset > this._fatCache.blockSize && startBlockNum !== -1) {
+      startOffset -= this._fatCache.blockSize
+      startBlockNum = this._fatCache.nextBlockNum(startBlockNum)
     }
-    if (remainOffset !== 0) {
-      console.warn('readWriteFile offset out of range, not match fileAttr.fileSize', offset, length, fileAttr)
+    if (startBlockNum === -1) {
+      console.warn('readWriteFile offset out of range', offset, length, fileAttr)
       throw D.error.fatInvalidFile
     }
 
+    // find processing blockNums
     let handledLength = 0
     let blockNums = []
-    while (handledLength < length && blockNum > 0) {
-      blockNums.append(blockNum)
-      blockNum = this._fatCache.nextBlockNum(blockNum)
-      handledLength += dataLength
+    let currentBlockNum = startBlockNum
+    let subDataLength = this._fatCache.blockSize - startOffset
+    while (handledLength < length && currentBlockNum !== -1) {
+      blockNums.push(currentBlockNum)
+      currentBlockNum = this._fatCache.nextBlockNum(currentBlockNum)
+      handledLength += Math.min(subDataLength, length)
       let remainLength = length - handledLength
-      dataLength = remainLength > this._fatCache.blockSize ? this._fatCache.blockSize : remainLength
+      subDataLength = Math.min(this._fatCache.blockSize, remainLength)
     }
     if (handledLength !== length) {
-      console.warn('readWriteFile length out of range, not match fileAttr.fileSize', offset, length, fileAttr)
+      console.warn('readWriteFile length out of range', offset, length, handledLength, startBlockNum, fileAttr)
       throw D.error.fatInvalidFile
     }
 
-    return blockNums
+    console.info('processing blockNums', offset, length, fileAttr)
+    return {startOffset, blockNums}
   }
 
   static _dataToFileAttr (data) {
@@ -265,7 +277,7 @@ export default class Fat {
       fileState: data[0x0e],
       fileNameLen: data[0x0f],
       rfu: data[0x10],
-      fileName: String.fromCharCode.apply(null, data.slice(0x11, data[15]))
+      fileName: String.fromCharCode.apply(null, data.slice(0x11, 0x11 + data[0x0f]))
     }
   }
 
@@ -279,5 +291,8 @@ export default class Fat {
     data.writeUInt8(fileAttr.fileNameLen, 0x0f)
     data.writeUInt8(fileAttr.rfu, 0x10)
     data.write(fileAttr.fileName, 0x11, fileAttr.fileNameLen)
+    return data
   }
 }
+Fat.fileAttrSize = fileAttrSize
+Fat.maxFileNameLength = maxFileNameLength
