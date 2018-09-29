@@ -8,12 +8,12 @@ import ChromeHidDevice from './device/transmit/io/ChromeHidDevice'
 import _MockDevice from './device/transmit/io/MockDevice'
 
 const Provider = {
-  getDB () { return IndexedDB },
-
+  getDB () { return this.DB },
   getWallet () { return D.test.jsWallet ? this.SoftWallet : this.HardWallet },
   getTransmitter () { return D.test.mockTransmitter ? this.MockTransmitter : this.HardTransmitter },
   getDevice () { return D.test.mockDevice ? this.MockDevice : this.HardDevice },
 
+  DB: IndexedDB,
   SoftWallet: JSWallet,
   HardWallet: CoreWallet,
   MockTransmitter: _MockTransmitter,
