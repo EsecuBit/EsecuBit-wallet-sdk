@@ -1,5 +1,4 @@
 import Provider from './Provider'
-import D from './D'
 
 /**
  * Settings for Application.
@@ -13,7 +12,8 @@ export default class Settings {
   }
 
   async _init () {
-    let db = new Provider.DB('default')
+    const DB = Provider.getDB()
+    let db = new DB('default')
     await db.init()
     this._settingDb = db
   }

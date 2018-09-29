@@ -23,7 +23,8 @@ export default class CoreWallet {
     }
     CoreWallet.prototype.Instance = this
 
-    this._transmitter = new Provider.Transmitter()
+    const Transmitter = Provider.getTransmitter()
+    this._transmitter = new Transmitter()
     this._allEnc = true
   }
 
