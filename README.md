@@ -3,7 +3,7 @@
 ## Introduction
 
 A JavaScript SDK for EsecuBit
-digital currency wallet. Supporting Apps: [EsecuBit React Native Wallet (Android, iOS)](https://github.com/EsecuBit/EsecuBit-react-native-wallet), [EsecuBit Chrome Wallet](https://github.com/EsecuBit/EsecuBit-chrome-wallet)
+digital currency wallet. Supporting Apps: [EsecuBit React Native Wallet (Android, iOS)](https://github.com/EsecuBit/EsecuBit-react-native-wallet), [EsecuBit Chrome Wallet](https://github.com/EsecuBit/EsecuBit-chrome-wallet).
 
 EsecuBit Wallet SDK supports both hardware wallet ([EsecuBit hardware wallet](http://www.esecubit.com/)) and software wallet (default software wallet). **But the security of software wallet is not guaranteed, the seed is stored in plain text in database**. It's just for test usage.
 
@@ -59,7 +59,7 @@ dependencies {
 // add it in the webpack.config:
 resolve: {
   alias: {
-    'esecubit-wallet-sdk': 'esecubit-wallet-sdk/dist/eswallet'
+    "esecubit-wallet-sdk": "esecubit-wallet-sdk/dist/eswallet"
   }
 }
 ```
@@ -77,7 +77,7 @@ import {D} from 'esecubit-wallet-sdk'
 
 // configure it before call EsWallet
 D.test.jsWallet = true // use javascript wallet, default false (hardware wallet)
-D.test.testCoin = true // use testnet, dafuault false (mainnet)
+D.test.testCoin = true // use testnet, dafault false (mainnet)
 ```
 
 2. Connect Device and Finish Initialization
@@ -116,7 +116,7 @@ esWallet.listenStatus(function (error, status) {
 
 esWallet.listenTxInfo(function (error, txInfo) {
   // all the new transaction and updated exist transaction will be sent by this callback
-  // you can add or update this transaction or call account.getTxInfos to get all the newest transaction
+  // you can add or update this transaction or call account.getTxInfos to get the newest transactions
 })
 ```
 
@@ -129,27 +129,28 @@ let esWallet = new EsWallet() // return wallet singleton
 try {
   await esWallet.enterOfflineMode()
 } catch (e) {
-  if (e === D.offlineModeNotAllowed) {
+  if (e === D.errror.offlineModeNotAllowed) {
     console.log('you have not connect a device before')
     // if you don't have connected before, it's unable to get wallet data
-  } else if (e === D.offlineModeUnnecessary) {
+  } else if (e === D.error.offlineModeUnnecessary) {
     console.log('the device has connected')
     // the device has connected, so just wait for synchronization to complete
-  } else if (e === D. ) {
-
+  } else if (e === D.error.networkUnavailable) {
+    console.log('the network is unavailble')
+    // can not access the blockchain network. it's ok if you just want to view transaction history
   } else {
     throw e
   }
 }
 // the wallet data are ready to use
 
-esWallet.listenStatus(function (error, status) {
+esWallet.listenStatus((error, status) => {
   // you still need to listen status.
   // if the deivce connected in the future, this callback will be called.
-  // see 1 for more details.
+  // see usage 2. for more details.
 }
 
-esWallet.listenTxInfo(function (error, txInfo) {
+esWallet.listenTxInfo((error, txInfo) => {
   // all the new transaction and updated exist transaction will be sent by this callback
   // you can add or update this transaction or call account.getTxInfos to get all the newest transaction
 })
