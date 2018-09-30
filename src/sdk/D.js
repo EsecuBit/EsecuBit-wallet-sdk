@@ -562,7 +562,7 @@ const D = {
 
   test: {
     coin: false,
-    jsWallet: false,
+    jsWallet: true,
     mockTransmitter: false,
     mockDevice: false,
 
