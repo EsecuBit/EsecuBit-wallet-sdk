@@ -54,7 +54,11 @@ export default class IDatabase {
     throw D.error.notImplemented
   }
 
-  async newTx (account, addressInfo, txInfo, utxos = []) {
+  async newTx (account, addressInfos, txInfo, utxos = []) {
+    throw D.error.notImplemented
+  }
+
+  async removeTx (account, addressInfos, txInfo, updateUtxos = [], removeUtxos = []) {
     throw D.error.notImplemented
   }
 
