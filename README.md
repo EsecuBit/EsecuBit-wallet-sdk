@@ -54,19 +54,40 @@ dependencies {
   // or:
   // "esecubit-wallet-sdk": "git+ssh://github.com/EsecuBit/EsecuBit-wallet-sdk.git"
 }
-
-// if you are runing on a low version of Chrome (<= 54), you may need to use the compiled version
-// add it in the webpack.config:
-resolve: {
-  alias: {
-    "esecubit-wallet-sdk": "esecubit-wallet-sdk/dist/eswallet"
-  }
-}
 ```
 
 2. Install
 ```shell
 npm install
+```
+
+3. Import
+```javascript
+import {D, EsWallet} from 'esecubit-wallet-sdk'
+```
+
+If you are runing on a low version of Chrome (<= 54), you may need to use the compiled version.
+
+Add it in the webpack.config:
+```javascript
+resolve: {
+  alias: {
+    "esecubit-wallet-sdk": "esecubit-wallet-sdk/dist/eswallet"
+  }
+}
+
+```
+
+Then import:
+
+```
+import {D, EsWallet} from 'esecubit-wallet-sdk'
+```
+
+Or import compiled SDK directly like this:
+
+```
+import {D, EsWallet} from 'esecubit-wallet-sdk/dist/eswallet'
 ```
 
 ## Usage
