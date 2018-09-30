@@ -233,3 +233,51 @@ let signedTx = await account.signTx(prepareTx)
 await account.sendTx(signedTx)
 // boardcast the tx
 ```
+
+## Layout
+
+```
+.
+├── build // webpack build config 
+├── dist
+│   └── eswallet.js // compiled sdk (no ES6/7)
+├── src
+│   ├── sdk
+│   │   ├── BtcAccount.js // implement of BTC account management
+│   │   ├── BtcCoinSelect.js // algorithm of selecting utxos
+│   │   ├── D.js // constant and utils
+│   │   ├── EsWallet.js // implement of Wallet
+│   │   ├── EthAccount.js // implement of ETH account management
+│   │   ├── Provider.js  // define the implement class of database, transmitter and driver
+│   │   ├── Settings.js // storing app preferences
+│   │   ├── data
+│   │   │   ├── CoinData.js // blockchain data manager
+│   │   │   ├── database
+│   │   │   │   ├── IDatabase.js // base class of database
+│   │   │   │   └── IndexedDB.js // implement of database based on IndexedDB
+│   │   │   └── network
+│   │   │       ├── BlockChainInfo.js // implement btc blockchain network based on blockchain.info
+│   │   │       ├── ChainSo.js // implement btc blockchain network based on chain.so
+│   │   │       ├── EtherScanIo.js // implement eth network based on etherscan.io
+│   │   │       ├── ICoinNetwork.js // base class of blockchain network
+│   │   │       ├── exchange
+│   │   │       │   └── ExchangeCryptoCompareCom.js // getting exchange from cryptocompare.com
+│   │   │       └── fee
+│   │   │           ├── EthGasStationInfo.js // getting ETH suggested fee from ethgasstation.info
+│   │   │           └── FeeBitCoinEarn.js // getting BTC suggested fee from bitcoinearn.com
+│   │   └── device
+│   │       ├── CoreWallet.js // implement of hardware wallet
+│   │       ├── JsWallet.js // implement of software wallet
+│   │       ├── fat // hardware custom data management
+│   │       └── transmit
+│   │           ├── HidTransmitter.js // transmit command to device through HID protocol (kind of USB)
+│   │           ├── MockTransmitter.js // mock transmitter
+│   │           ├── io
+│   │           │   ├── ChromeHidDevice.js // Chrome HID driver
+│   │           │   ├── ChromeUsbDevice.js // Chrome USB driver (unreliable)
+│   │           │   ├── IEsDevice.js // base class of device driver
+│   │           │   └── MockDevice.js // mock driver
+│   │           └── jsencrypt.js // implement of RSA encryption. copied from JSEncrypt and modified.
+│   └── test  // test files (unreliable for now)
+├── test // mocha test files
+```
