@@ -143,10 +143,23 @@ export default class EsWallet {
   }
 
   async _sync () {
-    if (this._esAccounts.length === 0) {
+    await Promise.all(this._esAccounts.map(esAccount => esAccount.sync(true, this.offlineMode)))
+
+    let recoveryFinish = await this._settings.getSetting('recoveryFinish')
+    if (!recoveryFinish) {
       if (this.offlineMode) throw D.error.offlineModeNotAllowed
       console.log('no accounts, new wallet, start recovery')
       try {
+        // make sure no empty account before recover
+        // if last recovery is stopped unexcepted, we will have part of accounts
+        for (let esAccount of this._esAccounts) {
+          if ((await esAccount.getTxInfos()).total === 0) {
+            console.warn(esAccount.accountId, 'has no txInfo before recovery, delete it')
+            this._esAccounts = this._esAccounts.filter(a => a !== esAccount)
+            await esAccount.delete()
+          }
+        }
+
         // Here we can't use Promise.all() in recover, because data may be invalid when one
         // of account occur errors, while other type of account is still running recover.
         // In this case, deleting all account may failed because account which is still running
@@ -154,6 +167,7 @@ export default class EsWallet {
         for (let coinType of D.recoverCoinTypes()) {
           await this._recover(coinType)
         }
+        await this._settings.setSetting('recoveryFinish', true)
       } catch (e) {
         console.warn('recover error', e)
         console.warn('recover account failed, deleting all accounts', this._esAccounts)
@@ -163,8 +177,6 @@ export default class EsWallet {
         this._esAccounts = []
         throw e
       }
-    } else {
-      await Promise.all(this._esAccounts.map(esAccount => esAccount.sync(true, this.offlineMode)))
     }
   }
 
