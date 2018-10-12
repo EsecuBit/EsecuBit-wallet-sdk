@@ -10,6 +10,7 @@
 // import './test/device/fat/FatApi.test'
 // import './test/device/fat/FatCache.test'
 // import './test/device/fat/Fat.test'
+// import './test/device/fat/WalletData.test'
 
 // data
 // import './test/data/database/IndexedDB.test'

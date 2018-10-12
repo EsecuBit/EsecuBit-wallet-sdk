@@ -1,5 +1,5 @@
-import Fat from 'src/sdk/device/fat/Fat'
-import FatApi from 'src/sdk/device/fat/FatApi'
+import Fat from './Fat'
+import FatApi from './FatApi'
 import D from '../../D'
 
 /**
@@ -45,30 +45,31 @@ import D from '../../D'
  * cnw: {
  *   walletId: string,
  *   walletName: string
- *   walletDataVersion: int,
+ *   walletDataVersion: number,
+ *   walletDataStamp: number.
  *   account: {
  *    coinType: string,
- *    amount: int
+ *    amount: number
  *   },
  *   account: {
  *    coinType: string,
- *    amount: int
+ *    amount: number
  *   }
  *   ...
  * }
  *
- * cna#btc#1: {
- *   coinType, int
- *   accountIndex: int
+ * cna_btc_1: {
+ *   coinType: string
+ *   accountIndex: number
  *   accountName: string
- *   accountExternalIndex: int
- *   accountChangeIndex: int
+ *   accountExternalIndex: number
+ *   accountChangeIndex: number
  *   txInfo: {
- *     txId: string,
+ *     txId: data,
  *     txComment: comment,
  *   },
  *   txInfo: {
- *     txId: string,
+ *     txId: data,
  *     txComment: comment,
  *   },
  *   ...
@@ -79,33 +80,34 @@ const tags = {
   coinWallet: {tag: 0x01, type: 'complex'},
   walletId: {tag: 0x03, type: 'string'},
   walletName: {tag: 0x04, type: 'string'},
-  walletDataVersion: {tag: 0x04, type: 'number'},
+  walletDataVersion: {tag: 0x05, type: 'number'},
+  walletDataStamp: {tag: 0x06, type: 'number'},
   account: {tag: 0x11, type: ['array', 'complex']},
   coinType: {tag: 0x12, type: 'string'},
   amount: {tag: 0x013, type: 'number'},
 
   coinAccount: {tag: 0x41, type: 'complex'},
-  accountIndex: {tag: 0x42, type: 'string'},
+  accountIndex: {tag: 0x42, type: 'number'},
   accountName: {tag: 0x43, type: 'string'},
   accountDataVersion: {tag: 0x44, type: 'string'},
-  accountExchangeIndex: {tag: 0x45, type: 'number'},
+  accountExternalIndex: {tag: 0x45, type: 'number'},
   accountChangeIndex: {tag: 0x46, type: 'number'},
   txInfo: {tag: 0x51, type: ['array', 'complex']},
-  txId: {tag: 0x52, type: 'string'},
+  txId: {tag: 0x52, type: 'data'},
   txComment: {tag: 0x53, type: 'string'}
 }
 const tagEntries = Object.entries(tags)
 
 const parseTLV = (data) => {
-  let object = {}
   const setFieldByTag = function (object, tag, value) {
     let result = tagEntries.find(([field, info]) => info.tag === tag)
-    if (result) {
-      console.warn('parseTLV found unsupport tag, ignore', tag, value)
+    if (!result) {
+      console.warn('parseTLV found unsupport tag, ignore', tag, value.toString('hex'))
       return
     }
     let field = result[0]
     let type = result[1].type
+    if (!Array.isArray(type)) type = [type]
 
     let actualValue
     if (type.includes('complex')) {
@@ -113,31 +115,40 @@ const parseTLV = (data) => {
     } else if (type.includes('string')) {
       actualValue = new TextDecoder('utf8').decode(value)
     } else if (type.includes('number')) {
-      actualValue = value.readIntLE(0, value.length)
+      actualValue = value.readIntBE(0, value.length)
+    } else if (type.includes('data')) {
+      actualValue = Buffer.from(value)
     } else {
       console.warn('parseTLV found unsupport type', field, type)
       throw D.error.unknown
     }
 
     if (type.includes('array')) {
-      if (!this[field]) {
-        this[field] = []
+      if (!object[field]) {
+        object[field] = []
       }
-      this[field].append(actualValue)
+      object[field].push(actualValue)
     } else {
-      this[field] = actualValue
+      object[field] = actualValue
     }
   }
 
   try {
+    let object = {}
     let offset = 0
     while (true) {
       let firstByte = data[offset++]
       let tag
-      if (firstByte === 0) {
+
+      if (firstByte === undefined) {
+        console.debug('parseTLV end', object)
+        return object
+      } else if (firstByte === 0) {
         console.warn('parseTLV get tag == 0, it is end of the TLV structure. data size != tlv size, it is ok, exist')
-        break
-      } else if (firstByte < 0xf0) {
+        return object
+      }
+
+      if (firstByte < 0xf0) {
         tag = firstByte
       } else if (firstByte < 0xff) {
         let secondByte = data[offset++]
@@ -170,8 +181,8 @@ const parseTLV = (data) => {
       offset += length
     }
   } catch (e) {
-    console.warn('parseTLV failed', data.toString('hex'))
-    throw D.error.fatInvalidFile
+    console.warn('parseTLV failed', data.toString('hex'), e)
+    throw D.error.fatInvalidFileData
   }
 }
 
@@ -185,7 +196,7 @@ const toTLV = (object) => {
       let length = 0
       while (value) {
         length++
-        value = value >> 8
+        value = Math.floor(value / 256)
       }
       return 2 + length
     }
@@ -204,7 +215,7 @@ const toTLV = (object) => {
       let tagValue = tag
       while (tagValue) {
         length++
-        tagValue = tagValue >> 8
+        tagValue = Math.floor(tagValue / 256)
       }
       buffer.writeUInt8(length, offset++)
 
@@ -212,7 +223,7 @@ const toTLV = (object) => {
       let lengthValue = length
       while (lengthValue--) {
         buffer.writeUInt8(tagValue & 0xff, offset + lengthValue)
-        tagValue = tagValue >> 8
+        tagValue = Math.floor(tagValue / 256)
       }
       offset += length
     }
@@ -223,32 +234,28 @@ const toTLV = (object) => {
     return setTag(buffer, offset, length)
   }
 
-  const getValueData = (value, tag) => {
-    let result = tagEntries.find(([field, info]) => info.tag === tag)
-    if (result) {
-      console.warn('toTLV found unsupport tag, ignore', tag, value)
-      return
-    }
-    let type = result[1].type
-
+  const getValueData = (value, field, tagInfo) => {
+    let type = tagInfo.type
     if (!value) {
       return Buffer.alloc(0)
     }
 
     let valueData
-    if (type === 'complex') {
+    if (type.includes('complex')) {
       valueData = toTLV(value)
-    } else if (type === 'string') {
-      valueData = new TextEncoder('utf8').encode(value)
-    } else if (type === 'number') {
+    } else if (type.includes('string')) {
+      valueData = Buffer.from(new TextEncoder('utf8').encode(value))
+    } else if (type.includes('number')) {
       let length = 0
-      let valueValue = value
-      while (valueValue) {
+      let tempValue = value
+      while (tempValue) {
+        tempValue = Math.floor(tempValue / 256)
         length++
-        valueValue = valueValue >> 8
       }
       valueData = Buffer.allocUnsafe(length)
-      valueData.writeUIntBE(valueData, 0, length)
+      valueData.writeUIntBE(value, 0, length)
+    } else if (type.includes('data')) {
+      valueData = Buffer.from(value)
     } else {
       console.warn('toTLV found unsupport type', value, type)
       throw D.error.unknown
@@ -265,25 +272,39 @@ const toTLV = (object) => {
     return result && result[1]
   }
 
+  console.debug('toTLV', object)
   let data = Buffer.alloc(0)
   Object.entries(object).forEach(([field, value]) => {
+    console.debug('toTLV field', field, value)
+
     let tagInfo = findTagInfoByField(field)
     if (!tagInfo) {
-      console.warn('toTLV found unsupport field, ignore', field, value)
-      return
+      console.warn('toTLV found unsupport field', field, value)
+      throw D.error.unknown
     }
 
-    let tagLength = getVarLength(tagInfo.tag)
-    let valueData = getValueData(value, tagInfo.tag)
-    let length = valueData.length
-    let lengthLength = getVarLength(length)
+    const buildTLV = (value, tagInfo) => {
+      let tagLength = getVarLength(tagInfo.tag)
+      let valueData = getValueData(value, field, tagInfo)
+      let length = valueData.length
+      let lengthLength = getVarLength(length)
 
-    let tlv = Buffer.allocUnsafe(tagLength + lengthLength + length)
-    setTag(tlv, 0, tagInfo.tag)
-    setLength(tlv, tagLength, valueData)
-    setValue(valueData)
+      let tlv = Buffer.allocUnsafe(tagLength + lengthLength + length)
+      setTag(tlv, 0, tagInfo.tag)
+      setLength(tlv, tagLength, length)
+      setValue(tlv, tagLength + lengthLength, valueData)
 
-    data = Buffer.concat(data, tlv)
+      return tlv
+    }
+
+    let type = tagInfo.type
+    if (type.includes('array')) {
+      for (let item of value) {
+        data = Buffer.concat([data, buildTLV(item, tagInfo)])
+      }
+    } else {
+      data = Buffer.concat([data, buildTLV(value, tagInfo)])
+    }
   })
   return data
 }
@@ -298,15 +319,15 @@ export default class WalletData {
   }
 
   async getWalletInfo () {
-    return parseTLV(await this._fat.readFile('cnw'))
+    return WalletData._parseTLV(await this._fat.readFile('cnw'))
   }
 
   setWalletInfo (walletInfo) {
-    return this._fat.writeFile('cnw', toTLV(walletInfo))
+    return this._fat.writeFile('cnw', WalletData._toTLV(walletInfo))
   }
 
   async getAccountInfos () {
-    let walletInfo = parseTLV(await this._fat.readFile('cnw'))
+    let walletInfo = WalletData._parseTLV(await this._fat.readFile('cnw'))
     let accountInfos = []
     for (let account of walletInfo.account) {
       if (!account.amount || !account.coinType) {
@@ -323,12 +344,20 @@ export default class WalletData {
   }
 
   async getAccountInfo (coinType, index) {
-    let accountName = 'cna#' + coinType + '#' + index
+    let accountName = 'cna_' + coinType + '_' + index
     return parseTLV(await this._fat.readFile(accountName))
   }
 
   setAccountInfo (accountInfo) {
-    let accountName = 'cna#' + accountInfo.coinType + '#' + accountInfo.accountIndex
-    return this._fat.writeFile(accountName, toTLV(accountInfo))
+    let accountName = 'cna_' + accountInfo.coinType + '_' + accountInfo.accountIndex
+    return this._fat.writeFile(accountName, WalletData._toTLV(accountInfo))
+  }
+
+  static _parseTLV (data) {
+    return parseTLV(data)
+  }
+
+  static _toTLV (object) {
+    return toTLV(object)
   }
 }

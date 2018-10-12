@@ -37,6 +37,7 @@ const D = {
     fatInvalidFile: 123,
     fatOutOfSpace: 124,
     fatFileNotExists: 125,
+    fatInvalidFileData: 126,
 
     databaseOpenFailed: 201,
     databaseExecFailed: 202,
