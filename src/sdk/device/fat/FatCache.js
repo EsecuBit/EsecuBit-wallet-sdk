@@ -158,6 +158,7 @@ export default class FatCache {
 
   // write blocks, blocks must be all public or all private
   async writeBlocks (blockNums, data, start = 0) {
+    // TODO optimize if the block data going to wrote is the same with it used to be
     if (!blockNums || blockNums.length === 0) {
       return
     }
