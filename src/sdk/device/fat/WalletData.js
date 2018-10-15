@@ -45,8 +45,8 @@ import D from '../../D'
  * cnw: {
  *   walletId: string,
  *   walletName: string
- *   walletDataVersion: number, // sync data version
- *   walletDataStamp: number, // sync mill time stamp
+ *   walletDataVersion: number, // sync data version, > 0
+ *   walletDataStamp: number, // sync mill time stamp, > 0
  *   account: {
  *    coinType: string,
  *    amount: number
@@ -235,9 +235,6 @@ const toTLV = (object) => {
 
   const getValueData = (value, field, tagInfo) => {
     let type = tagInfo.type
-    if (!value) {
-      return Buffer.alloc(0)
-    }
 
     let valueData
     if (type.includes('complex')) {
@@ -247,10 +244,10 @@ const toTLV = (object) => {
     } else if (type.includes('number')) {
       let length = 0
       let tempValue = value
-      while (tempValue) {
+      do {
         tempValue = Math.floor(tempValue / 256)
         length++
-      }
+      } while (tempValue)
       valueData = Buffer.allocUnsafe(length)
       valueData.writeUIntBE(value, 0, length)
     } else if (type.includes('data')) {
@@ -345,15 +342,25 @@ export default class WalletData {
    * }
    */
   async sync (walletInfo, accountInfos, lastSyncVersion) {
+    if (!lastSyncVersion) {
+      console.log('wallet data first time sync')
+      lastSyncVersion = 0
+    }
+
     let app = walletInfo
     console.info('sync wallet data app', app)
 
     let device = await this.getWalletInfo()
     console.info('sync wallet data device', device)
 
-    if (app.walletId !== device.walletId) {
+    if (device && app.walletId !== device.walletId) {
       console.warn('wallet id not match, stopped', app.walletId, device.walletId)
       throw D.error.fatWalletIdNotMatch
+    }
+
+    if (!device) {
+      console.info('wallet info not found, set walletDataVersion = -1')
+      device = {walletDataVersion: -1}
     }
 
     if (app.walletDataVersion < lastSyncVersion) {
@@ -383,14 +390,14 @@ export default class WalletData {
     let deviceAccountInfos
     switch (updateFlag) {
       case 0x01:
-        console.warn('app modified the wallet data, update to device')
+        console.info('app modified the wallet data, update to device')
         await this.setAccountInfos(accountInfos)
         await this.setWalletInfo(app)
         return {needUpdate: false}
 
       case 0x02:
-        console.warn('device modified the wallet data, update from device')
-        deviceAccountInfos = await this.getAccountInfos()
+        console.info('device modified the wallet data, update from device')
+        deviceAccountInfos = await this.getAccountInfos(device)
         return {
           needUpdate: true,
           walletInfo: device,
@@ -399,8 +406,8 @@ export default class WalletData {
 
       case 0x03:
         console.warn('app and device both modified the wallet data, need merge')
-        let newerWalletInfo = app.walletDataStamp > device.walletDataStamp ? app : device
-        let olderWalletInfo = app.walletDataStamp > device.walletDataStamp ? device : app
+        let newerWalletInfo = D.copy(app.walletDataStamp >= device.walletDataStamp ? app : device)
+        let olderWalletInfo = D.copy(app.walletDataStamp >= device.walletDataStamp ? device : app)
         newerWalletInfo.walletDataVersion = Math.max(app.walletDataVersion, device.walletDataVersion) + 1
 
         for (let account of olderWalletInfo.account) {
@@ -412,9 +419,9 @@ export default class WalletData {
           }
         }
 
-        deviceAccountInfos = await this.getAccountInfos()
-        let newerAccountInfos = app.walletDataStamp > device.walletDataStamp ? accountInfos : deviceAccountInfos
-        let olderAccountInfos = app.walletDataStamp > device.walletDataStamp ? deviceAccountInfos : accountInfos
+        deviceAccountInfos = await this.getAccountInfos(device)
+        let newerAccountInfos = D.copy(app.walletDataStamp >= device.walletDataStamp ? accountInfos : deviceAccountInfos)
+        let olderAccountInfos = D.copy(app.walletDataStamp >= device.walletDataStamp ? deviceAccountInfos : accountInfos)
 
         let updatedAccounts = []
         for (let accountInfo of olderAccountInfos) {
@@ -425,7 +432,7 @@ export default class WalletData {
             updatedAccounts.push(accountInfo)
           } else {
             for (let txInfo of accountInfo.txInfo) {
-              let newerTxInfo = newerAccountInfo.find(t => t.txId === txInfo.txId)
+              let newerTxInfo = newerAccountInfo.txInfo.find(t => t.txId === txInfo.txId)
               if (!newerTxInfo) {
                 newerAccountInfo.txInfo.push(txInfo)
                 if (!updatedAccounts.includes(newerAccountInfo)) {
@@ -436,6 +443,15 @@ export default class WalletData {
           }
         }
 
+        for (let accountInfo of newerAccountInfos) {
+          let newerAccountInfo = olderAccountInfos.find(a =>
+            a.coinType === accountInfo.coinType && a.accountIndex === accountInfo.accountIndex)
+          if (!newerAccountInfo) {
+            updatedAccounts.push(accountInfo)
+          }
+        }
+
+        console.info('wallet data sync updatedAccounts', updatedAccounts)
         await this.setAccountInfos(updatedAccounts)
         await this.setWalletInfo(newerWalletInfo)
         return {
@@ -451,27 +467,36 @@ export default class WalletData {
   }
 
   async getWalletInfo () {
-    let walletInfo = await this._fat.readFile('cnw')
-    console.log('getWalletInfo', walletInfo)
-    return WalletData._parseTLV(walletInfo)
+    try {
+      let fileData = await this._fat.readFile('cnw')
+      let walletInfo = WalletData._parseTLV(fileData)
+
+      walletInfo.account = walletInfo.account || []
+      console.debug('getWalletInfo', walletInfo)
+      return walletInfo
+    } catch (e) {
+      if (e === D.error.fatFileNotExists) {
+        return null
+      }
+      throw e
+    }
   }
 
   setWalletInfo (walletInfo) {
-    console.log('setWalletInfo', walletInfo)
+    console.debug('setWalletInfo', walletInfo)
     return this._fat.writeFile('cnw', WalletData._toTLV(walletInfo))
   }
 
-  async getAccountInfos () {
-    let walletInfo = WalletData._parseTLV(await this._fat.readFile('cnw'))
+  async getAccountInfos (walletInfo) {
+    walletInfo = walletInfo || WalletData._parseTLV(await this._fat.readFile('cnw'))
     let accountInfos = []
     for (let account of walletInfo.account) {
       if (!account.amount || !account.coinType) {
         console.warn('account data invalid', account, walletInfo)
         throw D.error.fatInvalidFileData
       }
-      accountInfos[account.coinType] = []
       for (let i = 0; i < account.amount; i++) {
-        accountInfos[account.coinType].append(await this.getAccountInfo(account.coinType, i))
+        accountInfos.push(await this.getAccountInfo(account.coinType, i))
       }
     }
 
@@ -486,13 +511,16 @@ export default class WalletData {
 
   async getAccountInfo (coinType, index) {
     let accountName = 'cna_' + coinType + '_' + index
-    let accountInfo = await this._fat.readFile(accountName)
-    console.log('getAccountInfo', accountInfo)
-    return WalletData._parseTLV(accountInfo)
+    let fileData = await this._fat.readFile(accountName)
+    let accountInfo = WalletData._parseTLV(fileData)
+
+    accountInfo.txInfo = accountInfo.txInfo || []
+    console.debug('getAccountInfo', accountInfo)
+    return accountInfo
   }
 
   setAccountInfo (accountInfo) {
-    console.log('setAccountInfo', accountInfo)
+    console.debug('setAccountInfo', accountInfo)
     let accountName = 'cna_' + accountInfo.coinType + '_' + accountInfo.accountIndex
     return this._fat.writeFile(accountName, WalletData._toTLV(accountInfo))
   }
