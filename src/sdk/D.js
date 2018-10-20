@@ -65,6 +65,7 @@ const D = {
     valueIsDecimal: 604, // value has decimal
     invalidDataNotHex: 605, // data is not 0-9 a-f A-F string
     valueIsNotDecimal: 606, // value is not 0-9 string
+    invalidParams: 607,
 
     offlineModeNotAllowed: 701, // no device ever connected before
     offlineModeUnnecessary: 702, // device has connected
@@ -90,12 +91,38 @@ const D = {
   coin: {
     main: {
       btc: 'btc',
-      eth: 'eth'
+      eth: 'eth',
+      eos: 'eos'
     },
     test: {
       btcTestNet3: 'btc_testnet3',
       ethRinkeby: 'eth_rinkeby',
-      ethRopsten: 'eth_ropsten'
+      ethRopsten: 'eth_ropsten',
+      eosJungle: 'eos_jungle',
+      eosKylin: 'eos_kylin',
+      eosSys: 'eos_sys'
+    }
+  },
+
+  eos: {
+    chainId: {
+      main: 'aca376f206b8fc25a6ed44dbdc66547c36c6c33e3a119ffbeaef943642f0e906', // main network
+      jungle: '038f4b0fc8ff18a4f0842a8f0564611f6e96e8535901dd45e43ac8691a1c4dca', // jungle testnet
+      sys: 'cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f', // local developer
+      kylin: '5fff1dae8dc8e2fc4d5b23b2c7665c97f9e9d8edf2b6485a86ba311c25639191' // kylin testnet
+    },
+
+    getChainId (coinType) {
+      switch (coinType) {
+        case D.coin.main.eos:
+          return D.eos.chainId.main
+        case D.coin.test.eosJungle:
+          return D.eos.chainId.jungle
+        case D.coin.test.eosKylin:
+          return D.eos.chainId.kylin
+        case D.coin.test.eosSys:
+          return D.eos.chainId.sys
+      }
     }
   },
 
@@ -107,6 +134,22 @@ const D = {
     p2wpkh: 'p2wpkh',
     p2wsh: 'p2wsh',
     p2pk: 'p2pk',
+
+    checkAddress (coinType, address) {
+      if (D.isBtc(coinType)) {
+        return D.address.checkBtcAddress(address)
+      } else if (D.isEth(coinType)) {
+        return D.address.checkEthAddress(address)
+      } else if (D.isEos(coinType)) {
+        return D.address.checkEosAddress(address)
+      } else {
+        throw D.error.coinNotSupported
+      }
+    },
+
+    checkEosAddress () {
+      throw D.error.notImplemented
+    },
 
     checkBtcAddress (address) {
       let buffer
@@ -360,7 +403,8 @@ const D = {
     confirmation: {
       dropped: -2,
       pending: -1,
-      inMemory: 0
+      inMemory: 0,
+      irreversible: Number.MAX_SAFE_INTEGER // for eos
     },
 
     getMatureConfirms (coinType) {
@@ -416,6 +460,10 @@ const D = {
 
   isEth (coinType) {
     return coinType.includes('eth')
+  },
+
+  isEos (coinType) {
+    return coinType.includes('eos')
   },
 
   suppertedLegals () {

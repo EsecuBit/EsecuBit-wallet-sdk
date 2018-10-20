@@ -1,8 +1,8 @@
 
 import D from './D'
 import CoinData from './data/CoinData'
-import BtcAccount from './BtcAccount'
-import EthAccount from './EthAccount'
+import BtcAccount from './account/BtcAccount'
+import EthAccount from './account/EthAccount'
 import Provider from './Provider'
 import Settings from './Settings'
 
