@@ -46,11 +46,25 @@ export default class IndexedDB extends IDatabase {
          *   accountId: string,
          *   label: string,
          *   coinType: string,
-         *   index: 0,
-         *   balance: string, // (decimal string satoshi)
-         *   fee: string, // (decimal string satoshi, fee = outputs - inputs)
+         *   index: number,
+         *   balance: string, // (decimal string)
          *   externalPublicKeyIndex: int, // current external address index
          *   changePublicKeyIndex: int // current change address index
+         *
+         *   // eos
+         *   resource: {
+         *     totalRam: number,
+         *     remainRam: number,
+         *     totalBandwidth: number,
+         *     remainBandwidth: number,
+         *     totalCpu: number,
+         *     remainCpu: number,
+         *     stake: {
+         *       total: number,
+         *       bandwidth: number,
+         *       cpu: number
+         *     }
+         *   }
          * }
          */
         if (!db.objectStoreNames.contains('account')) {
@@ -72,6 +86,7 @@ export default class IndexedDB extends IDatabase {
          *   direction: D.tx.direction.in / D.tx.direction.out,
          *   inputs: [{prevTxId, prevAddress, prevOutIndex, prevOutScript, index, value, isMine}, ...]
          *   outputs: [{address, index, value, isMine}, ...]
+         *   showAddresses: [address] // addresses shown in the tx list, senders if you are receiver, recivers if not
          *   value: string (decimal string satoshi) // value that shows the account balance changes, calculated by inputs and outputs
          *   comment: string
          * }
@@ -81,20 +96,43 @@ export default class IndexedDB extends IDatabase {
          *   accountId: string,
          *   coinType: string,
          *   txId: string,
-         *   version: number,
          *   blockNumber: number,
          *   confirmations: number, // see D.tx.confirmation
          *   time: number,
          *   direction: D.tx.direction.in / D.tx.direction.out,
-         *   inputs: [{prevAddress, prevOutIndex, index, value, isMine}, ...]
-         *   outputs: [{address, index, value, isMine}, ...]
+         *   inputs: [{prevAddress, value, isMine}, ...]
+         *   outputs: [{address, value, isMine}, ...]
+         *   showAddresses: [address] // addresses shown in the tx list, senders if you are receiver, recivers if not
          *   value: string (decimal string Wei), // value that shows the account balance changes, calculated by inputs and outputs
          *   gas: string (decimal string Wei),
          *   gasPrice: string (decimal string Wei),
-         *   fee: gas * gasPrice
-         *   data: hex string
-         *   nonce: number
+         *   fee: gas * gasPrice,
+         *   data: hex string,
+         *   nonce: number,
          *   comment: string
+         * }
+         *
+         * eos:
+         * {
+         *   accountId: string,
+         *   coinType: string,
+         *   txId: string,
+         *   blockNumber: number,
+         *   confirmations: number, // see D.tx.confirmation
+         *   time: number,
+         *   direction: D.tx.direction.in / D.tx.direction.out,
+         *   showAddresses: [address, ...] // addresses shown in the tx list, senders if you are receiver, recivers if not
+         *   value: decimal integer string, // value that shows the account balance changes, calculated by inputs and outputs
+         *   memo: string, // comment in transfer
+         *   comment: string, // comment in local
+         *
+         *   actions: [{account, name, authorization, data}...],
+         *   expiration: number,
+         *   refBlockNum: number,
+         *   refBlockPrefix: number,
+         *   maxNetUsageWords: number,
+         *   maxCpuUsageMs: number,
+         *   delaySec: number
          * }
          */
         if (!db.objectStoreNames.contains('txInfo')) {
