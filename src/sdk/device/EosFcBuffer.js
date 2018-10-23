@@ -177,7 +177,7 @@ const FcBuffer = {
 
   data: {
     appendByteBuffer (b, value, account, name) {
-      let type = Object.values(FcBuffer.data.types).find(type => type._account === account && type._name === name)
+      let type = Object.values(FcBuffer.data.types).find(type => type._name === name)
       if (!type) {
         console.warn('unsupport data type', b, value, account, name)
         throw D.error.invalidParams
@@ -202,7 +202,6 @@ const FcBuffer = {
 
     types: {
       EosIoTokenTransfer: {
-        _account: 'eosio.token',
         _name: 'transfer',
         from: 'name',
         to: 'name',
@@ -227,7 +226,7 @@ const FcBuffer = {
       let symbolMatch = str.match(/(^| |,)([A-Z]+)(@|$)/)
       let symbol = symbolMatch ? symbolMatch[2] : null
 
-      if (!precision || !symbol || !amount) {
+      if (precision === undefined || symbol === undefined || amount === undefined) {
         console.warn('parse asset failed', str, precision, symbol, amount)
         throw D.error.invalidParams
       }

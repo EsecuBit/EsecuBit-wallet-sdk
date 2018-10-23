@@ -65,6 +65,19 @@ export default class IndexedDB extends IDatabase {
          *       cpu: number
          *     }
          *   }
+         *   permissions: {
+         *     owner: [{
+         *       permission: owner,
+         *       publicKey: string,
+         *       path: string
+         *     }],
+         *     active: [{
+         *       permission: active,
+         *       publicKey: string,
+         *       path: string
+         *     }],
+         *     ...
+         *   }
          * }
          */
         if (!db.objectStoreNames.contains('account')) {
@@ -120,13 +133,13 @@ export default class IndexedDB extends IDatabase {
          *   blockNumber: number,
          *   confirmations: number, // see D.tx.confirmation
          *   time: number,
-         *   direction: D.tx.direction.in / D.tx.direction.out,
-         *   showAddresses: [address, ...] // addresses shown in the tx list, senders if you are receiver, recivers if not
-         *   value: decimal integer string, // value that shows the account balance changes, calculated by inputs and outputs
-         *   memo: string, // comment in transfer
+         *   // direction: D.tx.direction.in / D.tx.direction.out, // only for transfer action
+         *   // showAddresses: [address, ...] // addresses shown in the tx list, senders if you are receiver, recivers if not
+         *   // value: decimal integer string, // value that shows the account balance changes, calculated by inputs and outputs
          *   comment: string, // comment in local
          *
          *   actions: [{account, name, authorization, data}...],
+         *   memo: string, // comment in transaction
          *   expiration: number,
          *   refBlockNum: number,
          *   refBlockPrefix: number,

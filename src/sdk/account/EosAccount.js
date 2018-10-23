@@ -6,13 +6,20 @@ import {BigDecimal} from 'bigdecimal'
 const tokenList = {
   'EOS': 'eosio.token',
   'SYS': 'eosio.token',
-  'JUNGLE': 'eosio.token'}
+  'JUNGLE': 'eosio.token'
+}
+
+const txType = {
+  tokenTransfer: 'tokenTransfer'
+}
 
 export default class EosAccount extends IAccount {
   async _handleRemovedTx (removedTxId) {
+    throw D.error.notImplemented
   }
 
   async _handleNewTx (txInfo) {
+    throw D.error.notImplemented
   }
 
   async getAddress (isStoring = false) {
@@ -25,16 +32,33 @@ export default class EosAccount extends IAccount {
     throw D.error.unknown
   }
 
+  async prepareTx (details) {
+    if (!details.token || !details.type) {
+      console.warn('no require fields', details)
+      throw D.error.invalidParams
+    }
+
+    switch (details.type) {
+      case txType.tokenTransfer:
+        return this._prepareTransfer(details)
+      default:
+        throw D.error.notImplemented
+    }
+  }
+
   /**
+   * token transfer based on eosio.token API
    *
    * @param details
    * {
-   *   sendAll: bool,
+   *   type: string,
    *   token: string,
    *   outputs: [{
    *     account: string,
    *     value: decimal string / number
    *   }],
+   *   sendAll: bool (optional),
+   *   account: string (optional), // contract name
    *   expirationAfter: decimal string / number (optional),
    *   maxNetUsageWords: decimal integer string / number (optional),
    *   maxCpuUsageMs: decimal integer string / number (optional),
@@ -44,21 +68,32 @@ export default class EosAccount extends IAccount {
    *   comment: string (optional),
    * }
    * @returns {Promise<{}>}
+   * {
+   *   type: string,
+   *   sendAll: bool,
+   *   token: string,
+   *   outputs: [{
+   *     account: string,
+   *     value: decimal string
+   *   }],
+   *   actions: [{...}, ...],
+   *   expirationAfter: decimal string / number (optional),
+   *   maxNetUsageWords: decimal integer string / number (optional),
+   *   maxCpuUsageMs: decimal integer string / number (optional),
+   *   delaySec: decimal integer string / number (optional),
+   *   refBlockNum: decimal integer string / number (optional),
+   *   refBlockPrefix: decimal integer string / number (optional),
+   *   comment: string (optional),
+   * }
    */
-  async prepareTx (details) {
+  async _prepareTransfer (details) {
     const defaultExpirationAfter = 10 * 60 // seconds
 
-    if (!details.token) {
-      console.warn('no require fields', details)
+    details.account = details.account || tokenList[details.token]
+    if (!details.account || typeof details.account !== 'string' || details.account.length > 12) {
+      console.warn('invalid account', details)
       throw D.error.invalidParams
     }
-
-    let account = tokenList[details.token]
-    if (!account) {
-      console.warn('unsupported token', details.token)
-      throw D.error.coinNotSupported
-    }
-    details.account = account
 
     if (!details.outputs) {
       details.outputs = []
@@ -73,10 +108,6 @@ export default class EosAccount extends IAccount {
     }
 
     for (let output of details.outputs) {
-      if (!output.account || output.account.length > 12) {
-        console.warn('invalid account name', output)
-        throw D.error.invalidParams
-      }
       if (Number(output.value) < 0) {
         console.warn('invalid value', output)
         throw D.error.invalidParams
@@ -85,7 +116,8 @@ export default class EosAccount extends IAccount {
       if (typeof output.value !== 'string') {
         output.value = new BigDecimal(output.value).toPlainString()
       }
-      let precision = output.value.split('.')[1].length
+      let parts = output.value.split('.')
+      let precision = (parts[1] && parts[1].length) || 0
       if (precision > 18) { // eosjs format.js
         console.warn('Precision should be 18 characters or less', details)
         throw D.error.invalidParams
@@ -100,36 +132,27 @@ export default class EosAccount extends IAccount {
       details.outputs[0] = this.balance
     }
 
-    details.expirationAfter = details.expirationAfter || defaultExpirationAfter
+    let prepareTx = {}
+    prepareTx.expirationAfter = details.expirationAfter || defaultExpirationAfter
     if (details.expirationAfter) {
-      details.expirationAfter = Number(details.expirationAfter)
+      prepareTx.expirationAfter = Number(details.expirationAfter)
     }
     if (details.maxNetUsageWords) {
-      details.maxNetUsageWords = Number(details.maxNetUsageWords)
+      prepareTx.maxNetUsageWords = Number(details.maxNetUsageWords)
     }
     if (details.maxCpuUsageMs) {
-      details.maxCpuUsageMs = Number(details.maxCpuUsageMs)
+      prepareTx.maxCpuUsageMs = Number(details.maxCpuUsageMs)
     }
     if (details.delaySec) {
-      details.delaySec = Number(details.delaySec)
+      prepareTx.delaySec = Number(details.delaySec)
     }
     if (details.refBlockNum) {
-      details.refBlockNum = Number(details.refBlockNum)
+      prepareTx.refBlockNum = Number(details.refBlockNum)
     }
     if (details.refBlockPrefix) {
-      details.refBlockPrefix = Number(details.refBlockPrefix)
+      prepareTx.refBlockPrefix = Number(details.refBlockPrefix)
     }
 
-    return details
-  }
-
-  /**
-   * use the result of prepareTx to make transaction
-   * @param prepareTx
-   * @returns {Promise<{txInfo, addressInfo, hex}>}
-   * @see prepareTx
-   */
-  async buildTx (prepareTx) {
     let makeTransferAction = (from, to, value, account, token, permission, comment) => {
       return {
         account: account,
@@ -150,9 +173,19 @@ export default class EosAccount extends IAccount {
     }
 
     // TODO later, configurable permission
-    let actions = prepareTx.outputs.forEach(output =>
-      makeTransferAction(this.label, output.address, output.value, prepareTx.account, prepareTx.token, 'active', prepareTx.comment))
+    prepareTx.actions = details.outputs.map(output =>
+      makeTransferAction(this.label, output.account, output.value, details.account, details.token, 'active', details.comment))
 
+    return prepareTx
+  }
+
+  /**
+   * use the result of prepareTx to make transaction
+   * @param prepareTx
+   * @returns {Promise<{txInfo, addressInfo, hex}>}
+   * @see prepareTx
+   */
+  async buildTx (prepareTx) {
     if (!prepareTx.refBlockNum || !prepareTx.refBlockPrefix) {
       let blockInfo = await this._coinData.getEosBlockInfo()
       prepareTx.refBlockNum = prepareTx.refBlockNum || blockInfo.ref_block_num
@@ -167,15 +200,27 @@ export default class EosAccount extends IAccount {
       max_cpu_usage_ms: prepareTx.maxNetUsageWords || 0,
       delay_sec: prepareTx.delaySec || 0,
       context_free_actions: [],
-      actions: actions,
+      actions: prepareTx.actions,
       transaction_extensions: []
     }
 
+    presignTx.keyPaths = []
+    for (let action of presignTx.actions) {
+      let permission = this.permissions[action.authorization.permission]
+      if (!permission) {
+        console.warn('key path of relative permission not found', action)
+        throw D.error.permissionNotFound
+      }
+      if (!presignTx.keyPaths.includes(permission.keyPath)) {
+        presignTx.keyPaths.push(permission.keyPath)
+      }
+    }
     console.log('presign tx', presignTx)
-    let signatures = await this._device.sign(this.coinType, presignTx)
+    let {txId, signedTx} = await this._device.sign(this.coinType, presignTx)
+
+    // TODO complete
     let txInfo = {}
-    let signedTx = D.copy(presignTx)
-    signedTx.signatures = signatures
+    delete signedTx.keyPaths
 
     return {signedTx, txInfo}
   }
@@ -187,6 +232,9 @@ export default class EosAccount extends IAccount {
    * @see signedTx
    */
   async sendTx (signedTx, test = false) {
-    throw D.error.notImplemented
+    // broadcast transaction to network
+    console.log('sendTx', signedTx)
+    if (!test) await this._coinData.sendTx(this._toAccountInfo(), signedTx.signedTx)
+    await this._handleNewTx(signedTx.txInfo)
   }
 }

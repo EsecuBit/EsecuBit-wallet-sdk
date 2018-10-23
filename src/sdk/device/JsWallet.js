@@ -6,6 +6,9 @@ import BigInteger from 'bigi'
 import createHmac from 'create-hmac'
 import rlp from 'rlp'
 import D from '../D'
+import FcBuffer from './EosFcBuffer'
+import createHash from 'create-hash'
+import base58 from 'bs58'
 
 export default class JsWallet {
   constructor () {
@@ -17,9 +20,7 @@ export default class JsWallet {
   }
 
   async init (seed) {
-    const btcNetwork = D.test.coin ? bitcoin.networks.testnet : bitcoin.networks.btc
-    this.btcNetwork = btcNetwork
-    this._root = bitcoin.HDNode.fromSeedHex(seed, btcNetwork)
+    this._root = bitcoin.HDNode.fromSeedHex(seed)
 
     let walletId = D.test.coin ? '01' : '00'
     walletId += D.test.jsWallet ? '01' : '00'
@@ -48,29 +49,20 @@ export default class JsWallet {
     return true
   }
 
-  async _derive (path, pPublicKey) {
+  async _derive (path) {
     try {
       let node = this._root
       path = path.toString()
-      if (pPublicKey) {
-        const ECPair = bitcoin.ECPair
-        const HDNode = bitcoin.HDNode
-        let curve = ecurve.getCurveByName('secp256k1')
-        let Q = ecurve.Point.decodeFrom(curve, Buffer.from(pPublicKey.publicKey, 'hex'))
-        let pChainCode = Buffer.from(pPublicKey.chainCode, 'hex')
-        let keyPair = new ECPair(null, Q, {network: this.btcNetwork})
-        node = new HDNode(keyPair, pChainCode)
+
+      let lastIndex = path.lastIndexOf('/')
+      let parentPath = path.slice(0, lastIndex)
+      path = path.slice(lastIndex + 1)
+      // build cache to improve speed
+      if (this.cache[parentPath]) {
+        node = this.cache[parentPath]
       } else {
-        // build cache to improve speed
-        let lastIndex = path.lastIndexOf('/')
-        let parentPath = path.slice(0, lastIndex)
-        path = path.slice(lastIndex + 1)
-        if (this.cache[parentPath]) {
-          node = this.cache[parentPath]
-        } else {
-          node = node.derivePath(parentPath)
-          this.cache[parentPath] = node
-        }
+        node = node.derivePath(parentPath)
+        this.cache[parentPath] = node
       }
       return node.derivePath(path)
     } catch (e) {
@@ -79,8 +71,8 @@ export default class JsWallet {
     }
   }
 
-  async getPublicKey (publicKeyPath, pPublicKey) {
-    let node = await this._derive(publicKeyPath, pPublicKey)
+  async getPublicKey (publicKeyPath) {
+    let node = await this._derive(publicKeyPath)
     let publicKey = node.getPublicKeyBuffer().toString('hex')
     let chainCode = node.chainCode.toString('hex')
     return {publicKey, chainCode}
@@ -89,6 +81,7 @@ export default class JsWallet {
   async getAddress (coinType, addressPath) {
     let btcAddress = async (addressPath) => {
       let node = await this._derive(addressPath)
+      node.keyPair.network = D.coin.params.btc.getNetwork(coinType)
       return node.getAddress()
     }
 
@@ -120,14 +113,6 @@ export default class JsWallet {
   // noinspection JSMethodCanBeStatic
   async getRandom (length) {
     Buffer.from(D.getRandomHex(length * 2), 'hex')
-  }
-
-  async publicKeyToAddress (publicKey) {
-    const ECPair = bitcoin.ECPair
-    let curve = ecurve.getCurveByName('secp256k1')
-    let Q = ecurve.Point.decodeFrom(curve, Buffer.from(publicKey, 'hex'))
-    let keyPair = new ECPair(null, Q, {network: this.btcNetwork})
-    return keyPair.getAddress()
   }
 
   /**
@@ -164,154 +149,194 @@ export default class JsWallet {
    * }
    */
   async signTransaction (coinType, tx) {
-    let signBtc = async () => {
-      try {
-        let txb = new bitcoin.TransactionBuilder(this.btcNetwork)
-        txb.setVersion(1)
-        for (let input of tx.inputs) {
-          txb.addInput(input.txId, input.index, 0xfffffffd) // opt-in full-RBF, BIP 125
-        }
-        for (let output of tx.outputs) {
-          txb.addOutput(output.address, output.value)
-        }
-        let i = 0
-        for (let input of tx.inputs) {
-          let key = this._root.derivePath(input.path)
-          txb.sign(i, key)
-          i++
-        }
-        let transaction = txb.build()
-        return {id: transaction.getId(), hex: transaction.toHex()}
-      } catch (e) {
-        console.warn(e)
-        throw D.error.unknown
-      }
-    }
-
-    let signEth = async () => {
-      // copy from ecdsa.sign(hash, d) in bitcoinjs, returing [v, r, s] format
-      let sign = (hash, d) => {
-        const secp256k1 = ecurve.getCurveByName('secp256k1')
-        const N_OVER_TWO = secp256k1.n.shiftRight(1)
-        let x = d.toBuffer(32)
-        let e = BigInteger.fromBuffer(hash)
-        let n = secp256k1.n
-        let G = secp256k1.G
-
-        let deterministicGenerateK = (hash, x, checkSig) => {
-          const ZERO = Buffer.alloc(1, 0)
-          const ONE = Buffer.alloc(1, 1)
-
-          // Step A, ignored as hash already provided
-          // Step B
-          // Step C
-          let k = Buffer.alloc(32, 0)
-          let v = Buffer.alloc(32, 1)
-
-          // Step D
-          k = createHmac('sha256', k)
-            .update(v)
-            .update(ZERO)
-            .update(x)
-            .update(hash)
-            .digest()
-
-          // Step E
-          v = createHmac('sha256', k).update(v).digest()
-
-          // Step F
-          k = createHmac('sha256', k)
-            .update(v)
-            .update(ONE)
-            .update(x)
-            .update(hash)
-            .digest()
-
-          // Step G
-          v = createHmac('sha256', k).update(v).digest()
-
-          // Step H1/H2a, ignored as tlen === qlen (256 bit)
-          // Step H2b
-          v = createHmac('sha256', k).update(v).digest()
-
-          let T = BigInteger.fromBuffer(v)
-
-          // Step H3, repeat until T is within the interval [1, n - 1] and is suitable for ECDSA
-          while (T.signum() <= 0 || T.compareTo(secp256k1.n) >= 0 || !checkSig(T)) {
-            k = createHmac('sha256', k)
-              .update(v)
-              .update(ZERO)
-              .digest()
-
-            v = createHmac('sha256', k).update(v).digest()
-
-            // Step H1/H2a, again, ignored as tlen === qlen (256 bit)
-            // Step H2b again
-            v = createHmac('sha256', k).update(v).digest()
-            T = BigInteger.fromBuffer(v)
-          }
-
-          return T
-        }
-
-        let r, s, odd
-        deterministicGenerateK(hash, x, (k) => {
-          let Q = G.multiply(k)
-
-          if (secp256k1.isInfinity(Q)) return false
-
-          r = Q.affineX.mod(n)
-          odd = Q.affineY.mod(BigInteger.fromHex('02')).intValue()
-          if (r.signum() === 0) return false
-
-          s = k.modInverse(n).multiply(e.add(d.multiply(r))).mod(n)
-          // noinspection RedundantIfStatementJS
-          if (s.signum() === 0) return false
-
-          if (s.compareTo(N_OVER_TWO) > 0) {
-            s = n.subtract(s)
-            odd = odd ? 0 : 1
-          }
-
-          return true
-        })
-        let v = chainId * 2 + 35 + odd
-        return [
-          v,
-          '0x' + r.toHex(),
-          '0x' + s.toHex()
-        ]
-      }
-
-      const chainIds = {}
-      chainIds[D.coin.main.eth] = 1
-      chainIds[D.coin.test.ethRinkeby] = 4
-      let chainId = chainIds[coinType]
-      if (!chainId) throw D.error.coinNotSupported
-
-      let unsignedTx = [tx.nonce, tx.gasPrice, tx.gasLimit, tx.output.address, tx.output.value, tx.data, chainId, 0, 0]
-      let rlpUnsignedTx = rlp.encode(unsignedTx)
-      let rlpHash = D.address.keccak256(rlpUnsignedTx)
-      let node = await this._derive(tx.input.path)
-      let [v, r, s] = sign(Buffer.from(rlpHash.slice(2), 'hex'), node.keyPair.d)
-
-      let signedTx = [tx.nonce, tx.gasPrice, tx.gasLimit, tx.output.address, tx.output.value, tx.data, v, r, s]
-
-      let rawTx = rlp.encode(signedTx).toString('hex')
-      let txId = D.address.keccak256(rlp.encode(signedTx))
-      return {
-        id: txId,
-        hex: rawTx
-      }
-    }
-
     await this.verifyPin()
     if (D.isBtc(coinType)) {
-      return signBtc()
+      return this._signBtc(coinType, tx)
     } else if (D.isEth(coinType)) {
-      return signEth()
+      return this._signEth(coinType, tx)
+    } else if (D.isEos(coinType)) {
+      return this._signEos(coinType, tx)
     } else {
       throw D.error.coinNotSupported
     }
+  }
+
+  async _signBtc (coinType, tx) {
+    try {
+      let network = D.coin.params.btc.getNetwork(coinType)
+      let txb = new bitcoin.TransactionBuilder(network)
+      txb.setVersion(1)
+      for (let input of tx.inputs) {
+        txb.addInput(input.txId, input.index, 0xfffffffd) // opt-in full-RBF, BIP 125
+      }
+      for (let output of tx.outputs) {
+        txb.addOutput(output.address, output.value)
+      }
+      let i = 0
+      for (let input of tx.inputs) {
+        let key = this._root.derivePath(input.path)
+        txb.sign(i, key)
+        i++
+      }
+      let transaction = txb.build()
+      return {id: transaction.getId(), hex: transaction.toHex()}
+    } catch (e) {
+      console.warn(e)
+      throw D.error.unknown
+    }
+  }
+
+  async _signEth (coinType, tx) {
+    let chainId = D.coin.params.eth.getChainId(coinType)
+    if (!chainId) throw D.error.coinNotSupported
+
+    let unsignedTx = [tx.nonce, tx.gasPrice, tx.gasLimit, tx.output.address, tx.output.value, tx.data, chainId, 0, 0]
+    let rlpUnsignedTx = rlp.encode(unsignedTx)
+    let rlpHash = D.address.keccak256(rlpUnsignedTx)
+    let node = await this._derive(tx.input.path)
+    let [recId, r, s] = this._sign(Buffer.from(rlpHash.slice(2), 'hex'), node.keyPair.d)
+    let v = chainId * 2 + 35 + recId
+
+    let signedTx = [tx.nonce, tx.gasPrice, tx.gasLimit, tx.output.address, tx.output.value, tx.data,
+      v, '0x' + r.toString('hex'), '0x' + s.toString('hex')]
+
+    let rawTx = rlp.encode(signedTx).toString('hex')
+    let txId = D.address.keccak256(rlp.encode(signedTx))
+    return {
+      id: txId,
+      hex: rawTx
+    }
+  }
+
+  // noinspection JSMethodCanBeStatic
+  async _signEos (coinType, tx) {
+    let chainId = D.coin.params.eos.getChainId(coinType)
+
+    let rawTx = FcBuffer.serializeTx(tx)
+    console.log('_signEos rawTx', rawTx.toString('hex'))
+    let packedContextFreeData = Buffer.from('0000000000000000000000000000000000000000000000000000000000000000', 'hex')
+    let signBuf = Buffer.concat([chainId, rawTx, packedContextFreeData])
+
+    let hash = createHash('sha256').update(signBuf).digest()
+
+    let signedTx = D.copy(tx)
+    signedTx.signatures = []
+    for (let keyPath of tx.keyPaths) {
+      let node = await this._derive(keyPath)
+      let [recId, r, s] = this._sign(hash, node.keyPair.d)
+      let i = recId + 4 + 27
+      let buffer = Buffer.allocUnsafe(65)
+      buffer.writeUInt8(i, 0)
+      r.copy(buffer, 1)
+      s.copy(buffer, 33)
+
+      let check = createHash('ripemd160').update(buffer).digest().slice(0, 4)
+      let signature = base58.encode(Buffer.concat([buffer, check]))
+      signedTx.signatures.push('SIG_K1_' + signature)
+    }
+
+    delete signedTx.keyPaths
+    let txId = createHash('sha256').update(rawTx).digest().toString('hex')
+    return {txId, signedTx}
+  }
+
+  // copy from ecdsa.sign(hash, d) in bitcoinjs, returing [recId, r, s] format
+  _sign (hash, d) {
+    const secp256k1 = ecurve.getCurveByName('secp256k1')
+    const N_OVER_TWO = secp256k1.n.shiftRight(1)
+    let x = d.toBuffer(32)
+    let e = BigInteger.fromBuffer(hash)
+    let n = secp256k1.n
+    let G = secp256k1.G
+
+    let deterministicGenerateK = (hash, x, checkSig) => {
+      const ZERO = Buffer.alloc(1, 0)
+      const ONE = Buffer.alloc(1, 1)
+
+      // Step A, ignored as hash already provided
+      // Step B
+      // Step C
+      let k = Buffer.alloc(32, 0)
+      let v = Buffer.alloc(32, 1)
+
+      // Step D
+      k = createHmac('sha256', k)
+        .update(v)
+        .update(ZERO)
+        .update(x)
+        .update(hash)
+        .digest()
+
+      // Step E
+      v = createHmac('sha256', k).update(v).digest()
+
+      // Step F
+      k = createHmac('sha256', k)
+        .update(v)
+        .update(ONE)
+        .update(x)
+        .update(hash)
+        .digest()
+
+      // Step G
+      v = createHmac('sha256', k).update(v).digest()
+
+      // Step H1/H2a, ignored as tlen === qlen (256 bit)
+      // Step H2b
+      v = createHmac('sha256', k).update(v).digest()
+
+      let T = BigInteger.fromBuffer(v)
+
+      // Step H3, repeat until T is within the interval [1, n - 1] and is suitable for ECDSA
+      while (T.signum() <= 0 || T.compareTo(secp256k1.n) >= 0 || !checkSig(T)) {
+        k = createHmac('sha256', k)
+          .update(v)
+          .update(ZERO)
+          .digest()
+
+        v = createHmac('sha256', k).update(v).digest()
+
+        // Step H1/H2a, again, ignored as tlen === qlen (256 bit)
+        // Step H2b again
+        v = createHmac('sha256', k).update(v).digest()
+        T = BigInteger.fromBuffer(v)
+      }
+
+      return T
+    }
+
+    let r = Buffer.alloc(0)
+    let s = Buffer.alloc(0)
+    let recId = 0
+    deterministicGenerateK(hash, x, (k) => {
+      let Q = G.multiply(k)
+
+      if (secp256k1.isInfinity(Q)) return false
+
+      r = Q.affineX.mod(n)
+      if (r.signum() === 0) return false
+
+      // for recId, see https://bitcoin.stackexchange.com/questions/38351/ecdsa-v-r-s-what-is-v
+      recId = Q.affineY.mod(BigInteger.fromHex('02')).intValue()
+
+      s = k.modInverse(n).multiply(e.add(d.multiply(r))).mod(n)
+      // noinspection RedundantIfStatementJS
+      if (s.signum() === 0) return false
+
+      if (s.compareTo(N_OVER_TWO) > 0) {
+        s = n.subtract(s)
+        recId = recId ? 0 : 1
+      }
+
+      if (Q.affineX.compareTo(secp256k1.p.mod(n)) < 0) {
+        recId += 2
+      }
+      return true
+    })
+    return [
+      recId,
+      r.toBuffer(),
+      s.toBuffer()
+    ]
   }
 }
