@@ -451,7 +451,7 @@ export default class EthAccount {
   async sendTx (signedTx, test = false) {
     // broadcast transaction to network
     console.log('sendTx', signedTx)
-    if (!test) await this._coinData.sendTx(this._toAccountInfo(), [], signedTx.txInfo, signedTx.hex)
+    if (!test) await this._coinData.sendTx(this._toAccountInfo(), signedTx.hex)
     this._handleNewTx(signedTx.addressInfo, signedTx.txInfo, [])
   }
 }
