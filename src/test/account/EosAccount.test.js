@@ -3,6 +3,7 @@ import chai from 'chai'
 import JsWallet from '../../sdk/device/JsWallet'
 import EosAccount from '../../sdk/account/EosAccount'
 import CoinData from '../../sdk/data/CoinData'
+import D from '../../sdk/D'
 
 chai.should()
 
@@ -15,6 +16,11 @@ describe('EosAccount', function () {
     await jsWallet.init(seed)
     account = new EosAccount({
       label: 'atestaccount',
+      coinType: D.coin.main.eos,
+      index: 0,
+      balance: '50',
+      externalPublicKeyIndex: 0,
+      changePublicKeyIndex: 0,
       permissions: {
         owner: [{
           permission: 'owner',
@@ -43,7 +49,7 @@ describe('EosAccount', function () {
       }]
     }
     let prepareTx = await account.prepareTx(details)
-    console.log('prepareTx', prepareTx, JSON.stringify(prepareTx, null, 2))
+    // console.log('prepareTx', prepareTx, JSON.stringify(prepareTx, null, 2))
     prepareTx.should.deep.equal({
       expirationAfter: 600,
       actions: [
@@ -81,5 +87,8 @@ describe('EosAccount', function () {
         }
       ]
     })
+    let buildTx = await account.buildTx(prepareTx)
+    console.log('buildTx', buildTx, JSON.stringify(buildTx, null, 2))
+    buildTx.should.not.equal(undefined)
   })
 })

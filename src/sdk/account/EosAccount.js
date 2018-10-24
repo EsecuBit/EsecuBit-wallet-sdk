@@ -206,17 +206,21 @@ export default class EosAccount extends IAccount {
 
     presignTx.keyPaths = []
     for (let action of presignTx.actions) {
-      let permission = this.permissions[action.authorization.permission]
-      if (!permission) {
-        console.warn('key path of relative permission not found', action)
-        throw D.error.permissionNotFound
-      }
-      if (!presignTx.keyPaths.includes(permission.keyPath)) {
-        presignTx.keyPaths.push(permission.keyPath)
+      for (let auth of action.authorization) {
+        let permission = this.permissions[auth.permission]
+        if (!permission) {
+          console.warn('key path of relative permission not found', action)
+          throw D.error.permissionNotFound
+        }
+        permission.forEach(p => {
+          if (!presignTx.keyPaths.includes(p.keyPath)) {
+            presignTx.keyPaths.push(p.keyPath)
+          }
+        })
       }
     }
     console.log('presign tx', presignTx)
-    let {txId, signedTx} = await this._device.sign(this.coinType, presignTx)
+    let {txId, signedTx} = await this._device.signTransaction(this.coinType, presignTx)
 
     // TODO complete
     let txInfo = {}
