@@ -348,10 +348,10 @@ export default class WalletData {
     }
 
     let app = walletInfo
-    console.info('sync wallet data app', app)
+    console.log('sync wallet data app', app)
 
     let device = await this.getWalletInfo()
-    console.info('sync wallet data device', device)
+    console.log('sync wallet data device', device)
 
     if (device && app.walletId !== device.walletId) {
       console.warn('wallet id not match, stopped', app.walletId, device.walletId)
@@ -359,7 +359,7 @@ export default class WalletData {
     }
 
     if (!device) {
-      console.info('wallet info not found, set walletDataVersion = -1')
+      console.log('wallet info not found, set walletDataVersion = -1')
       device = {walletDataVersion: -1}
     }
 
@@ -370,33 +370,33 @@ export default class WalletData {
 
     let updateFlag = 0
     if (app.walletDataVersion > lastSyncVersion) {
-      console.info('app.version > lastSyncVersion, need update to device')
+      console.log('app.version > lastSyncVersion, need update to device')
       updateFlag |= 0x01
     }
 
     if (device.walletDataVersion === lastSyncVersion) {
       if (app.walletDataVersion === lastSyncVersion) {
-        console.info('wallet data no change, nothing to do')
+        console.log('wallet data no change, nothing to do')
         return {needUpdate: false}
       }
     } else if (device.walletDataVersion < lastSyncVersion) {
       console.warn('device.version < lastSyncVersion, device\'s data may reset of broken, need update to device')
       updateFlag |= 0x01
     } else {
-      console.info('device.version > app.version, need update from device')
+      console.log('device.version > app.version, need update from device')
       updateFlag |= 0x02
     }
 
     let deviceAccountInfos
     switch (updateFlag) {
       case 0x01:
-        console.info('app modified the wallet data, update to device')
+        console.log('app modified the wallet data, update to device')
         await this.setAccountInfos(accountInfos)
         await this.setWalletInfo(app)
         return {needUpdate: false}
 
       case 0x02:
-        console.info('device modified the wallet data, update from device')
+        console.log('device modified the wallet data, update from device')
         deviceAccountInfos = await this.getAccountInfos(device)
         return {
           needUpdate: true,
@@ -451,7 +451,7 @@ export default class WalletData {
           }
         }
 
-        console.info('wallet data sync updatedAccounts', updatedAccounts)
+        console.log('wallet data sync updatedAccounts', updatedAccounts)
         await this.setAccountInfos(updatedAccounts)
         await this.setWalletInfo(newerWalletInfo)
         return {

@@ -52,30 +52,66 @@ export default class IndexedDB extends IDatabase {
          *   changePublicKeyIndex: int // current change address index
          *
          *   // eos
-         *   resource: {
-         *     totalRam: number,
-         *     remainRam: number,
-         *     totalBandwidth: number,
-         *     remainBandwidth: number,
-         *     totalCpu: number,
-         *     remainCpu: number,
+         *   actionSeq: number,
+         *   tokens: {
+         *     EOS: {
+         *       code: eosio.token,
+         *       symbol: EOS,
+         *       value: number
+         *     },
+         *     ...
+         *   }
+         *   resources: {
+         *     ram: {
+         *       weight: number,
+         *       used: number,
+         *       total: number
+         *     }
+         *     net: {
+         *       weight: number,
+         *       used: number,
+         *       available: number,
+         *       max: number,
+         *     }
+         *     cpu: {
+         *       used: number,
+         *       available: number,
+         *       max: number,
+         *     }
          *     stake: {
-         *       total: number,
-         *       bandwidth: number,
-         *       cpu: number
+         *       total: {
+         *         bandwidth: number,
+         *         cpu: number
+         *       }
+         *     }
+         *     vote: {
+         *       proxy: string,
+         *       producers: [string],
+         *       staked: number,
+         *       isProxy: bool
          *     }
          *   }
          *   permissions: {
-         *     owner: [{
-         *       permission: owner,
-         *       publicKey: string,
-         *       path: string
-         *     }],
-         *     active: [{
-         *       permission: active,
-         *       publicKey: string,
-         *       path: string
-         *     }],
+         *     owner: {
+         *       name: 'owner',
+         *       parent: string,
+         *       threshold: number,
+         *       keys: [{
+         *         publicKey: string,
+         *         weight: number,
+         *         path: string
+         *       }, ...]
+         *     },
+         *     active: {
+         *       name: 'active',
+         *       parent: string,
+         *       threshold: number,
+         *       pKeys: [{
+         *         publicKey: string,
+         *         weight: number,
+         *         path: string
+         *       }, ...]
+         *     },
          *     ...
          *   }
          * }
@@ -115,8 +151,9 @@ export default class IndexedDB extends IDatabase {
          *   direction: D.tx.direction.in / D.tx.direction.out,
          *   inputs: [{prevAddress, value, isMine}, ...]
          *   outputs: [{address, value, isMine}, ...]
-         *   showAddresses: [address] // addresses shown in the tx list, senders if you are receiver, recivers if not
+         *   showAddresses: [address] // addresses shown in the tx list, senders if you are receiver, and receivers if not
          *   value: string (decimal string Wei), // value that shows the account balance changes, calculated by inputs and outputs
+         *
          *   gas: string (decimal string Wei),
          *   gasPrice: string (decimal string Wei),
          *   fee: gas * gasPrice,
@@ -133,19 +170,18 @@ export default class IndexedDB extends IDatabase {
          *   blockNumber: number,
          *   confirmations: number, // see D.tx.confirmation
          *   time: number,
-         *   // direction: D.tx.direction.in / D.tx.direction.out, // only for transfer action
-         *   // showAddresses: [address, ...] // addresses shown in the tx list, senders if you are receiver, recivers if not
-         *   // value: decimal integer string, // value that shows the account balance changes, calculated by inputs and outputs
+         *   // direction: D.tx.direction.in / D.tx.direction.out
+         *   // inputs: [{prevAddress, value, isMine}, ...]
+         *   // outputs: [{address, value, isMine}, ...]
+         *   // showAddresses: [address, ...]
+         *   // value: decimal integer string,
          *   comment: string, // comment in local
          *
          *   actions: [{account, name, authorization, data}...],
-         *   memo: string, // comment in transaction
-         *   expiration: number,
-         *   refBlockNum: number,
-         *   refBlockPrefix: number,
-         *   maxNetUsageWords: number,
-         *   maxCpuUsageMs: number,
-         *   delaySec: number
+         *   showData: {
+         *     type: string,
+         *     ...
+         *   }
          * }
          */
         if (!db.objectStoreNames.contains('txInfo')) {

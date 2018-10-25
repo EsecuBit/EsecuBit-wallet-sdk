@@ -219,8 +219,13 @@ export default class JsWallet {
 
     let hash = createHash('sha256').update(signBuf).digest()
 
-    let signedTx = D.copy(tx)
-    signedTx.signatures = []
+    tx = D.copy(tx)
+    let signedTx = {
+      compression: 'none',
+      packedContextFreeData: '',
+      packed_rtx: rawTx.toString('hex'),
+      signatures: []
+    }
     for (let keyPath of tx.keyPaths) {
       let node = await this._derive(keyPath)
       let [recId, r, s] = this._sign(hash, node.keyPair.d)
@@ -235,7 +240,6 @@ export default class JsWallet {
       signedTx.signatures.push('SIG_K1_' + signature)
     }
 
-    delete signedTx.keyPaths
     let txId = createHash('sha256').update(rawTx).digest().toString('hex')
     return {txId, signedTx}
   }

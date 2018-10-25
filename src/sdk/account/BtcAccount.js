@@ -50,7 +50,7 @@ export default class BtcAccount extends IAccount {
           i.prevAddress === input.prevAddress &&
           i.prevOutIndex === input.prevOutIndex))
       if (reusedTxInfo) {
-        console.info('utxo has been reused', input, removedTxInfo)
+        console.log('utxo has been reused', input, removedTxInfo)
       } else {
         revertUtxo.status = D.utxo.status.unspent
         updateUtxos.push(revertUtxo)
@@ -155,7 +155,7 @@ export default class BtcAccount extends IAccount {
    * update account, store utxo, addressInfo, txInfo
    */
   async _handleNewTxInner (txInfo, utxos) {
-    console.log('newTransaction, utxos', txInfo, utxos)
+    console.log('btc newTransaction, utxos', txInfo, utxos)
 
     while (this.innerBusy) {
       await D.wait(2)

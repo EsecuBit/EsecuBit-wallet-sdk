@@ -68,7 +68,7 @@ describe('JsWallet Ethernum', function () {
       startGas: 210000,
       data: ''
     })
-    console.info('eth sign response', response)
+    console.log('eth sign response', response)
     response.should.deep.equal({
       id: '0xf2f1a4e19d604793d60caf7766c49b73333dc4b52b9b9d4194498e7d1d766aab',
       hex: 'f868808477359400809406b9d168c569b29e0728b7a1560d85123b622b9d872386f26fc10000802ba083a415c97d085c7e857caa343f7b1f84cf3a049ec7b928b3fe85ecf3de35c29ba0401eee7baa9e2da68cadf1e2de3f1275a5f3a57fbd16684580c922588058d567'

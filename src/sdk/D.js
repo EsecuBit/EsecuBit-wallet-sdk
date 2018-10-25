@@ -57,6 +57,9 @@ const D = {
     networkGasTooLow: 408,
     networkGasPriceTooLow: 409,
 
+    networkEosTokenNotFound: 410,
+    networkEosTxExpired: 450,
+
     balanceNotEnough: 501,
     tooManyOutputs: 502,
 
@@ -199,7 +202,7 @@ const D = {
         buffer = bech32.fromWords(decodedBech32.words.slice(1))
         if (buffer.length === 20) return D.address.p2pkh
         if (buffer.length === 32) return D.address.p2wsh
-        console.info('address', address, 'is bech32 encoded but has invalid length')
+        console.log('address', address, 'is bech32 encoded but has invalid length')
 
         // hardware wallet not support yet
         if (!D.test.jsWallet) throw D.error.invalidAddress
@@ -436,7 +439,8 @@ const D = {
       dropped: -2,
       pending: -1,
       inMemory: 0,
-      irreversible: Number.MAX_SAFE_INTEGER // for eos
+      waiting: 0, // for eos
+      excuted: 1 // for eos
     },
 
     getMatureConfirms (coinType) {

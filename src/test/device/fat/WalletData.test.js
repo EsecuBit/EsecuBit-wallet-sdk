@@ -19,15 +19,15 @@ describe('WalletData', function () {
   })
 
   const testParseAndBuild = (object) => {
-    console.info('object', object)
+    console.log('object', object)
     let data = WalletData._toTLV(object)
-    console.info('data', data.toString('hex'))
+    console.log('data', data.toString('hex'))
     let object2 = WalletData._parseTLV(data)
-    console.info('object2', object2)
+    console.log('object2', object2)
     object.should.deep.equal(object2)
 
     let data2 = WalletData._toTLV(object2)
-    console.info('data2', data.toString('hex'))
+    console.log('data2', data.toString('hex'))
     data.should.deep.equal(data2)
   }
 
