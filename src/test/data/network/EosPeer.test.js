@@ -6,7 +6,7 @@ import EosPeer from '../../../sdk/data/network/EosPeer'
 chai.should()
 describe('Network EosPeer EOS', function () {
   this.timeout(10000)
-  const eosPeer = new EosPeer(D.coin.main.eos)
+  const eosPeer = new EosPeer(D.coin.test.eosJungle)
 
   before(async function () {
     await eosPeer.init()
@@ -96,7 +96,6 @@ describe('Network EosPeer EOS', function () {
     let maxSeq = await eosPeer.getMaxActionSeq('esecubit1111')
     console.log('EosPeer queryAddress', txs, maxSeq)
     for (let tx of txs) {
-      console.warn(tx)
       tx.txId.should.be.a('string')
       tx.blockNumber.should.at.least(1)
       tx.confirmations.should.equal(D.tx.confirmation.excuted)

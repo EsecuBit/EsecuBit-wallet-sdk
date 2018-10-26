@@ -207,6 +207,14 @@ const FcBuffer = {
         to: 'name',
         quantity: 'asset',
         memo: 'string'
+      },
+      EosIoDelegatebw: {
+        _name: 'delegatebw',
+        from: 'name',
+        receiver: 'name',
+        stake_net_quantity: 'asset',
+        stake_cpu_quantity: 'asset',
+        transfer: 'uint8'
       }
     }
   },

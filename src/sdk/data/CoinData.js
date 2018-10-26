@@ -316,7 +316,10 @@ export default class CoinData {
   async getEosBlockInfo (coinType) {
     // TODO complete
     console.warn('implement CoinData.getEosBlockInfo()!')
-    return {ref_block_num: 56170, ref_block_prefix: 3374189397}
+    // main
+    // return {ref_block_num: 56170, ref_block_prefix: 3374189397}
+    // jungle
+    return {ref_block_num: 713, ref_block_prefix: 3472406222}
   }
 
   getSuggestedFee (coinType) {

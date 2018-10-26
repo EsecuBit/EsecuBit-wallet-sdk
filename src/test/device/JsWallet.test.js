@@ -8,6 +8,7 @@ chai.should()
 
 D.test.coin = false
 const jsWallet = new JsWallet()
+// This seed has no value. Trust me.
 // menmonic: quick hurt retire forget pupil street twin volcano width word leaf salt
 const seed = '19bc2ed769682d9fc0d08b9a1f59306a5a1e63f140d5743c6a4076cc6b588e32b25c308e07fb0a16354463530c827c85bac67832794fa4798a701b063d01a341'
 
@@ -114,12 +115,60 @@ describe('JsWallet EOS', function () {
   it('serialTx', function () {
     let response = FcBuffer.serializeTx(tx)
     console.log('serializeTx result', response.toString('hex'))
-    response.should.deep.equal(
-      Buffer.from('34b5b45b6adb550b1ec9000000000100a6823403ea3055000000572d3ccdcd01000000000093dd7400000000a8ed323221000000000093dd74000000008093dd74701101000000000004535953000000000000', 'hex'))
+    response.toString('hex').should.equal('34b5b45b6adb550b1ec9000000000100a6823403ea3055000000572d3ccdcd01000000000093dd7400000000a8ed323221000000000093dd74000000008093dd74701101000000000004535953000000000000')
+  })
+
+  it('serialTx2', function () {
+    let _getTimeStamp = (dateString) => {
+      let localDate = new Date(dateString)
+      let localTime = localDate.getTime()
+      let localOffset = localDate.getTimezoneOffset() * 60 * 1000
+      return Math.floor(new Date(localTime - localOffset).getTime() / 1000)
+    }
+
+    const tx2 = {
+      expiration: _getTimeStamp('2018-10-23T09:48:01'),
+      ref_block_num: 17509,
+      ref_block_prefix: 3794446749,
+      max_net_usage_words: 0,
+      max_cpu_usage_ms: 0,
+      delay_sec: 0,
+      context_free_actions: [],
+      actions: [{
+        account: 'eosio',
+        name: 'delegatebw',
+        authorization: [
+          {
+            actor: 'esecubit1111',
+            permission: 'active'
+          }
+        ],
+        data: {
+          from: 'esecubit1111',
+          receiver: 'esecubit1111',
+          stake_net_quantity: '0.0000 EOS',
+          stake_cpu_quantity: '0.3000 EOS',
+          transfer: 0
+        }
+      }],
+      transaction_extensions: []
+    }
+    let response = FcBuffer.serializeTx(tx2)
+    console.log('serializeTx result', response.toString('hex'))
+    response.toString('hex').should.equal('51eece5b65449da92ae200000000010000000000ea305500003f2a1ba6a24a01104208d91d8d145600000000a8ed323231104208d91d8d1456104208d91d8d1456000000000000000004454f5300000000b80b00000000000004454f53000000000000')
+  })
+
+  it('getPublicKey', async function () {
+    let owner = await jsWallet.getPublicKey(D.coin.test.eosJungle, "m/48'/4'/0'/0'/0'")
+    let active = await jsWallet.getPublicKey(D.coin.test.eosJungle, "m/48'/4'/1'/0'/0'")
+    console.log('eos publicKey owner', owner)
+    console.log('eos publicKey active', active)
+    owner.should.not.equal(undefined)
+    active.should.not.equal(undefined)
   })
 
   it('signTransaction', async function () {
-    let {txId, signedTx} = await jsWallet._signEos(D.coin.main.eos, tx)
+    let {txId, signedTx} = await jsWallet.signTransaction(D.coin.main.eos, tx)
     console.log('eos sign signatures', txId, signedTx)
   })
 
@@ -155,34 +204,11 @@ describe('JsWallet EOS', function () {
     console.log('eos sign signatures', txId, JSON.stringify(signedTx, null, 2))
     txId.should.equal('7d4924cbd382cbb9fb4f260d4b0f272ebaadfeba566d54835c632de424a54884')
     signedTx.should.deep.equal({
-      expiration: 1540211560,
-      ref_block_num: 60832,
-      ref_block_prefix: 2249681555,
-      max_net_usage_words: 0,
-      max_cpu_usage_ms: 0,
-      delay_sec: 0,
-      context_free_actions: [],
-      actions: [
-        {
-          account: 'okkkkkkkkkkk',
-          name: 'transfer',
-          authorization: [
-            {
-              actor: 'bosbosbosbos',
-              permission: 'active'
-            }
-          ],
-          data: {
-            'from': 'bosbosbosbos',
-            to: 'todaytotoday',
-            quantity: '100 BOS',
-            memo: 'BOS CAMPAİGN: You win 500 BOS. Youre luck'
-          }
-        }
-      ],
-      transaction_extensions: [],
+      compression: 'none',
+      packedContextFreeData: '',
+      packed_trx: '68c3cd5ba0ed936a1786000000000100218410420821a4000000572d3ccdcd0180e9c1f4607a303d00000000a8ed32324b80e9c1f4607a303de04da299666f12cd640000000000000000424f53000000002a424f532043414d5041c4b0474e3a20596f752077696e2035303020424f532e20596f757265206c75636b00',
       signatures: [
-        'SIG_K1_KoQbR8eyLnHH8aTTaJQt2MLDFKbB2ScvPxyEwjKFSwKujJQedRMirgmde9e2wumKK1zfog3jZBPyKjUrW9g5Ngy7zxNJ4y'
+        'SIG_K1_AcVyDsxQFvh2Vsis3STixQ6LywyNKbS8vdNgz6HzijUWfPxqCbq8Rd8mjqpYxuijZe4BNyGo46aBHTxA414rxQsvxig41F6w3'
       ]
     })
   })

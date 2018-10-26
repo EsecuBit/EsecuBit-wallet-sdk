@@ -78,6 +78,7 @@ export default class EosAccount extends IAccount {
    *   }],
    *   actions: [{...}, ...],
    *   expirationAfter: decimal string / number (optional),
+   *   expiration: decimal string / number (optional), // ignore if expirationAfter exists
    *   maxNetUsageWords: decimal integer string / number (optional),
    *   maxCpuUsageMs: decimal integer string / number (optional),
    *   delaySec: decimal integer string / number (optional),
@@ -133,10 +134,14 @@ export default class EosAccount extends IAccount {
     }
 
     let prepareTx = {}
-    prepareTx.expirationAfter = details.expirationAfter || defaultExpirationAfter
     if (details.expirationAfter) {
       prepareTx.expirationAfter = Number(details.expirationAfter)
+    } else if (details.expiration) {
+      prepareTx.expiration = Number(details.expiration)
+    } else {
+      prepareTx.expirationAfter = defaultExpirationAfter
     }
+
     if (details.maxNetUsageWords) {
       prepareTx.maxNetUsageWords = Number(details.maxNetUsageWords)
     }
@@ -192,8 +197,11 @@ export default class EosAccount extends IAccount {
       prepareTx.refBlockPrefix = prepareTx.refBlockPrefix || blockInfo.ref_block_prefix
     }
 
+    let expiration = prepareTx.expirationAfter
+      ? Math.floor(new Date().getTime() / 1000) + prepareTx.expirationAfter
+      : prepareTx.expiration
     let presignTx = {
-      expiration: Math.floor(new Date().getTime() / 1000) + prepareTx.expirationAfter,
+      expiration: expiration,
       ref_block_num: prepareTx.refBlockNum,
       ref_block_prefix: prepareTx.refBlockPrefix,
       max_net_usage_words: prepareTx.maxNetUsageWords || 0,
@@ -223,7 +231,9 @@ export default class EosAccount extends IAccount {
     let {txId, signedTx} = await this._device.signTransaction(this.coinType, presignTx)
 
     // TODO complete
-    let txInfo = {}
+    let txInfo = {
+      txId: txId
+    }
     delete signedTx.keyPaths
 
     return {signedTx, txInfo}

@@ -71,11 +71,18 @@ export default class JsWallet {
     }
   }
 
-  async getPublicKey (publicKeyPath) {
-    let node = await this._derive(publicKeyPath)
-    let publicKey = node.getPublicKeyBuffer().toString('hex')
-    let chainCode = node.chainCode.toString('hex')
-    return {publicKey, chainCode}
+  async getPublicKey (coinType, keyPath) {
+    let node = await this._derive(keyPath)
+    let publicKey = node.getPublicKeyBuffer()
+    // let chainCode = node.chainCode
+
+    if (D.isEos(coinType)) {
+      let checksum = createHash('ripemd160').update(publicKey).digest().slice(0, 4)
+      publicKey = 'EOS' + base58.encode(Buffer.concat([publicKey, checksum]))
+    } else {
+      publicKey.toString('hex')
+    }
+    return publicKey
   }
 
   async getAddress (coinType, addressPath) {
@@ -223,7 +230,7 @@ export default class JsWallet {
     let signedTx = {
       compression: 'none',
       packedContextFreeData: '',
-      packed_rtx: rawTx.toString('hex'),
+      packed_trx: rawTx.toString('hex'),
       signatures: []
     }
     for (let keyPath of tx.keyPaths) {
@@ -235,7 +242,8 @@ export default class JsWallet {
       r.copy(buffer, 1)
       s.copy(buffer, 33)
 
-      let check = createHash('ripemd160').update(buffer).digest().slice(0, 4)
+      let checkBuffer = Buffer.concat([buffer, Buffer.from('K1')])
+      let check = createHash('ripemd160').update(checkBuffer).digest().slice(0, 4)
       let signature = base58.encode(Buffer.concat([buffer, check]))
       signedTx.signatures.push('SIG_K1_' + signature)
     }
@@ -319,6 +327,9 @@ export default class JsWallet {
 
       r = Q.affineX.mod(n)
       if (r.signum() === 0) return false
+      // eos canonical signature, both r and s should be < 0x80
+      // see https://github.com/EOSIO/eosjs-ecc/commit/09c823ac4c4fb4f7257d8ed2df45a34215a8c537
+      if (r.compareTo(N_OVER_TWO) > 0) return false
 
       // for recId, see https://bitcoin.stackexchange.com/questions/38351/ecdsa-v-r-s-what-is-v
       recId = Q.affineY.mod(BigInteger.fromHex('02')).intValue()
@@ -327,6 +338,7 @@ export default class JsWallet {
       // noinspection RedundantIfStatementJS
       if (s.signum() === 0) return false
 
+      // make s be lower s
       if (s.compareTo(N_OVER_TWO) > 0) {
         s = n.subtract(s)
         recId = recId ? 0 : 1

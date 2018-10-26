@@ -1,17 +1,38 @@
 import ICoinNetwork from './ICoinNetwork'
 import D from '../../D'
 
+// jungle
+const jungle = {
+  httpEndpoint: 'http://dev.cryptolions.io:38888/',
+  provider: 'dev.cryptolions.io'
+}
+
 // TODO configurable
-// const httpEndpoint = 'http://api.hkeos.com:80/'
-const httpEndpoint = 'https://eos.greymass.com/'
+const main = {
+  // httpEndpoint: 'http://api.hkeos.com:80/',
+  httpEndpoint: 'https://eos.greymass.com/',
+  provider: 'eos.greymass.com'
+}
+
 const eosParkTxUrl = 'https://eospark.com/MainNet/tx/'
-const provider = 'eos.greymass.com'
 
 export default class EosPeer extends ICoinNetwork {
   async init () {
     this._maxActionSeq = {}
-    this.provider = provider
-    this._apiUrl = httpEndpoint
+
+    switch (this.coinType) {
+      case D.coin.main.eos:
+        this.provider = main.provider
+        this._apiUrl = main.httpEndpoint
+        break
+      case D.coin.test.eosJungle:
+        this.provider = jungle.provider
+        this._apiUrl = jungle.httpEndpoint
+        break
+      default:
+        console.warn('EosPeer don\'t support this coinType yet', this.coinType)
+        throw D.error.coinNotSupported
+    }
     this._txUrl = eosParkTxUrl
     if (!this._apiUrl) throw D.error.coinNotSupported
     return super.init()
@@ -20,19 +41,17 @@ export default class EosPeer extends ICoinNetwork {
   async post (url, args) {
     let response = await super.post(url, args)
     if (response.code) {
-      console.warn('EosPeer post error', httpEndpoint, response)
+      console.warn('EosPeer post error', response)
       switch (response.error.code) {
         case 3040005:
           throw D.error.networkEosTxExpired
+        case 3090003:
+          throw D.error.networkEosUnsatisfiedAuth
         default:
           throw D.error.networkTxNotFound
       }
     }
-    if (!response.result) {
-      console.warn('etherscan.io post result null', response)
-      throw D.error.networkProviderError
-    }
-    return response.result
+    return response
   }
 
   getTxLink (txInfo) {
@@ -151,7 +170,7 @@ export default class EosPeer extends ICoinNetwork {
     let localDate = new Date(dateString)
     let localTime = localDate.getTime()
     let localOffset = localDate.getTimezoneOffset() * 60 * 1000
-    return new Date(localTime - localOffset).getTime()
+    return Math.floor(new Date(localTime - localOffset).getTime() / 1000)
   }
 
   async getIrreversibleBlockInfo () {
@@ -207,7 +226,7 @@ export default class EosPeer extends ICoinNetwork {
         vote: {
           proxy: ret.voter_info.proxy,
           producers: ret.voter_info.producers,
-          staked: (ret.voter_info.staked / 10000).toString(),
+          staked: Math.floor(ret.voter_info.staked / 10000).toString(),
           isProxy: ret.voter_info.is_proxy !== 0
         }
       }

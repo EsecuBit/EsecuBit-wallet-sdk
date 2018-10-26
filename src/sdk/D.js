@@ -57,8 +57,9 @@ const D = {
     networkGasTooLow: 408,
     networkGasPriceTooLow: 409,
 
-    networkEosTokenNotFound: 410,
-    networkEosTxExpired: 450,
+    networkEosTokenNotFound: 450,
+    networkEosTxExpired: 451,
+    networkEosUnsatisfiedAuth: 452,
 
     balanceNotEnough: 501,
     tooManyOutputs: 502,
