@@ -7,6 +7,8 @@ import {BigDecimal} from 'bigdecimal'
 import bech32 from 'bech32'
 
 const D = {
+  sdkVersion: require('../../package.json').version,
+
   // wallet status
   status: {
     plugIn: 1,

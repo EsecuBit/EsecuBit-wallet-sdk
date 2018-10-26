@@ -37,10 +37,9 @@ export default class JsWallet {
 
   // noinspection JSMethodCanBeStatic
   async getWalletInfo () {
-    // TODO auto update sdk version
     return {
-      sdk_version: '0.4.0',
-      cos_version: '20180927'
+      sdk_version: D.sdkVersion,
+      cos_version: '20181026'
     }
   }
 
