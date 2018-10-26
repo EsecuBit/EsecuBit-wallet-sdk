@@ -47,7 +47,14 @@ Digital Currency Exchange:
 
 ## Import SDK
 
-1. Add dependency in package.json -> dependencies
+1. Add dependency
+```
+// lastest on npm: 0.4.0
+npm install esecubit-wallet-sdk
+```
+
+Or add it in package.json -> dependencies if you want the latest version:
+
 ```javascript
 dependencies {
   "esecubit-wallet-sdk": "git+https://github.com/EsecuBit/EsecuBit-wallet-sdk.git"
@@ -102,6 +109,9 @@ D.test.testCoin = false // use mainnet, dafault true (default testnet)
 ```
 
 2. Connect Device and Finish Initialization
+
+**Caution: You should not allow user to make transactions before sync finished!!**
+
 ```javascript
 import {D, EsWallet} from 'esecubit-wallet-sdk'
 
