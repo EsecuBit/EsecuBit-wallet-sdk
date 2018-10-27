@@ -35,6 +35,11 @@
                 {
                     "vendorId": 7848,   // 0x1ea8
                     "productId": 49206  // 0xc036
+                },
+                // S300
+                {
+                    "vendorId": 7848,   // 0x1ea8
+                    "productId": 32778  // 0x800a
                 }
             ]
         }
