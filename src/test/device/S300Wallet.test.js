@@ -1,7 +1,7 @@
 
 import D from '../../sdk/D'
 import Provider from '../../sdk/Provider'
-import CoreWallet from '../../sdk/device/CoreWallet'
+import S300Wallet from '../../sdk/device/CoreWallet'
 import ChromeUsbDevice from '../../sdk/device/transmit/io/ChromeUsbDevice'
 import chai from 'chai'
 
@@ -14,7 +14,7 @@ describe('S300Wallet', function () {
 
   it('init', () => {
     D.test.mockDevice = false
-    coreWallet = new CoreWallet()
+    coreWallet = new S300Wallet()
   })
 
   it('listenPlug', function (done) {
@@ -26,9 +26,9 @@ describe('S300Wallet', function () {
     })
   })
 
-  it('getRandom by apdu', async () => {
+  it('test', async () => {
     let response = await coreWallet._sendApdu('0084000008', false)
-    response.length.should.equal(8)
+    console.warn('response', response)
   })
   //
   // it('get address by apdu', async () => {

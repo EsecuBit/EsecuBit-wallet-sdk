@@ -2,10 +2,13 @@ import D from './D'
 import IndexedDB from './data/database/IndexedDB'
 import JSWallet from './device/JsWallet'
 import CoreWallet from './device/CoreWallet'
+
 import HidTransmitter from './device/transmit/HidTransmitter'
 import _MockTransmitter from './device/transmit/MockTransmitter'
 import ChromeHidDevice from './device/transmit/io/ChromeHidDevice'
 import _MockDevice from './device/transmit/io/MockDevice'
+
+import ChromeUsbDevice from './device/transmit/io/ChromeUsbDevice'
 
 const Provider = {
   getDB () { return this.DB },
@@ -16,9 +19,12 @@ const Provider = {
   DB: IndexedDB,
   SoftWallet: JSWallet,
   HardWallet: CoreWallet,
+
   MockTransmitter: _MockTransmitter,
   HardTransmitter: HidTransmitter,
+
   MockDevice: _MockDevice,
-  HardDevice: ChromeHidDevice
+  HardDevice: ChromeHidDevice,
+  UsbDevice: ChromeUsbDevice
 }
 export default Provider

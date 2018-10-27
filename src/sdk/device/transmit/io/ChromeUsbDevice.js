@@ -11,9 +11,6 @@
 import D from '../../../D'
 import IEsDevice from './IEsDevice'
 
-/**
- * @deprecated
- */
 export default class ChromeUsbDevice extends IEsDevice {
   constructor () {
     super()
