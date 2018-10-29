@@ -191,15 +191,8 @@ export default class EosPeer extends ICoinNetwork {
     let args = JSON.stringify({account_name: accountName})
     let ret = await this.post(url, args)
 
-    const splitPaddingZero = (tokenValue) => {
-      let value = tokenValue.split(' ')[0]
-      let calPadZero = (zlen, c) => c === '0' ? zlen + 1 : 0
-      let zLen = Array.reduce.call(value, value, calPadZero, 0)
-      return value.slice(0, value.length - zLen)
-    }
-
     let accountInfo = {
-      balance: splitPaddingZero(ret.core_liquid_balance),
+      balance: ret.core_liquid_balance,
       resources: {
         ram: {
           used: ret.ram_usage,
@@ -219,8 +212,8 @@ export default class EosPeer extends ICoinNetwork {
         },
         stake: {
           total: {
-            net: splitPaddingZero(ret.total_resources.net_weight),
-            cpu: splitPaddingZero(ret.total_resources.cpu_weight)
+            net: ret.total_resources.net_weight,
+            cpu: ret.total_resources.cpu_weight
           }
         },
         vote: {
@@ -247,7 +240,7 @@ export default class EosPeer extends ICoinNetwork {
       this._getTokenBalance(token.code, token.symbol, accountName)))
     responses.forEach(ret => {
       let symbol = ret.split(' ')[1]
-      accountInfo.tokens[symbol].value = splitPaddingZero(ret)
+      accountInfo.tokens[symbol].value = ret.split(' ')[0]
     })
 
     return accountInfo

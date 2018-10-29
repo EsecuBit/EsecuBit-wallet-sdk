@@ -4,9 +4,21 @@ import IAccount from './IAccount'
 import {BigDecimal} from 'bigdecimal'
 
 const tokenList = {
-  'EOS': 'eosio.token',
-  'SYS': 'eosio.token',
-  'JUNGLE': 'eosio.token'
+  'EOS': {
+    name: 'EOS',
+    account: 'eosio.token',
+    precision: 4
+  },
+  'SYS': {
+    name: 'SYS',
+    account: 'eosio.token',
+    precision: 4
+  },
+  'JUNGLE': {
+    name: 'JUNGLE',
+    account: 'eosio.token',
+    precision: 4
+  }
 }
 
 const txType = {
@@ -59,6 +71,7 @@ export default class EosAccount extends IAccount {
    *   }],
    *   sendAll: bool (optional),
    *   account: string (optional), // contract name
+   *   precision: decimal string / number (optional),
    *   expirationAfter: decimal string / number (optional),
    *   maxNetUsageWords: decimal integer string / number (optional),
    *   maxCpuUsageMs: decimal integer string / number (optional),
@@ -90,11 +103,13 @@ export default class EosAccount extends IAccount {
   async _prepareTransfer (details) {
     const defaultExpirationAfter = 10 * 60 // seconds
 
-    details.account = details.account || tokenList[details.token]
+    let token = tokenList[details.token]
+    details.account = details.account || token.account
     if (!details.account || typeof details.account !== 'string' || details.account.length > 12) {
       console.warn('invalid account', details)
       throw D.error.invalidParams
     }
+    let tokenPrecision = details.precision || token.precision
 
     if (!details.outputs) {
       details.outputs = []
@@ -109,7 +124,7 @@ export default class EosAccount extends IAccount {
     }
 
     for (let output of details.outputs) {
-      if (Number(output.value) < 0) {
+      if (!output.account || !output.value || Number(output.value) < 0) {
         console.warn('invalid value', output)
         throw D.error.invalidParams
       }
@@ -122,6 +137,12 @@ export default class EosAccount extends IAccount {
       if (precision > 18) { // eosjs format.js
         console.warn('Precision should be 18 characters or less', details)
         throw D.error.invalidParams
+      } else if (precision > tokenPrecision) {
+        console.warn('precision bigger than token specific precision', details, tokenPrecision)
+        throw D.error.invalidParams
+      } else {
+        if (parts[1] === undefined) output.value += '.'
+        output.value += '0'.repeat(tokenPrecision - precision)
       }
     }
 
