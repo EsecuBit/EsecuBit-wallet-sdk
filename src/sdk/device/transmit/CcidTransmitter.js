@@ -35,12 +35,22 @@ export default class CcidTransmitter {
   async _sendApdu (apdu) {
     let {result, response} = await this._transmit(apdu)
 
-    // device busy
+    // 9060 means busy, send 00c0000000 immediately to get response
     while (result === 0x9060) {
       let waitCmd = Buffer.from('000c0000000', 'hex')
       let {_result, _response} = await this._transmit(waitCmd)
       result = _result
       response = _response
+    }
+
+    // 61XX means there are still XX bytes to get
+    while ((result & 0xFF00) === 0x6100) {
+      console.debug('got 0x61XX, get remain data')
+      let rApdu = Buffer.from('00C0000000', 'hex')
+      rApdu[0x04] = result & 0xFF
+      let ret = await this._transmit(rApdu)
+      response = Buffer.concat([response, ret.response])
+      result = ret.result
     }
 
     CcidTransmitter._checkSw1Sw2(result)

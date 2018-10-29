@@ -338,9 +338,9 @@ export default class HidTransmitter {
       console.debug('got 0x61XX, get remain data')
       let rApdu = Buffer.from('00C0000000', 'hex')
       rApdu[0x04] = result & 0xFF
-      let {_result, _response} = await this._transmit(rApdu)
-      response = Buffer.concat([response, _response])
-      result = _result
+      let ret = await this._transmit(rApdu)
+      response = Buffer.concat([response, ret.response])
+      result = ret.result
     }
     HidTransmitter._checkSw1Sw2(result)
 
