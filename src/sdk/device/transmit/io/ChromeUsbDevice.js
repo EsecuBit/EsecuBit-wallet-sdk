@@ -6,14 +6,14 @@
 /** @namespace chrome.usb.onDeviceRemoved */
 /** @namespace chrome.usb.getDevices */
 /** @namespace chrome.runtime.lastError */
-/** @namespace chrome.usb.controlTransfer */
+/** @namespace chrome.usb.bulkTransfer */
+/** @namespace chrome.usb.listInterfaces */
+/** @namespace chrome.usb.claimInterface */
 
 import D from '../../../D'
-import IEsDevice from './IEsDevice'
 
-export default class ChromeUsbDevice extends IEsDevice {
+export default class ChromeUsbDevice {
   constructor () {
-    super()
     this._deviceId = null
     this._connectionHandle = null
     this._listener = null
@@ -28,35 +28,23 @@ export default class ChromeUsbDevice extends IEsDevice {
         this._connectionHandle = connectionHandle
         console.log('Connected to the USB device!', connectionHandle)
 
-        // setTimeout(function () {
-        //   chrome.usb.listInterfaces(connectionHandle, function(descriptors) {
-        //     for (var des in descriptors) {
-        //       console.log('device interface info: ')
-        //       console.dir(descriptors[des])
-        //     }
-        //   })
-        //
-        //   chrome.usb.claimInterface(connectionHandle, 0, function() {
-        //     if (chrome.runtime.lastError) {
-        //       console.warn('chrome.usb.claimInterface error: ' + chrome.runtime.lastError.message)
-        //       // if (that._listener !== null) {
-        //       //   that._listener(D.error.deviceConnectFailed, true)
-        //       // }
-        //       // return
-        //     }
-        //     console.log('Claimed')
-        //     that.sendAndReceive(toBuffer('030604803300000ABD080000000000000000000000000000'), function () {
-        //
-        //     })
-        //     if (that._listener !== null) {
-        //       that._listener(D.error.succeed, true)
-        //     }
-        //   })
-        // }, 500)
+        chrome.usb.listInterfaces(connectionHandle, (descriptors) => {
+          console.log('USB device interface info: ', descriptors)
 
-        if (this._listener !== null) {
-          this._listener(D.error.succeed, D.status.plugIn)
-        }
+          let descriptor = descriptors[0]
+          this._inEndPoint = descriptor.endpoints.find(ep => ep.direction === 'in')
+          this._outEndPoint = descriptor.endpoints.find(ep => ep.direction === 'out')
+          chrome.usb.claimInterface(connectionHandle, descriptor.interfaceNumber, () => {
+            if (chrome.runtime.lastError) {
+              console.warn('chrome.usb.claimInterface error: ' + chrome.runtime.lastError.message)
+              return
+            }
+            console.log('Claimed interface', descriptor)
+            if (this._listener !== null) {
+              this._listener(D.error.succeed, D.status.plugIn)
+            }
+          })
+        })
       })
     }
 
@@ -100,31 +88,20 @@ export default class ChromeUsbDevice extends IEsDevice {
     })
   }
 
-  async send (reportId, data) {
+  async send (data) {
     if (this._deviceId === null || this._connectionHandle === null) {
       throw D.error.noDevice
-    }
-    let packageData = Buffer.alloc(64)
-
-    packageData[0] = 0x21
-    packageData[1] = 0x00
-    packageData[2] = data.length
-    for (let i = 0; i < data.length; i++) {
-      packageData[i + 3] = data[i]
     }
 
     let transferInfo = {
       direction: 'out',
-      requestType: 'class',
-      recipient: 'interface',
-      request: 0x09,
-      // a strange thing: if value=0x03XX, it will be 0x0302 in final usb command. if value!=0x03xx, 'no define'
-      value: 0x0302,
-      index: 0,
-      data: packageData
+      endpoint: this._outEndPoint.address,
+      data: data
     }
+    console.debug('send package', transferInfo, data.toString('hex'))
+
     return new Promise((resolve, reject) => {
-      chrome.usb.controlTransfer(this._connectionHandle, transferInfo, (info) => {
+      chrome.usb.bulkTransfer(this._connectionHandle, transferInfo, (info) => {
         if (chrome.runtime.lastError) {
           console.warn('send error: ', chrome.runtime.lastError, info)
           reject(D.error.deviceComm)
@@ -135,9 +112,6 @@ export default class ChromeUsbDevice extends IEsDevice {
           reject(D.error.deviceComm)
           return
         }
-
-        console.debug('Sent to the USB device!', this._connectionHandle)
-        console.debug('sent ' + info.data.byteLength + ' bytes')
         resolve()
       })
     })
@@ -146,40 +120,24 @@ export default class ChromeUsbDevice extends IEsDevice {
   async receive () {
     let transferInfo = {
       direction: 'in',
-      requestType: 'class',
-      recipient: 'interface',
-      request: 0x01,
-      // it can only be 0x0302, otherwise 'Transfer failed.', no usb command sent.
-      value: 0x0302,
-      index: 0,
-      length: 0x40
+      endpoint: this._inEndPoint.address,
+      length: 0xFFFF
     }
-    // var transferInfo = {
-    //   'direction': 'in',
-    //   'recipient': 'interface',
-    //   'requestType': 'standard',
-    //   'request': 0x06,
-    //   'value': 0x2200,
-    //   'index': 0,
-    //   'length': 0x183
-    // }
     let transfer = () => {
       return new Promise((resolve, reject) => {
-        chrome.usb.controlTransfer(this._connectionHandle, transferInfo, (info) => {
+        chrome.usb.bulkTransfer(this._connectionHandle, transferInfo, (info) => {
           if (chrome.runtime.lastError) {
             console.warn('receive error: ' + chrome.runtime.lastError.message + ' resultCode: ' + info.resultCode)
             reject(D.error.deviceComm)
           }
-          console.log('receive from the USB device!', this._connectionHandle)
           if (info.resultCode !== 0) {
             console.warn('receive apdu error ', info.resultCode)
             reject(D.error.deviceComm)
           }
 
-          let response = Buffer.from(info.data)
-          console.log('receive got ' + response.length + ' bytes:')
-          console.log(response.toString('hex'))
-          resolve(info.data)
+          let data = Buffer.from(info.data)
+          console.debug('receive package', data.toString('hex'))
+          resolve(data)
         })
       })
     }

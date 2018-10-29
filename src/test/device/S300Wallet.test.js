@@ -1,7 +1,7 @@
 
 import D from '../../sdk/D'
 import Provider from '../../sdk/Provider'
-import S300Wallet from '../../sdk/device/CoreWallet'
+import S300Wallet from '../../sdk/device/S300Wallet'
 import ChromeUsbDevice from '../../sdk/device/transmit/io/ChromeUsbDevice'
 import chai from 'chai'
 
@@ -9,16 +9,15 @@ Provider.HardDevice = ChromeUsbDevice
 
 chai.should()
 describe('S300Wallet', function () {
-  let coreWallet
-  this.timeout(100000)
+  let s300Wallet
+  this.timeout(10000)
 
-  it('init', () => {
-    D.test.mockDevice = false
-    coreWallet = new S300Wallet()
+  before(async function () {
+    s300Wallet = new S300Wallet()
   })
 
   it('listenPlug', function (done) {
-    coreWallet.listenPlug((error, status) => {
+    s300Wallet.listenPlug((error, status) => {
       error.should.equal(D.error.succeed)
       if (status === D.status.plugIn) {
         done()
@@ -27,7 +26,7 @@ describe('S300Wallet', function () {
   })
 
   it('test', async () => {
-    let response = await coreWallet._sendApdu('0084000008', false)
+    let response = await s300Wallet._sendApdu('00A4040006B00000000002', false)
     console.warn('response', response)
   })
   //

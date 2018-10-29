@@ -10,12 +10,10 @@
 /** @namespace chrome.hid.receiveFeatureReport */
 
 import D from '../../../D'
-import IEsDevice from './IEsDevice'
 import {Buffer} from 'buffer'
 
-export default class ChromeHidDevice extends IEsDevice {
+export default class ChromeHidDevice {
   constructor () {
-    super()
     this._deviceId = null
     this._connectionId = null
     this._listener = null

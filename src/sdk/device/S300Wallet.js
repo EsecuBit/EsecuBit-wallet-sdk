@@ -18,7 +18,7 @@ bitPony.prototype._containKeys = function (keys) {
 
 export default class S300Wallet {
   constructor () {
-    const Transmitter = Provider.getTransmitter()
+    const Transmitter = Provider.getCcidTransmitter()
     this._transmitter = new Transmitter()
     this._allEnc = false
   }
@@ -50,6 +50,7 @@ export default class S300Wallet {
   }
 
   async _getCosVersion () {
+    console.warn('get version not supported yet!')
     return 'get version not supported yet'
   }
 
@@ -294,12 +295,6 @@ export default class S300Wallet {
     } else {
       throw D.error.coinNotSupported
     }
-  }
-
-  async getRandom (length) {
-    if (length > 255) throw D.error.notImplemented
-    let apdu = '00840000' + (length >> 8) + (length % 0xFF)
-    return this._sendApdu(apdu)
   }
 
   _sendApdu (apdu, isEnc = false) {
