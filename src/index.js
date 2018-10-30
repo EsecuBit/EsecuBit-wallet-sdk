@@ -15,13 +15,15 @@
 
 // data
 // import './test/data/database/IndexedDB.test'
-// import './test/data/btcNetwork/fee/BitcoinEarn.test'
-// import './test/data/btcNetwork/ChainSo.test'
-// import './test/data/btcNetwork/BlockChainInfo.test'
-// import './test/data/btcNetwork/EtherScanIo.test'
+// import './test/data/network/fee/BitcoinEarn.test'
+// import './test/data/network/ChainSo.test'
+// import './test/data/network/BlockChainInfo.test'
+// import './test/data/network/EtherScanIo.test'
+// import './test/data/network/EosPeer.test'
 // import './test/data/CoinData.test'
 
 // main class
 // import './test/EsWallet.test'
-// import './test/BtcAccount.test'
-// import './test/EthAccount.test'
+// import './test/account/BtcAccount.test'
+// import './test/account/EthAccount.test'
+// import './test/account/EosAccount.test'

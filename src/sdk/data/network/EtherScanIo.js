@@ -19,11 +19,6 @@ urls[D.coin.test.ethRinkeby] = 'rinkeby.etherscan.io'
 urls[D.coin.test.ethRopsten] = 'ropsten.etherscan.io'
 
 export default class EtherScanIo extends ICoinNetwork {
-  constructor (coinType) {
-    super(coinType)
-    this.coinType = coinType
-  }
-
   async init () {
     this._apiUrl = apiUrls[this.coinType]
     this._txUrl = txUrls[this.coinType]
@@ -77,25 +72,25 @@ export default class EtherScanIo extends ICoinNetwork {
     return parseInt(response)
   }
 
-  async queryAddress (address) {
+  async queryAddress (address, offset = 0) {
     let response = await this.get(this._apiUrl + '/api?module=account&action=txlist&address=' + address)
     return {
       address: address,
       txCount: response.length,
-      txs: response.map(tx => this.wrapTx(tx))
+      txs: response.map(tx => this._wrapTx(tx))
     }
   }
 
   async queryTx (txId) {
     let response = await this.get(this._apiUrl + '/api?module=proxy&action=eth_getTransactionByHash&txhash=' + txId, true)
-    return this.wrapTx(response)
+    return this._wrapTx(response)
   }
 
   async sendTx (rawTransaction) {
     return this.post(this._apiUrl + '/api?module=proxy&action=eth_sendRawTransaction', 'hex=' + rawTransaction)
   }
 
-  wrapTx (rTx) {
+  _wrapTx (rTx) {
     // if no blockNumber, that tx is in the pool, and confirmations should be 0
     let blockNumber = Number(rTx.blockNumber) || (this._blockHeight + 1)
     let confirmations = Number(rTx.confirmations) || (this._blockHeight - blockNumber + 1)

@@ -60,8 +60,6 @@ export default class ICoinNetwork {
       setTimeout(blockHeightRequest, blockHeightRequestPeriod * 1000)
     }
     setTimeout(blockHeightRequest, 0)
-
-    return {blockHeight: this._blockHeight}
   }
 
   // noinspection JSUnusedGlobalSymbols
@@ -131,7 +129,6 @@ export default class ICoinNetwork {
    * @returns {{blockHeightRequestPeriod: number, txIncludedRequestPeriod: number}}
    */
   getRequestPeroid () {
-    if (!D.isBtc(this.coinType) && !D.isEth(this.coinType)) throw D.error.coinNotSupported
     let blockHeightRequestPeriod
     let txIncludedRequestPeriod
     if (D.isBtc(this.coinType)) {
@@ -140,6 +137,12 @@ export default class ICoinNetwork {
     } else if (D.isEth(this.coinType)) {
       blockHeightRequestPeriod = 20
       txIncludedRequestPeriod = 5
+    } else if (D.isEos(this.coinType)) {
+      blockHeightRequestPeriod = 20
+      txIncludedRequestPeriod = 5
+    } else {
+      console.warn('getRequestPeroid no match coin period')
+      throw D.error.coinNotSupported
     }
     return {blockHeightRequestPeriod, txIncludedRequestPeriod}
   }
@@ -309,26 +312,11 @@ export default class ICoinNetwork {
     throw D.error.notImplemented
   }
 
-  /**
-   * @return addressInfo array
-   * @see addressInfo
-   */
-  async queryAddresses (addresses) {
+  async queryAddresses (addresses, offset = 0) {
     throw D.error.notImplemented
   }
 
-  /**
-   * @return addressInfo:
-   * {
-   *    address: string,
-   *    txCount: int,
-   *    txs: tx array
-   * }
-   *
-   * @see queryTx
-   *
-   */
-  async queryAddress (address) {
+  async queryAddress (address, offset = 0) {
     throw D.error.notImplemented
   }
 

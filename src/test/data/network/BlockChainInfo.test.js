@@ -9,8 +9,7 @@ describe('Network BlockChainInfo Bitcoin', function () {
   const blockchainInfo = new BlockchainInfo(D.coin.test.btcTestNet3)
 
   it('init btcNetwork', async () => {
-    let response = await blockchainInfo.init()
-    response.should.not.equal(undefined)
+    await blockchainInfo.init()
   })
 
   it('query address', async () => {

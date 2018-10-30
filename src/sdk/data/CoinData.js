@@ -130,19 +130,28 @@ export default class CoinData {
     this._listeners = this._listeners.filter(listener => listener !== callback)
   }
 
+  /**
+   * Get network API providers. Thanks for their helps.
+   */
   getProviders () {
     let providers = {}
     D.supportedCoinTypes().forEach(coin => {
       providers[coin] = {}
     })
     Object.values(this._network).forEach(network => {
-      providers[network.coinType]['network'] = network.provider
+      if (network.provider) {
+        providers[network.coinType]['network'] = network.provider
+      }
     })
     Object.values(this._networkFee).forEach(fee => {
-      providers[fee.coinType]['fee'] = fee.provider
+      if (fee.provider) {
+        providers[fee.coinType]['fee'] = fee.provider
+      }
     })
     Object.values(this._exchange).forEach(exchange => {
-      providers[exchange.coinType]['exchange'] = exchange.provider
+      if (exchange.provider) {
+        providers[exchange.coinType]['exchange'] = exchange.provider
+      }
     })
     return providers
   }
@@ -302,6 +311,15 @@ export default class CoinData {
 
   async sendTx (account, rawTx) {
     await this._network[account.coinType].sendTx(rawTx)
+  }
+
+  async getEosBlockInfo (coinType) {
+    // TODO complete
+    console.warn('implement CoinData.getEosBlockInfo()!')
+    // main
+    // return {ref_block_num: 56170, ref_block_prefix: 3374189397}
+    // jungle
+    return {ref_block_num: 713, ref_block_prefix: 3472406222}
   }
 
   getSuggestedFee (coinType) {

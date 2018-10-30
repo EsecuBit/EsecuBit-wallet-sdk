@@ -3,16 +3,7 @@ import D from '../D'
 
 export default class IAccount {
   constructor (info, device, coinData) {
-    let assign = () => {
-      this.accountId = info.accountId
-      this.label = info.label
-      this.coinType = info.coinType
-      this.index = info.index
-      this.balance = info.balance
-      this.externalPublicKeyIndex = info.externalPublicKeyIndex
-      this.changePublicKeyIndex = info.changePublicKeyIndex
-    }
-    assign()
+    this._fromAccountInfo(info)
     this._device = device
     this._coinData = coinData
     this._listenedTxs = []
@@ -56,15 +47,19 @@ export default class IAccount {
   }
 
   _toAccountInfo () {
-    return {
-      accountId: this.accountId,
-      label: this.label,
-      coinType: this.coinType,
-      index: this.index,
-      balance: this.balance,
-      externalPublicKeyIndex: this.externalPublicKeyIndex,
-      changePublicKeyIndex: this.changePublicKeyIndex
-    }
+    let info = {}
+    Object.entries(this).forEach(([key, value]) => {
+      if (typeof value === 'function') return
+      info[key] = value
+    })
+    return info
+  }
+
+  _fromAccountInfo (info) {
+    Object.entries(info).forEach(([key, value]) => {
+      if (typeof value === 'function') return
+      this[key] = value
+    })
   }
 
   async init () {

@@ -16,7 +16,6 @@ export default class BlockchainInfo extends ICoinNetwork {
     super(coinType)
     // noinspection JSUnusedGlobalSymbols
     this._supportMultiAddresses = true
-    this.coinType = coinType
     this.indexMap = {}
   }
 
@@ -114,14 +113,13 @@ export default class BlockchainInfo extends ICoinNetwork {
     return parseInt(await this.get([this._apiUrl, 'q', 'getblockcount?cors=true'].join('/')))
   }
 
-  async queryAddresses (addresses) {
+  async queryAddresses (addresses, offset = 0) {
     // blockchain.info return 502 when addresses.length > 141, it seems a bug of them
     const maxAddressesSize = 140
     let response = {
       txs: [],
       addresses: []
     }
-    let offset = 0
     while (offset < addresses.length) {
       let querySize = addresses.length - offset
       if (querySize > maxAddressesSize) querySize = maxAddressesSize
@@ -139,7 +137,7 @@ export default class BlockchainInfo extends ICoinNetwork {
     let blobs = []
     for (let rAddress of response.addresses) {
       let txs = response.txs.filter(rTx => selfTx(rTx, rAddress.address))
-      txs = await Promise.all(txs.map(rTx => this.wrapTx(rTx, rAddress.address)))
+      txs = await Promise.all(txs.map(rTx => this._wrapTx(rTx, rAddress.address)))
       blobs.push({
         address: rAddress.address,
         txCount: rAddress.n_tx,
@@ -178,7 +176,7 @@ export default class BlockchainInfo extends ICoinNetwork {
 
   async queryTx (txId) {
     let response = await this.get([this._apiUrl, 'rawtx', txId].join('/') + '?cors=true')
-    return this.wrapTx(response)
+    return this._wrapTx(response)
   }
 
   async queryRawTx (txId) {
@@ -190,7 +188,7 @@ export default class BlockchainInfo extends ICoinNetwork {
     return this.post([this._apiUrl, 'pushtx'].join('/'), 'tx=' + rawTransaction)
   }
 
-  async wrapTx (rTx, address) {
+  async _wrapTx (rTx, address) {
     let confirmations = this._blockHeight - (rTx.block_height || this._blockHeight)
     let tx = {
       txId: rTx.hash,
