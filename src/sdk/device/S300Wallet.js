@@ -24,6 +24,7 @@ export default class S300Wallet {
   }
 
   async init () {
+    await this._transmitter.reset()
     await this._select()
 
     let walletId = D.test.coin ? '01' : '00'
@@ -54,18 +55,32 @@ export default class S300Wallet {
     return 'get version not supported yet'
   }
 
-  async verifyPin () {
-    console.warn('implement verifyPin!')
-  }
-
   async getAddress (coinType, path, isShowing = false, isStoring = false) {
-    let apduHead = Buffer.from('804600041602', 'hex')
+    // bit 0: 0 not save on key / 1 save on key
+    // bit 1: 0 not show on key / 1 show on key
+    // bit 2: 0 public key / 1 address
+    // bit 3: 0 uncompressed / 1 compressed
+    // if bit2 == 0, bit0 == bit1 == 0
+    let flag = 0
+    flag += isStoring ? 0x01 : 0x00
+    flag += isShowing ? 0x02 : 0x00
+    flag += 0x04
+    flag += 0x08
+
+    let apduHead = Buffer.from('804600001505', 'hex')
     let pathBuffer = D.address.path.toBuffer(path)
     let apdu = Buffer.concat([apduHead, pathBuffer])
+    apdu[3] = flag
 
     let response = await this._sendApdu(apdu, false)
-    console.warn('S300 getAddress', coinType, path, response.toString('hex'))
-    return response.toString('hex')
+    let address = String.fromCharCode.apply(null, new Uint8Array(response))
+    // device only return mainnet address
+    if (coinType === D.coin.test.btcTestNet3) {
+      let addressBuffer = D.address.toBuffer(address)
+      addressBuffer = Buffer.concat([Buffer.from('6F', 'hex'), addressBuffer])
+      address = D.address.toString(addressBuffer)
+    }
+    return address
   }
 
   /**
@@ -129,7 +144,7 @@ export default class S300Wallet {
 
       let response
       if (data.length <= 0xFF) {
-        let apduHead = Buffer.from('8048030000')
+        let apduHead = Buffer.from('8048030000', 'hex')
         apduHead[4] = data.length
         response = await this._sendApdu(Buffer.concat([apduHead, data]), true)
       } else {
@@ -137,20 +152,21 @@ export default class S300Wallet {
         // devide tx to sign due to wallet command length limit
         while (true) {
           if (remainLen <= 0xFF) {
-            let apduHead = Buffer.from('8048020000')
+            let apduHead = Buffer.from('8048020000', 'hex')
             apduHead[4] = remainLen
             response = await this._sendApdu(Buffer.concat([apduHead, data]), true)
             break
           } else if (remainLen === data.length) {
             // first package
-            let apduHead = Buffer.from('80480100FF')
+            let apduHead = Buffer.from('80480100FF', 'hex')
             await this._sendApdu(Buffer.concat([apduHead, data.slice(0, 0xFF)]), true)
           } else {
             // middle package
-            let apduHead = Buffer.from('80480000FF')
+            let apduHead = Buffer.from('80480000FF', 'hex')
             let offset = data.length - remainLen
             await this._sendApdu(Buffer.concat([apduHead, data.slice(offset, offset + 0xFF), true]))
           }
+          remainLen -= 0xFF
         }
       }
 
@@ -287,7 +303,6 @@ export default class S300Wallet {
       }
     }
 
-    await this.verifyPin()
     if (D.isBtc(coinType)) {
       return signBtc(tx)
     } else if (D.isEth(coinType)) {

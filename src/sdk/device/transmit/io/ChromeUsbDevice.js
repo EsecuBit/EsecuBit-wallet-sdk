@@ -31,6 +31,10 @@ export default class ChromeUsbDevice {
         chrome.usb.listInterfaces(connectionHandle, (descriptors) => {
           console.log('USB device interface info: ', descriptors)
 
+          if (!descriptors || descriptors.length === 0) {
+            console.warn('no descriptors for device')
+            D.dispatch(() => this._listener(D.error.deviceConnectFailed, D.status.plugIn))
+          }
           let descriptor = descriptors[0]
           this._inEndPoint = descriptor.endpoints.find(ep => ep.direction === 'in')
           this._outEndPoint = descriptor.endpoints.find(ep => ep.direction === 'out')
@@ -41,7 +45,7 @@ export default class ChromeUsbDevice {
             }
             console.log('Claimed interface', descriptor)
             if (this._listener !== null) {
-              this._listener(D.error.succeed, D.status.plugIn)
+              D.dispatch(() => this._listener(D.error.succeed, D.status.plugIn))
             }
           })
         })
@@ -98,7 +102,7 @@ export default class ChromeUsbDevice {
       endpoint: this._outEndPoint.address,
       data: data
     }
-    console.debug('send package', transferInfo, data.toString('hex'))
+    console.debug('send package', transferInfo.endpoint, data.toString('hex'))
 
     return new Promise((resolve, reject) => {
       chrome.usb.bulkTransfer(this._connectionHandle, transferInfo, (info) => {
@@ -123,33 +127,22 @@ export default class ChromeUsbDevice {
       endpoint: this._inEndPoint.address,
       length: 0xFFFF
     }
-    let transfer = () => {
-      return new Promise((resolve, reject) => {
-        chrome.usb.bulkTransfer(this._connectionHandle, transferInfo, (info) => {
-          if (chrome.runtime.lastError) {
-            console.warn('receive error: ' + chrome.runtime.lastError.message + ' resultCode: ' + info.resultCode)
-            reject(D.error.deviceComm)
-          }
-          if (info.resultCode !== 0) {
-            console.warn('receive apdu error ', info.resultCode)
-            reject(D.error.deviceComm)
-          }
+    return new Promise((resolve, reject) => {
+      chrome.usb.bulkTransfer(this._connectionHandle, transferInfo, (info) => {
+        if (chrome.runtime.lastError) {
+          console.warn('receive error: ' + chrome.runtime.lastError.message + ' resultCode: ' + info.resultCode)
+          reject(D.error.deviceComm)
+        }
+        if (info.resultCode !== 0) {
+          console.warn('receive apdu error ', info.resultCode)
+          reject(D.error.deviceComm)
+        }
 
-          let data = Buffer.from(info.data)
-          console.debug('receive package', data.toString('hex'))
-          resolve(data)
-        })
+        let data = Buffer.from(info.data)
+        console.debug('receive package', transferInfo.endpoint, data.toString('hex'))
+        resolve(data)
       })
-    }
-    while (true) {
-      let data = await transfer()
-      if (data[5] === 0x02 && data[6] === 0x00 && data[7] === 0x60) {
-        // busy, keep receiving
-        continue
-      }
-      // TODO receive multi package data
-      return data
-    }
+    })
   }
 
   listenPlug (callback) {

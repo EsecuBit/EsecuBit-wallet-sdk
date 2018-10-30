@@ -72,44 +72,61 @@ export default class CcidTransmitter {
       return Buffer.concat([cmdHead, apdu])
     }
 
-    const sendAndReceive = async (pack) => {
-      const packRecvCcidCmd = (seqNum) => {
-        const levelParameter = 0x0010
-        let cmd = Buffer.from('62000000000000000000', 'hex')
-        cmd[0x06] = seqNum
-        cmd.writeUInt16LE(levelParameter, 0x08)
-        return cmd
-      }
-
-      await this._device.send(pack)
-
-      let result = Buffer.alloc(0)
-      while (true) {
-        let received = await this._device.receive()
-        if (!received || received.length < 0x0A || received[0] !== 0x80) {
-          console.warn('CCID receive package invalid', received && received.toString('hex'))
-          throw D.error.deviceProtocol
-        }
-        let recvLen = received.readUInt32LE(0x01)
-        result = Buffer.concat([result, received.slice(0x0A, 0x0A + recvLen)])
-
-        let finish = received[0x09] !== 0x01 && received[0x09] !== 0x03
-        if (finish) break
-
-        let respPack = packRecvCcidCmd(this._seqNum++)
-        received = await this._device.send(respPack)
-      }
-      let indexSw1Sw2 = result.length - 2
-      let sw1sw2 = (result[indexSw1Sw2] << 8) + result[indexSw1Sw2 + 1]
-      return {result: sw1sw2, response: result.slice(0, indexSw1Sw2)}
-    }
-
     this._seqNum = 0
     console.debug('transmit send apdu', apdu.toString('hex'))
     let sendPack = packCcidCmd(this._seqNum++, apdu)
-    let response = await sendAndReceive(sendPack)
-    console.debug('transmit got response', response.result.toString(16), response.response.toString('hex'))
+    let response = await this._sendAndReceive(sendPack)
+    if (!response || response.length < 2) {
+      console.warn('invalid response without sw1sw2')
+      throw D.error.deviceProtocol
+    }
+
+    let indexSw1Sw2 = response.length - 2
+    let sw1sw2 = (response[indexSw1Sw2] << 8) + response[indexSw1Sw2 + 1]
+    let responseData = response.slice(0, indexSw1Sw2)
+    console.debug('transmit got response', sw1sw2.toString(16), responseData.toString('hex'))
+    return {result: sw1sw2, response: responseData}
+  }
+
+  async _sendAndReceive (pack) {
+    const packRecvCcidCmd = (seqNum) => {
+      const levelParameter = 0x0010
+      let cmd = Buffer.from('62000000000000000000', 'hex')
+      cmd[0x06] = seqNum
+      cmd.writeUInt16LE(levelParameter, 0x08)
+      return cmd
+    }
+
+    await this._device.send(pack)
+
+    let response = Buffer.alloc(0)
+    while (true) {
+      let received = await this._device.receive()
+      // wait for user
+      while (received[0x07] === 0x80 && received[0x08] === 0x01) {
+        received = await this._device.receive()
+      }
+      if (!received || received.length < 0x0A ||
+        (received[0] !== 0x80 && pack[0] !== 0x63)) {
+        console.warn('CCID receive package invalid', received && received.toString('hex'))
+        throw D.error.deviceProtocol
+      }
+
+      let recvLen = received.readUInt32LE(0x01)
+      response = Buffer.concat([response, received.slice(0x0A, 0x0A + recvLen)])
+
+      let finish = received[0x09] !== 0x01 && received[0x09] !== 0x03
+      if (finish) break
+
+      let respPack = packRecvCcidCmd(this._seqNum++)
+      received = await this._device.send(respPack)
+    }
     return response
+  }
+
+  async reset () {
+    await this._sendAndReceive(Buffer.from('63000000000000000000', 'hex'))
+    await this._sendAndReceive(Buffer.from('62000000000000010000', 'hex'))
   }
 
   static _checkSw1Sw2 (sw1sw2) {

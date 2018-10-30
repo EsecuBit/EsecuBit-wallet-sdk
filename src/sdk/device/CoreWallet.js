@@ -77,7 +77,7 @@ export default class CoreWallet {
     let response = await this._sendApdu(apdu)
     let address = String.fromCharCode.apply(null, response)
     // device only return mainnet address
-    if (D.isBtc(coinType) && D.test.coin) {
+    if (coinType === D.coin.test.btcTestNet3) {
       let addressBuffer = D.address.toBuffer(address)
       addressBuffer = Buffer.concat([Buffer.from('6F', 'hex'), addressBuffer])
       address = D.address.toString(addressBuffer)

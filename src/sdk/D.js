@@ -154,33 +154,12 @@ const D = {
     checkBtcAddress (address) {
       let buffer
 
-      // segwit address, bech32 encoded
-      let decodedBech32
-      try {
-        decodedBech32 = bech32.decode(address)
-      } catch (e) {
-        console.debug('address', address, 'is not bech32 encoded')
-      }
-      if (decodedBech32) {
-        if (D.test.coin && decodedBech32.prefix !== 'tb') throw D.error.invalidAddress
-        if (!D.test.coin && decodedBech32.prefix !== 'bc') throw D.error.invalidAddress
-        buffer = bech32.fromWords(decodedBech32.words.slice(1))
-        if (buffer.length === 20) return D.address.p2pkh
-        if (buffer.length === 32) return D.address.p2wsh
-        console.info('address', address, 'is bech32 encoded but has invalid length')
-
-        // hardware wallet not support yet
-        if (!D.test.jsWallet) throw D.error.invalidAddress
-      }
-
       // normal address, base58 encoded
       try {
         buffer = base58check.decode(address)
       } catch (e) {
-        console.warn(e)
-        throw D.error.invalidAddress
+        console.debug('address', address, 'is not base58 encoded')
       }
-      // address
       if (buffer.length === 21) {
         let network = buffer.readUInt8(0)
         switch (network) {
@@ -200,6 +179,7 @@ const D = {
             throw D.error.invalidAddress
         }
       }
+
       // publickey
       if (buffer.length === 78) {
         let versionBytes = buffer.readUInt32BE(0)
@@ -215,6 +195,25 @@ const D = {
           default:
             throw D.error.invalidAddress
         }
+      }
+
+      // segwit address, bech32 encoded
+      let decodedBech32
+      try {
+        decodedBech32 = bech32.decode(address)
+      } catch (e) {
+        console.debug('address', address, 'is not bech32 encoded')
+      }
+      if (decodedBech32) {
+        if (D.test.coin && decodedBech32.prefix !== 'tb') throw D.error.invalidAddress
+        if (!D.test.coin && decodedBech32.prefix !== 'bc') throw D.error.invalidAddress
+        buffer = bech32.fromWords(decodedBech32.words.slice(1))
+        if (buffer.length === 20) return D.address.p2pkh
+        if (buffer.length === 32) return D.address.p2wsh
+        console.info('address', address, 'is bech32 encoded but has invalid length')
+
+        // hardware wallet not support yet
+        if (!D.test.jsWallet) throw D.error.invalidAddress
       }
       throw D.error.invalidAddress
     },
