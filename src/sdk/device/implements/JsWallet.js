@@ -17,19 +17,22 @@ import base58 from 'bs58'
  *
  */
 export default class JsWallet {
-
   /**
-   * @param seed use this as bip32 seed if provided, or using the seed storage in settings, which will
-   * generate randomly at the first time.
+   * @param initParam has multiple types:
+   *                  string: use this as bip32 seed.
+   *                  other: regard as transmitter. Will call getSeed() in init()
    */
-  constructor (seed = undefined) {
-    this._seed = typeof seed === 'string' ? seed : undefined
+  constructor (initParam) {
+    if (typeof initParam === 'string') {
+      this._seed = initParam
+    } else if (initParam) {
+      this._transmitter = initParam
+    }
     this.cache = {}
   }
 
   async init () {
-    this._seed = this._seed || await this.getTestSeed()
-
+    this._seed = this._seed || await this._transmitter.getSeed()
     this._root = bitcoin.HDNode.fromSeedHex(this._seed)
 
     let walletId = D.test.coin ? '01' : '00'
@@ -358,23 +361,5 @@ export default class JsWallet {
       r.toBuffer(),
       s.toBuffer()
     ]
-  }
-
-  async setTestSeed (testSeed) {
-    await this._settings.setSetting('testSeed', testSeed)
-  }
-
-  async getTestSeed () {
-    while (this.busy) await D.wait(2)
-    this.busy = true
-
-    let testSeed = await this._settings.getSetting('testSeed')
-    if (!testSeed) {
-      testSeed = D.test.generateSeed()
-      await this.setTestSeed(testSeed)
-    }
-
-    this.busy = false
-    return testSeed
   }
 }

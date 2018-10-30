@@ -1,4 +1,3 @@
-import D from './D'
 import IndexedDB from './data/database/IndexedDB'
 
 import JSWallet from './device/implements/JsWallet'
@@ -20,8 +19,8 @@ const Provider = {
 
   Wallets: [
     JSWallet,
-    NetBankWallet,
-    S300Wallet
+    S300Wallet,
+    NetBankWallet
   ],
 
   DB: IndexedDB
