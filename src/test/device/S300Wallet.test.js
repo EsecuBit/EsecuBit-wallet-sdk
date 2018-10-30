@@ -1,8 +1,8 @@
 
 import D from '../../sdk/D'
 import Provider from '../../sdk/Provider'
-import S300Wallet from '../../sdk/device/S300Wallet'
-import ChromeUsbDevice from '../../sdk/device/transmit/io/ChromeUsbDevice'
+import S300Wallet from '../../sdk/device/implements/S300Wallet'
+import ChromeUsbDevice from '../../sdk/device/implements/transmit/io/ChromeUsbDevice'
 import bitPony from 'bitpony'
 import chai from 'chai'
 

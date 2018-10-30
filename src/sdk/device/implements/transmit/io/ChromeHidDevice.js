@@ -9,7 +9,7 @@
 /** @namespace chrome.hid.sendFeatureReport */
 /** @namespace chrome.hid.receiveFeatureReport */
 
-import D from '../../../D'
+import D from '../../../../D'
 import {Buffer} from 'buffer'
 
 export default class ChromeHidDevice {

@@ -1,6 +1,6 @@
 import chai from 'chai'
-import MockTransmitter from '../../../sdk/device/transmit/MockTransmitter'
-import WalletData from '../../../sdk/device/fat/WalletData'
+import MockTransmitter from '../../../sdk/device/implements/transmit/MockTransmitter'
+import WalletData from '../../../sdk/device/implements/fat/WalletData'
 import D from '../../../sdk/D'
 
 chai.should()

@@ -1,17 +1,16 @@
 
 import D from '../../sdk/D'
-import CoreWallet from '../../sdk/device/CoreWallet'
+import NetBankWallet from '../../sdk/device/implements/NetBankWallet'
 import chai from 'chai'
 import bitPony from 'bitpony'
 
 chai.should()
-describe('CoreWallet', function () {
+describe('NetBankWallet', function () {
   let coreWallet
   this.timeout(100000)
 
   it('init', () => {
-    D.test.mockDevice = false
-    coreWallet = new CoreWallet()
+    coreWallet = new NetBankWallet()
   })
 
   it('listenPlug', function (done) {

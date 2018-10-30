@@ -3,19 +3,22 @@ import D from './D'
 import CoinData from './data/CoinData'
 import BtcAccount from './account/BtcAccount'
 import EthAccount from './account/EthAccount'
-import Provider from './Provider'
 import Settings from './Settings'
+import CoreWallet from './device/CoreWallet'
 
+/**
+ * Main entry of SDK, singleton. Object to manage wallet operation and wallet data.
+ */
 export default class EsWallet {
   /**
-   * get supported coin types
+   * Get supported coin types.
    */
   static supportedCoinTypes () {
     return D.supportedCoinTypes()
   }
 
   /**
-   * get supported legal currency types
+   * Get supported legal currency types.
    */
   static suppertedLegals () {
     return D.suppertedLegals()
@@ -34,8 +37,7 @@ export default class EsWallet {
     this._status = D.status.plugOut
     this._callback = null
 
-    const Wallet = Provider.getWallet()
-    this._device = new Wallet()
+    this._device = new CoreWallet()
     this._device.listenPlug(async (error, plugStatus) => {
       // ignore the same plug event sent multiple times
       if (this._status !== D.status.plugOut) {
@@ -107,15 +109,9 @@ export default class EsWallet {
   async _init () {
     this._esAccounts = []
 
-    // testSeed for soft wallet
-    let testSeed
-    if (D.test.jsWallet) {
-      testSeed = await this.getTestSeed()
-    }
-
     let info
     if (!this.offlineMode) {
-      info = await this._device.init(testSeed)
+      info = await this._device.init()
       await this._settings.setSetting('lastWalletId', info.walletId)
     } else {
       let lastWalletId = await this._settings.getSetting('lastWalletId')
@@ -308,23 +304,5 @@ export default class EsWallet {
    */
   convertValue (coinType, value, fromUnit, toUnit) {
     return this._coinData.convertValue(coinType, value, fromUnit, toUnit)
-  }
-
-  async setTestSeed (testSeed) {
-    await this._settings.setSetting('testSeed', testSeed)
-  }
-
-  async getTestSeed () {
-    while (this.busy) await D.wait(2)
-    this.busy = true
-
-    let testSeed = await this._settings.getSetting('testSeed')
-    if (!testSeed) {
-      testSeed = D.test.generateSeed()
-      await this.setTestSeed(testSeed)
-    }
-
-    this.busy = false
-    return testSeed
   }
 }

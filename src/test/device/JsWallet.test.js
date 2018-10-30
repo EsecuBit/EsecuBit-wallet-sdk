@@ -1,8 +1,8 @@
 
 import chai from 'chai'
 import D from '../../sdk/D'
-import JsWallet from '../../sdk/device/JsWallet'
-import FcBuffer from '../../sdk/device/EosFcBuffer'
+import JsWallet from '../../sdk/device/implements/JsWallet'
+import FcBuffer from '../../sdk/device/implements/EosFcBuffer'
 
 chai.should()
 

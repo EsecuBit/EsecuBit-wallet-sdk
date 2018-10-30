@@ -1,7 +1,10 @@
-import D from '../../D'
+import D from '../../../D'
 
 const fileSize = 10 * 1024 // 0x2800
 
+/**
+ * Mock object of transmitter. Only enabled when D.test.mockTransmitter = true
+ */
 export default class MockTransmitter {
   constructor () {
     this.currentFileId = 0
@@ -26,7 +29,9 @@ export default class MockTransmitter {
   }
 
   listenPlug (callback) {
-    D.dispatch(() => callback(D.error.ok, D.status.plugIn))
+    if (D.test.mockTransmitter) {
+      D.dispatch(() => callback(D.error.ok, D.status.plugIn))
+    }
   }
 
   sendApdu (apdu) {

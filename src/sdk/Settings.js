@@ -12,8 +12,7 @@ export default class Settings {
   }
 
   async _init () {
-    const DB = Provider.getDB()
-    let db = new DB('default')
+    let db = new Provider.DB('default')
     await db.init()
     this._settingDb = db
   }

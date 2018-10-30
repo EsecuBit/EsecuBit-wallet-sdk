@@ -1,5 +1,5 @@
 
-import D from '../../../D'
+import D from '../../../../D'
 import {Buffer} from 'buffer'
 
 export default class MockDevice {

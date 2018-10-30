@@ -10,7 +10,7 @@
 /** @namespace chrome.usb.listInterfaces */
 /** @namespace chrome.usb.claimInterface */
 
-import D from '../../../D'
+import D from '../../../../D'
 
 export default class ChromeUsbDevice {
   constructor () {

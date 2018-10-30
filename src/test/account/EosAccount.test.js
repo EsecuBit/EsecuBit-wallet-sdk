@@ -1,6 +1,6 @@
 
 import chai from 'chai'
-import JsWallet from '../../sdk/device/JsWallet'
+import JsWallet from '../../sdk/device/implements/JsWallet'
 import EosAccount from '../../sdk/account/EosAccount'
 import CoinData from '../../sdk/data/CoinData'
 import D from '../../sdk/D'

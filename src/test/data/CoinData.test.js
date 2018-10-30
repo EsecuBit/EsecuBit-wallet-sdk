@@ -2,7 +2,7 @@
 import chai from 'chai'
 import D from '../../sdk/D'
 import CoinData from '../../sdk/data/CoinData'
-import JsWallet from '../../sdk/device/JsWallet'
+import JsWallet from '../../sdk/device/implements/JsWallet'
 
 chai.should()
 describe('CoinData', function () {

@@ -5,34 +5,39 @@ import bitcoin from 'bitcoinjs-lib'
 import BigInteger from 'bigi'
 import createHmac from 'create-hmac'
 import rlp from 'rlp'
-import D from '../D'
+import D from '../../D'
 import FcBuffer from './EosFcBuffer'
 import createHash from 'create-hash'
 import base58 from 'bs58'
 
+/**
+ * A wallet implemented by JavaScript.
+ *
+ * ** Caution: Just for test usage. Data is not stored securely! **
+ *
+ */
 export default class JsWallet {
-  constructor () {
-    if (JsWallet.prototype.Instance) {
-      return JsWallet.prototype.Instance
-    }
-    JsWallet.prototype.Instance = this
+
+  /**
+   * @param seed use this as bip32 seed if provided, or using the seed storage in settings, which will
+   * generate randomly at the first time.
+   */
+  constructor (seed = undefined) {
+    this._seed = typeof seed === 'string' ? seed : undefined
     this.cache = {}
   }
 
-  async init (seed) {
-    this._root = bitcoin.HDNode.fromSeedHex(seed)
+  async init () {
+    this._seed = this._seed || await this.getTestSeed()
+
+    this._root = bitcoin.HDNode.fromSeedHex(this._seed)
 
     let walletId = D.test.coin ? '01' : '00'
     walletId += D.test.jsWallet ? '01' : '00'
     walletId += D.address.toBuffer(await this.getAddress(D.coin.main.btc, "m/44'/0'/0'/0/0")).toString('hex')
-    console.log('seed', seed)
+    console.log('seed', this._seed)
     console.log('walletId', walletId)
     return {walletId: walletId}
-  }
-
-  // noinspection JSMethodCanBeStatic
-  async listenPlug (callback) {
-    callback(D.error.succeed, D.status.plugIn)
   }
 
   // noinspection JSMethodCanBeStatic
@@ -353,5 +358,23 @@ export default class JsWallet {
       r.toBuffer(),
       s.toBuffer()
     ]
+  }
+
+  async setTestSeed (testSeed) {
+    await this._settings.setSetting('testSeed', testSeed)
+  }
+
+  async getTestSeed () {
+    while (this.busy) await D.wait(2)
+    this.busy = true
+
+    let testSeed = await this._settings.getSetting('testSeed')
+    if (!testSeed) {
+      testSeed = D.test.generateSeed()
+      await this.setTestSeed(testSeed)
+    }
+
+    this.busy = false
+    return testSeed
   }
 }

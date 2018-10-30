@@ -1,6 +1,5 @@
 
-import D from '../D'
-import Provider from '../Provider'
+import D from '../../D'
 import rlp from 'rlp'
 import BigInteger from 'bigi'
 import bitPony from 'bitpony'
@@ -17,9 +16,8 @@ bitPony.prototype._containKeys = function (keys) {
 }
 
 export default class S300Wallet {
-  constructor () {
-    const Transmitter = Provider.getCcidTransmitter()
-    this._transmitter = new Transmitter()
+  constructor (transmitter) {
+    this._transmitter = transmitter
     this._allEnc = false
   }
 
@@ -37,15 +35,10 @@ export default class S300Wallet {
     await this._sendApdu('00A4040006B00000000002', false)
   }
 
-  listenPlug (callback) {
-    this._transmitter.listenPlug(callback)
-  }
-
   async getWalletInfo () {
     let cosVersion = await this._getCosVersion()
-    // TODO auto update sdk version
     return {
-      sdk_version: '0.4.0',
+      sdk_version: D.sdkVersion,
       cos_version: cosVersion
     }
   }

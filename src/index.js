@@ -6,7 +6,7 @@
 
 // device
 // import './test/device/JsWallet.test'
-// import './test/device/CoreWallet.test'
+// import './test/device/NetBankWallet.test'
 // import './test/device/S300Wallet.test'
 // import './test/device/fat/FatApi.test'
 // import './test/device/fat/FatCache.test'

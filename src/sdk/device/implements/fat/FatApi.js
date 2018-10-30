@@ -1,5 +1,5 @@
 import {Buffer} from 'buffer'
-import D from '../../D'
+import D from '../../../D'
 
 export default class FatApi {
   constructor (transmitter) {

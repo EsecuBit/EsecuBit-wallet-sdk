@@ -36,8 +36,7 @@ export default class CoinData {
     console.log('walletInfo', info)
     try {
       // db
-      const DB = Provider.getDB()
-      this._db = new DB(info.walletId)
+      this._db = new Provider.DB(info.walletId)
       await this._db.init()
 
       // network

@@ -1,14 +1,14 @@
-import Provider from '../../Provider'
-import D from '../../D'
+import D from '../../../D'
 import {Buffer} from 'buffer'
+import MockDevice from './io/MockDevice'
+import ChromeUsbDevice from './io/ChromeUsbDevice'
 
 /**
  * Esecubit USB CCID protocol
  */
 export default class CcidTransmitter {
   constructor () {
-    const Device = Provider.getUsbDevice()
-    this._device = new Device()
+    this._device = D.test.mockDevice ? new MockDevice() : new ChromeUsbDevice()
     this._seqNum = 0
 
     this._plugListener = () => {}
@@ -19,6 +19,12 @@ export default class CcidTransmitter {
 
   listenPlug (callback) {
     if (callback) this._plugListener = callback
+  }
+
+  // noinspection JSUnusedGlobalSymbols
+  async reset () {
+    await this._sendAndReceive(Buffer.from('63000000000000000000', 'hex'))
+    await this._sendAndReceive(Buffer.from('62000000000000010000', 'hex'))
   }
 
   /**
@@ -122,11 +128,6 @@ export default class CcidTransmitter {
       received = await this._device.send(respPack)
     }
     return response
-  }
-
-  async reset () {
-    await this._sendAndReceive(Buffer.from('63000000000000000000', 'hex'))
-    await this._sendAndReceive(Buffer.from('62000000000000010000', 'hex'))
   }
 
   static _checkSw1Sw2 (sw1sw2) {
