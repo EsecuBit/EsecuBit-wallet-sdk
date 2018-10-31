@@ -645,6 +645,8 @@ const D = {
    * @param object
    */
   copy (object) {
+    if (object === undefined) return object
+    if (object === null) return object
     return JSON.parse(JSON.stringify(object))
   },
 

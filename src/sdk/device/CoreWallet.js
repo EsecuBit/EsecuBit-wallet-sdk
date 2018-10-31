@@ -13,11 +13,22 @@ export default class CoreWallet {
 
     if (this._transmitter) {
       D.dispatch(() => this._externlistener(D.error.succeed, D.status.plugIn))
+      return
     }
 
     for (let Transmitter of Provider.Transmitters) {
       let transmitter = new Transmitter()
       let plugInListener = (error, status) => {
+        // other transmitter plug out, ignore
+        if (!this._transmitter && status == D.status.plugOut) {
+          return
+        }
+        if (this._transmitter) {
+          console.info('already a transmitter pluged in, ignore', transmitter)
+          return
+        }
+        console.info('a transmitter pluged in', transmitter)
+
         if (error !== D.error.succeed) {
           D.dispatch(() => this._externlistener(D.error.succeed, status))
           return
@@ -32,6 +43,7 @@ export default class CoreWallet {
         }
         D.dispatch(() => this._externlistener(error, status))
       }
+      console.debug('listenPlug', transmitter)
       transmitter.listenPlug(plugInListener)
     }
   }

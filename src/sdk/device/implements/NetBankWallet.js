@@ -17,9 +17,8 @@ bitPony.prototype._containKeys = function (keys) {
 }
 
 export default class NetBankWallet {
-  constructor () {
-    const Transmitter = Provider.getTransmitter()
-    this._transmitter = new Transmitter()
+  constructor (transmitter) {
+    this._transmitter = transmitter
     this._allEnc = true
   }
 

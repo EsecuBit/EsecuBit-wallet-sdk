@@ -19,7 +19,9 @@ export default class EthAccount extends IAccount {
       }
       this.addressInfos.push(addressInfo)
       this._coinData.newAddressInfos(this._toAccountInfo(), [addressInfo])
+      return [this.addressInfos]
     }
+    return []
   }
 
   async _handleRemovedTx (removedTxId) {

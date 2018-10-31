@@ -1,4 +1,5 @@
 import Provider from './Provider'
+import D from "esecubit-wallet-sdk/src/sdk/D";
 
 /**
  * Settings for Application.
@@ -17,17 +18,32 @@ export default class Settings {
     this._settingDb = db
   }
 
-  async getSetting (key) {
+  async getSetting (key, namespace = undefined) {
     if (!this._settingDb) {
       await this._init()
     }
+    if (namespace) key = key + '_' + namespace
     return this._settingDb.getSettings(key)
   }
 
-  async setSetting (key, value) {
+  async setSetting (key, value, namespace = undefined) {
     if (!this._settingDb) {
       await this._init()
     }
+    if (namespace) key = key + '_' + namespace
     await this._settingDb.saveOrUpdateSettings(key, value)
+  }
+
+  async getTestSeed () {
+    let testSeed = await new Settings().getSetting('testSeed')
+    if (!testSeed) {
+      testSeed = D.test.generateSeed()
+      await this.setTestSeed(testSeed)
+    }
+    return testSeed
+  }
+
+  async setTestSeed (testSeed) {
+    await new Settings().setSetting('testSeed', testSeed)
   }
 }

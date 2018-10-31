@@ -284,7 +284,9 @@ export default class BtcAccount extends IAccount {
     let newAddressInfos = [].concat(
       await checkAndGenerate(D.address.external),
       await checkAndGenerate(D.address.change))
-    await this._coinData.newAddressInfos(this._toAccountInfo(), D.copy(newAddressInfos))
+    if (newAddressInfos.length > 0) {
+      await this._coinData.newAddressInfos(this._toAccountInfo(), D.copy(newAddressInfos))
+    }
     this.addressInfos.push(...newAddressInfos)
     return newAddressInfos
   }

@@ -279,7 +279,7 @@ export default class HidTransmitter {
 
       let length = decResponse.length
       let result = (decResponse[length - 2] << 8) + decResponse[length - 1]
-      this._checkSw1Sw2(result)
+      HidTransmitter._checkSw1Sw2(result)
       return decResponse.slice(0, -2)
     }
 

@@ -12,6 +12,10 @@
 import D from '../../../../D'
 import {Buffer} from 'buffer'
 
+const compatibleDevices = [
+  {vid: 0x1ea8, pid: 0xc036}
+]
+
 export default class ChromeHidDevice {
   constructor () {
     this._deviceId = null
@@ -39,14 +43,18 @@ export default class ChromeHidDevice {
     }
 
     chrome.hid.onDeviceAdded.addListener(device => {
-      console.log('plug in vid=' + device.vendorId + ', pid=' + device.productId)
+      console.log('hid plug in vid=' + device.vendorId + ', pid=' + device.productId)
+      if (!compatibleDevices.find(d => d.vid == device.vendorId && d.pid === device.productId)) {
+        console.log('hid not compatible device, ignore')
+        return
+      }
       if (this._deviceId) return
       this._deviceId = device.deviceId
       connect()
     })
 
     chrome.hid.onDeviceRemoved.addListener(deviceId => {
-      console.log('plug out', deviceId)
+      console.log('hid plug out', deviceId)
       if (this._deviceId !== deviceId) return
       this._deviceId = null
       this._connectionId = null
@@ -62,7 +70,11 @@ export default class ChromeHidDevice {
       if (this._deviceId) return
       if (foundDevices.length === 0) return
       let device = foundDevices[0]
-      console.log('found device: vid=' + device.vendorId + ', pid=' + device.productId)
+      console.log('hid found device: vid=' + device.vendorId + ', pid=' + device.productId)
+      if (!compatibleDevices.find(d => d.vid == device.vendorId && d.pid === device.productId)) {
+        console.log('hid not compatible device, ignore')
+        return
+      }
       this._deviceId = device.deviceId
       connect(device)
     })

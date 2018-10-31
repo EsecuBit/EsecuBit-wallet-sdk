@@ -378,7 +378,7 @@ export default class IndexedDB extends IDatabase {
       }
 
       accountRequest().then(addressInfosRequest).then(resolve).catch(e => {
-        console.warn('newAddressInfos', e)
+        console.warn('deleteAccount', e)
         reject(D.error.databaseExecFailed)
       })
     })

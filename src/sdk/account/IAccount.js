@@ -49,6 +49,7 @@ export default class IAccount {
   _toAccountInfo () {
     let info = {}
     Object.entries(this).forEach(([key, value]) => {
+      if (key.startsWith('_')) return
       if (typeof value === 'function') return
       info[key] = value
     })
@@ -57,6 +58,7 @@ export default class IAccount {
 
   _fromAccountInfo (info) {
     Object.entries(info).forEach(([key, value]) => {
+      if (key.startsWith('_')) return
       if (typeof value === 'function') return
       this[key] = value
     })
@@ -160,7 +162,7 @@ export default class IAccount {
 
   async _getActiveAddressInfos () {
     await this._checkAddressIndexAndGenerateNew()
-    return this.addressInfos[this.externalPublicKeyIndex]
+    return [this.addressInfos[this.externalPublicKeyIndex]]
   }
 
   // noinspection JSMethodCanBeStatic

@@ -141,7 +141,7 @@ export default class EsWallet {
   async _sync () {
     await Promise.all(this._esAccounts.map(esAccount => esAccount.sync(true, this.offlineMode)))
 
-    let recoveryFinish = await this._settings.getSetting('recoveryFinish')
+    let recoveryFinish = await this._settings.getSetting('recoveryFinish', this._info.walletId)
     if (!recoveryFinish) {
       if (this.offlineMode) throw D.error.offlineModeNotAllowed
       console.log('no accounts, new wallet, start recovery')
@@ -163,13 +163,10 @@ export default class EsWallet {
         for (let coinType of D.recoverCoinTypes()) {
           await this._recover(coinType)
         }
-        await this._settings.setSetting('recoveryFinish', true)
+        await this._settings.setSetting('recoveryFinish', true, this._info.walletId)
       } catch (e) {
         console.warn('recover error', e)
-        console.warn('recover account failed, deleting all accounts', this._esAccounts)
-        for (let esAccount of this._esAccounts) {
-          await esAccount.delete()
-        }
+        console.warn('recover account failed, recoveryFinish = false, wait for recover next time', this._esAccounts)
         this._esAccounts = []
         throw e
       }
@@ -304,5 +301,13 @@ export default class EsWallet {
    */
   convertValue (coinType, value, fromUnit, toUnit) {
     return this._coinData.convertValue(coinType, value, fromUnit, toUnit)
+  }
+
+  getTestSeed () {
+    return new Settings().getTestSeed()
+  }
+
+  setTestSeed (testSeed) {
+    return new Settings().setTestSeed(testSeed)
   }
 }

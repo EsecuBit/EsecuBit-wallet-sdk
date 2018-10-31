@@ -12,6 +12,10 @@
 
 import D from '../../../../D'
 
+const compatibleDevices = [
+  {vid: 0x1ea8, pid: 0x800a}
+]
+
 export default class ChromeUsbDevice {
   constructor () {
     this._deviceId = null
@@ -34,7 +38,9 @@ export default class ChromeUsbDevice {
           if (!descriptors || descriptors.length === 0) {
             console.warn('no descriptors for device')
             D.dispatch(() => this._listener(D.error.deviceConnectFailed, D.status.plugIn))
+            return
           }
+
           let descriptor = descriptors[0]
           this._inEndPoint = descriptor.endpoints.find(ep => ep.direction === 'in')
           this._outEndPoint = descriptor.endpoints.find(ep => ep.direction === 'out')
@@ -53,7 +59,11 @@ export default class ChromeUsbDevice {
     }
 
     chrome.usb.onDeviceAdded.addListener((device) => {
-      console.log('plug in vid=' + device.vendorId + ', pid=' + device.productId)
+      console.log('usb plug in vid=' + device.vendorId + ', pid=' + device.productId)
+      if (!compatibleDevices.find(d => d.vid == device.vendorId && d.pid === device.productId)) {
+        console.log('usb not compatible device, ignore')
+        return
+      }
       if (!this._deviceId) {
         this._deviceId = device.device
         connect(device)
@@ -61,13 +71,13 @@ export default class ChromeUsbDevice {
     })
 
     chrome.usb.onDeviceRemoved.addListener((device) => {
-      console.log('plug out vid=' + device.vendorId + ', pid=' + device.productId)
+      console.log('usb plug out vid=' + device.vendorId + ', pid=' + device.productId)
       if (device.device === this._deviceId) {
         this._deviceId = null
         this._connectionHandle = null
         if (this._listener !== null) {
           if (this._listener !== null) {
-            this._listener(D.error.succeed, false)
+            this._listener(D.error.succeed, D.status.plugOut)
           }
         }
       }
@@ -86,7 +96,11 @@ export default class ChromeUsbDevice {
         return
       }
       let device = foundDevices[0]
-      console.log('found device: vid=' + device.vendorId + ', pid=' + device.productId)
+      console.log('usb found device: vid=' + device.vendorId + ', pid=' + device.productId)
+      if (!compatibleDevices.find(d => d.vid == device.vendorId && d.pid === device.productId)) {
+        console.log('usb not compatible device, ignore')
+        return
+      }
       this._deviceId = device.device
       connect(device)
     })
