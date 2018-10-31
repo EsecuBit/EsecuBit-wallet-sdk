@@ -20,7 +20,7 @@ export default class ChromeUsbDevice {
   constructor () {
     this._deviceId = null
     this._connectionHandle = null
-    this._listener = null
+    this._listener = () => {}
 
     if (!chrome || !chrome.usb) {
       console.warn('chrome.usb not in chrome app env, exit')
@@ -33,8 +33,12 @@ export default class ChromeUsbDevice {
         console.log('Connected to the USB device!', connectionHandle)
 
         chrome.usb.listInterfaces(connectionHandle, (descriptors) => {
+          if (chrome.runtime.lastError) {
+            console.warn('chrome.usb.listInterfaces error: ' + chrome.runtime.lastError.message)
+            D.dispatch(() => this._listener(D.error.deviceConnectFailed, D.status.plugIn))
+            return
+          }
           console.log('USB device interface info: ', descriptors)
-
           if (!descriptors || descriptors.length === 0) {
             console.warn('no descriptors for device')
             D.dispatch(() => this._listener(D.error.deviceConnectFailed, D.status.plugIn))
@@ -47,12 +51,11 @@ export default class ChromeUsbDevice {
           chrome.usb.claimInterface(connectionHandle, descriptor.interfaceNumber, () => {
             if (chrome.runtime.lastError) {
               console.warn('chrome.usb.claimInterface error: ' + chrome.runtime.lastError.message)
+              D.dispatch(() => this._listener(D.error.deviceConnectFailed, D.status.plugIn))
               return
             }
             console.log('Claimed interface', descriptor)
-            if (this._listener !== null) {
-              D.dispatch(() => this._listener(D.error.succeed, D.status.plugIn))
-            }
+            D.dispatch(() => this._listener(D.error.succeed, D.status.plugIn))
           })
         })
       })
@@ -75,11 +78,7 @@ export default class ChromeUsbDevice {
       if (device.device === this._deviceId) {
         this._deviceId = null
         this._connectionHandle = null
-        if (this._listener !== null) {
-          if (this._listener !== null) {
-            this._listener(D.error.succeed, D.status.plugOut)
-          }
-        }
+        D.dispatch(() => this._listener(D.error.succeed, D.status.plugOut))
       }
     })
 
@@ -160,7 +159,7 @@ export default class ChromeUsbDevice {
   }
 
   listenPlug (callback) {
-    this._listener = callback
+    this._listener = callback || this._listener
     if (this._deviceId !== null && this._connectionHandle !== null) {
       callback(D.error.succeed, D.status.plugIn)
     }

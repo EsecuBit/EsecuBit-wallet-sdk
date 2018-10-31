@@ -20,7 +20,7 @@ export default class ChromeHidDevice {
   constructor () {
     this._deviceId = null
     this._connectionId = null
-    this._listener = null
+    this._listener = () => {}
 
     if (!chrome || !chrome.hid) {
       console.warn('chrome.hid not in chrome app env, exit')
@@ -32,13 +32,13 @@ export default class ChromeHidDevice {
         if (chrome.runtime.lastError) {
           console.warn('chrome.hid.connect error: ' + chrome.runtime.lastError.message)
           this._deviceId = null
-          this._listener && D.dispatch(() => this._listener(D.error.deviceConnectFailed, D.status.plugIn))
+          D.dispatch(() => this._listener(D.error.deviceConnectFailed, D.status.plugIn))
           return
         }
 
         this._connectionId = connection.connectionId
         console.log('Connected to the HID device!', this._deviceId, this._connectionId)
-        this._listener && D.dispatch(() => this._listener(D.error.succeed, D.status.plugIn))
+        D.dispatch(() => this._listener(D.error.succeed, D.status.plugIn))
       })
     }
 
@@ -58,7 +58,7 @@ export default class ChromeHidDevice {
       if (this._deviceId !== deviceId) return
       this._deviceId = null
       this._connectionId = null
-      this._listener && D.dispatch(() => this._listener(D.error.succeed, D.status.plugOut))
+      D.dispatch(() => this._listener(D.error.succeed, D.status.plugOut))
     })
 
     chrome.hid.getDevices({}, foundDevices => {
@@ -120,7 +120,7 @@ export default class ChromeHidDevice {
   }
 
   listenPlug (callback) {
-    this._listener = callback
+    this._listener = callback || this._listener
     if (this._deviceId !== null && this._connectionId !== null) {
       D.dispatch(() => this._listener(D.error.succeed, D.status.plugIn))
     }
