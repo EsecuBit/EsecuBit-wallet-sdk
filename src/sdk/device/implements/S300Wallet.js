@@ -69,9 +69,16 @@ export default class S300Wallet {
     let address = String.fromCharCode.apply(null, new Uint8Array(response))
     // device only return mainnet address
     if (coinType === D.coin.test.btcTestNet3) {
-      let addressBuffer = D.address.toBuffer(address)
-      addressBuffer = Buffer.concat([Buffer.from('6F', 'hex'), addressBuffer])
-      address = D.address.toString(addressBuffer)
+      try {
+        let addressBuffer = D.address.toBuffer(address)
+        addressBuffer = Buffer.concat([Buffer.from('6F', 'hex'), addressBuffer])
+        address = D.address.toString(addressBuffer)
+      } catch (e) {
+        // TODO remove, S300 bug: return address with constant length 34.
+        let addressBuffer = D.address.toBuffer(address.slice(0, address.length - 1))
+        addressBuffer = Buffer.concat([Buffer.from('6F', 'hex'), addressBuffer])
+        address = D.address.toString(addressBuffer)
+      }
     }
     return address
   }
