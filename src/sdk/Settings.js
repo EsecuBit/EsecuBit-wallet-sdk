@@ -23,7 +23,7 @@ export default class Settings {
       await this._init()
     }
     if (namespace) key = key + '_' + namespace
-    return this._settingDb.getSettings(key)
+    return JSON.parse(this._settingDb.getSettings(key))
   }
 
   async setSetting (key, value, namespace = undefined) {
@@ -31,7 +31,7 @@ export default class Settings {
       await this._init()
     }
     if (namespace) key = key + '_' + namespace
-    await this._settingDb.saveOrUpdateSettings(key, value)
+    await this._settingDb.saveOrUpdateSettings(key, JSON.stringify(value))
   }
 
   async getTestSeed () {
