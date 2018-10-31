@@ -44,7 +44,7 @@ export default class ChromeHidDevice {
 
     chrome.hid.onDeviceAdded.addListener(device => {
       console.log('hid plug in vid=' + device.vendorId + ', pid=' + device.productId)
-      if (!compatibleDevices.find(d => d.vid == device.vendorId && d.pid === device.productId)) {
+      if (!compatibleDevices.find(d => d.vid === device.vendorId && d.pid === device.productId)) {
         console.log('hid not compatible device, ignore')
         return
       }
@@ -71,7 +71,7 @@ export default class ChromeHidDevice {
       if (foundDevices.length === 0) return
       let device = foundDevices[0]
       console.log('hid found device: vid=' + device.vendorId + ', pid=' + device.productId)
-      if (!compatibleDevices.find(d => d.vid == device.vendorId && d.pid === device.productId)) {
+      if (!compatibleDevices.find(d => d.vid === device.vendorId && d.pid === device.productId)) {
         console.log('hid not compatible device, ignore')
         return
       }

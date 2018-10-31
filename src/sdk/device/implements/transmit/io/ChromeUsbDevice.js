@@ -60,7 +60,7 @@ export default class ChromeUsbDevice {
 
     chrome.usb.onDeviceAdded.addListener((device) => {
       console.log('usb plug in vid=' + device.vendorId + ', pid=' + device.productId)
-      if (!compatibleDevices.find(d => d.vid == device.vendorId && d.pid === device.productId)) {
+      if (!compatibleDevices.find(d => d.vid === device.vendorId && d.pid === device.productId)) {
         console.log('usb not compatible device, ignore')
         return
       }
@@ -97,7 +97,7 @@ export default class ChromeUsbDevice {
       }
       let device = foundDevices[0]
       console.log('usb found device: vid=' + device.vendorId + ', pid=' + device.productId)
-      if (!compatibleDevices.find(d => d.vid == device.vendorId && d.pid === device.productId)) {
+      if (!compatibleDevices.find(d => d.vid === device.vendorId && d.pid === device.productId)) {
         console.log('usb not compatible device, ignore')
         return
       }
