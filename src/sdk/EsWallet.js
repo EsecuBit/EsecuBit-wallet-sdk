@@ -142,9 +142,9 @@ export default class EsWallet {
     await Promise.all(this._esAccounts.map(esAccount => esAccount.sync(true, this.offlineMode)))
 
     let recoveryFinish = await this._settings.getSetting('recoveryFinish', this._info.walletId)
-    if (!recoveryFinish) {
+    if (!recoveryFinish || this._esAccounts.length === 0) {
       if (this.offlineMode) throw D.error.offlineModeNotAllowed
-      console.log('no accounts, new wallet, start recovery')
+      console.log('start recovery', recoveryFinish, this._esAccounts.length)
       try {
         // make sure no empty account before recover
         // if last recovery is stopped unexcepted, we will have part of accounts
