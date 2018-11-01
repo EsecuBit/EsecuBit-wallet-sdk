@@ -23,7 +23,8 @@ export default class Settings {
       await this._init()
     }
     if (namespace) key = key + '_' + namespace
-    return JSON.parse(await this._settingDb.getSettings(key))
+    let value = await this._settingDb.getSettings(key)
+    return (value && JSON.parse(value)) || undefined
   }
 
   async setSetting (key, value, namespace = undefined) {
