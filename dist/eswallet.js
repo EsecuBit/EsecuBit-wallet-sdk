@@ -5155,10 +5155,10 @@ module.exports = BigInteger
 /*!****************************************!*\
   !*** ./node_modules/bigi/package.json ***!
   \****************************************/
-/*! exports provided: _from, _id, _inBundle, _integrity, _location, _phantomChildren, _requested, _requiredBy, _resolved, _shasum, _spec, _where, bugs, bundleDependencies, dependencies, deprecated, description, devDependencies, homepage, keywords, main, name, repository, scripts, testling, version, default */
+/*! exports provided: _args, _from, _id, _inBundle, _integrity, _location, _phantomChildren, _requested, _requiredBy, _resolved, _spec, _where, bugs, dependencies, description, devDependencies, homepage, keywords, main, name, repository, scripts, testling, version, default */
 /***/ (function(module) {
 
-module.exports = {"_from":"bigi@^1.4.2","_id":"bigi@1.4.2","_inBundle":false,"_integrity":"sha1-nGZalfiLiwj8Bc/XMfVhhZ1yWCU=","_location":"/bigi","_phantomChildren":{},"_requested":{"type":"range","registry":true,"raw":"bigi@^1.4.2","name":"bigi","escapedName":"bigi","rawSpec":"^1.4.2","saveSpec":null,"fetchSpec":"^1.4.2"},"_requiredBy":["/","/bitcoinjs-lib","/ecurve"],"_resolved":"http://registry.npm.taobao.org/bigi/download/bigi-1.4.2.tgz","_shasum":"9c665a95f88b8b08fc05cfd731f561859d725825","_spec":"bigi@^1.4.2","_where":"/Users/wang/Documents/ctx/chrome-excelsecu-wallet","bugs":{"url":"https://github.com/cryptocoinjs/bigi/issues"},"bundleDependencies":false,"dependencies":{},"deprecated":false,"description":"Big integers.","devDependencies":{"coveralls":"^2.11.2","istanbul":"^0.3.5","jshint":"^2.5.1","mocha":"^2.1.0","mochify":"^2.1.0"},"homepage":"https://github.com/cryptocoinjs/bigi#readme","keywords":["cryptography","math","bitcoin","arbitrary","precision","arithmetic","big","integer","int","number","biginteger","bigint","bignumber","decimal","float"],"main":"./lib/index.js","name":"bigi","repository":{"url":"git+https://github.com/cryptocoinjs/bigi.git","type":"git"},"scripts":{"browser-test":"mochify --wd -R spec","coverage":"istanbul cover ./node_modules/.bin/_mocha -- --reporter list test/*.js","coveralls":"npm run-script coverage && node ./node_modules/.bin/coveralls < coverage/lcov.info","jshint":"jshint --config jshint.json lib/*.js ; true","test":"_mocha -- test/*.js","unit":"mocha"},"testling":{"files":"test/*.js","harness":"mocha","browsers":["ie/9..latest","firefox/latest","chrome/latest","safari/6.0..latest","iphone/6.0..latest","android-browser/4.2..latest"]},"version":"1.4.2"};
+module.exports = {"_args":[["bigi@1.4.2","/Users/wang/Documents/ctx/chrome-excelsecu-wallet"]],"_from":"bigi@1.4.2","_id":"bigi@1.4.2","_inBundle":false,"_integrity":"sha1-nGZalfiLiwj8Bc/XMfVhhZ1yWCU=","_location":"/bigi","_phantomChildren":{},"_requested":{"type":"version","registry":true,"raw":"bigi@1.4.2","name":"bigi","escapedName":"bigi","rawSpec":"1.4.2","saveSpec":null,"fetchSpec":"1.4.2"},"_requiredBy":["/","/bitcoinjs-lib","/ecurve"],"_resolved":"https://registry.npmjs.org/bigi/-/bigi-1.4.2.tgz","_spec":"1.4.2","_where":"/Users/wang/Documents/ctx/chrome-excelsecu-wallet","bugs":{"url":"https://github.com/cryptocoinjs/bigi/issues"},"dependencies":{},"description":"Big integers.","devDependencies":{"coveralls":"^2.11.2","istanbul":"^0.3.5","jshint":"^2.5.1","mocha":"^2.1.0","mochify":"^2.1.0"},"homepage":"https://github.com/cryptocoinjs/bigi#readme","keywords":["cryptography","math","bitcoin","arbitrary","precision","arithmetic","big","integer","int","number","biginteger","bigint","bignumber","decimal","float"],"main":"./lib/index.js","name":"bigi","repository":{"url":"git+https://github.com/cryptocoinjs/bigi.git","type":"git"},"scripts":{"browser-test":"mochify --wd -R spec","coverage":"istanbul cover ./node_modules/.bin/_mocha -- --reporter list test/*.js","coveralls":"npm run-script coverage && node ./node_modules/.bin/coveralls < coverage/lcov.info","jshint":"jshint --config jshint.json lib/*.js ; true","test":"_mocha -- test/*.js","unit":"mocha"},"testling":{"files":"test/*.js","harness":"mocha","browsers":["ie/9..latest","firefox/latest","chrome/latest","safari/6.0..latest","iphone/6.0..latest","android-browser/4.2..latest"]},"version":"1.4.2"};
 
 /***/ }),
 
@@ -16478,6 +16478,3760 @@ module.exports = bs58checkBase(sha256x2)
 }
 
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../node-libs-browser/node_modules/buffer/index.js */ "./node_modules/node-libs-browser/node_modules/buffer/index.js").Buffer))
+
+/***/ }),
+
+/***/ "./node_modules/bytebuffer/dist/bytebuffer.js":
+/*!****************************************************!*\
+  !*** ./node_modules/bytebuffer/dist/bytebuffer.js ***!
+  \****************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*
+ Copyright 2013-2014 Daniel Wirtz <dcode@dcode.io>
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+ http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+ */
+
+/**
+ * @license bytebuffer.js (c) 2015 Daniel Wirtz <dcode@dcode.io>
+ * Backing buffer: ArrayBuffer, Accessor: Uint8Array
+ * Released under the Apache License, Version 2.0
+ * see: https://github.com/dcodeIO/bytebuffer.js for details
+ */
+(function(global, factory) {
+
+    /* AMD */ if (true)
+        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [__webpack_require__(/*! long */ "./node_modules/long/dist/long.js")], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory),
+				__WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ?
+				(__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__),
+				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+    /* CommonJS */ else {}
+
+})(this, function(Long) {
+    "use strict";
+
+    /**
+     * Constructs a new ByteBuffer.
+     * @class The swiss army knife for binary data in JavaScript.
+     * @exports ByteBuffer
+     * @constructor
+     * @param {number=} capacity Initial capacity. Defaults to {@link ByteBuffer.DEFAULT_CAPACITY}.
+     * @param {boolean=} littleEndian Whether to use little or big endian byte order. Defaults to
+     *  {@link ByteBuffer.DEFAULT_ENDIAN}.
+     * @param {boolean=} noAssert Whether to skip assertions of offsets and values. Defaults to
+     *  {@link ByteBuffer.DEFAULT_NOASSERT}.
+     * @expose
+     */
+    var ByteBuffer = function(capacity, littleEndian, noAssert) {
+        if (typeof capacity === 'undefined')
+            capacity = ByteBuffer.DEFAULT_CAPACITY;
+        if (typeof littleEndian === 'undefined')
+            littleEndian = ByteBuffer.DEFAULT_ENDIAN;
+        if (typeof noAssert === 'undefined')
+            noAssert = ByteBuffer.DEFAULT_NOASSERT;
+        if (!noAssert) {
+            capacity = capacity | 0;
+            if (capacity < 0)
+                throw RangeError("Illegal capacity");
+            littleEndian = !!littleEndian;
+            noAssert = !!noAssert;
+        }
+
+        /**
+         * Backing ArrayBuffer.
+         * @type {!ArrayBuffer}
+         * @expose
+         */
+        this.buffer = capacity === 0 ? EMPTY_BUFFER : new ArrayBuffer(capacity);
+
+        /**
+         * Uint8Array utilized to manipulate the backing buffer. Becomes `null` if the backing buffer has a capacity of `0`.
+         * @type {?Uint8Array}
+         * @expose
+         */
+        this.view = capacity === 0 ? null : new Uint8Array(this.buffer);
+
+        /**
+         * Absolute read/write offset.
+         * @type {number}
+         * @expose
+         * @see ByteBuffer#flip
+         * @see ByteBuffer#clear
+         */
+        this.offset = 0;
+
+        /**
+         * Marked offset.
+         * @type {number}
+         * @expose
+         * @see ByteBuffer#mark
+         * @see ByteBuffer#reset
+         */
+        this.markedOffset = -1;
+
+        /**
+         * Absolute limit of the contained data. Set to the backing buffer's capacity upon allocation.
+         * @type {number}
+         * @expose
+         * @see ByteBuffer#flip
+         * @see ByteBuffer#clear
+         */
+        this.limit = capacity;
+
+        /**
+         * Whether to use little endian byte order, defaults to `false` for big endian.
+         * @type {boolean}
+         * @expose
+         */
+        this.littleEndian = littleEndian;
+
+        /**
+         * Whether to skip assertions of offsets and values, defaults to `false`.
+         * @type {boolean}
+         * @expose
+         */
+        this.noAssert = noAssert;
+    };
+
+    /**
+     * ByteBuffer version.
+     * @type {string}
+     * @const
+     * @expose
+     */
+    ByteBuffer.VERSION = "5.0.1";
+
+    /**
+     * Little endian constant that can be used instead of its boolean value. Evaluates to `true`.
+     * @type {boolean}
+     * @const
+     * @expose
+     */
+    ByteBuffer.LITTLE_ENDIAN = true;
+
+    /**
+     * Big endian constant that can be used instead of its boolean value. Evaluates to `false`.
+     * @type {boolean}
+     * @const
+     * @expose
+     */
+    ByteBuffer.BIG_ENDIAN = false;
+
+    /**
+     * Default initial capacity of `16`.
+     * @type {number}
+     * @expose
+     */
+    ByteBuffer.DEFAULT_CAPACITY = 16;
+
+    /**
+     * Default endianess of `false` for big endian.
+     * @type {boolean}
+     * @expose
+     */
+    ByteBuffer.DEFAULT_ENDIAN = ByteBuffer.BIG_ENDIAN;
+
+    /**
+     * Default no assertions flag of `false`.
+     * @type {boolean}
+     * @expose
+     */
+    ByteBuffer.DEFAULT_NOASSERT = false;
+
+    /**
+     * A `Long` class for representing a 64-bit two's-complement integer value. May be `null` if Long.js has not been loaded
+     *  and int64 support is not available.
+     * @type {?Long}
+     * @const
+     * @see https://github.com/dcodeIO/long.js
+     * @expose
+     */
+    ByteBuffer.Long = Long || null;
+
+    /**
+     * @alias ByteBuffer.prototype
+     * @inner
+     */
+    var ByteBufferPrototype = ByteBuffer.prototype;
+
+    /**
+     * An indicator used to reliably determine if an object is a ByteBuffer or not.
+     * @type {boolean}
+     * @const
+     * @expose
+     * @private
+     */
+    ByteBufferPrototype.__isByteBuffer__;
+
+    Object.defineProperty(ByteBufferPrototype, "__isByteBuffer__", {
+        value: true,
+        enumerable: false,
+        configurable: false
+    });
+
+    // helpers
+
+    /**
+     * @type {!ArrayBuffer}
+     * @inner
+     */
+    var EMPTY_BUFFER = new ArrayBuffer(0);
+
+    /**
+     * String.fromCharCode reference for compile-time renaming.
+     * @type {function(...number):string}
+     * @inner
+     */
+    var stringFromCharCode = String.fromCharCode;
+
+    /**
+     * Creates a source function for a string.
+     * @param {string} s String to read from
+     * @returns {function():number|null} Source function returning the next char code respectively `null` if there are
+     *  no more characters left.
+     * @throws {TypeError} If the argument is invalid
+     * @inner
+     */
+    function stringSource(s) {
+        var i=0; return function() {
+            return i < s.length ? s.charCodeAt(i++) : null;
+        };
+    }
+
+    /**
+     * Creates a destination function for a string.
+     * @returns {function(number=):undefined|string} Destination function successively called with the next char code.
+     *  Returns the final string when called without arguments.
+     * @inner
+     */
+    function stringDestination() {
+        var cs = [], ps = []; return function() {
+            if (arguments.length === 0)
+                return ps.join('')+stringFromCharCode.apply(String, cs);
+            if (cs.length + arguments.length > 1024)
+                ps.push(stringFromCharCode.apply(String, cs)),
+                    cs.length = 0;
+            Array.prototype.push.apply(cs, arguments);
+        };
+    }
+
+    /**
+     * Gets the accessor type.
+     * @returns {Function} `Buffer` under node.js, `Uint8Array` respectively `DataView` in the browser (classes)
+     * @expose
+     */
+    ByteBuffer.accessor = function() {
+        return Uint8Array;
+    };
+    /**
+     * Allocates a new ByteBuffer backed by a buffer of the specified capacity.
+     * @param {number=} capacity Initial capacity. Defaults to {@link ByteBuffer.DEFAULT_CAPACITY}.
+     * @param {boolean=} littleEndian Whether to use little or big endian byte order. Defaults to
+     *  {@link ByteBuffer.DEFAULT_ENDIAN}.
+     * @param {boolean=} noAssert Whether to skip assertions of offsets and values. Defaults to
+     *  {@link ByteBuffer.DEFAULT_NOASSERT}.
+     * @returns {!ByteBuffer}
+     * @expose
+     */
+    ByteBuffer.allocate = function(capacity, littleEndian, noAssert) {
+        return new ByteBuffer(capacity, littleEndian, noAssert);
+    };
+
+    /**
+     * Concatenates multiple ByteBuffers into one.
+     * @param {!Array.<!ByteBuffer|!ArrayBuffer|!Uint8Array|string>} buffers Buffers to concatenate
+     * @param {(string|boolean)=} encoding String encoding if `buffers` contains a string ("base64", "hex", "binary",
+     *  defaults to "utf8")
+     * @param {boolean=} littleEndian Whether to use little or big endian byte order for the resulting ByteBuffer. Defaults
+     *  to {@link ByteBuffer.DEFAULT_ENDIAN}.
+     * @param {boolean=} noAssert Whether to skip assertions of offsets and values for the resulting ByteBuffer. Defaults to
+     *  {@link ByteBuffer.DEFAULT_NOASSERT}.
+     * @returns {!ByteBuffer} Concatenated ByteBuffer
+     * @expose
+     */
+    ByteBuffer.concat = function(buffers, encoding, littleEndian, noAssert) {
+        if (typeof encoding === 'boolean' || typeof encoding !== 'string') {
+            noAssert = littleEndian;
+            littleEndian = encoding;
+            encoding = undefined;
+        }
+        var capacity = 0;
+        for (var i=0, k=buffers.length, length; i<k; ++i) {
+            if (!ByteBuffer.isByteBuffer(buffers[i]))
+                buffers[i] = ByteBuffer.wrap(buffers[i], encoding);
+            length = buffers[i].limit - buffers[i].offset;
+            if (length > 0) capacity += length;
+        }
+        if (capacity === 0)
+            return new ByteBuffer(0, littleEndian, noAssert);
+        var bb = new ByteBuffer(capacity, littleEndian, noAssert),
+            bi;
+        i=0; while (i<k) {
+            bi = buffers[i++];
+            length = bi.limit - bi.offset;
+            if (length <= 0) continue;
+            bb.view.set(bi.view.subarray(bi.offset, bi.limit), bb.offset);
+            bb.offset += length;
+        }
+        bb.limit = bb.offset;
+        bb.offset = 0;
+        return bb;
+    };
+
+    /**
+     * Tests if the specified type is a ByteBuffer.
+     * @param {*} bb ByteBuffer to test
+     * @returns {boolean} `true` if it is a ByteBuffer, otherwise `false`
+     * @expose
+     */
+    ByteBuffer.isByteBuffer = function(bb) {
+        return (bb && bb["__isByteBuffer__"]) === true;
+    };
+    /**
+     * Gets the backing buffer type.
+     * @returns {Function} `Buffer` under node.js, `ArrayBuffer` in the browser (classes)
+     * @expose
+     */
+    ByteBuffer.type = function() {
+        return ArrayBuffer;
+    };
+    /**
+     * Wraps a buffer or a string. Sets the allocated ByteBuffer's {@link ByteBuffer#offset} to `0` and its
+     *  {@link ByteBuffer#limit} to the length of the wrapped data.
+     * @param {!ByteBuffer|!ArrayBuffer|!Uint8Array|string|!Array.<number>} buffer Anything that can be wrapped
+     * @param {(string|boolean)=} encoding String encoding if `buffer` is a string ("base64", "hex", "binary", defaults to
+     *  "utf8")
+     * @param {boolean=} littleEndian Whether to use little or big endian byte order. Defaults to
+     *  {@link ByteBuffer.DEFAULT_ENDIAN}.
+     * @param {boolean=} noAssert Whether to skip assertions of offsets and values. Defaults to
+     *  {@link ByteBuffer.DEFAULT_NOASSERT}.
+     * @returns {!ByteBuffer} A ByteBuffer wrapping `buffer`
+     * @expose
+     */
+    ByteBuffer.wrap = function(buffer, encoding, littleEndian, noAssert) {
+        if (typeof encoding !== 'string') {
+            noAssert = littleEndian;
+            littleEndian = encoding;
+            encoding = undefined;
+        }
+        if (typeof buffer === 'string') {
+            if (typeof encoding === 'undefined')
+                encoding = "utf8";
+            switch (encoding) {
+                case "base64":
+                    return ByteBuffer.fromBase64(buffer, littleEndian);
+                case "hex":
+                    return ByteBuffer.fromHex(buffer, littleEndian);
+                case "binary":
+                    return ByteBuffer.fromBinary(buffer, littleEndian);
+                case "utf8":
+                    return ByteBuffer.fromUTF8(buffer, littleEndian);
+                case "debug":
+                    return ByteBuffer.fromDebug(buffer, littleEndian);
+                default:
+                    throw Error("Unsupported encoding: "+encoding);
+            }
+        }
+        if (buffer === null || typeof buffer !== 'object')
+            throw TypeError("Illegal buffer");
+        var bb;
+        if (ByteBuffer.isByteBuffer(buffer)) {
+            bb = ByteBufferPrototype.clone.call(buffer);
+            bb.markedOffset = -1;
+            return bb;
+        }
+        if (buffer instanceof Uint8Array) { // Extract ArrayBuffer from Uint8Array
+            bb = new ByteBuffer(0, littleEndian, noAssert);
+            if (buffer.length > 0) { // Avoid references to more than one EMPTY_BUFFER
+                bb.buffer = buffer.buffer;
+                bb.offset = buffer.byteOffset;
+                bb.limit = buffer.byteOffset + buffer.byteLength;
+                bb.view = new Uint8Array(buffer.buffer);
+            }
+        } else if (buffer instanceof ArrayBuffer) { // Reuse ArrayBuffer
+            bb = new ByteBuffer(0, littleEndian, noAssert);
+            if (buffer.byteLength > 0) {
+                bb.buffer = buffer;
+                bb.offset = 0;
+                bb.limit = buffer.byteLength;
+                bb.view = buffer.byteLength > 0 ? new Uint8Array(buffer) : null;
+            }
+        } else if (Object.prototype.toString.call(buffer) === "[object Array]") { // Create from octets
+            bb = new ByteBuffer(buffer.length, littleEndian, noAssert);
+            bb.limit = buffer.length;
+            for (var i=0; i<buffer.length; ++i)
+                bb.view[i] = buffer[i];
+        } else
+            throw TypeError("Illegal buffer"); // Otherwise fail
+        return bb;
+    };
+
+    /**
+     * Writes the array as a bitset.
+     * @param {Array<boolean>} value Array of booleans to write
+     * @param {number=} offset Offset to read from. Will use and increase {@link ByteBuffer#offset} by `length` if omitted.
+     * @returns {!ByteBuffer}
+     * @expose
+     */
+    ByteBufferPrototype.writeBitSet = function(value, offset) {
+      var relative = typeof offset === 'undefined';
+      if (relative) offset = this.offset;
+      if (!this.noAssert) {
+        if (!(value instanceof Array))
+          throw TypeError("Illegal BitSet: Not an array");
+        if (typeof offset !== 'number' || offset % 1 !== 0)
+            throw TypeError("Illegal offset: "+offset+" (not an integer)");
+        offset >>>= 0;
+        if (offset < 0 || offset + 0 > this.buffer.byteLength)
+            throw RangeError("Illegal offset: 0 <= "+offset+" (+"+0+") <= "+this.buffer.byteLength);
+      }
+
+      var start = offset,
+          bits = value.length,
+          bytes = (bits >> 3),
+          bit = 0,
+          k;
+
+      offset += this.writeVarint32(bits,offset);
+
+      while(bytes--) {
+        k = (!!value[bit++] & 1) |
+            ((!!value[bit++] & 1) << 1) |
+            ((!!value[bit++] & 1) << 2) |
+            ((!!value[bit++] & 1) << 3) |
+            ((!!value[bit++] & 1) << 4) |
+            ((!!value[bit++] & 1) << 5) |
+            ((!!value[bit++] & 1) << 6) |
+            ((!!value[bit++] & 1) << 7);
+        this.writeByte(k,offset++);
+      }
+
+      if(bit < bits) {
+        var m = 0; k = 0;
+        while(bit < bits) k = k | ((!!value[bit++] & 1) << (m++));
+        this.writeByte(k,offset++);
+      }
+
+      if (relative) {
+        this.offset = offset;
+        return this;
+      }
+      return offset - start;
+    }
+
+    /**
+     * Reads a BitSet as an array of booleans.
+     * @param {number=} offset Offset to read from. Will use and increase {@link ByteBuffer#offset} by `length` if omitted.
+     * @returns {Array<boolean>
+     * @expose
+     */
+    ByteBufferPrototype.readBitSet = function(offset) {
+      var relative = typeof offset === 'undefined';
+      if (relative) offset = this.offset;
+
+      var ret = this.readVarint32(offset),
+          bits = ret.value,
+          bytes = (bits >> 3),
+          bit = 0,
+          value = [],
+          k;
+
+      offset += ret.length;
+
+      while(bytes--) {
+        k = this.readByte(offset++);
+        value[bit++] = !!(k & 0x01);
+        value[bit++] = !!(k & 0x02);
+        value[bit++] = !!(k & 0x04);
+        value[bit++] = !!(k & 0x08);
+        value[bit++] = !!(k & 0x10);
+        value[bit++] = !!(k & 0x20);
+        value[bit++] = !!(k & 0x40);
+        value[bit++] = !!(k & 0x80);
+      }
+
+      if(bit < bits) {
+        var m = 0;
+        k = this.readByte(offset++);
+        while(bit < bits) value[bit++] = !!((k >> (m++)) & 1);
+      }
+
+      if (relative) {
+        this.offset = offset;
+      }
+      return value;
+    }
+    /**
+     * Reads the specified number of bytes.
+     * @param {number} length Number of bytes to read
+     * @param {number=} offset Offset to read from. Will use and increase {@link ByteBuffer#offset} by `length` if omitted.
+     * @returns {!ByteBuffer}
+     * @expose
+     */
+    ByteBufferPrototype.readBytes = function(length, offset) {
+        var relative = typeof offset === 'undefined';
+        if (relative) offset = this.offset;
+        if (!this.noAssert) {
+            if (typeof offset !== 'number' || offset % 1 !== 0)
+                throw TypeError("Illegal offset: "+offset+" (not an integer)");
+            offset >>>= 0;
+            if (offset < 0 || offset + length > this.buffer.byteLength)
+                throw RangeError("Illegal offset: 0 <= "+offset+" (+"+length+") <= "+this.buffer.byteLength);
+        }
+        var slice = this.slice(offset, offset + length);
+        if (relative) this.offset += length;
+        return slice;
+    };
+
+    /**
+     * Writes a payload of bytes. This is an alias of {@link ByteBuffer#append}.
+     * @function
+     * @param {!ByteBuffer|!ArrayBuffer|!Uint8Array|string} source Data to write. If `source` is a ByteBuffer, its offsets
+     *  will be modified according to the performed read operation.
+     * @param {(string|number)=} encoding Encoding if `data` is a string ("base64", "hex", "binary", defaults to "utf8")
+     * @param {number=} offset Offset to write to. Will use and increase {@link ByteBuffer#offset} by the number of bytes
+     *  written if omitted.
+     * @returns {!ByteBuffer} this
+     * @expose
+     */
+    ByteBufferPrototype.writeBytes = ByteBufferPrototype.append;
+
+    // types/ints/int8
+
+    /**
+     * Writes an 8bit signed integer.
+     * @param {number} value Value to write
+     * @param {number=} offset Offset to write to. Will use and advance {@link ByteBuffer#offset} by `1` if omitted.
+     * @returns {!ByteBuffer} this
+     * @expose
+     */
+    ByteBufferPrototype.writeInt8 = function(value, offset) {
+        var relative = typeof offset === 'undefined';
+        if (relative) offset = this.offset;
+        if (!this.noAssert) {
+            if (typeof value !== 'number' || value % 1 !== 0)
+                throw TypeError("Illegal value: "+value+" (not an integer)");
+            value |= 0;
+            if (typeof offset !== 'number' || offset % 1 !== 0)
+                throw TypeError("Illegal offset: "+offset+" (not an integer)");
+            offset >>>= 0;
+            if (offset < 0 || offset + 0 > this.buffer.byteLength)
+                throw RangeError("Illegal offset: 0 <= "+offset+" (+"+0+") <= "+this.buffer.byteLength);
+        }
+        offset += 1;
+        var capacity0 = this.buffer.byteLength;
+        if (offset > capacity0)
+            this.resize((capacity0 *= 2) > offset ? capacity0 : offset);
+        offset -= 1;
+        this.view[offset] = value;
+        if (relative) this.offset += 1;
+        return this;
+    };
+
+    /**
+     * Writes an 8bit signed integer. This is an alias of {@link ByteBuffer#writeInt8}.
+     * @function
+     * @param {number} value Value to write
+     * @param {number=} offset Offset to write to. Will use and advance {@link ByteBuffer#offset} by `1` if omitted.
+     * @returns {!ByteBuffer} this
+     * @expose
+     */
+    ByteBufferPrototype.writeByte = ByteBufferPrototype.writeInt8;
+
+    /**
+     * Reads an 8bit signed integer.
+     * @param {number=} offset Offset to read from. Will use and advance {@link ByteBuffer#offset} by `1` if omitted.
+     * @returns {number} Value read
+     * @expose
+     */
+    ByteBufferPrototype.readInt8 = function(offset) {
+        var relative = typeof offset === 'undefined';
+        if (relative) offset = this.offset;
+        if (!this.noAssert) {
+            if (typeof offset !== 'number' || offset % 1 !== 0)
+                throw TypeError("Illegal offset: "+offset+" (not an integer)");
+            offset >>>= 0;
+            if (offset < 0 || offset + 1 > this.buffer.byteLength)
+                throw RangeError("Illegal offset: 0 <= "+offset+" (+"+1+") <= "+this.buffer.byteLength);
+        }
+        var value = this.view[offset];
+        if ((value & 0x80) === 0x80) value = -(0xFF - value + 1); // Cast to signed
+        if (relative) this.offset += 1;
+        return value;
+    };
+
+    /**
+     * Reads an 8bit signed integer. This is an alias of {@link ByteBuffer#readInt8}.
+     * @function
+     * @param {number=} offset Offset to read from. Will use and advance {@link ByteBuffer#offset} by `1` if omitted.
+     * @returns {number} Value read
+     * @expose
+     */
+    ByteBufferPrototype.readByte = ByteBufferPrototype.readInt8;
+
+    /**
+     * Writes an 8bit unsigned integer.
+     * @param {number} value Value to write
+     * @param {number=} offset Offset to write to. Will use and advance {@link ByteBuffer#offset} by `1` if omitted.
+     * @returns {!ByteBuffer} this
+     * @expose
+     */
+    ByteBufferPrototype.writeUint8 = function(value, offset) {
+        var relative = typeof offset === 'undefined';
+        if (relative) offset = this.offset;
+        if (!this.noAssert) {
+            if (typeof value !== 'number' || value % 1 !== 0)
+                throw TypeError("Illegal value: "+value+" (not an integer)");
+            value >>>= 0;
+            if (typeof offset !== 'number' || offset % 1 !== 0)
+                throw TypeError("Illegal offset: "+offset+" (not an integer)");
+            offset >>>= 0;
+            if (offset < 0 || offset + 0 > this.buffer.byteLength)
+                throw RangeError("Illegal offset: 0 <= "+offset+" (+"+0+") <= "+this.buffer.byteLength);
+        }
+        offset += 1;
+        var capacity1 = this.buffer.byteLength;
+        if (offset > capacity1)
+            this.resize((capacity1 *= 2) > offset ? capacity1 : offset);
+        offset -= 1;
+        this.view[offset] = value;
+        if (relative) this.offset += 1;
+        return this;
+    };
+
+    /**
+     * Writes an 8bit unsigned integer. This is an alias of {@link ByteBuffer#writeUint8}.
+     * @function
+     * @param {number} value Value to write
+     * @param {number=} offset Offset to write to. Will use and advance {@link ByteBuffer#offset} by `1` if omitted.
+     * @returns {!ByteBuffer} this
+     * @expose
+     */
+    ByteBufferPrototype.writeUInt8 = ByteBufferPrototype.writeUint8;
+
+    /**
+     * Reads an 8bit unsigned integer.
+     * @param {number=} offset Offset to read from. Will use and advance {@link ByteBuffer#offset} by `1` if omitted.
+     * @returns {number} Value read
+     * @expose
+     */
+    ByteBufferPrototype.readUint8 = function(offset) {
+        var relative = typeof offset === 'undefined';
+        if (relative) offset = this.offset;
+        if (!this.noAssert) {
+            if (typeof offset !== 'number' || offset % 1 !== 0)
+                throw TypeError("Illegal offset: "+offset+" (not an integer)");
+            offset >>>= 0;
+            if (offset < 0 || offset + 1 > this.buffer.byteLength)
+                throw RangeError("Illegal offset: 0 <= "+offset+" (+"+1+") <= "+this.buffer.byteLength);
+        }
+        var value = this.view[offset];
+        if (relative) this.offset += 1;
+        return value;
+    };
+
+    /**
+     * Reads an 8bit unsigned integer. This is an alias of {@link ByteBuffer#readUint8}.
+     * @function
+     * @param {number=} offset Offset to read from. Will use and advance {@link ByteBuffer#offset} by `1` if omitted.
+     * @returns {number} Value read
+     * @expose
+     */
+    ByteBufferPrototype.readUInt8 = ByteBufferPrototype.readUint8;
+
+    // types/ints/int16
+
+    /**
+     * Writes a 16bit signed integer.
+     * @param {number} value Value to write
+     * @param {number=} offset Offset to write to. Will use and advance {@link ByteBuffer#offset} by `2` if omitted.
+     * @throws {TypeError} If `offset` or `value` is not a valid number
+     * @throws {RangeError} If `offset` is out of bounds
+     * @expose
+     */
+    ByteBufferPrototype.writeInt16 = function(value, offset) {
+        var relative = typeof offset === 'undefined';
+        if (relative) offset = this.offset;
+        if (!this.noAssert) {
+            if (typeof value !== 'number' || value % 1 !== 0)
+                throw TypeError("Illegal value: "+value+" (not an integer)");
+            value |= 0;
+            if (typeof offset !== 'number' || offset % 1 !== 0)
+                throw TypeError("Illegal offset: "+offset+" (not an integer)");
+            offset >>>= 0;
+            if (offset < 0 || offset + 0 > this.buffer.byteLength)
+                throw RangeError("Illegal offset: 0 <= "+offset+" (+"+0+") <= "+this.buffer.byteLength);
+        }
+        offset += 2;
+        var capacity2 = this.buffer.byteLength;
+        if (offset > capacity2)
+            this.resize((capacity2 *= 2) > offset ? capacity2 : offset);
+        offset -= 2;
+        if (this.littleEndian) {
+            this.view[offset+1] = (value & 0xFF00) >>> 8;
+            this.view[offset  ] =  value & 0x00FF;
+        } else {
+            this.view[offset]   = (value & 0xFF00) >>> 8;
+            this.view[offset+1] =  value & 0x00FF;
+        }
+        if (relative) this.offset += 2;
+        return this;
+    };
+
+    /**
+     * Writes a 16bit signed integer. This is an alias of {@link ByteBuffer#writeInt16}.
+     * @function
+     * @param {number} value Value to write
+     * @param {number=} offset Offset to write to. Will use and advance {@link ByteBuffer#offset} by `2` if omitted.
+     * @throws {TypeError} If `offset` or `value` is not a valid number
+     * @throws {RangeError} If `offset` is out of bounds
+     * @expose
+     */
+    ByteBufferPrototype.writeShort = ByteBufferPrototype.writeInt16;
+
+    /**
+     * Reads a 16bit signed integer.
+     * @param {number=} offset Offset to read from. Will use and advance {@link ByteBuffer#offset} by `2` if omitted.
+     * @returns {number} Value read
+     * @throws {TypeError} If `offset` is not a valid number
+     * @throws {RangeError} If `offset` is out of bounds
+     * @expose
+     */
+    ByteBufferPrototype.readInt16 = function(offset) {
+        var relative = typeof offset === 'undefined';
+        if (relative) offset = this.offset;
+        if (!this.noAssert) {
+            if (typeof offset !== 'number' || offset % 1 !== 0)
+                throw TypeError("Illegal offset: "+offset+" (not an integer)");
+            offset >>>= 0;
+            if (offset < 0 || offset + 2 > this.buffer.byteLength)
+                throw RangeError("Illegal offset: 0 <= "+offset+" (+"+2+") <= "+this.buffer.byteLength);
+        }
+        var value = 0;
+        if (this.littleEndian) {
+            value  = this.view[offset  ];
+            value |= this.view[offset+1] << 8;
+        } else {
+            value  = this.view[offset  ] << 8;
+            value |= this.view[offset+1];
+        }
+        if ((value & 0x8000) === 0x8000) value = -(0xFFFF - value + 1); // Cast to signed
+        if (relative) this.offset += 2;
+        return value;
+    };
+
+    /**
+     * Reads a 16bit signed integer. This is an alias of {@link ByteBuffer#readInt16}.
+     * @function
+     * @param {number=} offset Offset to read from. Will use and advance {@link ByteBuffer#offset} by `2` if omitted.
+     * @returns {number} Value read
+     * @throws {TypeError} If `offset` is not a valid number
+     * @throws {RangeError} If `offset` is out of bounds
+     * @expose
+     */
+    ByteBufferPrototype.readShort = ByteBufferPrototype.readInt16;
+
+    /**
+     * Writes a 16bit unsigned integer.
+     * @param {number} value Value to write
+     * @param {number=} offset Offset to write to. Will use and advance {@link ByteBuffer#offset} by `2` if omitted.
+     * @throws {TypeError} If `offset` or `value` is not a valid number
+     * @throws {RangeError} If `offset` is out of bounds
+     * @expose
+     */
+    ByteBufferPrototype.writeUint16 = function(value, offset) {
+        var relative = typeof offset === 'undefined';
+        if (relative) offset = this.offset;
+        if (!this.noAssert) {
+            if (typeof value !== 'number' || value % 1 !== 0)
+                throw TypeError("Illegal value: "+value+" (not an integer)");
+            value >>>= 0;
+            if (typeof offset !== 'number' || offset % 1 !== 0)
+                throw TypeError("Illegal offset: "+offset+" (not an integer)");
+            offset >>>= 0;
+            if (offset < 0 || offset + 0 > this.buffer.byteLength)
+                throw RangeError("Illegal offset: 0 <= "+offset+" (+"+0+") <= "+this.buffer.byteLength);
+        }
+        offset += 2;
+        var capacity3 = this.buffer.byteLength;
+        if (offset > capacity3)
+            this.resize((capacity3 *= 2) > offset ? capacity3 : offset);
+        offset -= 2;
+        if (this.littleEndian) {
+            this.view[offset+1] = (value & 0xFF00) >>> 8;
+            this.view[offset  ] =  value & 0x00FF;
+        } else {
+            this.view[offset]   = (value & 0xFF00) >>> 8;
+            this.view[offset+1] =  value & 0x00FF;
+        }
+        if (relative) this.offset += 2;
+        return this;
+    };
+
+    /**
+     * Writes a 16bit unsigned integer. This is an alias of {@link ByteBuffer#writeUint16}.
+     * @function
+     * @param {number} value Value to write
+     * @param {number=} offset Offset to write to. Will use and advance {@link ByteBuffer#offset} by `2` if omitted.
+     * @throws {TypeError} If `offset` or `value` is not a valid number
+     * @throws {RangeError} If `offset` is out of bounds
+     * @expose
+     */
+    ByteBufferPrototype.writeUInt16 = ByteBufferPrototype.writeUint16;
+
+    /**
+     * Reads a 16bit unsigned integer.
+     * @param {number=} offset Offset to read from. Will use and advance {@link ByteBuffer#offset} by `2` if omitted.
+     * @returns {number} Value read
+     * @throws {TypeError} If `offset` is not a valid number
+     * @throws {RangeError} If `offset` is out of bounds
+     * @expose
+     */
+    ByteBufferPrototype.readUint16 = function(offset) {
+        var relative = typeof offset === 'undefined';
+        if (relative) offset = this.offset;
+        if (!this.noAssert) {
+            if (typeof offset !== 'number' || offset % 1 !== 0)
+                throw TypeError("Illegal offset: "+offset+" (not an integer)");
+            offset >>>= 0;
+            if (offset < 0 || offset + 2 > this.buffer.byteLength)
+                throw RangeError("Illegal offset: 0 <= "+offset+" (+"+2+") <= "+this.buffer.byteLength);
+        }
+        var value = 0;
+        if (this.littleEndian) {
+            value  = this.view[offset  ];
+            value |= this.view[offset+1] << 8;
+        } else {
+            value  = this.view[offset  ] << 8;
+            value |= this.view[offset+1];
+        }
+        if (relative) this.offset += 2;
+        return value;
+    };
+
+    /**
+     * Reads a 16bit unsigned integer. This is an alias of {@link ByteBuffer#readUint16}.
+     * @function
+     * @param {number=} offset Offset to read from. Will use and advance {@link ByteBuffer#offset} by `2` if omitted.
+     * @returns {number} Value read
+     * @throws {TypeError} If `offset` is not a valid number
+     * @throws {RangeError} If `offset` is out of bounds
+     * @expose
+     */
+    ByteBufferPrototype.readUInt16 = ByteBufferPrototype.readUint16;
+
+    // types/ints/int32
+
+    /**
+     * Writes a 32bit signed integer.
+     * @param {number} value Value to write
+     * @param {number=} offset Offset to write to. Will use and increase {@link ByteBuffer#offset} by `4` if omitted.
+     * @expose
+     */
+    ByteBufferPrototype.writeInt32 = function(value, offset) {
+        var relative = typeof offset === 'undefined';
+        if (relative) offset = this.offset;
+        if (!this.noAssert) {
+            if (typeof value !== 'number' || value % 1 !== 0)
+                throw TypeError("Illegal value: "+value+" (not an integer)");
+            value |= 0;
+            if (typeof offset !== 'number' || offset % 1 !== 0)
+                throw TypeError("Illegal offset: "+offset+" (not an integer)");
+            offset >>>= 0;
+            if (offset < 0 || offset + 0 > this.buffer.byteLength)
+                throw RangeError("Illegal offset: 0 <= "+offset+" (+"+0+") <= "+this.buffer.byteLength);
+        }
+        offset += 4;
+        var capacity4 = this.buffer.byteLength;
+        if (offset > capacity4)
+            this.resize((capacity4 *= 2) > offset ? capacity4 : offset);
+        offset -= 4;
+        if (this.littleEndian) {
+            this.view[offset+3] = (value >>> 24) & 0xFF;
+            this.view[offset+2] = (value >>> 16) & 0xFF;
+            this.view[offset+1] = (value >>>  8) & 0xFF;
+            this.view[offset  ] =  value         & 0xFF;
+        } else {
+            this.view[offset  ] = (value >>> 24) & 0xFF;
+            this.view[offset+1] = (value >>> 16) & 0xFF;
+            this.view[offset+2] = (value >>>  8) & 0xFF;
+            this.view[offset+3] =  value         & 0xFF;
+        }
+        if (relative) this.offset += 4;
+        return this;
+    };
+
+    /**
+     * Writes a 32bit signed integer. This is an alias of {@link ByteBuffer#writeInt32}.
+     * @param {number} value Value to write
+     * @param {number=} offset Offset to write to. Will use and increase {@link ByteBuffer#offset} by `4` if omitted.
+     * @expose
+     */
+    ByteBufferPrototype.writeInt = ByteBufferPrototype.writeInt32;
+
+    /**
+     * Reads a 32bit signed integer.
+     * @param {number=} offset Offset to read from. Will use and increase {@link ByteBuffer#offset} by `4` if omitted.
+     * @returns {number} Value read
+     * @expose
+     */
+    ByteBufferPrototype.readInt32 = function(offset) {
+        var relative = typeof offset === 'undefined';
+        if (relative) offset = this.offset;
+        if (!this.noAssert) {
+            if (typeof offset !== 'number' || offset % 1 !== 0)
+                throw TypeError("Illegal offset: "+offset+" (not an integer)");
+            offset >>>= 0;
+            if (offset < 0 || offset + 4 > this.buffer.byteLength)
+                throw RangeError("Illegal offset: 0 <= "+offset+" (+"+4+") <= "+this.buffer.byteLength);
+        }
+        var value = 0;
+        if (this.littleEndian) {
+            value  = this.view[offset+2] << 16;
+            value |= this.view[offset+1] <<  8;
+            value |= this.view[offset  ];
+            value += this.view[offset+3] << 24 >>> 0;
+        } else {
+            value  = this.view[offset+1] << 16;
+            value |= this.view[offset+2] <<  8;
+            value |= this.view[offset+3];
+            value += this.view[offset  ] << 24 >>> 0;
+        }
+        value |= 0; // Cast to signed
+        if (relative) this.offset += 4;
+        return value;
+    };
+
+    /**
+     * Reads a 32bit signed integer. This is an alias of {@link ByteBuffer#readInt32}.
+     * @param {number=} offset Offset to read from. Will use and advance {@link ByteBuffer#offset} by `4` if omitted.
+     * @returns {number} Value read
+     * @expose
+     */
+    ByteBufferPrototype.readInt = ByteBufferPrototype.readInt32;
+
+    /**
+     * Writes a 32bit unsigned integer.
+     * @param {number} value Value to write
+     * @param {number=} offset Offset to write to. Will use and increase {@link ByteBuffer#offset} by `4` if omitted.
+     * @expose
+     */
+    ByteBufferPrototype.writeUint32 = function(value, offset) {
+        var relative = typeof offset === 'undefined';
+        if (relative) offset = this.offset;
+        if (!this.noAssert) {
+            if (typeof value !== 'number' || value % 1 !== 0)
+                throw TypeError("Illegal value: "+value+" (not an integer)");
+            value >>>= 0;
+            if (typeof offset !== 'number' || offset % 1 !== 0)
+                throw TypeError("Illegal offset: "+offset+" (not an integer)");
+            offset >>>= 0;
+            if (offset < 0 || offset + 0 > this.buffer.byteLength)
+                throw RangeError("Illegal offset: 0 <= "+offset+" (+"+0+") <= "+this.buffer.byteLength);
+        }
+        offset += 4;
+        var capacity5 = this.buffer.byteLength;
+        if (offset > capacity5)
+            this.resize((capacity5 *= 2) > offset ? capacity5 : offset);
+        offset -= 4;
+        if (this.littleEndian) {
+            this.view[offset+3] = (value >>> 24) & 0xFF;
+            this.view[offset+2] = (value >>> 16) & 0xFF;
+            this.view[offset+1] = (value >>>  8) & 0xFF;
+            this.view[offset  ] =  value         & 0xFF;
+        } else {
+            this.view[offset  ] = (value >>> 24) & 0xFF;
+            this.view[offset+1] = (value >>> 16) & 0xFF;
+            this.view[offset+2] = (value >>>  8) & 0xFF;
+            this.view[offset+3] =  value         & 0xFF;
+        }
+        if (relative) this.offset += 4;
+        return this;
+    };
+
+    /**
+     * Writes a 32bit unsigned integer. This is an alias of {@link ByteBuffer#writeUint32}.
+     * @function
+     * @param {number} value Value to write
+     * @param {number=} offset Offset to write to. Will use and increase {@link ByteBuffer#offset} by `4` if omitted.
+     * @expose
+     */
+    ByteBufferPrototype.writeUInt32 = ByteBufferPrototype.writeUint32;
+
+    /**
+     * Reads a 32bit unsigned integer.
+     * @param {number=} offset Offset to read from. Will use and increase {@link ByteBuffer#offset} by `4` if omitted.
+     * @returns {number} Value read
+     * @expose
+     */
+    ByteBufferPrototype.readUint32 = function(offset) {
+        var relative = typeof offset === 'undefined';
+        if (relative) offset = this.offset;
+        if (!this.noAssert) {
+            if (typeof offset !== 'number' || offset % 1 !== 0)
+                throw TypeError("Illegal offset: "+offset+" (not an integer)");
+            offset >>>= 0;
+            if (offset < 0 || offset + 4 > this.buffer.byteLength)
+                throw RangeError("Illegal offset: 0 <= "+offset+" (+"+4+") <= "+this.buffer.byteLength);
+        }
+        var value = 0;
+        if (this.littleEndian) {
+            value  = this.view[offset+2] << 16;
+            value |= this.view[offset+1] <<  8;
+            value |= this.view[offset  ];
+            value += this.view[offset+3] << 24 >>> 0;
+        } else {
+            value  = this.view[offset+1] << 16;
+            value |= this.view[offset+2] <<  8;
+            value |= this.view[offset+3];
+            value += this.view[offset  ] << 24 >>> 0;
+        }
+        if (relative) this.offset += 4;
+        return value;
+    };
+
+    /**
+     * Reads a 32bit unsigned integer. This is an alias of {@link ByteBuffer#readUint32}.
+     * @function
+     * @param {number=} offset Offset to read from. Will use and increase {@link ByteBuffer#offset} by `4` if omitted.
+     * @returns {number} Value read
+     * @expose
+     */
+    ByteBufferPrototype.readUInt32 = ByteBufferPrototype.readUint32;
+
+    // types/ints/int64
+
+    if (Long) {
+
+        /**
+         * Writes a 64bit signed integer.
+         * @param {number|!Long} value Value to write
+         * @param {number=} offset Offset to write to. Will use and increase {@link ByteBuffer#offset} by `8` if omitted.
+         * @returns {!ByteBuffer} this
+         * @expose
+         */
+        ByteBufferPrototype.writeInt64 = function(value, offset) {
+            var relative = typeof offset === 'undefined';
+            if (relative) offset = this.offset;
+            if (!this.noAssert) {
+                if (typeof value === 'number')
+                    value = Long.fromNumber(value);
+                else if (typeof value === 'string')
+                    value = Long.fromString(value);
+                else if (!(value && value instanceof Long))
+                    throw TypeError("Illegal value: "+value+" (not an integer or Long)");
+                if (typeof offset !== 'number' || offset % 1 !== 0)
+                    throw TypeError("Illegal offset: "+offset+" (not an integer)");
+                offset >>>= 0;
+                if (offset < 0 || offset + 0 > this.buffer.byteLength)
+                    throw RangeError("Illegal offset: 0 <= "+offset+" (+"+0+") <= "+this.buffer.byteLength);
+            }
+            if (typeof value === 'number')
+                value = Long.fromNumber(value);
+            else if (typeof value === 'string')
+                value = Long.fromString(value);
+            offset += 8;
+            var capacity6 = this.buffer.byteLength;
+            if (offset > capacity6)
+                this.resize((capacity6 *= 2) > offset ? capacity6 : offset);
+            offset -= 8;
+            var lo = value.low,
+                hi = value.high;
+            if (this.littleEndian) {
+                this.view[offset+3] = (lo >>> 24) & 0xFF;
+                this.view[offset+2] = (lo >>> 16) & 0xFF;
+                this.view[offset+1] = (lo >>>  8) & 0xFF;
+                this.view[offset  ] =  lo         & 0xFF;
+                offset += 4;
+                this.view[offset+3] = (hi >>> 24) & 0xFF;
+                this.view[offset+2] = (hi >>> 16) & 0xFF;
+                this.view[offset+1] = (hi >>>  8) & 0xFF;
+                this.view[offset  ] =  hi         & 0xFF;
+            } else {
+                this.view[offset  ] = (hi >>> 24) & 0xFF;
+                this.view[offset+1] = (hi >>> 16) & 0xFF;
+                this.view[offset+2] = (hi >>>  8) & 0xFF;
+                this.view[offset+3] =  hi         & 0xFF;
+                offset += 4;
+                this.view[offset  ] = (lo >>> 24) & 0xFF;
+                this.view[offset+1] = (lo >>> 16) & 0xFF;
+                this.view[offset+2] = (lo >>>  8) & 0xFF;
+                this.view[offset+3] =  lo         & 0xFF;
+            }
+            if (relative) this.offset += 8;
+            return this;
+        };
+
+        /**
+         * Writes a 64bit signed integer. This is an alias of {@link ByteBuffer#writeInt64}.
+         * @param {number|!Long} value Value to write
+         * @param {number=} offset Offset to write to. Will use and increase {@link ByteBuffer#offset} by `8` if omitted.
+         * @returns {!ByteBuffer} this
+         * @expose
+         */
+        ByteBufferPrototype.writeLong = ByteBufferPrototype.writeInt64;
+
+        /**
+         * Reads a 64bit signed integer.
+         * @param {number=} offset Offset to read from. Will use and increase {@link ByteBuffer#offset} by `8` if omitted.
+         * @returns {!Long}
+         * @expose
+         */
+        ByteBufferPrototype.readInt64 = function(offset) {
+            var relative = typeof offset === 'undefined';
+            if (relative) offset = this.offset;
+            if (!this.noAssert) {
+                if (typeof offset !== 'number' || offset % 1 !== 0)
+                    throw TypeError("Illegal offset: "+offset+" (not an integer)");
+                offset >>>= 0;
+                if (offset < 0 || offset + 8 > this.buffer.byteLength)
+                    throw RangeError("Illegal offset: 0 <= "+offset+" (+"+8+") <= "+this.buffer.byteLength);
+            }
+            var lo = 0,
+                hi = 0;
+            if (this.littleEndian) {
+                lo  = this.view[offset+2] << 16;
+                lo |= this.view[offset+1] <<  8;
+                lo |= this.view[offset  ];
+                lo += this.view[offset+3] << 24 >>> 0;
+                offset += 4;
+                hi  = this.view[offset+2] << 16;
+                hi |= this.view[offset+1] <<  8;
+                hi |= this.view[offset  ];
+                hi += this.view[offset+3] << 24 >>> 0;
+            } else {
+                hi  = this.view[offset+1] << 16;
+                hi |= this.view[offset+2] <<  8;
+                hi |= this.view[offset+3];
+                hi += this.view[offset  ] << 24 >>> 0;
+                offset += 4;
+                lo  = this.view[offset+1] << 16;
+                lo |= this.view[offset+2] <<  8;
+                lo |= this.view[offset+3];
+                lo += this.view[offset  ] << 24 >>> 0;
+            }
+            var value = new Long(lo, hi, false);
+            if (relative) this.offset += 8;
+            return value;
+        };
+
+        /**
+         * Reads a 64bit signed integer. This is an alias of {@link ByteBuffer#readInt64}.
+         * @param {number=} offset Offset to read from. Will use and increase {@link ByteBuffer#offset} by `8` if omitted.
+         * @returns {!Long}
+         * @expose
+         */
+        ByteBufferPrototype.readLong = ByteBufferPrototype.readInt64;
+
+        /**
+         * Writes a 64bit unsigned integer.
+         * @param {number|!Long} value Value to write
+         * @param {number=} offset Offset to write to. Will use and increase {@link ByteBuffer#offset} by `8` if omitted.
+         * @returns {!ByteBuffer} this
+         * @expose
+         */
+        ByteBufferPrototype.writeUint64 = function(value, offset) {
+            var relative = typeof offset === 'undefined';
+            if (relative) offset = this.offset;
+            if (!this.noAssert) {
+                if (typeof value === 'number')
+                    value = Long.fromNumber(value);
+                else if (typeof value === 'string')
+                    value = Long.fromString(value);
+                else if (!(value && value instanceof Long))
+                    throw TypeError("Illegal value: "+value+" (not an integer or Long)");
+                if (typeof offset !== 'number' || offset % 1 !== 0)
+                    throw TypeError("Illegal offset: "+offset+" (not an integer)");
+                offset >>>= 0;
+                if (offset < 0 || offset + 0 > this.buffer.byteLength)
+                    throw RangeError("Illegal offset: 0 <= "+offset+" (+"+0+") <= "+this.buffer.byteLength);
+            }
+            if (typeof value === 'number')
+                value = Long.fromNumber(value);
+            else if (typeof value === 'string')
+                value = Long.fromString(value);
+            offset += 8;
+            var capacity7 = this.buffer.byteLength;
+            if (offset > capacity7)
+                this.resize((capacity7 *= 2) > offset ? capacity7 : offset);
+            offset -= 8;
+            var lo = value.low,
+                hi = value.high;
+            if (this.littleEndian) {
+                this.view[offset+3] = (lo >>> 24) & 0xFF;
+                this.view[offset+2] = (lo >>> 16) & 0xFF;
+                this.view[offset+1] = (lo >>>  8) & 0xFF;
+                this.view[offset  ] =  lo         & 0xFF;
+                offset += 4;
+                this.view[offset+3] = (hi >>> 24) & 0xFF;
+                this.view[offset+2] = (hi >>> 16) & 0xFF;
+                this.view[offset+1] = (hi >>>  8) & 0xFF;
+                this.view[offset  ] =  hi         & 0xFF;
+            } else {
+                this.view[offset  ] = (hi >>> 24) & 0xFF;
+                this.view[offset+1] = (hi >>> 16) & 0xFF;
+                this.view[offset+2] = (hi >>>  8) & 0xFF;
+                this.view[offset+3] =  hi         & 0xFF;
+                offset += 4;
+                this.view[offset  ] = (lo >>> 24) & 0xFF;
+                this.view[offset+1] = (lo >>> 16) & 0xFF;
+                this.view[offset+2] = (lo >>>  8) & 0xFF;
+                this.view[offset+3] =  lo         & 0xFF;
+            }
+            if (relative) this.offset += 8;
+            return this;
+        };
+
+        /**
+         * Writes a 64bit unsigned integer. This is an alias of {@link ByteBuffer#writeUint64}.
+         * @function
+         * @param {number|!Long} value Value to write
+         * @param {number=} offset Offset to write to. Will use and increase {@link ByteBuffer#offset} by `8` if omitted.
+         * @returns {!ByteBuffer} this
+         * @expose
+         */
+        ByteBufferPrototype.writeUInt64 = ByteBufferPrototype.writeUint64;
+
+        /**
+         * Reads a 64bit unsigned integer.
+         * @param {number=} offset Offset to read from. Will use and increase {@link ByteBuffer#offset} by `8` if omitted.
+         * @returns {!Long}
+         * @expose
+         */
+        ByteBufferPrototype.readUint64 = function(offset) {
+            var relative = typeof offset === 'undefined';
+            if (relative) offset = this.offset;
+            if (!this.noAssert) {
+                if (typeof offset !== 'number' || offset % 1 !== 0)
+                    throw TypeError("Illegal offset: "+offset+" (not an integer)");
+                offset >>>= 0;
+                if (offset < 0 || offset + 8 > this.buffer.byteLength)
+                    throw RangeError("Illegal offset: 0 <= "+offset+" (+"+8+") <= "+this.buffer.byteLength);
+            }
+            var lo = 0,
+                hi = 0;
+            if (this.littleEndian) {
+                lo  = this.view[offset+2] << 16;
+                lo |= this.view[offset+1] <<  8;
+                lo |= this.view[offset  ];
+                lo += this.view[offset+3] << 24 >>> 0;
+                offset += 4;
+                hi  = this.view[offset+2] << 16;
+                hi |= this.view[offset+1] <<  8;
+                hi |= this.view[offset  ];
+                hi += this.view[offset+3] << 24 >>> 0;
+            } else {
+                hi  = this.view[offset+1] << 16;
+                hi |= this.view[offset+2] <<  8;
+                hi |= this.view[offset+3];
+                hi += this.view[offset  ] << 24 >>> 0;
+                offset += 4;
+                lo  = this.view[offset+1] << 16;
+                lo |= this.view[offset+2] <<  8;
+                lo |= this.view[offset+3];
+                lo += this.view[offset  ] << 24 >>> 0;
+            }
+            var value = new Long(lo, hi, true);
+            if (relative) this.offset += 8;
+            return value;
+        };
+
+        /**
+         * Reads a 64bit unsigned integer. This is an alias of {@link ByteBuffer#readUint64}.
+         * @function
+         * @param {number=} offset Offset to read from. Will use and increase {@link ByteBuffer#offset} by `8` if omitted.
+         * @returns {!Long}
+         * @expose
+         */
+        ByteBufferPrototype.readUInt64 = ByteBufferPrototype.readUint64;
+
+    } // Long
+
+
+    // types/floats/float32
+
+    /*
+     ieee754 - https://github.com/feross/ieee754
+
+     The MIT License (MIT)
+
+     Copyright (c) Feross Aboukhadijeh
+
+     Permission is hereby granted, free of charge, to any person obtaining a copy
+     of this software and associated documentation files (the "Software"), to deal
+     in the Software without restriction, including without limitation the rights
+     to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+     copies of the Software, and to permit persons to whom the Software is
+     furnished to do so, subject to the following conditions:
+
+     The above copyright notice and this permission notice shall be included in
+     all copies or substantial portions of the Software.
+
+     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+     IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+     FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+     AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+     LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+     THE SOFTWARE.
+    */
+
+    /**
+     * Reads an IEEE754 float from a byte array.
+     * @param {!Array} buffer
+     * @param {number} offset
+     * @param {boolean} isLE
+     * @param {number} mLen
+     * @param {number} nBytes
+     * @returns {number}
+     * @inner
+     */
+    function ieee754_read(buffer, offset, isLE, mLen, nBytes) {
+        var e, m,
+            eLen = nBytes * 8 - mLen - 1,
+            eMax = (1 << eLen) - 1,
+            eBias = eMax >> 1,
+            nBits = -7,
+            i = isLE ? (nBytes - 1) : 0,
+            d = isLE ? -1 : 1,
+            s = buffer[offset + i];
+
+        i += d;
+
+        e = s & ((1 << (-nBits)) - 1);
+        s >>= (-nBits);
+        nBits += eLen;
+        for (; nBits > 0; e = e * 256 + buffer[offset + i], i += d, nBits -= 8) {}
+
+        m = e & ((1 << (-nBits)) - 1);
+        e >>= (-nBits);
+        nBits += mLen;
+        for (; nBits > 0; m = m * 256 + buffer[offset + i], i += d, nBits -= 8) {}
+
+        if (e === 0) {
+            e = 1 - eBias;
+        } else if (e === eMax) {
+            return m ? NaN : ((s ? -1 : 1) * Infinity);
+        } else {
+            m = m + Math.pow(2, mLen);
+            e = e - eBias;
+        }
+        return (s ? -1 : 1) * m * Math.pow(2, e - mLen);
+    }
+
+    /**
+     * Writes an IEEE754 float to a byte array.
+     * @param {!Array} buffer
+     * @param {number} value
+     * @param {number} offset
+     * @param {boolean} isLE
+     * @param {number} mLen
+     * @param {number} nBytes
+     * @inner
+     */
+    function ieee754_write(buffer, value, offset, isLE, mLen, nBytes) {
+        var e, m, c,
+            eLen = nBytes * 8 - mLen - 1,
+            eMax = (1 << eLen) - 1,
+            eBias = eMax >> 1,
+            rt = (mLen === 23 ? Math.pow(2, -24) - Math.pow(2, -77) : 0),
+            i = isLE ? 0 : (nBytes - 1),
+            d = isLE ? 1 : -1,
+            s = value < 0 || (value === 0 && 1 / value < 0) ? 1 : 0;
+
+        value = Math.abs(value);
+
+        if (isNaN(value) || value === Infinity) {
+            m = isNaN(value) ? 1 : 0;
+            e = eMax;
+        } else {
+            e = Math.floor(Math.log(value) / Math.LN2);
+            if (value * (c = Math.pow(2, -e)) < 1) {
+                e--;
+                c *= 2;
+            }
+            if (e + eBias >= 1) {
+                value += rt / c;
+            } else {
+                value += rt * Math.pow(2, 1 - eBias);
+            }
+            if (value * c >= 2) {
+                e++;
+                c /= 2;
+            }
+
+            if (e + eBias >= eMax) {
+                m = 0;
+                e = eMax;
+            } else if (e + eBias >= 1) {
+                m = (value * c - 1) * Math.pow(2, mLen);
+                e = e + eBias;
+            } else {
+                m = value * Math.pow(2, eBias - 1) * Math.pow(2, mLen);
+                e = 0;
+            }
+        }
+
+        for (; mLen >= 8; buffer[offset + i] = m & 0xff, i += d, m /= 256, mLen -= 8) {}
+
+        e = (e << mLen) | m;
+        eLen += mLen;
+        for (; eLen > 0; buffer[offset + i] = e & 0xff, i += d, e /= 256, eLen -= 8) {}
+
+        buffer[offset + i - d] |= s * 128;
+    }
+
+    /**
+     * Writes a 32bit float.
+     * @param {number} value Value to write
+     * @param {number=} offset Offset to write to. Will use and increase {@link ByteBuffer#offset} by `4` if omitted.
+     * @returns {!ByteBuffer} this
+     * @expose
+     */
+    ByteBufferPrototype.writeFloat32 = function(value, offset) {
+        var relative = typeof offset === 'undefined';
+        if (relative) offset = this.offset;
+        if (!this.noAssert) {
+            if (typeof value !== 'number')
+                throw TypeError("Illegal value: "+value+" (not a number)");
+            if (typeof offset !== 'number' || offset % 1 !== 0)
+                throw TypeError("Illegal offset: "+offset+" (not an integer)");
+            offset >>>= 0;
+            if (offset < 0 || offset + 0 > this.buffer.byteLength)
+                throw RangeError("Illegal offset: 0 <= "+offset+" (+"+0+") <= "+this.buffer.byteLength);
+        }
+        offset += 4;
+        var capacity8 = this.buffer.byteLength;
+        if (offset > capacity8)
+            this.resize((capacity8 *= 2) > offset ? capacity8 : offset);
+        offset -= 4;
+        ieee754_write(this.view, value, offset, this.littleEndian, 23, 4);
+        if (relative) this.offset += 4;
+        return this;
+    };
+
+    /**
+     * Writes a 32bit float. This is an alias of {@link ByteBuffer#writeFloat32}.
+     * @function
+     * @param {number} value Value to write
+     * @param {number=} offset Offset to write to. Will use and increase {@link ByteBuffer#offset} by `4` if omitted.
+     * @returns {!ByteBuffer} this
+     * @expose
+     */
+    ByteBufferPrototype.writeFloat = ByteBufferPrototype.writeFloat32;
+
+    /**
+     * Reads a 32bit float.
+     * @param {number=} offset Offset to read from. Will use and increase {@link ByteBuffer#offset} by `4` if omitted.
+     * @returns {number}
+     * @expose
+     */
+    ByteBufferPrototype.readFloat32 = function(offset) {
+        var relative = typeof offset === 'undefined';
+        if (relative) offset = this.offset;
+        if (!this.noAssert) {
+            if (typeof offset !== 'number' || offset % 1 !== 0)
+                throw TypeError("Illegal offset: "+offset+" (not an integer)");
+            offset >>>= 0;
+            if (offset < 0 || offset + 4 > this.buffer.byteLength)
+                throw RangeError("Illegal offset: 0 <= "+offset+" (+"+4+") <= "+this.buffer.byteLength);
+        }
+        var value = ieee754_read(this.view, offset, this.littleEndian, 23, 4);
+        if (relative) this.offset += 4;
+        return value;
+    };
+
+    /**
+     * Reads a 32bit float. This is an alias of {@link ByteBuffer#readFloat32}.
+     * @function
+     * @param {number=} offset Offset to read from. Will use and increase {@link ByteBuffer#offset} by `4` if omitted.
+     * @returns {number}
+     * @expose
+     */
+    ByteBufferPrototype.readFloat = ByteBufferPrototype.readFloat32;
+
+    // types/floats/float64
+
+    /**
+     * Writes a 64bit float.
+     * @param {number} value Value to write
+     * @param {number=} offset Offset to write to. Will use and increase {@link ByteBuffer#offset} by `8` if omitted.
+     * @returns {!ByteBuffer} this
+     * @expose
+     */
+    ByteBufferPrototype.writeFloat64 = function(value, offset) {
+        var relative = typeof offset === 'undefined';
+        if (relative) offset = this.offset;
+        if (!this.noAssert) {
+            if (typeof value !== 'number')
+                throw TypeError("Illegal value: "+value+" (not a number)");
+            if (typeof offset !== 'number' || offset % 1 !== 0)
+                throw TypeError("Illegal offset: "+offset+" (not an integer)");
+            offset >>>= 0;
+            if (offset < 0 || offset + 0 > this.buffer.byteLength)
+                throw RangeError("Illegal offset: 0 <= "+offset+" (+"+0+") <= "+this.buffer.byteLength);
+        }
+        offset += 8;
+        var capacity9 = this.buffer.byteLength;
+        if (offset > capacity9)
+            this.resize((capacity9 *= 2) > offset ? capacity9 : offset);
+        offset -= 8;
+        ieee754_write(this.view, value, offset, this.littleEndian, 52, 8);
+        if (relative) this.offset += 8;
+        return this;
+    };
+
+    /**
+     * Writes a 64bit float. This is an alias of {@link ByteBuffer#writeFloat64}.
+     * @function
+     * @param {number} value Value to write
+     * @param {number=} offset Offset to write to. Will use and increase {@link ByteBuffer#offset} by `8` if omitted.
+     * @returns {!ByteBuffer} this
+     * @expose
+     */
+    ByteBufferPrototype.writeDouble = ByteBufferPrototype.writeFloat64;
+
+    /**
+     * Reads a 64bit float.
+     * @param {number=} offset Offset to read from. Will use and increase {@link ByteBuffer#offset} by `8` if omitted.
+     * @returns {number}
+     * @expose
+     */
+    ByteBufferPrototype.readFloat64 = function(offset) {
+        var relative = typeof offset === 'undefined';
+        if (relative) offset = this.offset;
+        if (!this.noAssert) {
+            if (typeof offset !== 'number' || offset % 1 !== 0)
+                throw TypeError("Illegal offset: "+offset+" (not an integer)");
+            offset >>>= 0;
+            if (offset < 0 || offset + 8 > this.buffer.byteLength)
+                throw RangeError("Illegal offset: 0 <= "+offset+" (+"+8+") <= "+this.buffer.byteLength);
+        }
+        var value = ieee754_read(this.view, offset, this.littleEndian, 52, 8);
+        if (relative) this.offset += 8;
+        return value;
+    };
+
+    /**
+     * Reads a 64bit float. This is an alias of {@link ByteBuffer#readFloat64}.
+     * @function
+     * @param {number=} offset Offset to read from. Will use and increase {@link ByteBuffer#offset} by `8` if omitted.
+     * @returns {number}
+     * @expose
+     */
+    ByteBufferPrototype.readDouble = ByteBufferPrototype.readFloat64;
+
+
+    // types/varints/varint32
+
+    /**
+     * Maximum number of bytes required to store a 32bit base 128 variable-length integer.
+     * @type {number}
+     * @const
+     * @expose
+     */
+    ByteBuffer.MAX_VARINT32_BYTES = 5;
+
+    /**
+     * Calculates the actual number of bytes required to store a 32bit base 128 variable-length integer.
+     * @param {number} value Value to encode
+     * @returns {number} Number of bytes required. Capped to {@link ByteBuffer.MAX_VARINT32_BYTES}
+     * @expose
+     */
+    ByteBuffer.calculateVarint32 = function(value) {
+        // ref: src/google/protobuf/io/coded_stream.cc
+        value = value >>> 0;
+             if (value < 1 << 7 ) return 1;
+        else if (value < 1 << 14) return 2;
+        else if (value < 1 << 21) return 3;
+        else if (value < 1 << 28) return 4;
+        else                      return 5;
+    };
+
+    /**
+     * Zigzag encodes a signed 32bit integer so that it can be effectively used with varint encoding.
+     * @param {number} n Signed 32bit integer
+     * @returns {number} Unsigned zigzag encoded 32bit integer
+     * @expose
+     */
+    ByteBuffer.zigZagEncode32 = function(n) {
+        return (((n |= 0) << 1) ^ (n >> 31)) >>> 0; // ref: src/google/protobuf/wire_format_lite.h
+    };
+
+    /**
+     * Decodes a zigzag encoded signed 32bit integer.
+     * @param {number} n Unsigned zigzag encoded 32bit integer
+     * @returns {number} Signed 32bit integer
+     * @expose
+     */
+    ByteBuffer.zigZagDecode32 = function(n) {
+        return ((n >>> 1) ^ -(n & 1)) | 0; // // ref: src/google/protobuf/wire_format_lite.h
+    };
+
+    /**
+     * Writes a 32bit base 128 variable-length integer.
+     * @param {number} value Value to write
+     * @param {number=} offset Offset to write to. Will use and increase {@link ByteBuffer#offset} by the number of bytes
+     *  written if omitted.
+     * @returns {!ByteBuffer|number} this if `offset` is omitted, else the actual number of bytes written
+     * @expose
+     */
+    ByteBufferPrototype.writeVarint32 = function(value, offset) {
+        var relative = typeof offset === 'undefined';
+        if (relative) offset = this.offset;
+        if (!this.noAssert) {
+            if (typeof value !== 'number' || value % 1 !== 0)
+                throw TypeError("Illegal value: "+value+" (not an integer)");
+            value |= 0;
+            if (typeof offset !== 'number' || offset % 1 !== 0)
+                throw TypeError("Illegal offset: "+offset+" (not an integer)");
+            offset >>>= 0;
+            if (offset < 0 || offset + 0 > this.buffer.byteLength)
+                throw RangeError("Illegal offset: 0 <= "+offset+" (+"+0+") <= "+this.buffer.byteLength);
+        }
+        var size = ByteBuffer.calculateVarint32(value),
+            b;
+        offset += size;
+        var capacity10 = this.buffer.byteLength;
+        if (offset > capacity10)
+            this.resize((capacity10 *= 2) > offset ? capacity10 : offset);
+        offset -= size;
+        value >>>= 0;
+        while (value >= 0x80) {
+            b = (value & 0x7f) | 0x80;
+            this.view[offset++] = b;
+            value >>>= 7;
+        }
+        this.view[offset++] = value;
+        if (relative) {
+            this.offset = offset;
+            return this;
+        }
+        return size;
+    };
+
+    /**
+     * Writes a zig-zag encoded (signed) 32bit base 128 variable-length integer.
+     * @param {number} value Value to write
+     * @param {number=} offset Offset to write to. Will use and increase {@link ByteBuffer#offset} by the number of bytes
+     *  written if omitted.
+     * @returns {!ByteBuffer|number} this if `offset` is omitted, else the actual number of bytes written
+     * @expose
+     */
+    ByteBufferPrototype.writeVarint32ZigZag = function(value, offset) {
+        return this.writeVarint32(ByteBuffer.zigZagEncode32(value), offset);
+    };
+
+    /**
+     * Reads a 32bit base 128 variable-length integer.
+     * @param {number=} offset Offset to read from. Will use and increase {@link ByteBuffer#offset} by the number of bytes
+     *  written if omitted.
+     * @returns {number|!{value: number, length: number}} The value read if offset is omitted, else the value read
+     *  and the actual number of bytes read.
+     * @throws {Error} If it's not a valid varint. Has a property `truncated = true` if there is not enough data available
+     *  to fully decode the varint.
+     * @expose
+     */
+    ByteBufferPrototype.readVarint32 = function(offset) {
+        var relative = typeof offset === 'undefined';
+        if (relative) offset = this.offset;
+        if (!this.noAssert) {
+            if (typeof offset !== 'number' || offset % 1 !== 0)
+                throw TypeError("Illegal offset: "+offset+" (not an integer)");
+            offset >>>= 0;
+            if (offset < 0 || offset + 1 > this.buffer.byteLength)
+                throw RangeError("Illegal offset: 0 <= "+offset+" (+"+1+") <= "+this.buffer.byteLength);
+        }
+        var c = 0,
+            value = 0 >>> 0,
+            b;
+        do {
+            if (!this.noAssert && offset > this.limit) {
+                var err = Error("Truncated");
+                err['truncated'] = true;
+                throw err;
+            }
+            b = this.view[offset++];
+            if (c < 5)
+                value |= (b & 0x7f) << (7*c);
+            ++c;
+        } while ((b & 0x80) !== 0);
+        value |= 0;
+        if (relative) {
+            this.offset = offset;
+            return value;
+        }
+        return {
+            "value": value,
+            "length": c
+        };
+    };
+
+    /**
+     * Reads a zig-zag encoded (signed) 32bit base 128 variable-length integer.
+     * @param {number=} offset Offset to read from. Will use and increase {@link ByteBuffer#offset} by the number of bytes
+     *  written if omitted.
+     * @returns {number|!{value: number, length: number}} The value read if offset is omitted, else the value read
+     *  and the actual number of bytes read.
+     * @throws {Error} If it's not a valid varint
+     * @expose
+     */
+    ByteBufferPrototype.readVarint32ZigZag = function(offset) {
+        var val = this.readVarint32(offset);
+        if (typeof val === 'object')
+            val["value"] = ByteBuffer.zigZagDecode32(val["value"]);
+        else
+            val = ByteBuffer.zigZagDecode32(val);
+        return val;
+    };
+
+    // types/varints/varint64
+
+    if (Long) {
+
+        /**
+         * Maximum number of bytes required to store a 64bit base 128 variable-length integer.
+         * @type {number}
+         * @const
+         * @expose
+         */
+        ByteBuffer.MAX_VARINT64_BYTES = 10;
+
+        /**
+         * Calculates the actual number of bytes required to store a 64bit base 128 variable-length integer.
+         * @param {number|!Long} value Value to encode
+         * @returns {number} Number of bytes required. Capped to {@link ByteBuffer.MAX_VARINT64_BYTES}
+         * @expose
+         */
+        ByteBuffer.calculateVarint64 = function(value) {
+            if (typeof value === 'number')
+                value = Long.fromNumber(value);
+            else if (typeof value === 'string')
+                value = Long.fromString(value);
+            // ref: src/google/protobuf/io/coded_stream.cc
+            var part0 = value.toInt() >>> 0,
+                part1 = value.shiftRightUnsigned(28).toInt() >>> 0,
+                part2 = value.shiftRightUnsigned(56).toInt() >>> 0;
+            if (part2 == 0) {
+                if (part1 == 0) {
+                    if (part0 < 1 << 14)
+                        return part0 < 1 << 7 ? 1 : 2;
+                    else
+                        return part0 < 1 << 21 ? 3 : 4;
+                } else {
+                    if (part1 < 1 << 14)
+                        return part1 < 1 << 7 ? 5 : 6;
+                    else
+                        return part1 < 1 << 21 ? 7 : 8;
+                }
+            } else
+                return part2 < 1 << 7 ? 9 : 10;
+        };
+
+        /**
+         * Zigzag encodes a signed 64bit integer so that it can be effectively used with varint encoding.
+         * @param {number|!Long} value Signed long
+         * @returns {!Long} Unsigned zigzag encoded long
+         * @expose
+         */
+        ByteBuffer.zigZagEncode64 = function(value) {
+            if (typeof value === 'number')
+                value = Long.fromNumber(value, false);
+            else if (typeof value === 'string')
+                value = Long.fromString(value, false);
+            else if (value.unsigned !== false) value = value.toSigned();
+            // ref: src/google/protobuf/wire_format_lite.h
+            return value.shiftLeft(1).xor(value.shiftRight(63)).toUnsigned();
+        };
+
+        /**
+         * Decodes a zigzag encoded signed 64bit integer.
+         * @param {!Long|number} value Unsigned zigzag encoded long or JavaScript number
+         * @returns {!Long} Signed long
+         * @expose
+         */
+        ByteBuffer.zigZagDecode64 = function(value) {
+            if (typeof value === 'number')
+                value = Long.fromNumber(value, false);
+            else if (typeof value === 'string')
+                value = Long.fromString(value, false);
+            else if (value.unsigned !== false) value = value.toSigned();
+            // ref: src/google/protobuf/wire_format_lite.h
+            return value.shiftRightUnsigned(1).xor(value.and(Long.ONE).toSigned().negate()).toSigned();
+        };
+
+        /**
+         * Writes a 64bit base 128 variable-length integer.
+         * @param {number|Long} value Value to write
+         * @param {number=} offset Offset to write to. Will use and increase {@link ByteBuffer#offset} by the number of bytes
+         *  written if omitted.
+         * @returns {!ByteBuffer|number} `this` if offset is omitted, else the actual number of bytes written.
+         * @expose
+         */
+        ByteBufferPrototype.writeVarint64 = function(value, offset) {
+            var relative = typeof offset === 'undefined';
+            if (relative) offset = this.offset;
+            if (!this.noAssert) {
+                if (typeof value === 'number')
+                    value = Long.fromNumber(value);
+                else if (typeof value === 'string')
+                    value = Long.fromString(value);
+                else if (!(value && value instanceof Long))
+                    throw TypeError("Illegal value: "+value+" (not an integer or Long)");
+                if (typeof offset !== 'number' || offset % 1 !== 0)
+                    throw TypeError("Illegal offset: "+offset+" (not an integer)");
+                offset >>>= 0;
+                if (offset < 0 || offset + 0 > this.buffer.byteLength)
+                    throw RangeError("Illegal offset: 0 <= "+offset+" (+"+0+") <= "+this.buffer.byteLength);
+            }
+            if (typeof value === 'number')
+                value = Long.fromNumber(value, false);
+            else if (typeof value === 'string')
+                value = Long.fromString(value, false);
+            else if (value.unsigned !== false) value = value.toSigned();
+            var size = ByteBuffer.calculateVarint64(value),
+                part0 = value.toInt() >>> 0,
+                part1 = value.shiftRightUnsigned(28).toInt() >>> 0,
+                part2 = value.shiftRightUnsigned(56).toInt() >>> 0;
+            offset += size;
+            var capacity11 = this.buffer.byteLength;
+            if (offset > capacity11)
+                this.resize((capacity11 *= 2) > offset ? capacity11 : offset);
+            offset -= size;
+            switch (size) {
+                case 10: this.view[offset+9] = (part2 >>>  7) & 0x01;
+                case 9 : this.view[offset+8] = size !== 9 ? (part2       ) | 0x80 : (part2       ) & 0x7F;
+                case 8 : this.view[offset+7] = size !== 8 ? (part1 >>> 21) | 0x80 : (part1 >>> 21) & 0x7F;
+                case 7 : this.view[offset+6] = size !== 7 ? (part1 >>> 14) | 0x80 : (part1 >>> 14) & 0x7F;
+                case 6 : this.view[offset+5] = size !== 6 ? (part1 >>>  7) | 0x80 : (part1 >>>  7) & 0x7F;
+                case 5 : this.view[offset+4] = size !== 5 ? (part1       ) | 0x80 : (part1       ) & 0x7F;
+                case 4 : this.view[offset+3] = size !== 4 ? (part0 >>> 21) | 0x80 : (part0 >>> 21) & 0x7F;
+                case 3 : this.view[offset+2] = size !== 3 ? (part0 >>> 14) | 0x80 : (part0 >>> 14) & 0x7F;
+                case 2 : this.view[offset+1] = size !== 2 ? (part0 >>>  7) | 0x80 : (part0 >>>  7) & 0x7F;
+                case 1 : this.view[offset  ] = size !== 1 ? (part0       ) | 0x80 : (part0       ) & 0x7F;
+            }
+            if (relative) {
+                this.offset += size;
+                return this;
+            } else {
+                return size;
+            }
+        };
+
+        /**
+         * Writes a zig-zag encoded 64bit base 128 variable-length integer.
+         * @param {number|Long} value Value to write
+         * @param {number=} offset Offset to write to. Will use and increase {@link ByteBuffer#offset} by the number of bytes
+         *  written if omitted.
+         * @returns {!ByteBuffer|number} `this` if offset is omitted, else the actual number of bytes written.
+         * @expose
+         */
+        ByteBufferPrototype.writeVarint64ZigZag = function(value, offset) {
+            return this.writeVarint64(ByteBuffer.zigZagEncode64(value), offset);
+        };
+
+        /**
+         * Reads a 64bit base 128 variable-length integer. Requires Long.js.
+         * @param {number=} offset Offset to read from. Will use and increase {@link ByteBuffer#offset} by the number of bytes
+         *  read if omitted.
+         * @returns {!Long|!{value: Long, length: number}} The value read if offset is omitted, else the value read and
+         *  the actual number of bytes read.
+         * @throws {Error} If it's not a valid varint
+         * @expose
+         */
+        ByteBufferPrototype.readVarint64 = function(offset) {
+            var relative = typeof offset === 'undefined';
+            if (relative) offset = this.offset;
+            if (!this.noAssert) {
+                if (typeof offset !== 'number' || offset % 1 !== 0)
+                    throw TypeError("Illegal offset: "+offset+" (not an integer)");
+                offset >>>= 0;
+                if (offset < 0 || offset + 1 > this.buffer.byteLength)
+                    throw RangeError("Illegal offset: 0 <= "+offset+" (+"+1+") <= "+this.buffer.byteLength);
+            }
+            // ref: src/google/protobuf/io/coded_stream.cc
+            var start = offset,
+                part0 = 0,
+                part1 = 0,
+                part2 = 0,
+                b  = 0;
+            b = this.view[offset++]; part0  = (b & 0x7F)      ; if ( b & 0x80                                                   ) {
+            b = this.view[offset++]; part0 |= (b & 0x7F) <<  7; if ((b & 0x80) || (this.noAssert && typeof b === 'undefined')) {
+            b = this.view[offset++]; part0 |= (b & 0x7F) << 14; if ((b & 0x80) || (this.noAssert && typeof b === 'undefined')) {
+            b = this.view[offset++]; part0 |= (b & 0x7F) << 21; if ((b & 0x80) || (this.noAssert && typeof b === 'undefined')) {
+            b = this.view[offset++]; part1  = (b & 0x7F)      ; if ((b & 0x80) || (this.noAssert && typeof b === 'undefined')) {
+            b = this.view[offset++]; part1 |= (b & 0x7F) <<  7; if ((b & 0x80) || (this.noAssert && typeof b === 'undefined')) {
+            b = this.view[offset++]; part1 |= (b & 0x7F) << 14; if ((b & 0x80) || (this.noAssert && typeof b === 'undefined')) {
+            b = this.view[offset++]; part1 |= (b & 0x7F) << 21; if ((b & 0x80) || (this.noAssert && typeof b === 'undefined')) {
+            b = this.view[offset++]; part2  = (b & 0x7F)      ; if ((b & 0x80) || (this.noAssert && typeof b === 'undefined')) {
+            b = this.view[offset++]; part2 |= (b & 0x7F) <<  7; if ((b & 0x80) || (this.noAssert && typeof b === 'undefined')) {
+            throw Error("Buffer overrun"); }}}}}}}}}}
+            var value = Long.fromBits(part0 | (part1 << 28), (part1 >>> 4) | (part2) << 24, false);
+            if (relative) {
+                this.offset = offset;
+                return value;
+            } else {
+                return {
+                    'value': value,
+                    'length': offset-start
+                };
+            }
+        };
+
+        /**
+         * Reads a zig-zag encoded 64bit base 128 variable-length integer. Requires Long.js.
+         * @param {number=} offset Offset to read from. Will use and increase {@link ByteBuffer#offset} by the number of bytes
+         *  read if omitted.
+         * @returns {!Long|!{value: Long, length: number}} The value read if offset is omitted, else the value read and
+         *  the actual number of bytes read.
+         * @throws {Error} If it's not a valid varint
+         * @expose
+         */
+        ByteBufferPrototype.readVarint64ZigZag = function(offset) {
+            var val = this.readVarint64(offset);
+            if (val && val['value'] instanceof Long)
+                val["value"] = ByteBuffer.zigZagDecode64(val["value"]);
+            else
+                val = ByteBuffer.zigZagDecode64(val);
+            return val;
+        };
+
+    } // Long
+
+
+    // types/strings/cstring
+
+    /**
+     * Writes a NULL-terminated UTF8 encoded string. For this to work the specified string must not contain any NULL
+     *  characters itself.
+     * @param {string} str String to write
+     * @param {number=} offset Offset to write to. Will use and increase {@link ByteBuffer#offset} by the number of bytes
+     *  contained in `str` + 1 if omitted.
+     * @returns {!ByteBuffer|number} this if offset is omitted, else the actual number of bytes written
+     * @expose
+     */
+    ByteBufferPrototype.writeCString = function(str, offset) {
+        var relative = typeof offset === 'undefined';
+        if (relative) offset = this.offset;
+        var i,
+            k = str.length;
+        if (!this.noAssert) {
+            if (typeof str !== 'string')
+                throw TypeError("Illegal str: Not a string");
+            for (i=0; i<k; ++i) {
+                if (str.charCodeAt(i) === 0)
+                    throw RangeError("Illegal str: Contains NULL-characters");
+            }
+            if (typeof offset !== 'number' || offset % 1 !== 0)
+                throw TypeError("Illegal offset: "+offset+" (not an integer)");
+            offset >>>= 0;
+            if (offset < 0 || offset + 0 > this.buffer.byteLength)
+                throw RangeError("Illegal offset: 0 <= "+offset+" (+"+0+") <= "+this.buffer.byteLength);
+        }
+        // UTF8 strings do not contain zero bytes in between except for the zero character, so:
+        k = utfx.calculateUTF16asUTF8(stringSource(str))[1];
+        offset += k+1;
+        var capacity12 = this.buffer.byteLength;
+        if (offset > capacity12)
+            this.resize((capacity12 *= 2) > offset ? capacity12 : offset);
+        offset -= k+1;
+        utfx.encodeUTF16toUTF8(stringSource(str), function(b) {
+            this.view[offset++] = b;
+        }.bind(this));
+        this.view[offset++] = 0;
+        if (relative) {
+            this.offset = offset;
+            return this;
+        }
+        return k;
+    };
+
+    /**
+     * Reads a NULL-terminated UTF8 encoded string. For this to work the string read must not contain any NULL characters
+     *  itself.
+     * @param {number=} offset Offset to read from. Will use and increase {@link ByteBuffer#offset} by the number of bytes
+     *  read if omitted.
+     * @returns {string|!{string: string, length: number}} The string read if offset is omitted, else the string
+     *  read and the actual number of bytes read.
+     * @expose
+     */
+    ByteBufferPrototype.readCString = function(offset) {
+        var relative = typeof offset === 'undefined';
+        if (relative) offset = this.offset;
+        if (!this.noAssert) {
+            if (typeof offset !== 'number' || offset % 1 !== 0)
+                throw TypeError("Illegal offset: "+offset+" (not an integer)");
+            offset >>>= 0;
+            if (offset < 0 || offset + 1 > this.buffer.byteLength)
+                throw RangeError("Illegal offset: 0 <= "+offset+" (+"+1+") <= "+this.buffer.byteLength);
+        }
+        var start = offset,
+            temp;
+        // UTF8 strings do not contain zero bytes in between except for the zero character itself, so:
+        var sd, b = -1;
+        utfx.decodeUTF8toUTF16(function() {
+            if (b === 0) return null;
+            if (offset >= this.limit)
+                throw RangeError("Illegal range: Truncated data, "+offset+" < "+this.limit);
+            b = this.view[offset++];
+            return b === 0 ? null : b;
+        }.bind(this), sd = stringDestination(), true);
+        if (relative) {
+            this.offset = offset;
+            return sd();
+        } else {
+            return {
+                "string": sd(),
+                "length": offset - start
+            };
+        }
+    };
+
+    // types/strings/istring
+
+    /**
+     * Writes a length as uint32 prefixed UTF8 encoded string.
+     * @param {string} str String to write
+     * @param {number=} offset Offset to write to. Will use and increase {@link ByteBuffer#offset} by the number of bytes
+     *  written if omitted.
+     * @returns {!ByteBuffer|number} `this` if `offset` is omitted, else the actual number of bytes written
+     * @expose
+     * @see ByteBuffer#writeVarint32
+     */
+    ByteBufferPrototype.writeIString = function(str, offset) {
+        var relative = typeof offset === 'undefined';
+        if (relative) offset = this.offset;
+        if (!this.noAssert) {
+            if (typeof str !== 'string')
+                throw TypeError("Illegal str: Not a string");
+            if (typeof offset !== 'number' || offset % 1 !== 0)
+                throw TypeError("Illegal offset: "+offset+" (not an integer)");
+            offset >>>= 0;
+            if (offset < 0 || offset + 0 > this.buffer.byteLength)
+                throw RangeError("Illegal offset: 0 <= "+offset+" (+"+0+") <= "+this.buffer.byteLength);
+        }
+        var start = offset,
+            k;
+        k = utfx.calculateUTF16asUTF8(stringSource(str), this.noAssert)[1];
+        offset += 4+k;
+        var capacity13 = this.buffer.byteLength;
+        if (offset > capacity13)
+            this.resize((capacity13 *= 2) > offset ? capacity13 : offset);
+        offset -= 4+k;
+        if (this.littleEndian) {
+            this.view[offset+3] = (k >>> 24) & 0xFF;
+            this.view[offset+2] = (k >>> 16) & 0xFF;
+            this.view[offset+1] = (k >>>  8) & 0xFF;
+            this.view[offset  ] =  k         & 0xFF;
+        } else {
+            this.view[offset  ] = (k >>> 24) & 0xFF;
+            this.view[offset+1] = (k >>> 16) & 0xFF;
+            this.view[offset+2] = (k >>>  8) & 0xFF;
+            this.view[offset+3] =  k         & 0xFF;
+        }
+        offset += 4;
+        utfx.encodeUTF16toUTF8(stringSource(str), function(b) {
+            this.view[offset++] = b;
+        }.bind(this));
+        if (offset !== start + 4 + k)
+            throw RangeError("Illegal range: Truncated data, "+offset+" == "+(offset+4+k));
+        if (relative) {
+            this.offset = offset;
+            return this;
+        }
+        return offset - start;
+    };
+
+    /**
+     * Reads a length as uint32 prefixed UTF8 encoded string.
+     * @param {number=} offset Offset to read from. Will use and increase {@link ByteBuffer#offset} by the number of bytes
+     *  read if omitted.
+     * @returns {string|!{string: string, length: number}} The string read if offset is omitted, else the string
+     *  read and the actual number of bytes read.
+     * @expose
+     * @see ByteBuffer#readVarint32
+     */
+    ByteBufferPrototype.readIString = function(offset) {
+        var relative = typeof offset === 'undefined';
+        if (relative) offset = this.offset;
+        if (!this.noAssert) {
+            if (typeof offset !== 'number' || offset % 1 !== 0)
+                throw TypeError("Illegal offset: "+offset+" (not an integer)");
+            offset >>>= 0;
+            if (offset < 0 || offset + 4 > this.buffer.byteLength)
+                throw RangeError("Illegal offset: 0 <= "+offset+" (+"+4+") <= "+this.buffer.byteLength);
+        }
+        var start = offset;
+        var len = this.readUint32(offset);
+        var str = this.readUTF8String(len, ByteBuffer.METRICS_BYTES, offset += 4);
+        offset += str['length'];
+        if (relative) {
+            this.offset = offset;
+            return str['string'];
+        } else {
+            return {
+                'string': str['string'],
+                'length': offset - start
+            };
+        }
+    };
+
+    // types/strings/utf8string
+
+    /**
+     * Metrics representing number of UTF8 characters. Evaluates to `c`.
+     * @type {string}
+     * @const
+     * @expose
+     */
+    ByteBuffer.METRICS_CHARS = 'c';
+
+    /**
+     * Metrics representing number of bytes. Evaluates to `b`.
+     * @type {string}
+     * @const
+     * @expose
+     */
+    ByteBuffer.METRICS_BYTES = 'b';
+
+    /**
+     * Writes an UTF8 encoded string.
+     * @param {string} str String to write
+     * @param {number=} offset Offset to write to. Will use and increase {@link ByteBuffer#offset} if omitted.
+     * @returns {!ByteBuffer|number} this if offset is omitted, else the actual number of bytes written.
+     * @expose
+     */
+    ByteBufferPrototype.writeUTF8String = function(str, offset) {
+        var relative = typeof offset === 'undefined';
+        if (relative) offset = this.offset;
+        if (!this.noAssert) {
+            if (typeof offset !== 'number' || offset % 1 !== 0)
+                throw TypeError("Illegal offset: "+offset+" (not an integer)");
+            offset >>>= 0;
+            if (offset < 0 || offset + 0 > this.buffer.byteLength)
+                throw RangeError("Illegal offset: 0 <= "+offset+" (+"+0+") <= "+this.buffer.byteLength);
+        }
+        var k;
+        var start = offset;
+        k = utfx.calculateUTF16asUTF8(stringSource(str))[1];
+        offset += k;
+        var capacity14 = this.buffer.byteLength;
+        if (offset > capacity14)
+            this.resize((capacity14 *= 2) > offset ? capacity14 : offset);
+        offset -= k;
+        utfx.encodeUTF16toUTF8(stringSource(str), function(b) {
+            this.view[offset++] = b;
+        }.bind(this));
+        if (relative) {
+            this.offset = offset;
+            return this;
+        }
+        return offset - start;
+    };
+
+    /**
+     * Writes an UTF8 encoded string. This is an alias of {@link ByteBuffer#writeUTF8String}.
+     * @function
+     * @param {string} str String to write
+     * @param {number=} offset Offset to write to. Will use and increase {@link ByteBuffer#offset} if omitted.
+     * @returns {!ByteBuffer|number} this if offset is omitted, else the actual number of bytes written.
+     * @expose
+     */
+    ByteBufferPrototype.writeString = ByteBufferPrototype.writeUTF8String;
+
+    /**
+     * Calculates the number of UTF8 characters of a string. JavaScript itself uses UTF-16, so that a string's
+     *  `length` property does not reflect its actual UTF8 size if it contains code points larger than 0xFFFF.
+     * @param {string} str String to calculate
+     * @returns {number} Number of UTF8 characters
+     * @expose
+     */
+    ByteBuffer.calculateUTF8Chars = function(str) {
+        return utfx.calculateUTF16asUTF8(stringSource(str))[0];
+    };
+
+    /**
+     * Calculates the number of UTF8 bytes of a string.
+     * @param {string} str String to calculate
+     * @returns {number} Number of UTF8 bytes
+     * @expose
+     */
+    ByteBuffer.calculateUTF8Bytes = function(str) {
+        return utfx.calculateUTF16asUTF8(stringSource(str))[1];
+    };
+
+    /**
+     * Calculates the number of UTF8 bytes of a string. This is an alias of {@link ByteBuffer.calculateUTF8Bytes}.
+     * @function
+     * @param {string} str String to calculate
+     * @returns {number} Number of UTF8 bytes
+     * @expose
+     */
+    ByteBuffer.calculateString = ByteBuffer.calculateUTF8Bytes;
+
+    /**
+     * Reads an UTF8 encoded string.
+     * @param {number} length Number of characters or bytes to read.
+     * @param {string=} metrics Metrics specifying what `length` is meant to count. Defaults to
+     *  {@link ByteBuffer.METRICS_CHARS}.
+     * @param {number=} offset Offset to read from. Will use and increase {@link ByteBuffer#offset} by the number of bytes
+     *  read if omitted.
+     * @returns {string|!{string: string, length: number}} The string read if offset is omitted, else the string
+     *  read and the actual number of bytes read.
+     * @expose
+     */
+    ByteBufferPrototype.readUTF8String = function(length, metrics, offset) {
+        if (typeof metrics === 'number') {
+            offset = metrics;
+            metrics = undefined;
+        }
+        var relative = typeof offset === 'undefined';
+        if (relative) offset = this.offset;
+        if (typeof metrics === 'undefined') metrics = ByteBuffer.METRICS_CHARS;
+        if (!this.noAssert) {
+            if (typeof length !== 'number' || length % 1 !== 0)
+                throw TypeError("Illegal length: "+length+" (not an integer)");
+            length |= 0;
+            if (typeof offset !== 'number' || offset % 1 !== 0)
+                throw TypeError("Illegal offset: "+offset+" (not an integer)");
+            offset >>>= 0;
+            if (offset < 0 || offset + 0 > this.buffer.byteLength)
+                throw RangeError("Illegal offset: 0 <= "+offset+" (+"+0+") <= "+this.buffer.byteLength);
+        }
+        var i = 0,
+            start = offset,
+            sd;
+        if (metrics === ByteBuffer.METRICS_CHARS) { // The same for node and the browser
+            sd = stringDestination();
+            utfx.decodeUTF8(function() {
+                return i < length && offset < this.limit ? this.view[offset++] : null;
+            }.bind(this), function(cp) {
+                ++i; utfx.UTF8toUTF16(cp, sd);
+            });
+            if (i !== length)
+                throw RangeError("Illegal range: Truncated data, "+i+" == "+length);
+            if (relative) {
+                this.offset = offset;
+                return sd();
+            } else {
+                return {
+                    "string": sd(),
+                    "length": offset - start
+                };
+            }
+        } else if (metrics === ByteBuffer.METRICS_BYTES) {
+            if (!this.noAssert) {
+                if (typeof offset !== 'number' || offset % 1 !== 0)
+                    throw TypeError("Illegal offset: "+offset+" (not an integer)");
+                offset >>>= 0;
+                if (offset < 0 || offset + length > this.buffer.byteLength)
+                    throw RangeError("Illegal offset: 0 <= "+offset+" (+"+length+") <= "+this.buffer.byteLength);
+            }
+            var k = offset + length;
+            utfx.decodeUTF8toUTF16(function() {
+                return offset < k ? this.view[offset++] : null;
+            }.bind(this), sd = stringDestination(), this.noAssert);
+            if (offset !== k)
+                throw RangeError("Illegal range: Truncated data, "+offset+" == "+k);
+            if (relative) {
+                this.offset = offset;
+                return sd();
+            } else {
+                return {
+                    'string': sd(),
+                    'length': offset - start
+                };
+            }
+        } else
+            throw TypeError("Unsupported metrics: "+metrics);
+    };
+
+    /**
+     * Reads an UTF8 encoded string. This is an alias of {@link ByteBuffer#readUTF8String}.
+     * @function
+     * @param {number} length Number of characters or bytes to read
+     * @param {number=} metrics Metrics specifying what `n` is meant to count. Defaults to
+     *  {@link ByteBuffer.METRICS_CHARS}.
+     * @param {number=} offset Offset to read from. Will use and increase {@link ByteBuffer#offset} by the number of bytes
+     *  read if omitted.
+     * @returns {string|!{string: string, length: number}} The string read if offset is omitted, else the string
+     *  read and the actual number of bytes read.
+     * @expose
+     */
+    ByteBufferPrototype.readString = ByteBufferPrototype.readUTF8String;
+
+    // types/strings/vstring
+
+    /**
+     * Writes a length as varint32 prefixed UTF8 encoded string.
+     * @param {string} str String to write
+     * @param {number=} offset Offset to write to. Will use and increase {@link ByteBuffer#offset} by the number of bytes
+     *  written if omitted.
+     * @returns {!ByteBuffer|number} `this` if `offset` is omitted, else the actual number of bytes written
+     * @expose
+     * @see ByteBuffer#writeVarint32
+     */
+    ByteBufferPrototype.writeVString = function(str, offset) {
+        var relative = typeof offset === 'undefined';
+        if (relative) offset = this.offset;
+        if (!this.noAssert) {
+            if (typeof str !== 'string')
+                throw TypeError("Illegal str: Not a string");
+            if (typeof offset !== 'number' || offset % 1 !== 0)
+                throw TypeError("Illegal offset: "+offset+" (not an integer)");
+            offset >>>= 0;
+            if (offset < 0 || offset + 0 > this.buffer.byteLength)
+                throw RangeError("Illegal offset: 0 <= "+offset+" (+"+0+") <= "+this.buffer.byteLength);
+        }
+        var start = offset,
+            k, l;
+        k = utfx.calculateUTF16asUTF8(stringSource(str), this.noAssert)[1];
+        l = ByteBuffer.calculateVarint32(k);
+        offset += l+k;
+        var capacity15 = this.buffer.byteLength;
+        if (offset > capacity15)
+            this.resize((capacity15 *= 2) > offset ? capacity15 : offset);
+        offset -= l+k;
+        offset += this.writeVarint32(k, offset);
+        utfx.encodeUTF16toUTF8(stringSource(str), function(b) {
+            this.view[offset++] = b;
+        }.bind(this));
+        if (offset !== start+k+l)
+            throw RangeError("Illegal range: Truncated data, "+offset+" == "+(offset+k+l));
+        if (relative) {
+            this.offset = offset;
+            return this;
+        }
+        return offset - start;
+    };
+
+    /**
+     * Reads a length as varint32 prefixed UTF8 encoded string.
+     * @param {number=} offset Offset to read from. Will use and increase {@link ByteBuffer#offset} by the number of bytes
+     *  read if omitted.
+     * @returns {string|!{string: string, length: number}} The string read if offset is omitted, else the string
+     *  read and the actual number of bytes read.
+     * @expose
+     * @see ByteBuffer#readVarint32
+     */
+    ByteBufferPrototype.readVString = function(offset) {
+        var relative = typeof offset === 'undefined';
+        if (relative) offset = this.offset;
+        if (!this.noAssert) {
+            if (typeof offset !== 'number' || offset % 1 !== 0)
+                throw TypeError("Illegal offset: "+offset+" (not an integer)");
+            offset >>>= 0;
+            if (offset < 0 || offset + 1 > this.buffer.byteLength)
+                throw RangeError("Illegal offset: 0 <= "+offset+" (+"+1+") <= "+this.buffer.byteLength);
+        }
+        var start = offset;
+        var len = this.readVarint32(offset);
+        var str = this.readUTF8String(len['value'], ByteBuffer.METRICS_BYTES, offset += len['length']);
+        offset += str['length'];
+        if (relative) {
+            this.offset = offset;
+            return str['string'];
+        } else {
+            return {
+                'string': str['string'],
+                'length': offset - start
+            };
+        }
+    };
+
+
+    /**
+     * Appends some data to this ByteBuffer. This will overwrite any contents behind the specified offset up to the appended
+     *  data's length.
+     * @param {!ByteBuffer|!ArrayBuffer|!Uint8Array|string} source Data to append. If `source` is a ByteBuffer, its offsets
+     *  will be modified according to the performed read operation.
+     * @param {(string|number)=} encoding Encoding if `data` is a string ("base64", "hex", "binary", defaults to "utf8")
+     * @param {number=} offset Offset to append at. Will use and increase {@link ByteBuffer#offset} by the number of bytes
+     *  written if omitted.
+     * @returns {!ByteBuffer} this
+     * @expose
+     * @example A relative `<01 02>03.append(<04 05>)` will result in `<01 02 04 05>, 04 05|`
+     * @example An absolute `<01 02>03.append(04 05>, 1)` will result in `<01 04>05, 04 05|`
+     */
+    ByteBufferPrototype.append = function(source, encoding, offset) {
+        if (typeof encoding === 'number' || typeof encoding !== 'string') {
+            offset = encoding;
+            encoding = undefined;
+        }
+        var relative = typeof offset === 'undefined';
+        if (relative) offset = this.offset;
+        if (!this.noAssert) {
+            if (typeof offset !== 'number' || offset % 1 !== 0)
+                throw TypeError("Illegal offset: "+offset+" (not an integer)");
+            offset >>>= 0;
+            if (offset < 0 || offset + 0 > this.buffer.byteLength)
+                throw RangeError("Illegal offset: 0 <= "+offset+" (+"+0+") <= "+this.buffer.byteLength);
+        }
+        if (!(source instanceof ByteBuffer))
+            source = ByteBuffer.wrap(source, encoding);
+        var length = source.limit - source.offset;
+        if (length <= 0) return this; // Nothing to append
+        offset += length;
+        var capacity16 = this.buffer.byteLength;
+        if (offset > capacity16)
+            this.resize((capacity16 *= 2) > offset ? capacity16 : offset);
+        offset -= length;
+        this.view.set(source.view.subarray(source.offset, source.limit), offset);
+        source.offset += length;
+        if (relative) this.offset += length;
+        return this;
+    };
+
+    /**
+     * Appends this ByteBuffer's contents to another ByteBuffer. This will overwrite any contents at and after the
+        specified offset up to the length of this ByteBuffer's data.
+     * @param {!ByteBuffer} target Target ByteBuffer
+     * @param {number=} offset Offset to append to. Will use and increase {@link ByteBuffer#offset} by the number of bytes
+     *  read if omitted.
+     * @returns {!ByteBuffer} this
+     * @expose
+     * @see ByteBuffer#append
+     */
+    ByteBufferPrototype.appendTo = function(target, offset) {
+        target.append(this, offset);
+        return this;
+    };
+
+    /**
+     * Enables or disables assertions of argument types and offsets. Assertions are enabled by default but you can opt to
+     *  disable them if your code already makes sure that everything is valid.
+     * @param {boolean} assert `true` to enable assertions, otherwise `false`
+     * @returns {!ByteBuffer} this
+     * @expose
+     */
+    ByteBufferPrototype.assert = function(assert) {
+        this.noAssert = !assert;
+        return this;
+    };
+
+    /**
+     * Gets the capacity of this ByteBuffer's backing buffer.
+     * @returns {number} Capacity of the backing buffer
+     * @expose
+     */
+    ByteBufferPrototype.capacity = function() {
+        return this.buffer.byteLength;
+    };
+    /**
+     * Clears this ByteBuffer's offsets by setting {@link ByteBuffer#offset} to `0` and {@link ByteBuffer#limit} to the
+     *  backing buffer's capacity. Discards {@link ByteBuffer#markedOffset}.
+     * @returns {!ByteBuffer} this
+     * @expose
+     */
+    ByteBufferPrototype.clear = function() {
+        this.offset = 0;
+        this.limit = this.buffer.byteLength;
+        this.markedOffset = -1;
+        return this;
+    };
+
+    /**
+     * Creates a cloned instance of this ByteBuffer, preset with this ByteBuffer's values for {@link ByteBuffer#offset},
+     *  {@link ByteBuffer#markedOffset} and {@link ByteBuffer#limit}.
+     * @param {boolean=} copy Whether to copy the backing buffer or to return another view on the same, defaults to `false`
+     * @returns {!ByteBuffer} Cloned instance
+     * @expose
+     */
+    ByteBufferPrototype.clone = function(copy) {
+        var bb = new ByteBuffer(0, this.littleEndian, this.noAssert);
+        if (copy) {
+            bb.buffer = new ArrayBuffer(this.buffer.byteLength);
+            bb.view = new Uint8Array(bb.buffer);
+        } else {
+            bb.buffer = this.buffer;
+            bb.view = this.view;
+        }
+        bb.offset = this.offset;
+        bb.markedOffset = this.markedOffset;
+        bb.limit = this.limit;
+        return bb;
+    };
+
+    /**
+     * Compacts this ByteBuffer to be backed by a {@link ByteBuffer#buffer} of its contents' length. Contents are the bytes
+     *  between {@link ByteBuffer#offset} and {@link ByteBuffer#limit}. Will set `offset = 0` and `limit = capacity` and
+     *  adapt {@link ByteBuffer#markedOffset} to the same relative position if set.
+     * @param {number=} begin Offset to start at, defaults to {@link ByteBuffer#offset}
+     * @param {number=} end Offset to end at, defaults to {@link ByteBuffer#limit}
+     * @returns {!ByteBuffer} this
+     * @expose
+     */
+    ByteBufferPrototype.compact = function(begin, end) {
+        if (typeof begin === 'undefined') begin = this.offset;
+        if (typeof end === 'undefined') end = this.limit;
+        if (!this.noAssert) {
+            if (typeof begin !== 'number' || begin % 1 !== 0)
+                throw TypeError("Illegal begin: Not an integer");
+            begin >>>= 0;
+            if (typeof end !== 'number' || end % 1 !== 0)
+                throw TypeError("Illegal end: Not an integer");
+            end >>>= 0;
+            if (begin < 0 || begin > end || end > this.buffer.byteLength)
+                throw RangeError("Illegal range: 0 <= "+begin+" <= "+end+" <= "+this.buffer.byteLength);
+        }
+        if (begin === 0 && end === this.buffer.byteLength)
+            return this; // Already compacted
+        var len = end - begin;
+        if (len === 0) {
+            this.buffer = EMPTY_BUFFER;
+            this.view = null;
+            if (this.markedOffset >= 0) this.markedOffset -= begin;
+            this.offset = 0;
+            this.limit = 0;
+            return this;
+        }
+        var buffer = new ArrayBuffer(len);
+        var view = new Uint8Array(buffer);
+        view.set(this.view.subarray(begin, end));
+        this.buffer = buffer;
+        this.view = view;
+        if (this.markedOffset >= 0) this.markedOffset -= begin;
+        this.offset = 0;
+        this.limit = len;
+        return this;
+    };
+
+    /**
+     * Creates a copy of this ByteBuffer's contents. Contents are the bytes between {@link ByteBuffer#offset} and
+     *  {@link ByteBuffer#limit}.
+     * @param {number=} begin Begin offset, defaults to {@link ByteBuffer#offset}.
+     * @param {number=} end End offset, defaults to {@link ByteBuffer#limit}.
+     * @returns {!ByteBuffer} Copy
+     * @expose
+     */
+    ByteBufferPrototype.copy = function(begin, end) {
+        if (typeof begin === 'undefined') begin = this.offset;
+        if (typeof end === 'undefined') end = this.limit;
+        if (!this.noAssert) {
+            if (typeof begin !== 'number' || begin % 1 !== 0)
+                throw TypeError("Illegal begin: Not an integer");
+            begin >>>= 0;
+            if (typeof end !== 'number' || end % 1 !== 0)
+                throw TypeError("Illegal end: Not an integer");
+            end >>>= 0;
+            if (begin < 0 || begin > end || end > this.buffer.byteLength)
+                throw RangeError("Illegal range: 0 <= "+begin+" <= "+end+" <= "+this.buffer.byteLength);
+        }
+        if (begin === end)
+            return new ByteBuffer(0, this.littleEndian, this.noAssert);
+        var capacity = end - begin,
+            bb = new ByteBuffer(capacity, this.littleEndian, this.noAssert);
+        bb.offset = 0;
+        bb.limit = capacity;
+        if (bb.markedOffset >= 0) bb.markedOffset -= begin;
+        this.copyTo(bb, 0, begin, end);
+        return bb;
+    };
+
+    /**
+     * Copies this ByteBuffer's contents to another ByteBuffer. Contents are the bytes between {@link ByteBuffer#offset} and
+     *  {@link ByteBuffer#limit}.
+     * @param {!ByteBuffer} target Target ByteBuffer
+     * @param {number=} targetOffset Offset to copy to. Will use and increase the target's {@link ByteBuffer#offset}
+     *  by the number of bytes copied if omitted.
+     * @param {number=} sourceOffset Offset to start copying from. Will use and increase {@link ByteBuffer#offset} by the
+     *  number of bytes copied if omitted.
+     * @param {number=} sourceLimit Offset to end copying from, defaults to {@link ByteBuffer#limit}
+     * @returns {!ByteBuffer} this
+     * @expose
+     */
+    ByteBufferPrototype.copyTo = function(target, targetOffset, sourceOffset, sourceLimit) {
+        var relative,
+            targetRelative;
+        if (!this.noAssert) {
+            if (!ByteBuffer.isByteBuffer(target))
+                throw TypeError("Illegal target: Not a ByteBuffer");
+        }
+        targetOffset = (targetRelative = typeof targetOffset === 'undefined') ? target.offset : targetOffset | 0;
+        sourceOffset = (relative = typeof sourceOffset === 'undefined') ? this.offset : sourceOffset | 0;
+        sourceLimit = typeof sourceLimit === 'undefined' ? this.limit : sourceLimit | 0;
+
+        if (targetOffset < 0 || targetOffset > target.buffer.byteLength)
+            throw RangeError("Illegal target range: 0 <= "+targetOffset+" <= "+target.buffer.byteLength);
+        if (sourceOffset < 0 || sourceLimit > this.buffer.byteLength)
+            throw RangeError("Illegal source range: 0 <= "+sourceOffset+" <= "+this.buffer.byteLength);
+
+        var len = sourceLimit - sourceOffset;
+        if (len === 0)
+            return target; // Nothing to copy
+
+        target.ensureCapacity(targetOffset + len);
+
+        target.view.set(this.view.subarray(sourceOffset, sourceLimit), targetOffset);
+
+        if (relative) this.offset += len;
+        if (targetRelative) target.offset += len;
+
+        return this;
+    };
+
+    /**
+     * Makes sure that this ByteBuffer is backed by a {@link ByteBuffer#buffer} of at least the specified capacity. If the
+     *  current capacity is exceeded, it will be doubled. If double the current capacity is less than the required capacity,
+     *  the required capacity will be used instead.
+     * @param {number} capacity Required capacity
+     * @returns {!ByteBuffer} this
+     * @expose
+     */
+    ByteBufferPrototype.ensureCapacity = function(capacity) {
+        var current = this.buffer.byteLength;
+        if (current < capacity)
+            return this.resize((current *= 2) > capacity ? current : capacity);
+        return this;
+    };
+
+    /**
+     * Overwrites this ByteBuffer's contents with the specified value. Contents are the bytes between
+     *  {@link ByteBuffer#offset} and {@link ByteBuffer#limit}.
+     * @param {number|string} value Byte value to fill with. If given as a string, the first character is used.
+     * @param {number=} begin Begin offset. Will use and increase {@link ByteBuffer#offset} by the number of bytes
+     *  written if omitted. defaults to {@link ByteBuffer#offset}.
+     * @param {number=} end End offset, defaults to {@link ByteBuffer#limit}.
+     * @returns {!ByteBuffer} this
+     * @expose
+     * @example `someByteBuffer.clear().fill(0)` fills the entire backing buffer with zeroes
+     */
+    ByteBufferPrototype.fill = function(value, begin, end) {
+        var relative = typeof begin === 'undefined';
+        if (relative) begin = this.offset;
+        if (typeof value === 'string' && value.length > 0)
+            value = value.charCodeAt(0);
+        if (typeof begin === 'undefined') begin = this.offset;
+        if (typeof end === 'undefined') end = this.limit;
+        if (!this.noAssert) {
+            if (typeof value !== 'number' || value % 1 !== 0)
+                throw TypeError("Illegal value: "+value+" (not an integer)");
+            value |= 0;
+            if (typeof begin !== 'number' || begin % 1 !== 0)
+                throw TypeError("Illegal begin: Not an integer");
+            begin >>>= 0;
+            if (typeof end !== 'number' || end % 1 !== 0)
+                throw TypeError("Illegal end: Not an integer");
+            end >>>= 0;
+            if (begin < 0 || begin > end || end > this.buffer.byteLength)
+                throw RangeError("Illegal range: 0 <= "+begin+" <= "+end+" <= "+this.buffer.byteLength);
+        }
+        if (begin >= end)
+            return this; // Nothing to fill
+        while (begin < end) this.view[begin++] = value;
+        if (relative) this.offset = begin;
+        return this;
+    };
+
+    /**
+     * Makes this ByteBuffer ready for a new sequence of write or relative read operations. Sets `limit = offset` and
+     *  `offset = 0`. Make sure always to flip a ByteBuffer when all relative read or write operations are complete.
+     * @returns {!ByteBuffer} this
+     * @expose
+     */
+    ByteBufferPrototype.flip = function() {
+        this.limit = this.offset;
+        this.offset = 0;
+        return this;
+    };
+    /**
+     * Marks an offset on this ByteBuffer to be used later.
+     * @param {number=} offset Offset to mark. Defaults to {@link ByteBuffer#offset}.
+     * @returns {!ByteBuffer} this
+     * @throws {TypeError} If `offset` is not a valid number
+     * @throws {RangeError} If `offset` is out of bounds
+     * @see ByteBuffer#reset
+     * @expose
+     */
+    ByteBufferPrototype.mark = function(offset) {
+        offset = typeof offset === 'undefined' ? this.offset : offset;
+        if (!this.noAssert) {
+            if (typeof offset !== 'number' || offset % 1 !== 0)
+                throw TypeError("Illegal offset: "+offset+" (not an integer)");
+            offset >>>= 0;
+            if (offset < 0 || offset + 0 > this.buffer.byteLength)
+                throw RangeError("Illegal offset: 0 <= "+offset+" (+"+0+") <= "+this.buffer.byteLength);
+        }
+        this.markedOffset = offset;
+        return this;
+    };
+    /**
+     * Sets the byte order.
+     * @param {boolean} littleEndian `true` for little endian byte order, `false` for big endian
+     * @returns {!ByteBuffer} this
+     * @expose
+     */
+    ByteBufferPrototype.order = function(littleEndian) {
+        if (!this.noAssert) {
+            if (typeof littleEndian !== 'boolean')
+                throw TypeError("Illegal littleEndian: Not a boolean");
+        }
+        this.littleEndian = !!littleEndian;
+        return this;
+    };
+
+    /**
+     * Switches (to) little endian byte order.
+     * @param {boolean=} littleEndian Defaults to `true`, otherwise uses big endian
+     * @returns {!ByteBuffer} this
+     * @expose
+     */
+    ByteBufferPrototype.LE = function(littleEndian) {
+        this.littleEndian = typeof littleEndian !== 'undefined' ? !!littleEndian : true;
+        return this;
+    };
+
+    /**
+     * Switches (to) big endian byte order.
+     * @param {boolean=} bigEndian Defaults to `true`, otherwise uses little endian
+     * @returns {!ByteBuffer} this
+     * @expose
+     */
+    ByteBufferPrototype.BE = function(bigEndian) {
+        this.littleEndian = typeof bigEndian !== 'undefined' ? !bigEndian : false;
+        return this;
+    };
+    /**
+     * Prepends some data to this ByteBuffer. This will overwrite any contents before the specified offset up to the
+     *  prepended data's length. If there is not enough space available before the specified `offset`, the backing buffer
+     *  will be resized and its contents moved accordingly.
+     * @param {!ByteBuffer|string|!ArrayBuffer} source Data to prepend. If `source` is a ByteBuffer, its offset will be
+     *  modified according to the performed read operation.
+     * @param {(string|number)=} encoding Encoding if `data` is a string ("base64", "hex", "binary", defaults to "utf8")
+     * @param {number=} offset Offset to prepend at. Will use and decrease {@link ByteBuffer#offset} by the number of bytes
+     *  prepended if omitted.
+     * @returns {!ByteBuffer} this
+     * @expose
+     * @example A relative `00<01 02 03>.prepend(<04 05>)` results in `<04 05 01 02 03>, 04 05|`
+     * @example An absolute `00<01 02 03>.prepend(<04 05>, 2)` results in `04<05 02 03>, 04 05|`
+     */
+    ByteBufferPrototype.prepend = function(source, encoding, offset) {
+        if (typeof encoding === 'number' || typeof encoding !== 'string') {
+            offset = encoding;
+            encoding = undefined;
+        }
+        var relative = typeof offset === 'undefined';
+        if (relative) offset = this.offset;
+        if (!this.noAssert) {
+            if (typeof offset !== 'number' || offset % 1 !== 0)
+                throw TypeError("Illegal offset: "+offset+" (not an integer)");
+            offset >>>= 0;
+            if (offset < 0 || offset + 0 > this.buffer.byteLength)
+                throw RangeError("Illegal offset: 0 <= "+offset+" (+"+0+") <= "+this.buffer.byteLength);
+        }
+        if (!(source instanceof ByteBuffer))
+            source = ByteBuffer.wrap(source, encoding);
+        var len = source.limit - source.offset;
+        if (len <= 0) return this; // Nothing to prepend
+        var diff = len - offset;
+        if (diff > 0) { // Not enough space before offset, so resize + move
+            var buffer = new ArrayBuffer(this.buffer.byteLength + diff);
+            var view = new Uint8Array(buffer);
+            view.set(this.view.subarray(offset, this.buffer.byteLength), len);
+            this.buffer = buffer;
+            this.view = view;
+            this.offset += diff;
+            if (this.markedOffset >= 0) this.markedOffset += diff;
+            this.limit += diff;
+            offset += diff;
+        } else {
+            var arrayView = new Uint8Array(this.buffer);
+        }
+        this.view.set(source.view.subarray(source.offset, source.limit), offset - len);
+
+        source.offset = source.limit;
+        if (relative)
+            this.offset -= len;
+        return this;
+    };
+
+    /**
+     * Prepends this ByteBuffer to another ByteBuffer. This will overwrite any contents before the specified offset up to the
+     *  prepended data's length. If there is not enough space available before the specified `offset`, the backing buffer
+     *  will be resized and its contents moved accordingly.
+     * @param {!ByteBuffer} target Target ByteBuffer
+     * @param {number=} offset Offset to prepend at. Will use and decrease {@link ByteBuffer#offset} by the number of bytes
+     *  prepended if omitted.
+     * @returns {!ByteBuffer} this
+     * @expose
+     * @see ByteBuffer#prepend
+     */
+    ByteBufferPrototype.prependTo = function(target, offset) {
+        target.prepend(this, offset);
+        return this;
+    };
+    /**
+     * Prints debug information about this ByteBuffer's contents.
+     * @param {function(string)=} out Output function to call, defaults to console.log
+     * @expose
+     */
+    ByteBufferPrototype.printDebug = function(out) {
+        if (typeof out !== 'function') out = console.log.bind(console);
+        out(
+            this.toString()+"\n"+
+            "-------------------------------------------------------------------\n"+
+            this.toDebug(/* columns */ true)
+        );
+    };
+
+    /**
+     * Gets the number of remaining readable bytes. Contents are the bytes between {@link ByteBuffer#offset} and
+     *  {@link ByteBuffer#limit}, so this returns `limit - offset`.
+     * @returns {number} Remaining readable bytes. May be negative if `offset > limit`.
+     * @expose
+     */
+    ByteBufferPrototype.remaining = function() {
+        return this.limit - this.offset;
+    };
+    /**
+     * Resets this ByteBuffer's {@link ByteBuffer#offset}. If an offset has been marked through {@link ByteBuffer#mark}
+     *  before, `offset` will be set to {@link ByteBuffer#markedOffset}, which will then be discarded. If no offset has been
+     *  marked, sets `offset = 0`.
+     * @returns {!ByteBuffer} this
+     * @see ByteBuffer#mark
+     * @expose
+     */
+    ByteBufferPrototype.reset = function() {
+        if (this.markedOffset >= 0) {
+            this.offset = this.markedOffset;
+            this.markedOffset = -1;
+        } else {
+            this.offset = 0;
+        }
+        return this;
+    };
+    /**
+     * Resizes this ByteBuffer to be backed by a buffer of at least the given capacity. Will do nothing if already that
+     *  large or larger.
+     * @param {number} capacity Capacity required
+     * @returns {!ByteBuffer} this
+     * @throws {TypeError} If `capacity` is not a number
+     * @throws {RangeError} If `capacity < 0`
+     * @expose
+     */
+    ByteBufferPrototype.resize = function(capacity) {
+        if (!this.noAssert) {
+            if (typeof capacity !== 'number' || capacity % 1 !== 0)
+                throw TypeError("Illegal capacity: "+capacity+" (not an integer)");
+            capacity |= 0;
+            if (capacity < 0)
+                throw RangeError("Illegal capacity: 0 <= "+capacity);
+        }
+        if (this.buffer.byteLength < capacity) {
+            var buffer = new ArrayBuffer(capacity);
+            var view = new Uint8Array(buffer);
+            view.set(this.view);
+            this.buffer = buffer;
+            this.view = view;
+        }
+        return this;
+    };
+    /**
+     * Reverses this ByteBuffer's contents.
+     * @param {number=} begin Offset to start at, defaults to {@link ByteBuffer#offset}
+     * @param {number=} end Offset to end at, defaults to {@link ByteBuffer#limit}
+     * @returns {!ByteBuffer} this
+     * @expose
+     */
+    ByteBufferPrototype.reverse = function(begin, end) {
+        if (typeof begin === 'undefined') begin = this.offset;
+        if (typeof end === 'undefined') end = this.limit;
+        if (!this.noAssert) {
+            if (typeof begin !== 'number' || begin % 1 !== 0)
+                throw TypeError("Illegal begin: Not an integer");
+            begin >>>= 0;
+            if (typeof end !== 'number' || end % 1 !== 0)
+                throw TypeError("Illegal end: Not an integer");
+            end >>>= 0;
+            if (begin < 0 || begin > end || end > this.buffer.byteLength)
+                throw RangeError("Illegal range: 0 <= "+begin+" <= "+end+" <= "+this.buffer.byteLength);
+        }
+        if (begin === end)
+            return this; // Nothing to reverse
+        Array.prototype.reverse.call(this.view.subarray(begin, end));
+        return this;
+    };
+    /**
+     * Skips the next `length` bytes. This will just advance
+     * @param {number} length Number of bytes to skip. May also be negative to move the offset back.
+     * @returns {!ByteBuffer} this
+     * @expose
+     */
+    ByteBufferPrototype.skip = function(length) {
+        if (!this.noAssert) {
+            if (typeof length !== 'number' || length % 1 !== 0)
+                throw TypeError("Illegal length: "+length+" (not an integer)");
+            length |= 0;
+        }
+        var offset = this.offset + length;
+        if (!this.noAssert) {
+            if (offset < 0 || offset > this.buffer.byteLength)
+                throw RangeError("Illegal length: 0 <= "+this.offset+" + "+length+" <= "+this.buffer.byteLength);
+        }
+        this.offset = offset;
+        return this;
+    };
+
+    /**
+     * Slices this ByteBuffer by creating a cloned instance with `offset = begin` and `limit = end`.
+     * @param {number=} begin Begin offset, defaults to {@link ByteBuffer#offset}.
+     * @param {number=} end End offset, defaults to {@link ByteBuffer#limit}.
+     * @returns {!ByteBuffer} Clone of this ByteBuffer with slicing applied, backed by the same {@link ByteBuffer#buffer}
+     * @expose
+     */
+    ByteBufferPrototype.slice = function(begin, end) {
+        if (typeof begin === 'undefined') begin = this.offset;
+        if (typeof end === 'undefined') end = this.limit;
+        if (!this.noAssert) {
+            if (typeof begin !== 'number' || begin % 1 !== 0)
+                throw TypeError("Illegal begin: Not an integer");
+            begin >>>= 0;
+            if (typeof end !== 'number' || end % 1 !== 0)
+                throw TypeError("Illegal end: Not an integer");
+            end >>>= 0;
+            if (begin < 0 || begin > end || end > this.buffer.byteLength)
+                throw RangeError("Illegal range: 0 <= "+begin+" <= "+end+" <= "+this.buffer.byteLength);
+        }
+        var bb = this.clone();
+        bb.offset = begin;
+        bb.limit = end;
+        return bb;
+    };
+    /**
+     * Returns a copy of the backing buffer that contains this ByteBuffer's contents. Contents are the bytes between
+     *  {@link ByteBuffer#offset} and {@link ByteBuffer#limit}.
+     * @param {boolean=} forceCopy If `true` returns a copy, otherwise returns a view referencing the same memory if
+     *  possible. Defaults to `false`
+     * @returns {!ArrayBuffer} Contents as an ArrayBuffer
+     * @expose
+     */
+    ByteBufferPrototype.toBuffer = function(forceCopy) {
+        var offset = this.offset,
+            limit = this.limit;
+        if (!this.noAssert) {
+            if (typeof offset !== 'number' || offset % 1 !== 0)
+                throw TypeError("Illegal offset: Not an integer");
+            offset >>>= 0;
+            if (typeof limit !== 'number' || limit % 1 !== 0)
+                throw TypeError("Illegal limit: Not an integer");
+            limit >>>= 0;
+            if (offset < 0 || offset > limit || limit > this.buffer.byteLength)
+                throw RangeError("Illegal range: 0 <= "+offset+" <= "+limit+" <= "+this.buffer.byteLength);
+        }
+        // NOTE: It's not possible to have another ArrayBuffer reference the same memory as the backing buffer. This is
+        // possible with Uint8Array#subarray only, but we have to return an ArrayBuffer by contract. So:
+        if (!forceCopy && offset === 0 && limit === this.buffer.byteLength)
+            return this.buffer;
+        if (offset === limit)
+            return EMPTY_BUFFER;
+        var buffer = new ArrayBuffer(limit - offset);
+        new Uint8Array(buffer).set(new Uint8Array(this.buffer).subarray(offset, limit), 0);
+        return buffer;
+    };
+
+    /**
+     * Returns a raw buffer compacted to contain this ByteBuffer's contents. Contents are the bytes between
+     *  {@link ByteBuffer#offset} and {@link ByteBuffer#limit}. This is an alias of {@link ByteBuffer#toBuffer}.
+     * @function
+     * @param {boolean=} forceCopy If `true` returns a copy, otherwise returns a view referencing the same memory.
+     *  Defaults to `false`
+     * @returns {!ArrayBuffer} Contents as an ArrayBuffer
+     * @expose
+     */
+    ByteBufferPrototype.toArrayBuffer = ByteBufferPrototype.toBuffer;
+
+    /**
+     * Converts the ByteBuffer's contents to a string.
+     * @param {string=} encoding Output encoding. Returns an informative string representation if omitted but also allows
+     *  direct conversion to "utf8", "hex", "base64" and "binary" encoding. "debug" returns a hex representation with
+     *  highlighted offsets.
+     * @param {number=} begin Offset to begin at, defaults to {@link ByteBuffer#offset}
+     * @param {number=} end Offset to end at, defaults to {@link ByteBuffer#limit}
+     * @returns {string} String representation
+     * @throws {Error} If `encoding` is invalid
+     * @expose
+     */
+    ByteBufferPrototype.toString = function(encoding, begin, end) {
+        if (typeof encoding === 'undefined')
+            return "ByteBufferAB(offset="+this.offset+",markedOffset="+this.markedOffset+",limit="+this.limit+",capacity="+this.capacity()+")";
+        if (typeof encoding === 'number')
+            encoding = "utf8",
+            begin = encoding,
+            end = begin;
+        switch (encoding) {
+            case "utf8":
+                return this.toUTF8(begin, end);
+            case "base64":
+                return this.toBase64(begin, end);
+            case "hex":
+                return this.toHex(begin, end);
+            case "binary":
+                return this.toBinary(begin, end);
+            case "debug":
+                return this.toDebug();
+            case "columns":
+                return this.toColumns();
+            default:
+                throw Error("Unsupported encoding: "+encoding);
+        }
+    };
+
+    // lxiv-embeddable
+
+    /**
+     * lxiv-embeddable (c) 2014 Daniel Wirtz <dcode@dcode.io>
+     * Released under the Apache License, Version 2.0
+     * see: https://github.com/dcodeIO/lxiv for details
+     */
+    var lxiv = function() {
+        "use strict";
+
+        /**
+         * lxiv namespace.
+         * @type {!Object.<string,*>}
+         * @exports lxiv
+         */
+        var lxiv = {};
+
+        /**
+         * Character codes for output.
+         * @type {!Array.<number>}
+         * @inner
+         */
+        var aout = [
+            65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80,
+            81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 97, 98, 99, 100, 101, 102,
+            103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118,
+            119, 120, 121, 122, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 43, 47
+        ];
+
+        /**
+         * Character codes for input.
+         * @type {!Array.<number>}
+         * @inner
+         */
+        var ain = [];
+        for (var i=0, k=aout.length; i<k; ++i)
+            ain[aout[i]] = i;
+
+        /**
+         * Encodes bytes to base64 char codes.
+         * @param {!function():number|null} src Bytes source as a function returning the next byte respectively `null` if
+         *  there are no more bytes left.
+         * @param {!function(number)} dst Characters destination as a function successively called with each encoded char
+         *  code.
+         */
+        lxiv.encode = function(src, dst) {
+            var b, t;
+            while ((b = src()) !== null) {
+                dst(aout[(b>>2)&0x3f]);
+                t = (b&0x3)<<4;
+                if ((b = src()) !== null) {
+                    t |= (b>>4)&0xf;
+                    dst(aout[(t|((b>>4)&0xf))&0x3f]);
+                    t = (b&0xf)<<2;
+                    if ((b = src()) !== null)
+                        dst(aout[(t|((b>>6)&0x3))&0x3f]),
+                        dst(aout[b&0x3f]);
+                    else
+                        dst(aout[t&0x3f]),
+                        dst(61);
+                } else
+                    dst(aout[t&0x3f]),
+                    dst(61),
+                    dst(61);
+            }
+        };
+
+        /**
+         * Decodes base64 char codes to bytes.
+         * @param {!function():number|null} src Characters source as a function returning the next char code respectively
+         *  `null` if there are no more characters left.
+         * @param {!function(number)} dst Bytes destination as a function successively called with the next byte.
+         * @throws {Error} If a character code is invalid
+         */
+        lxiv.decode = function(src, dst) {
+            var c, t1, t2;
+            function fail(c) {
+                throw Error("Illegal character code: "+c);
+            }
+            while ((c = src()) !== null) {
+                t1 = ain[c];
+                if (typeof t1 === 'undefined') fail(c);
+                if ((c = src()) !== null) {
+                    t2 = ain[c];
+                    if (typeof t2 === 'undefined') fail(c);
+                    dst((t1<<2)>>>0|(t2&0x30)>>4);
+                    if ((c = src()) !== null) {
+                        t1 = ain[c];
+                        if (typeof t1 === 'undefined')
+                            if (c === 61) break; else fail(c);
+                        dst(((t2&0xf)<<4)>>>0|(t1&0x3c)>>2);
+                        if ((c = src()) !== null) {
+                            t2 = ain[c];
+                            if (typeof t2 === 'undefined')
+                                if (c === 61) break; else fail(c);
+                            dst(((t1&0x3)<<6)>>>0|t2);
+                        }
+                    }
+                }
+            }
+        };
+
+        /**
+         * Tests if a string is valid base64.
+         * @param {string} str String to test
+         * @returns {boolean} `true` if valid, otherwise `false`
+         */
+        lxiv.test = function(str) {
+            return /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(str);
+        };
+
+        return lxiv;
+    }();
+
+    // encodings/base64
+
+    /**
+     * Encodes this ByteBuffer's contents to a base64 encoded string.
+     * @param {number=} begin Offset to begin at, defaults to {@link ByteBuffer#offset}.
+     * @param {number=} end Offset to end at, defaults to {@link ByteBuffer#limit}.
+     * @returns {string} Base64 encoded string
+     * @throws {RangeError} If `begin` or `end` is out of bounds
+     * @expose
+     */
+    ByteBufferPrototype.toBase64 = function(begin, end) {
+        if (typeof begin === 'undefined')
+            begin = this.offset;
+        if (typeof end === 'undefined')
+            end = this.limit;
+        begin = begin | 0; end = end | 0;
+        if (begin < 0 || end > this.capacity || begin > end)
+            throw RangeError("begin, end");
+        var sd; lxiv.encode(function() {
+            return begin < end ? this.view[begin++] : null;
+        }.bind(this), sd = stringDestination());
+        return sd();
+    };
+
+    /**
+     * Decodes a base64 encoded string to a ByteBuffer.
+     * @param {string} str String to decode
+     * @param {boolean=} littleEndian Whether to use little or big endian byte order. Defaults to
+     *  {@link ByteBuffer.DEFAULT_ENDIAN}.
+     * @returns {!ByteBuffer} ByteBuffer
+     * @expose
+     */
+    ByteBuffer.fromBase64 = function(str, littleEndian) {
+        if (typeof str !== 'string')
+            throw TypeError("str");
+        var bb = new ByteBuffer(str.length/4*3, littleEndian),
+            i = 0;
+        lxiv.decode(stringSource(str), function(b) {
+            bb.view[i++] = b;
+        });
+        bb.limit = i;
+        return bb;
+    };
+
+    /**
+     * Encodes a binary string to base64 like `window.btoa` does.
+     * @param {string} str Binary string
+     * @returns {string} Base64 encoded string
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/Window.btoa
+     * @expose
+     */
+    ByteBuffer.btoa = function(str) {
+        return ByteBuffer.fromBinary(str).toBase64();
+    };
+
+    /**
+     * Decodes a base64 encoded string to binary like `window.atob` does.
+     * @param {string} b64 Base64 encoded string
+     * @returns {string} Binary string
+     * @see https://developer.mozilla.org/en-US/docs/Web/API/Window.atob
+     * @expose
+     */
+    ByteBuffer.atob = function(b64) {
+        return ByteBuffer.fromBase64(b64).toBinary();
+    };
+
+    // encodings/binary
+
+    /**
+     * Encodes this ByteBuffer to a binary encoded string, that is using only characters 0x00-0xFF as bytes.
+     * @param {number=} begin Offset to begin at. Defaults to {@link ByteBuffer#offset}.
+     * @param {number=} end Offset to end at. Defaults to {@link ByteBuffer#limit}.
+     * @returns {string} Binary encoded string
+     * @throws {RangeError} If `offset > limit`
+     * @expose
+     */
+    ByteBufferPrototype.toBinary = function(begin, end) {
+        if (typeof begin === 'undefined')
+            begin = this.offset;
+        if (typeof end === 'undefined')
+            end = this.limit;
+        begin |= 0; end |= 0;
+        if (begin < 0 || end > this.capacity() || begin > end)
+            throw RangeError("begin, end");
+        if (begin === end)
+            return "";
+        var chars = [],
+            parts = [];
+        while (begin < end) {
+            chars.push(this.view[begin++]);
+            if (chars.length >= 1024)
+                parts.push(String.fromCharCode.apply(String, chars)),
+                chars = [];
+        }
+        return parts.join('') + String.fromCharCode.apply(String, chars);
+    };
+
+    /**
+     * Decodes a binary encoded string, that is using only characters 0x00-0xFF as bytes, to a ByteBuffer.
+     * @param {string} str String to decode
+     * @param {boolean=} littleEndian Whether to use little or big endian byte order. Defaults to
+     *  {@link ByteBuffer.DEFAULT_ENDIAN}.
+     * @returns {!ByteBuffer} ByteBuffer
+     * @expose
+     */
+    ByteBuffer.fromBinary = function(str, littleEndian) {
+        if (typeof str !== 'string')
+            throw TypeError("str");
+        var i = 0,
+            k = str.length,
+            charCode,
+            bb = new ByteBuffer(k, littleEndian);
+        while (i<k) {
+            charCode = str.charCodeAt(i);
+            if (charCode > 0xff)
+                throw RangeError("illegal char code: "+charCode);
+            bb.view[i++] = charCode;
+        }
+        bb.limit = k;
+        return bb;
+    };
+
+    // encodings/debug
+
+    /**
+     * Encodes this ByteBuffer to a hex encoded string with marked offsets. Offset symbols are:
+     * * `<` : offset,
+     * * `'` : markedOffset,
+     * * `>` : limit,
+     * * `|` : offset and limit,
+     * * `[` : offset and markedOffset,
+     * * `]` : markedOffset and limit,
+     * * `!` : offset, markedOffset and limit
+     * @param {boolean=} columns If `true` returns two columns hex + ascii, defaults to `false`
+     * @returns {string|!Array.<string>} Debug string or array of lines if `asArray = true`
+     * @expose
+     * @example `>00'01 02<03` contains four bytes with `limit=0, markedOffset=1, offset=3`
+     * @example `00[01 02 03>` contains four bytes with `offset=markedOffset=1, limit=4`
+     * @example `00|01 02 03` contains four bytes with `offset=limit=1, markedOffset=-1`
+     * @example `|` contains zero bytes with `offset=limit=0, markedOffset=-1`
+     */
+    ByteBufferPrototype.toDebug = function(columns) {
+        var i = -1,
+            k = this.buffer.byteLength,
+            b,
+            hex = "",
+            asc = "",
+            out = "";
+        while (i<k) {
+            if (i !== -1) {
+                b = this.view[i];
+                if (b < 0x10) hex += "0"+b.toString(16).toUpperCase();
+                else hex += b.toString(16).toUpperCase();
+                if (columns)
+                    asc += b > 32 && b < 127 ? String.fromCharCode(b) : '.';
+            }
+            ++i;
+            if (columns) {
+                if (i > 0 && i % 16 === 0 && i !== k) {
+                    while (hex.length < 3*16+3) hex += " ";
+                    out += hex+asc+"\n";
+                    hex = asc = "";
+                }
+            }
+            if (i === this.offset && i === this.limit)
+                hex += i === this.markedOffset ? "!" : "|";
+            else if (i === this.offset)
+                hex += i === this.markedOffset ? "[" : "<";
+            else if (i === this.limit)
+                hex += i === this.markedOffset ? "]" : ">";
+            else
+                hex += i === this.markedOffset ? "'" : (columns || (i !== 0 && i !== k) ? " " : "");
+        }
+        if (columns && hex !== " ") {
+            while (hex.length < 3*16+3)
+                hex += " ";
+            out += hex + asc + "\n";
+        }
+        return columns ? out : hex;
+    };
+
+    /**
+     * Decodes a hex encoded string with marked offsets to a ByteBuffer.
+     * @param {string} str Debug string to decode (not be generated with `columns = true`)
+     * @param {boolean=} littleEndian Whether to use little or big endian byte order. Defaults to
+     *  {@link ByteBuffer.DEFAULT_ENDIAN}.
+     * @param {boolean=} noAssert Whether to skip assertions of offsets and values. Defaults to
+     *  {@link ByteBuffer.DEFAULT_NOASSERT}.
+     * @returns {!ByteBuffer} ByteBuffer
+     * @expose
+     * @see ByteBuffer#toDebug
+     */
+    ByteBuffer.fromDebug = function(str, littleEndian, noAssert) {
+        var k = str.length,
+            bb = new ByteBuffer(((k+1)/3)|0, littleEndian, noAssert);
+        var i = 0, j = 0, ch, b,
+            rs = false, // Require symbol next
+            ho = false, hm = false, hl = false, // Already has offset (ho), markedOffset (hm), limit (hl)?
+            fail = false;
+        while (i<k) {
+            switch (ch = str.charAt(i++)) {
+                case '!':
+                    if (!noAssert) {
+                        if (ho || hm || hl) {
+                            fail = true;
+                            break;
+                        }
+                        ho = hm = hl = true;
+                    }
+                    bb.offset = bb.markedOffset = bb.limit = j;
+                    rs = false;
+                    break;
+                case '|':
+                    if (!noAssert) {
+                        if (ho || hl) {
+                            fail = true;
+                            break;
+                        }
+                        ho = hl = true;
+                    }
+                    bb.offset = bb.limit = j;
+                    rs = false;
+                    break;
+                case '[':
+                    if (!noAssert) {
+                        if (ho || hm) {
+                            fail = true;
+                            break;
+                        }
+                        ho = hm = true;
+                    }
+                    bb.offset = bb.markedOffset = j;
+                    rs = false;
+                    break;
+                case '<':
+                    if (!noAssert) {
+                        if (ho) {
+                            fail = true;
+                            break;
+                        }
+                        ho = true;
+                    }
+                    bb.offset = j;
+                    rs = false;
+                    break;
+                case ']':
+                    if (!noAssert) {
+                        if (hl || hm) {
+                            fail = true;
+                            break;
+                        }
+                        hl = hm = true;
+                    }
+                    bb.limit = bb.markedOffset = j;
+                    rs = false;
+                    break;
+                case '>':
+                    if (!noAssert) {
+                        if (hl) {
+                            fail = true;
+                            break;
+                        }
+                        hl = true;
+                    }
+                    bb.limit = j;
+                    rs = false;
+                    break;
+                case "'":
+                    if (!noAssert) {
+                        if (hm) {
+                            fail = true;
+                            break;
+                        }
+                        hm = true;
+                    }
+                    bb.markedOffset = j;
+                    rs = false;
+                    break;
+                case ' ':
+                    rs = false;
+                    break;
+                default:
+                    if (!noAssert) {
+                        if (rs) {
+                            fail = true;
+                            break;
+                        }
+                    }
+                    b = parseInt(ch+str.charAt(i++), 16);
+                    if (!noAssert) {
+                        if (isNaN(b) || b < 0 || b > 255)
+                            throw TypeError("Illegal str: Not a debug encoded string");
+                    }
+                    bb.view[j++] = b;
+                    rs = true;
+            }
+            if (fail)
+                throw TypeError("Illegal str: Invalid symbol at "+i);
+        }
+        if (!noAssert) {
+            if (!ho || !hl)
+                throw TypeError("Illegal str: Missing offset or limit");
+            if (j<bb.buffer.byteLength)
+                throw TypeError("Illegal str: Not a debug encoded string (is it hex?) "+j+" < "+k);
+        }
+        return bb;
+    };
+
+    // encodings/hex
+
+    /**
+     * Encodes this ByteBuffer's contents to a hex encoded string.
+     * @param {number=} begin Offset to begin at. Defaults to {@link ByteBuffer#offset}.
+     * @param {number=} end Offset to end at. Defaults to {@link ByteBuffer#limit}.
+     * @returns {string} Hex encoded string
+     * @expose
+     */
+    ByteBufferPrototype.toHex = function(begin, end) {
+        begin = typeof begin === 'undefined' ? this.offset : begin;
+        end = typeof end === 'undefined' ? this.limit : end;
+        if (!this.noAssert) {
+            if (typeof begin !== 'number' || begin % 1 !== 0)
+                throw TypeError("Illegal begin: Not an integer");
+            begin >>>= 0;
+            if (typeof end !== 'number' || end % 1 !== 0)
+                throw TypeError("Illegal end: Not an integer");
+            end >>>= 0;
+            if (begin < 0 || begin > end || end > this.buffer.byteLength)
+                throw RangeError("Illegal range: 0 <= "+begin+" <= "+end+" <= "+this.buffer.byteLength);
+        }
+        var out = new Array(end - begin),
+            b;
+        while (begin < end) {
+            b = this.view[begin++];
+            if (b < 0x10)
+                out.push("0", b.toString(16));
+            else out.push(b.toString(16));
+        }
+        return out.join('');
+    };
+
+    /**
+     * Decodes a hex encoded string to a ByteBuffer.
+     * @param {string} str String to decode
+     * @param {boolean=} littleEndian Whether to use little or big endian byte order. Defaults to
+     *  {@link ByteBuffer.DEFAULT_ENDIAN}.
+     * @param {boolean=} noAssert Whether to skip assertions of offsets and values. Defaults to
+     *  {@link ByteBuffer.DEFAULT_NOASSERT}.
+     * @returns {!ByteBuffer} ByteBuffer
+     * @expose
+     */
+    ByteBuffer.fromHex = function(str, littleEndian, noAssert) {
+        if (!noAssert) {
+            if (typeof str !== 'string')
+                throw TypeError("Illegal str: Not a string");
+            if (str.length % 2 !== 0)
+                throw TypeError("Illegal str: Length not a multiple of 2");
+        }
+        var k = str.length,
+            bb = new ByteBuffer((k / 2) | 0, littleEndian),
+            b;
+        for (var i=0, j=0; i<k; i+=2) {
+            b = parseInt(str.substring(i, i+2), 16);
+            if (!noAssert)
+                if (!isFinite(b) || b < 0 || b > 255)
+                    throw TypeError("Illegal str: Contains non-hex characters");
+            bb.view[j++] = b;
+        }
+        bb.limit = j;
+        return bb;
+    };
+
+    // utfx-embeddable
+
+    /**
+     * utfx-embeddable (c) 2014 Daniel Wirtz <dcode@dcode.io>
+     * Released under the Apache License, Version 2.0
+     * see: https://github.com/dcodeIO/utfx for details
+     */
+    var utfx = function() {
+        "use strict";
+
+        /**
+         * utfx namespace.
+         * @inner
+         * @type {!Object.<string,*>}
+         */
+        var utfx = {};
+
+        /**
+         * Maximum valid code point.
+         * @type {number}
+         * @const
+         */
+        utfx.MAX_CODEPOINT = 0x10FFFF;
+
+        /**
+         * Encodes UTF8 code points to UTF8 bytes.
+         * @param {(!function():number|null) | number} src Code points source, either as a function returning the next code point
+         *  respectively `null` if there are no more code points left or a single numeric code point.
+         * @param {!function(number)} dst Bytes destination as a function successively called with the next byte
+         */
+        utfx.encodeUTF8 = function(src, dst) {
+            var cp = null;
+            if (typeof src === 'number')
+                cp = src,
+                src = function() { return null; };
+            while (cp !== null || (cp = src()) !== null) {
+                if (cp < 0x80)
+                    dst(cp&0x7F);
+                else if (cp < 0x800)
+                    dst(((cp>>6)&0x1F)|0xC0),
+                    dst((cp&0x3F)|0x80);
+                else if (cp < 0x10000)
+                    dst(((cp>>12)&0x0F)|0xE0),
+                    dst(((cp>>6)&0x3F)|0x80),
+                    dst((cp&0x3F)|0x80);
+                else
+                    dst(((cp>>18)&0x07)|0xF0),
+                    dst(((cp>>12)&0x3F)|0x80),
+                    dst(((cp>>6)&0x3F)|0x80),
+                    dst((cp&0x3F)|0x80);
+                cp = null;
+            }
+        };
+
+        /**
+         * Decodes UTF8 bytes to UTF8 code points.
+         * @param {!function():number|null} src Bytes source as a function returning the next byte respectively `null` if there
+         *  are no more bytes left.
+         * @param {!function(number)} dst Code points destination as a function successively called with each decoded code point.
+         * @throws {RangeError} If a starting byte is invalid in UTF8
+         * @throws {Error} If the last sequence is truncated. Has an array property `bytes` holding the
+         *  remaining bytes.
+         */
+        utfx.decodeUTF8 = function(src, dst) {
+            var a, b, c, d, fail = function(b) {
+                b = b.slice(0, b.indexOf(null));
+                var err = Error(b.toString());
+                err.name = "TruncatedError";
+                err['bytes'] = b;
+                throw err;
+            };
+            while ((a = src()) !== null) {
+                if ((a&0x80) === 0)
+                    dst(a);
+                else if ((a&0xE0) === 0xC0)
+                    ((b = src()) === null) && fail([a, b]),
+                    dst(((a&0x1F)<<6) | (b&0x3F));
+                else if ((a&0xF0) === 0xE0)
+                    ((b=src()) === null || (c=src()) === null) && fail([a, b, c]),
+                    dst(((a&0x0F)<<12) | ((b&0x3F)<<6) | (c&0x3F));
+                else if ((a&0xF8) === 0xF0)
+                    ((b=src()) === null || (c=src()) === null || (d=src()) === null) && fail([a, b, c ,d]),
+                    dst(((a&0x07)<<18) | ((b&0x3F)<<12) | ((c&0x3F)<<6) | (d&0x3F));
+                else throw RangeError("Illegal starting byte: "+a);
+            }
+        };
+
+        /**
+         * Converts UTF16 characters to UTF8 code points.
+         * @param {!function():number|null} src Characters source as a function returning the next char code respectively
+         *  `null` if there are no more characters left.
+         * @param {!function(number)} dst Code points destination as a function successively called with each converted code
+         *  point.
+         */
+        utfx.UTF16toUTF8 = function(src, dst) {
+            var c1, c2 = null;
+            while (true) {
+                if ((c1 = c2 !== null ? c2 : src()) === null)
+                    break;
+                if (c1 >= 0xD800 && c1 <= 0xDFFF) {
+                    if ((c2 = src()) !== null) {
+                        if (c2 >= 0xDC00 && c2 <= 0xDFFF) {
+                            dst((c1-0xD800)*0x400+c2-0xDC00+0x10000);
+                            c2 = null; continue;
+                        }
+                    }
+                }
+                dst(c1);
+            }
+            if (c2 !== null) dst(c2);
+        };
+
+        /**
+         * Converts UTF8 code points to UTF16 characters.
+         * @param {(!function():number|null) | number} src Code points source, either as a function returning the next code point
+         *  respectively `null` if there are no more code points left or a single numeric code point.
+         * @param {!function(number)} dst Characters destination as a function successively called with each converted char code.
+         * @throws {RangeError} If a code point is out of range
+         */
+        utfx.UTF8toUTF16 = function(src, dst) {
+            var cp = null;
+            if (typeof src === 'number')
+                cp = src, src = function() { return null; };
+            while (cp !== null || (cp = src()) !== null) {
+                if (cp <= 0xFFFF)
+                    dst(cp);
+                else
+                    cp -= 0x10000,
+                    dst((cp>>10)+0xD800),
+                    dst((cp%0x400)+0xDC00);
+                cp = null;
+            }
+        };
+
+        /**
+         * Converts and encodes UTF16 characters to UTF8 bytes.
+         * @param {!function():number|null} src Characters source as a function returning the next char code respectively `null`
+         *  if there are no more characters left.
+         * @param {!function(number)} dst Bytes destination as a function successively called with the next byte.
+         */
+        utfx.encodeUTF16toUTF8 = function(src, dst) {
+            utfx.UTF16toUTF8(src, function(cp) {
+                utfx.encodeUTF8(cp, dst);
+            });
+        };
+
+        /**
+         * Decodes and converts UTF8 bytes to UTF16 characters.
+         * @param {!function():number|null} src Bytes source as a function returning the next byte respectively `null` if there
+         *  are no more bytes left.
+         * @param {!function(number)} dst Characters destination as a function successively called with each converted char code.
+         * @throws {RangeError} If a starting byte is invalid in UTF8
+         * @throws {Error} If the last sequence is truncated. Has an array property `bytes` holding the remaining bytes.
+         */
+        utfx.decodeUTF8toUTF16 = function(src, dst) {
+            utfx.decodeUTF8(src, function(cp) {
+                utfx.UTF8toUTF16(cp, dst);
+            });
+        };
+
+        /**
+         * Calculates the byte length of an UTF8 code point.
+         * @param {number} cp UTF8 code point
+         * @returns {number} Byte length
+         */
+        utfx.calculateCodePoint = function(cp) {
+            return (cp < 0x80) ? 1 : (cp < 0x800) ? 2 : (cp < 0x10000) ? 3 : 4;
+        };
+
+        /**
+         * Calculates the number of UTF8 bytes required to store UTF8 code points.
+         * @param {(!function():number|null)} src Code points source as a function returning the next code point respectively
+         *  `null` if there are no more code points left.
+         * @returns {number} The number of UTF8 bytes required
+         */
+        utfx.calculateUTF8 = function(src) {
+            var cp, l=0;
+            while ((cp = src()) !== null)
+                l += (cp < 0x80) ? 1 : (cp < 0x800) ? 2 : (cp < 0x10000) ? 3 : 4;
+            return l;
+        };
+
+        /**
+         * Calculates the number of UTF8 code points respectively UTF8 bytes required to store UTF16 char codes.
+         * @param {(!function():number|null)} src Characters source as a function returning the next char code respectively
+         *  `null` if there are no more characters left.
+         * @returns {!Array.<number>} The number of UTF8 code points at index 0 and the number of UTF8 bytes required at index 1.
+         */
+        utfx.calculateUTF16asUTF8 = function(src) {
+            var n=0, l=0;
+            utfx.UTF16toUTF8(src, function(cp) {
+                ++n; l += (cp < 0x80) ? 1 : (cp < 0x800) ? 2 : (cp < 0x10000) ? 3 : 4;
+            });
+            return [n,l];
+        };
+
+        return utfx;
+    }();
+
+    // encodings/utf8
+
+    /**
+     * Encodes this ByteBuffer's contents between {@link ByteBuffer#offset} and {@link ByteBuffer#limit} to an UTF8 encoded
+     *  string.
+     * @returns {string} Hex encoded string
+     * @throws {RangeError} If `offset > limit`
+     * @expose
+     */
+    ByteBufferPrototype.toUTF8 = function(begin, end) {
+        if (typeof begin === 'undefined') begin = this.offset;
+        if (typeof end === 'undefined') end = this.limit;
+        if (!this.noAssert) {
+            if (typeof begin !== 'number' || begin % 1 !== 0)
+                throw TypeError("Illegal begin: Not an integer");
+            begin >>>= 0;
+            if (typeof end !== 'number' || end % 1 !== 0)
+                throw TypeError("Illegal end: Not an integer");
+            end >>>= 0;
+            if (begin < 0 || begin > end || end > this.buffer.byteLength)
+                throw RangeError("Illegal range: 0 <= "+begin+" <= "+end+" <= "+this.buffer.byteLength);
+        }
+        var sd; try {
+            utfx.decodeUTF8toUTF16(function() {
+                return begin < end ? this.view[begin++] : null;
+            }.bind(this), sd = stringDestination());
+        } catch (e) {
+            if (begin !== end)
+                throw RangeError("Illegal range: Truncated data, "+begin+" != "+end);
+        }
+        return sd();
+    };
+
+    /**
+     * Decodes an UTF8 encoded string to a ByteBuffer.
+     * @param {string} str String to decode
+     * @param {boolean=} littleEndian Whether to use little or big endian byte order. Defaults to
+     *  {@link ByteBuffer.DEFAULT_ENDIAN}.
+     * @param {boolean=} noAssert Whether to skip assertions of offsets and values. Defaults to
+     *  {@link ByteBuffer.DEFAULT_NOASSERT}.
+     * @returns {!ByteBuffer} ByteBuffer
+     * @expose
+     */
+    ByteBuffer.fromUTF8 = function(str, littleEndian, noAssert) {
+        if (!noAssert)
+            if (typeof str !== 'string')
+                throw TypeError("Illegal str: Not a string");
+        var bb = new ByteBuffer(utfx.calculateUTF16asUTF8(stringSource(str), true)[1], littleEndian, noAssert),
+            i = 0;
+        utfx.encodeUTF16toUTF8(stringSource(str), function(b) {
+            bb.view[i++] = b;
+        });
+        bb.limit = i;
+        return bb;
+    };
+
+    return ByteBuffer;
+});
+
 
 /***/ }),
 
@@ -29337,10 +33091,10 @@ utils.intFromLE = intFromLE;
 /*!********************************************!*\
   !*** ./node_modules/elliptic/package.json ***!
   \********************************************/
-/*! exports provided: _from, _id, _inBundle, _integrity, _location, _phantomChildren, _requested, _requiredBy, _resolved, _shasum, _spec, _where, author, bugs, bundleDependencies, dependencies, deprecated, description, devDependencies, files, homepage, keywords, license, main, name, repository, scripts, version, default */
+/*! exports provided: _args, _development, _from, _id, _inBundle, _integrity, _location, _phantomChildren, _requested, _requiredBy, _resolved, _spec, _where, author, bugs, dependencies, description, devDependencies, files, homepage, keywords, license, main, name, repository, scripts, version, default */
 /***/ (function(module) {
 
-module.exports = {"_from":"elliptic@^6.0.0","_id":"elliptic@6.4.0","_inBundle":false,"_integrity":"sha1-ysmvh2LIWDYYcAPI3+GT5eLq5d8=","_location":"/elliptic","_phantomChildren":{},"_requested":{"type":"range","registry":true,"raw":"elliptic@^6.0.0","name":"elliptic","escapedName":"elliptic","rawSpec":"^6.0.0","saveSpec":null,"fetchSpec":"^6.0.0"},"_requiredBy":["/browserify-sign","/create-ecdh"],"_resolved":"http://registry.npm.taobao.org/elliptic/download/elliptic-6.4.0.tgz","_shasum":"cac9af8762c85836187003c8dfe193e5e2eae5df","_spec":"elliptic@^6.0.0","_where":"/Users/wang/Documents/ctx/chrome-excelsecu-wallet/node_modules/browserify-sign","author":{"name":"Fedor Indutny","email":"fedor@indutny.com"},"bugs":{"url":"https://github.com/indutny/elliptic/issues"},"bundleDependencies":false,"dependencies":{"bn.js":"^4.4.0","brorand":"^1.0.1","hash.js":"^1.0.0","hmac-drbg":"^1.0.0","inherits":"^2.0.1","minimalistic-assert":"^1.0.0","minimalistic-crypto-utils":"^1.0.0"},"deprecated":false,"description":"EC cryptography","devDependencies":{"brfs":"^1.4.3","coveralls":"^2.11.3","grunt":"^0.4.5","grunt-browserify":"^5.0.0","grunt-cli":"^1.2.0","grunt-contrib-connect":"^1.0.0","grunt-contrib-copy":"^1.0.0","grunt-contrib-uglify":"^1.0.1","grunt-mocha-istanbul":"^3.0.1","grunt-saucelabs":"^8.6.2","istanbul":"^0.4.2","jscs":"^2.9.0","jshint":"^2.6.0","mocha":"^2.1.0"},"files":["lib"],"homepage":"https://github.com/indutny/elliptic","keywords":["EC","Elliptic","curve","Cryptography"],"license":"MIT","main":"lib/elliptic.js","name":"elliptic","repository":{"type":"git","url":"git+ssh://git@github.com/indutny/elliptic.git"},"scripts":{"jscs":"jscs benchmarks/*.js lib/*.js lib/**/*.js lib/**/**/*.js test/index.js","jshint":"jscs benchmarks/*.js lib/*.js lib/**/*.js lib/**/**/*.js test/index.js","lint":"npm run jscs && npm run jshint","test":"npm run lint && npm run unit","unit":"istanbul test _mocha --reporter=spec test/index.js","version":"grunt dist && git add dist/"},"version":"6.4.0"};
+module.exports = {"_args":[["elliptic@6.4.0","/Users/wang/Documents/ctx/chrome-excelsecu-wallet"]],"_development":true,"_from":"elliptic@6.4.0","_id":"elliptic@6.4.0","_inBundle":false,"_integrity":"sha1-ysmvh2LIWDYYcAPI3+GT5eLq5d8=","_location":"/elliptic","_phantomChildren":{},"_requested":{"type":"version","registry":true,"raw":"elliptic@6.4.0","name":"elliptic","escapedName":"elliptic","rawSpec":"6.4.0","saveSpec":null,"fetchSpec":"6.4.0"},"_requiredBy":["/browserify-sign","/create-ecdh"],"_resolved":"http://registry.npm.taobao.org/elliptic/download/elliptic-6.4.0.tgz","_spec":"6.4.0","_where":"/Users/wang/Documents/ctx/chrome-excelsecu-wallet","author":{"name":"Fedor Indutny","email":"fedor@indutny.com"},"bugs":{"url":"https://github.com/indutny/elliptic/issues"},"dependencies":{"bn.js":"^4.4.0","brorand":"^1.0.1","hash.js":"^1.0.0","hmac-drbg":"^1.0.0","inherits":"^2.0.1","minimalistic-assert":"^1.0.0","minimalistic-crypto-utils":"^1.0.0"},"description":"EC cryptography","devDependencies":{"brfs":"^1.4.3","coveralls":"^2.11.3","grunt":"^0.4.5","grunt-browserify":"^5.0.0","grunt-cli":"^1.2.0","grunt-contrib-connect":"^1.0.0","grunt-contrib-copy":"^1.0.0","grunt-contrib-uglify":"^1.0.1","grunt-mocha-istanbul":"^3.0.1","grunt-saucelabs":"^8.6.2","istanbul":"^0.4.2","jscs":"^2.9.0","jshint":"^2.6.0","mocha":"^2.1.0"},"files":["lib"],"homepage":"https://github.com/indutny/elliptic","keywords":["EC","Elliptic","curve","Cryptography"],"license":"MIT","main":"lib/elliptic.js","name":"elliptic","repository":{"type":"git","url":"git+ssh://git@github.com/indutny/elliptic.git"},"scripts":{"jscs":"jscs benchmarks/*.js lib/*.js lib/**/*.js lib/**/**/*.js test/index.js","jshint":"jscs benchmarks/*.js lib/*.js lib/**/*.js lib/**/**/*.js test/index.js","lint":"npm run jscs && npm run jshint","test":"npm run lint && npm run unit","unit":"istanbul test _mocha --reporter=spec test/index.js","version":"grunt dist && git add dist/"},"version":"6.4.0"};
 
 /***/ }),
 
@@ -32255,6 +36009,1226 @@ Keccak.prototype.copy = function (dest) {
 }
 
 module.exports = Keccak
+
+
+/***/ }),
+
+/***/ "./node_modules/long/dist/long.js":
+/*!****************************************!*\
+  !*** ./node_modules/long/dist/long.js ***!
+  \****************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*
+ Copyright 2013 Daniel Wirtz <dcode@dcode.io>
+ Copyright 2009 The Closure Library Authors. All Rights Reserved.
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+ http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS-IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+ */
+
+/**
+ * @license long.js (c) 2013 Daniel Wirtz <dcode@dcode.io>
+ * Released under the Apache License, Version 2.0
+ * see: https://github.com/dcodeIO/long.js for details
+ */
+(function(global, factory) {
+
+    /* AMD */ if (true)
+        !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory),
+				__WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ?
+				(__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__),
+				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+    /* CommonJS */ else {}
+
+})(this, function() {
+    "use strict";
+
+    /**
+     * Constructs a 64 bit two's-complement integer, given its low and high 32 bit values as *signed* integers.
+     *  See the from* functions below for more convenient ways of constructing Longs.
+     * @exports Long
+     * @class A Long class for representing a 64 bit two's-complement integer value.
+     * @param {number} low The low (signed) 32 bits of the long
+     * @param {number} high The high (signed) 32 bits of the long
+     * @param {boolean=} unsigned Whether unsigned or not, defaults to `false` for signed
+     * @constructor
+     */
+    function Long(low, high, unsigned) {
+
+        /**
+         * The low 32 bits as a signed value.
+         * @type {number}
+         */
+        this.low = low | 0;
+
+        /**
+         * The high 32 bits as a signed value.
+         * @type {number}
+         */
+        this.high = high | 0;
+
+        /**
+         * Whether unsigned or not.
+         * @type {boolean}
+         */
+        this.unsigned = !!unsigned;
+    }
+
+    // The internal representation of a long is the two given signed, 32-bit values.
+    // We use 32-bit pieces because these are the size of integers on which
+    // Javascript performs bit-operations.  For operations like addition and
+    // multiplication, we split each number into 16 bit pieces, which can easily be
+    // multiplied within Javascript's floating-point representation without overflow
+    // or change in sign.
+    //
+    // In the algorithms below, we frequently reduce the negative case to the
+    // positive case by negating the input(s) and then post-processing the result.
+    // Note that we must ALWAYS check specially whether those values are MIN_VALUE
+    // (-2^63) because -MIN_VALUE == MIN_VALUE (since 2^63 cannot be represented as
+    // a positive number, it overflows back into a negative).  Not handling this
+    // case would often result in infinite recursion.
+    //
+    // Common constant values ZERO, ONE, NEG_ONE, etc. are defined below the from*
+    // methods on which they depend.
+
+    /**
+     * An indicator used to reliably determine if an object is a Long or not.
+     * @type {boolean}
+     * @const
+     * @private
+     */
+    Long.prototype.__isLong__;
+
+    Object.defineProperty(Long.prototype, "__isLong__", {
+        value: true,
+        enumerable: false,
+        configurable: false
+    });
+
+    /**
+     * @function
+     * @param {*} obj Object
+     * @returns {boolean}
+     * @inner
+     */
+    function isLong(obj) {
+        return (obj && obj["__isLong__"]) === true;
+    }
+
+    /**
+     * Tests if the specified object is a Long.
+     * @function
+     * @param {*} obj Object
+     * @returns {boolean}
+     */
+    Long.isLong = isLong;
+
+    /**
+     * A cache of the Long representations of small integer values.
+     * @type {!Object}
+     * @inner
+     */
+    var INT_CACHE = {};
+
+    /**
+     * A cache of the Long representations of small unsigned integer values.
+     * @type {!Object}
+     * @inner
+     */
+    var UINT_CACHE = {};
+
+    /**
+     * @param {number} value
+     * @param {boolean=} unsigned
+     * @returns {!Long}
+     * @inner
+     */
+    function fromInt(value, unsigned) {
+        var obj, cachedObj, cache;
+        if (unsigned) {
+            value >>>= 0;
+            if (cache = (0 <= value && value < 256)) {
+                cachedObj = UINT_CACHE[value];
+                if (cachedObj)
+                    return cachedObj;
+            }
+            obj = fromBits(value, (value | 0) < 0 ? -1 : 0, true);
+            if (cache)
+                UINT_CACHE[value] = obj;
+            return obj;
+        } else {
+            value |= 0;
+            if (cache = (-128 <= value && value < 128)) {
+                cachedObj = INT_CACHE[value];
+                if (cachedObj)
+                    return cachedObj;
+            }
+            obj = fromBits(value, value < 0 ? -1 : 0, false);
+            if (cache)
+                INT_CACHE[value] = obj;
+            return obj;
+        }
+    }
+
+    /**
+     * Returns a Long representing the given 32 bit integer value.
+     * @function
+     * @param {number} value The 32 bit integer in question
+     * @param {boolean=} unsigned Whether unsigned or not, defaults to `false` for signed
+     * @returns {!Long} The corresponding Long value
+     */
+    Long.fromInt = fromInt;
+
+    /**
+     * @param {number} value
+     * @param {boolean=} unsigned
+     * @returns {!Long}
+     * @inner
+     */
+    function fromNumber(value, unsigned) {
+        if (isNaN(value) || !isFinite(value))
+            return unsigned ? UZERO : ZERO;
+        if (unsigned) {
+            if (value < 0)
+                return UZERO;
+            if (value >= TWO_PWR_64_DBL)
+                return MAX_UNSIGNED_VALUE;
+        } else {
+            if (value <= -TWO_PWR_63_DBL)
+                return MIN_VALUE;
+            if (value + 1 >= TWO_PWR_63_DBL)
+                return MAX_VALUE;
+        }
+        if (value < 0)
+            return fromNumber(-value, unsigned).neg();
+        return fromBits((value % TWO_PWR_32_DBL) | 0, (value / TWO_PWR_32_DBL) | 0, unsigned);
+    }
+
+    /**
+     * Returns a Long representing the given value, provided that it is a finite number. Otherwise, zero is returned.
+     * @function
+     * @param {number} value The number in question
+     * @param {boolean=} unsigned Whether unsigned or not, defaults to `false` for signed
+     * @returns {!Long} The corresponding Long value
+     */
+    Long.fromNumber = fromNumber;
+
+    /**
+     * @param {number} lowBits
+     * @param {number} highBits
+     * @param {boolean=} unsigned
+     * @returns {!Long}
+     * @inner
+     */
+    function fromBits(lowBits, highBits, unsigned) {
+        return new Long(lowBits, highBits, unsigned);
+    }
+
+    /**
+     * Returns a Long representing the 64 bit integer that comes by concatenating the given low and high bits. Each is
+     *  assumed to use 32 bits.
+     * @function
+     * @param {number} lowBits The low 32 bits
+     * @param {number} highBits The high 32 bits
+     * @param {boolean=} unsigned Whether unsigned or not, defaults to `false` for signed
+     * @returns {!Long} The corresponding Long value
+     */
+    Long.fromBits = fromBits;
+
+    /**
+     * @function
+     * @param {number} base
+     * @param {number} exponent
+     * @returns {number}
+     * @inner
+     */
+    var pow_dbl = Math.pow; // Used 4 times (4*8 to 15+4)
+
+    /**
+     * @param {string} str
+     * @param {(boolean|number)=} unsigned
+     * @param {number=} radix
+     * @returns {!Long}
+     * @inner
+     */
+    function fromString(str, unsigned, radix) {
+        if (str.length === 0)
+            throw Error('empty string');
+        if (str === "NaN" || str === "Infinity" || str === "+Infinity" || str === "-Infinity")
+            return ZERO;
+        if (typeof unsigned === 'number') {
+            // For goog.math.long compatibility
+            radix = unsigned,
+            unsigned = false;
+        } else {
+            unsigned = !! unsigned;
+        }
+        radix = radix || 10;
+        if (radix < 2 || 36 < radix)
+            throw RangeError('radix');
+
+        var p;
+        if ((p = str.indexOf('-')) > 0)
+            throw Error('interior hyphen');
+        else if (p === 0) {
+            return fromString(str.substring(1), unsigned, radix).neg();
+        }
+
+        // Do several (8) digits each time through the loop, so as to
+        // minimize the calls to the very expensive emulated div.
+        var radixToPower = fromNumber(pow_dbl(radix, 8));
+
+        var result = ZERO;
+        for (var i = 0; i < str.length; i += 8) {
+            var size = Math.min(8, str.length - i),
+                value = parseInt(str.substring(i, i + size), radix);
+            if (size < 8) {
+                var power = fromNumber(pow_dbl(radix, size));
+                result = result.mul(power).add(fromNumber(value));
+            } else {
+                result = result.mul(radixToPower);
+                result = result.add(fromNumber(value));
+            }
+        }
+        result.unsigned = unsigned;
+        return result;
+    }
+
+    /**
+     * Returns a Long representation of the given string, written using the specified radix.
+     * @function
+     * @param {string} str The textual representation of the Long
+     * @param {(boolean|number)=} unsigned Whether unsigned or not, defaults to `false` for signed
+     * @param {number=} radix The radix in which the text is written (2-36), defaults to 10
+     * @returns {!Long} The corresponding Long value
+     */
+    Long.fromString = fromString;
+
+    /**
+     * @function
+     * @param {!Long|number|string|!{low: number, high: number, unsigned: boolean}} val
+     * @returns {!Long}
+     * @inner
+     */
+    function fromValue(val) {
+        if (val /* is compatible */ instanceof Long)
+            return val;
+        if (typeof val === 'number')
+            return fromNumber(val);
+        if (typeof val === 'string')
+            return fromString(val);
+        // Throws for non-objects, converts non-instanceof Long:
+        return fromBits(val.low, val.high, val.unsigned);
+    }
+
+    /**
+     * Converts the specified value to a Long.
+     * @function
+     * @param {!Long|number|string|!{low: number, high: number, unsigned: boolean}} val Value
+     * @returns {!Long}
+     */
+    Long.fromValue = fromValue;
+
+    // NOTE: the compiler should inline these constant values below and then remove these variables, so there should be
+    // no runtime penalty for these.
+
+    /**
+     * @type {number}
+     * @const
+     * @inner
+     */
+    var TWO_PWR_16_DBL = 1 << 16;
+
+    /**
+     * @type {number}
+     * @const
+     * @inner
+     */
+    var TWO_PWR_24_DBL = 1 << 24;
+
+    /**
+     * @type {number}
+     * @const
+     * @inner
+     */
+    var TWO_PWR_32_DBL = TWO_PWR_16_DBL * TWO_PWR_16_DBL;
+
+    /**
+     * @type {number}
+     * @const
+     * @inner
+     */
+    var TWO_PWR_64_DBL = TWO_PWR_32_DBL * TWO_PWR_32_DBL;
+
+    /**
+     * @type {number}
+     * @const
+     * @inner
+     */
+    var TWO_PWR_63_DBL = TWO_PWR_64_DBL / 2;
+
+    /**
+     * @type {!Long}
+     * @const
+     * @inner
+     */
+    var TWO_PWR_24 = fromInt(TWO_PWR_24_DBL);
+
+    /**
+     * @type {!Long}
+     * @inner
+     */
+    var ZERO = fromInt(0);
+
+    /**
+     * Signed zero.
+     * @type {!Long}
+     */
+    Long.ZERO = ZERO;
+
+    /**
+     * @type {!Long}
+     * @inner
+     */
+    var UZERO = fromInt(0, true);
+
+    /**
+     * Unsigned zero.
+     * @type {!Long}
+     */
+    Long.UZERO = UZERO;
+
+    /**
+     * @type {!Long}
+     * @inner
+     */
+    var ONE = fromInt(1);
+
+    /**
+     * Signed one.
+     * @type {!Long}
+     */
+    Long.ONE = ONE;
+
+    /**
+     * @type {!Long}
+     * @inner
+     */
+    var UONE = fromInt(1, true);
+
+    /**
+     * Unsigned one.
+     * @type {!Long}
+     */
+    Long.UONE = UONE;
+
+    /**
+     * @type {!Long}
+     * @inner
+     */
+    var NEG_ONE = fromInt(-1);
+
+    /**
+     * Signed negative one.
+     * @type {!Long}
+     */
+    Long.NEG_ONE = NEG_ONE;
+
+    /**
+     * @type {!Long}
+     * @inner
+     */
+    var MAX_VALUE = fromBits(0xFFFFFFFF|0, 0x7FFFFFFF|0, false);
+
+    /**
+     * Maximum signed value.
+     * @type {!Long}
+     */
+    Long.MAX_VALUE = MAX_VALUE;
+
+    /**
+     * @type {!Long}
+     * @inner
+     */
+    var MAX_UNSIGNED_VALUE = fromBits(0xFFFFFFFF|0, 0xFFFFFFFF|0, true);
+
+    /**
+     * Maximum unsigned value.
+     * @type {!Long}
+     */
+    Long.MAX_UNSIGNED_VALUE = MAX_UNSIGNED_VALUE;
+
+    /**
+     * @type {!Long}
+     * @inner
+     */
+    var MIN_VALUE = fromBits(0, 0x80000000|0, false);
+
+    /**
+     * Minimum signed value.
+     * @type {!Long}
+     */
+    Long.MIN_VALUE = MIN_VALUE;
+
+    /**
+     * @alias Long.prototype
+     * @inner
+     */
+    var LongPrototype = Long.prototype;
+
+    /**
+     * Converts the Long to a 32 bit integer, assuming it is a 32 bit integer.
+     * @returns {number}
+     */
+    LongPrototype.toInt = function toInt() {
+        return this.unsigned ? this.low >>> 0 : this.low;
+    };
+
+    /**
+     * Converts the Long to a the nearest floating-point representation of this value (double, 53 bit mantissa).
+     * @returns {number}
+     */
+    LongPrototype.toNumber = function toNumber() {
+        if (this.unsigned)
+            return ((this.high >>> 0) * TWO_PWR_32_DBL) + (this.low >>> 0);
+        return this.high * TWO_PWR_32_DBL + (this.low >>> 0);
+    };
+
+    /**
+     * Converts the Long to a string written in the specified radix.
+     * @param {number=} radix Radix (2-36), defaults to 10
+     * @returns {string}
+     * @override
+     * @throws {RangeError} If `radix` is out of range
+     */
+    LongPrototype.toString = function toString(radix) {
+        radix = radix || 10;
+        if (radix < 2 || 36 < radix)
+            throw RangeError('radix');
+        if (this.isZero())
+            return '0';
+        if (this.isNegative()) { // Unsigned Longs are never negative
+            if (this.eq(MIN_VALUE)) {
+                // We need to change the Long value before it can be negated, so we remove
+                // the bottom-most digit in this base and then recurse to do the rest.
+                var radixLong = fromNumber(radix),
+                    div = this.div(radixLong),
+                    rem1 = div.mul(radixLong).sub(this);
+                return div.toString(radix) + rem1.toInt().toString(radix);
+            } else
+                return '-' + this.neg().toString(radix);
+        }
+
+        // Do several (6) digits each time through the loop, so as to
+        // minimize the calls to the very expensive emulated div.
+        var radixToPower = fromNumber(pow_dbl(radix, 6), this.unsigned),
+            rem = this;
+        var result = '';
+        while (true) {
+            var remDiv = rem.div(radixToPower),
+                intval = rem.sub(remDiv.mul(radixToPower)).toInt() >>> 0,
+                digits = intval.toString(radix);
+            rem = remDiv;
+            if (rem.isZero())
+                return digits + result;
+            else {
+                while (digits.length < 6)
+                    digits = '0' + digits;
+                result = '' + digits + result;
+            }
+        }
+    };
+
+    /**
+     * Gets the high 32 bits as a signed integer.
+     * @returns {number} Signed high bits
+     */
+    LongPrototype.getHighBits = function getHighBits() {
+        return this.high;
+    };
+
+    /**
+     * Gets the high 32 bits as an unsigned integer.
+     * @returns {number} Unsigned high bits
+     */
+    LongPrototype.getHighBitsUnsigned = function getHighBitsUnsigned() {
+        return this.high >>> 0;
+    };
+
+    /**
+     * Gets the low 32 bits as a signed integer.
+     * @returns {number} Signed low bits
+     */
+    LongPrototype.getLowBits = function getLowBits() {
+        return this.low;
+    };
+
+    /**
+     * Gets the low 32 bits as an unsigned integer.
+     * @returns {number} Unsigned low bits
+     */
+    LongPrototype.getLowBitsUnsigned = function getLowBitsUnsigned() {
+        return this.low >>> 0;
+    };
+
+    /**
+     * Gets the number of bits needed to represent the absolute value of this Long.
+     * @returns {number}
+     */
+    LongPrototype.getNumBitsAbs = function getNumBitsAbs() {
+        if (this.isNegative()) // Unsigned Longs are never negative
+            return this.eq(MIN_VALUE) ? 64 : this.neg().getNumBitsAbs();
+        var val = this.high != 0 ? this.high : this.low;
+        for (var bit = 31; bit > 0; bit--)
+            if ((val & (1 << bit)) != 0)
+                break;
+        return this.high != 0 ? bit + 33 : bit + 1;
+    };
+
+    /**
+     * Tests if this Long's value equals zero.
+     * @returns {boolean}
+     */
+    LongPrototype.isZero = function isZero() {
+        return this.high === 0 && this.low === 0;
+    };
+
+    /**
+     * Tests if this Long's value is negative.
+     * @returns {boolean}
+     */
+    LongPrototype.isNegative = function isNegative() {
+        return !this.unsigned && this.high < 0;
+    };
+
+    /**
+     * Tests if this Long's value is positive.
+     * @returns {boolean}
+     */
+    LongPrototype.isPositive = function isPositive() {
+        return this.unsigned || this.high >= 0;
+    };
+
+    /**
+     * Tests if this Long's value is odd.
+     * @returns {boolean}
+     */
+    LongPrototype.isOdd = function isOdd() {
+        return (this.low & 1) === 1;
+    };
+
+    /**
+     * Tests if this Long's value is even.
+     * @returns {boolean}
+     */
+    LongPrototype.isEven = function isEven() {
+        return (this.low & 1) === 0;
+    };
+
+    /**
+     * Tests if this Long's value equals the specified's.
+     * @param {!Long|number|string} other Other value
+     * @returns {boolean}
+     */
+    LongPrototype.equals = function equals(other) {
+        if (!isLong(other))
+            other = fromValue(other);
+        if (this.unsigned !== other.unsigned && (this.high >>> 31) === 1 && (other.high >>> 31) === 1)
+            return false;
+        return this.high === other.high && this.low === other.low;
+    };
+
+    /**
+     * Tests if this Long's value equals the specified's. This is an alias of {@link Long#equals}.
+     * @function
+     * @param {!Long|number|string} other Other value
+     * @returns {boolean}
+     */
+    LongPrototype.eq = LongPrototype.equals;
+
+    /**
+     * Tests if this Long's value differs from the specified's.
+     * @param {!Long|number|string} other Other value
+     * @returns {boolean}
+     */
+    LongPrototype.notEquals = function notEquals(other) {
+        return !this.eq(/* validates */ other);
+    };
+
+    /**
+     * Tests if this Long's value differs from the specified's. This is an alias of {@link Long#notEquals}.
+     * @function
+     * @param {!Long|number|string} other Other value
+     * @returns {boolean}
+     */
+    LongPrototype.neq = LongPrototype.notEquals;
+
+    /**
+     * Tests if this Long's value is less than the specified's.
+     * @param {!Long|number|string} other Other value
+     * @returns {boolean}
+     */
+    LongPrototype.lessThan = function lessThan(other) {
+        return this.comp(/* validates */ other) < 0;
+    };
+
+    /**
+     * Tests if this Long's value is less than the specified's. This is an alias of {@link Long#lessThan}.
+     * @function
+     * @param {!Long|number|string} other Other value
+     * @returns {boolean}
+     */
+    LongPrototype.lt = LongPrototype.lessThan;
+
+    /**
+     * Tests if this Long's value is less than or equal the specified's.
+     * @param {!Long|number|string} other Other value
+     * @returns {boolean}
+     */
+    LongPrototype.lessThanOrEqual = function lessThanOrEqual(other) {
+        return this.comp(/* validates */ other) <= 0;
+    };
+
+    /**
+     * Tests if this Long's value is less than or equal the specified's. This is an alias of {@link Long#lessThanOrEqual}.
+     * @function
+     * @param {!Long|number|string} other Other value
+     * @returns {boolean}
+     */
+    LongPrototype.lte = LongPrototype.lessThanOrEqual;
+
+    /**
+     * Tests if this Long's value is greater than the specified's.
+     * @param {!Long|number|string} other Other value
+     * @returns {boolean}
+     */
+    LongPrototype.greaterThan = function greaterThan(other) {
+        return this.comp(/* validates */ other) > 0;
+    };
+
+    /**
+     * Tests if this Long's value is greater than the specified's. This is an alias of {@link Long#greaterThan}.
+     * @function
+     * @param {!Long|number|string} other Other value
+     * @returns {boolean}
+     */
+    LongPrototype.gt = LongPrototype.greaterThan;
+
+    /**
+     * Tests if this Long's value is greater than or equal the specified's.
+     * @param {!Long|number|string} other Other value
+     * @returns {boolean}
+     */
+    LongPrototype.greaterThanOrEqual = function greaterThanOrEqual(other) {
+        return this.comp(/* validates */ other) >= 0;
+    };
+
+    /**
+     * Tests if this Long's value is greater than or equal the specified's. This is an alias of {@link Long#greaterThanOrEqual}.
+     * @function
+     * @param {!Long|number|string} other Other value
+     * @returns {boolean}
+     */
+    LongPrototype.gte = LongPrototype.greaterThanOrEqual;
+
+    /**
+     * Compares this Long's value with the specified's.
+     * @param {!Long|number|string} other Other value
+     * @returns {number} 0 if they are the same, 1 if the this is greater and -1
+     *  if the given one is greater
+     */
+    LongPrototype.compare = function compare(other) {
+        if (!isLong(other))
+            other = fromValue(other);
+        if (this.eq(other))
+            return 0;
+        var thisNeg = this.isNegative(),
+            otherNeg = other.isNegative();
+        if (thisNeg && !otherNeg)
+            return -1;
+        if (!thisNeg && otherNeg)
+            return 1;
+        // At this point the sign bits are the same
+        if (!this.unsigned)
+            return this.sub(other).isNegative() ? -1 : 1;
+        // Both are positive if at least one is unsigned
+        return (other.high >>> 0) > (this.high >>> 0) || (other.high === this.high && (other.low >>> 0) > (this.low >>> 0)) ? -1 : 1;
+    };
+
+    /**
+     * Compares this Long's value with the specified's. This is an alias of {@link Long#compare}.
+     * @function
+     * @param {!Long|number|string} other Other value
+     * @returns {number} 0 if they are the same, 1 if the this is greater and -1
+     *  if the given one is greater
+     */
+    LongPrototype.comp = LongPrototype.compare;
+
+    /**
+     * Negates this Long's value.
+     * @returns {!Long} Negated Long
+     */
+    LongPrototype.negate = function negate() {
+        if (!this.unsigned && this.eq(MIN_VALUE))
+            return MIN_VALUE;
+        return this.not().add(ONE);
+    };
+
+    /**
+     * Negates this Long's value. This is an alias of {@link Long#negate}.
+     * @function
+     * @returns {!Long} Negated Long
+     */
+    LongPrototype.neg = LongPrototype.negate;
+
+    /**
+     * Returns the sum of this and the specified Long.
+     * @param {!Long|number|string} addend Addend
+     * @returns {!Long} Sum
+     */
+    LongPrototype.add = function add(addend) {
+        if (!isLong(addend))
+            addend = fromValue(addend);
+
+        // Divide each number into 4 chunks of 16 bits, and then sum the chunks.
+
+        var a48 = this.high >>> 16;
+        var a32 = this.high & 0xFFFF;
+        var a16 = this.low >>> 16;
+        var a00 = this.low & 0xFFFF;
+
+        var b48 = addend.high >>> 16;
+        var b32 = addend.high & 0xFFFF;
+        var b16 = addend.low >>> 16;
+        var b00 = addend.low & 0xFFFF;
+
+        var c48 = 0, c32 = 0, c16 = 0, c00 = 0;
+        c00 += a00 + b00;
+        c16 += c00 >>> 16;
+        c00 &= 0xFFFF;
+        c16 += a16 + b16;
+        c32 += c16 >>> 16;
+        c16 &= 0xFFFF;
+        c32 += a32 + b32;
+        c48 += c32 >>> 16;
+        c32 &= 0xFFFF;
+        c48 += a48 + b48;
+        c48 &= 0xFFFF;
+        return fromBits((c16 << 16) | c00, (c48 << 16) | c32, this.unsigned);
+    };
+
+    /**
+     * Returns the difference of this and the specified Long.
+     * @param {!Long|number|string} subtrahend Subtrahend
+     * @returns {!Long} Difference
+     */
+    LongPrototype.subtract = function subtract(subtrahend) {
+        if (!isLong(subtrahend))
+            subtrahend = fromValue(subtrahend);
+        return this.add(subtrahend.neg());
+    };
+
+    /**
+     * Returns the difference of this and the specified Long. This is an alias of {@link Long#subtract}.
+     * @function
+     * @param {!Long|number|string} subtrahend Subtrahend
+     * @returns {!Long} Difference
+     */
+    LongPrototype.sub = LongPrototype.subtract;
+
+    /**
+     * Returns the product of this and the specified Long.
+     * @param {!Long|number|string} multiplier Multiplier
+     * @returns {!Long} Product
+     */
+    LongPrototype.multiply = function multiply(multiplier) {
+        if (this.isZero())
+            return ZERO;
+        if (!isLong(multiplier))
+            multiplier = fromValue(multiplier);
+        if (multiplier.isZero())
+            return ZERO;
+        if (this.eq(MIN_VALUE))
+            return multiplier.isOdd() ? MIN_VALUE : ZERO;
+        if (multiplier.eq(MIN_VALUE))
+            return this.isOdd() ? MIN_VALUE : ZERO;
+
+        if (this.isNegative()) {
+            if (multiplier.isNegative())
+                return this.neg().mul(multiplier.neg());
+            else
+                return this.neg().mul(multiplier).neg();
+        } else if (multiplier.isNegative())
+            return this.mul(multiplier.neg()).neg();
+
+        // If both longs are small, use float multiplication
+        if (this.lt(TWO_PWR_24) && multiplier.lt(TWO_PWR_24))
+            return fromNumber(this.toNumber() * multiplier.toNumber(), this.unsigned);
+
+        // Divide each long into 4 chunks of 16 bits, and then add up 4x4 products.
+        // We can skip products that would overflow.
+
+        var a48 = this.high >>> 16;
+        var a32 = this.high & 0xFFFF;
+        var a16 = this.low >>> 16;
+        var a00 = this.low & 0xFFFF;
+
+        var b48 = multiplier.high >>> 16;
+        var b32 = multiplier.high & 0xFFFF;
+        var b16 = multiplier.low >>> 16;
+        var b00 = multiplier.low & 0xFFFF;
+
+        var c48 = 0, c32 = 0, c16 = 0, c00 = 0;
+        c00 += a00 * b00;
+        c16 += c00 >>> 16;
+        c00 &= 0xFFFF;
+        c16 += a16 * b00;
+        c32 += c16 >>> 16;
+        c16 &= 0xFFFF;
+        c16 += a00 * b16;
+        c32 += c16 >>> 16;
+        c16 &= 0xFFFF;
+        c32 += a32 * b00;
+        c48 += c32 >>> 16;
+        c32 &= 0xFFFF;
+        c32 += a16 * b16;
+        c48 += c32 >>> 16;
+        c32 &= 0xFFFF;
+        c32 += a00 * b32;
+        c48 += c32 >>> 16;
+        c32 &= 0xFFFF;
+        c48 += a48 * b00 + a32 * b16 + a16 * b32 + a00 * b48;
+        c48 &= 0xFFFF;
+        return fromBits((c16 << 16) | c00, (c48 << 16) | c32, this.unsigned);
+    };
+
+    /**
+     * Returns the product of this and the specified Long. This is an alias of {@link Long#multiply}.
+     * @function
+     * @param {!Long|number|string} multiplier Multiplier
+     * @returns {!Long} Product
+     */
+    LongPrototype.mul = LongPrototype.multiply;
+
+    /**
+     * Returns this Long divided by the specified. The result is signed if this Long is signed or
+     *  unsigned if this Long is unsigned.
+     * @param {!Long|number|string} divisor Divisor
+     * @returns {!Long} Quotient
+     */
+    LongPrototype.divide = function divide(divisor) {
+        if (!isLong(divisor))
+            divisor = fromValue(divisor);
+        if (divisor.isZero())
+            throw Error('division by zero');
+        if (this.isZero())
+            return this.unsigned ? UZERO : ZERO;
+        var approx, rem, res;
+        if (!this.unsigned) {
+            // This section is only relevant for signed longs and is derived from the
+            // closure library as a whole.
+            if (this.eq(MIN_VALUE)) {
+                if (divisor.eq(ONE) || divisor.eq(NEG_ONE))
+                    return MIN_VALUE;  // recall that -MIN_VALUE == MIN_VALUE
+                else if (divisor.eq(MIN_VALUE))
+                    return ONE;
+                else {
+                    // At this point, we have |other| >= 2, so |this/other| < |MIN_VALUE|.
+                    var halfThis = this.shr(1);
+                    approx = halfThis.div(divisor).shl(1);
+                    if (approx.eq(ZERO)) {
+                        return divisor.isNegative() ? ONE : NEG_ONE;
+                    } else {
+                        rem = this.sub(divisor.mul(approx));
+                        res = approx.add(rem.div(divisor));
+                        return res;
+                    }
+                }
+            } else if (divisor.eq(MIN_VALUE))
+                return this.unsigned ? UZERO : ZERO;
+            if (this.isNegative()) {
+                if (divisor.isNegative())
+                    return this.neg().div(divisor.neg());
+                return this.neg().div(divisor).neg();
+            } else if (divisor.isNegative())
+                return this.div(divisor.neg()).neg();
+            res = ZERO;
+        } else {
+            // The algorithm below has not been made for unsigned longs. It's therefore
+            // required to take special care of the MSB prior to running it.
+            if (!divisor.unsigned)
+                divisor = divisor.toUnsigned();
+            if (divisor.gt(this))
+                return UZERO;
+            if (divisor.gt(this.shru(1))) // 15 >>> 1 = 7 ; with divisor = 8 ; true
+                return UONE;
+            res = UZERO;
+        }
+
+        // Repeat the following until the remainder is less than other:  find a
+        // floating-point that approximates remainder / other *from below*, add this
+        // into the result, and subtract it from the remainder.  It is critical that
+        // the approximate value is less than or equal to the real value so that the
+        // remainder never becomes negative.
+        rem = this;
+        while (rem.gte(divisor)) {
+            // Approximate the result of division. This may be a little greater or
+            // smaller than the actual value.
+            approx = Math.max(1, Math.floor(rem.toNumber() / divisor.toNumber()));
+
+            // We will tweak the approximate result by changing it in the 48-th digit or
+            // the smallest non-fractional digit, whichever is larger.
+            var log2 = Math.ceil(Math.log(approx) / Math.LN2),
+                delta = (log2 <= 48) ? 1 : pow_dbl(2, log2 - 48),
+
+            // Decrease the approximation until it is smaller than the remainder.  Note
+            // that if it is too large, the product overflows and is negative.
+                approxRes = fromNumber(approx),
+                approxRem = approxRes.mul(divisor);
+            while (approxRem.isNegative() || approxRem.gt(rem)) {
+                approx -= delta;
+                approxRes = fromNumber(approx, this.unsigned);
+                approxRem = approxRes.mul(divisor);
+            }
+
+            // We know the answer can't be zero... and actually, zero would cause
+            // infinite recursion since we would make no progress.
+            if (approxRes.isZero())
+                approxRes = ONE;
+
+            res = res.add(approxRes);
+            rem = rem.sub(approxRem);
+        }
+        return res;
+    };
+
+    /**
+     * Returns this Long divided by the specified. This is an alias of {@link Long#divide}.
+     * @function
+     * @param {!Long|number|string} divisor Divisor
+     * @returns {!Long} Quotient
+     */
+    LongPrototype.div = LongPrototype.divide;
+
+    /**
+     * Returns this Long modulo the specified.
+     * @param {!Long|number|string} divisor Divisor
+     * @returns {!Long} Remainder
+     */
+    LongPrototype.modulo = function modulo(divisor) {
+        if (!isLong(divisor))
+            divisor = fromValue(divisor);
+        return this.sub(this.div(divisor).mul(divisor));
+    };
+
+    /**
+     * Returns this Long modulo the specified. This is an alias of {@link Long#modulo}.
+     * @function
+     * @param {!Long|number|string} divisor Divisor
+     * @returns {!Long} Remainder
+     */
+    LongPrototype.mod = LongPrototype.modulo;
+
+    /**
+     * Returns the bitwise NOT of this Long.
+     * @returns {!Long}
+     */
+    LongPrototype.not = function not() {
+        return fromBits(~this.low, ~this.high, this.unsigned);
+    };
+
+    /**
+     * Returns the bitwise AND of this Long and the specified.
+     * @param {!Long|number|string} other Other Long
+     * @returns {!Long}
+     */
+    LongPrototype.and = function and(other) {
+        if (!isLong(other))
+            other = fromValue(other);
+        return fromBits(this.low & other.low, this.high & other.high, this.unsigned);
+    };
+
+    /**
+     * Returns the bitwise OR of this Long and the specified.
+     * @param {!Long|number|string} other Other Long
+     * @returns {!Long}
+     */
+    LongPrototype.or = function or(other) {
+        if (!isLong(other))
+            other = fromValue(other);
+        return fromBits(this.low | other.low, this.high | other.high, this.unsigned);
+    };
+
+    /**
+     * Returns the bitwise XOR of this Long and the given one.
+     * @param {!Long|number|string} other Other Long
+     * @returns {!Long}
+     */
+    LongPrototype.xor = function xor(other) {
+        if (!isLong(other))
+            other = fromValue(other);
+        return fromBits(this.low ^ other.low, this.high ^ other.high, this.unsigned);
+    };
+
+    /**
+     * Returns this Long with bits shifted to the left by the given amount.
+     * @param {number|!Long} numBits Number of bits
+     * @returns {!Long} Shifted Long
+     */
+    LongPrototype.shiftLeft = function shiftLeft(numBits) {
+        if (isLong(numBits))
+            numBits = numBits.toInt();
+        if ((numBits &= 63) === 0)
+            return this;
+        else if (numBits < 32)
+            return fromBits(this.low << numBits, (this.high << numBits) | (this.low >>> (32 - numBits)), this.unsigned);
+        else
+            return fromBits(0, this.low << (numBits - 32), this.unsigned);
+    };
+
+    /**
+     * Returns this Long with bits shifted to the left by the given amount. This is an alias of {@link Long#shiftLeft}.
+     * @function
+     * @param {number|!Long} numBits Number of bits
+     * @returns {!Long} Shifted Long
+     */
+    LongPrototype.shl = LongPrototype.shiftLeft;
+
+    /**
+     * Returns this Long with bits arithmetically shifted to the right by the given amount.
+     * @param {number|!Long} numBits Number of bits
+     * @returns {!Long} Shifted Long
+     */
+    LongPrototype.shiftRight = function shiftRight(numBits) {
+        if (isLong(numBits))
+            numBits = numBits.toInt();
+        if ((numBits &= 63) === 0)
+            return this;
+        else if (numBits < 32)
+            return fromBits((this.low >>> numBits) | (this.high << (32 - numBits)), this.high >> numBits, this.unsigned);
+        else
+            return fromBits(this.high >> (numBits - 32), this.high >= 0 ? 0 : -1, this.unsigned);
+    };
+
+    /**
+     * Returns this Long with bits arithmetically shifted to the right by the given amount. This is an alias of {@link Long#shiftRight}.
+     * @function
+     * @param {number|!Long} numBits Number of bits
+     * @returns {!Long} Shifted Long
+     */
+    LongPrototype.shr = LongPrototype.shiftRight;
+
+    /**
+     * Returns this Long with bits logically shifted to the right by the given amount.
+     * @param {number|!Long} numBits Number of bits
+     * @returns {!Long} Shifted Long
+     */
+    LongPrototype.shiftRightUnsigned = function shiftRightUnsigned(numBits) {
+        if (isLong(numBits))
+            numBits = numBits.toInt();
+        numBits &= 63;
+        if (numBits === 0)
+            return this;
+        else {
+            var high = this.high;
+            if (numBits < 32) {
+                var low = this.low;
+                return fromBits((low >>> numBits) | (high << (32 - numBits)), high >>> numBits, this.unsigned);
+            } else if (numBits === 32)
+                return fromBits(high, 0, this.unsigned);
+            else
+                return fromBits(high >>> (numBits - 32), 0, this.unsigned);
+        }
+    };
+
+    /**
+     * Returns this Long with bits logically shifted to the right by the given amount. This is an alias of {@link Long#shiftRightUnsigned}.
+     * @function
+     * @param {number|!Long} numBits Number of bits
+     * @returns {!Long} Shifted Long
+     */
+    LongPrototype.shru = LongPrototype.shiftRightUnsigned;
+
+    /**
+     * Converts this Long to signed.
+     * @returns {!Long} Signed long
+     */
+    LongPrototype.toSigned = function toSigned() {
+        if (!this.unsigned)
+            return this;
+        return fromBits(this.low, this.high, false);
+    };
+
+    /**
+     * Converts this Long to unsigned.
+     * @returns {!Long} Unsigned long
+     */
+    LongPrototype.toUnsigned = function toUnsigned() {
+        if (this.unsigned)
+            return this;
+        return fromBits(this.low, this.high, true);
+    };
+
+    /**
+     * Converts this Long to its byte representation.
+     * @param {boolean=} le Whether little or big endian, defaults to big endian
+     * @returns {!Array.<number>} Byte representation
+     */
+    LongPrototype.toBytes = function(le) {
+        return le ? this.toBytesLE() : this.toBytesBE();
+    }
+
+    /**
+     * Converts this Long to its little endian byte representation.
+     * @returns {!Array.<number>} Little endian byte representation
+     */
+    LongPrototype.toBytesLE = function() {
+        var hi = this.high,
+            lo = this.low;
+        return [
+             lo         & 0xff,
+            (lo >>>  8) & 0xff,
+            (lo >>> 16) & 0xff,
+            (lo >>> 24) & 0xff,
+             hi         & 0xff,
+            (hi >>>  8) & 0xff,
+            (hi >>> 16) & 0xff,
+            (hi >>> 24) & 0xff
+        ];
+    }
+
+    /**
+     * Converts this Long to its big endian byte representation.
+     * @returns {!Array.<number>} Big endian byte representation
+     */
+    LongPrototype.toBytesBE = function() {
+        var hi = this.high,
+            lo = this.low;
+        return [
+            (hi >>> 24) & 0xff,
+            (hi >>> 16) & 0xff,
+            (hi >>>  8) & 0xff,
+             hi         & 0xff,
+            (lo >>> 24) & 0xff,
+            (lo >>> 16) & 0xff,
+            (lo >>>  8) & 0xff,
+             lo         & 0xff
+        ];
+    }
+
+    return Long;
+});
 
 
 /***/ }),
@@ -42060,1714 +47034,14 @@ module.exports = {
 
 /***/ }),
 
-/***/ "./src/sdk/BtcAccount.js":
-/*!*******************************!*\
-  !*** ./src/sdk/BtcAccount.js ***!
-  \*******************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _D = __webpack_require__(/*! ./D */ "./src/sdk/D.js");
-
-var _D2 = _interopRequireDefault(_D);
-
-var _BtcCoinSelect = __webpack_require__(/*! ./BtcCoinSelect */ "./src/sdk/BtcCoinSelect.js");
-
-var _BtcCoinSelect2 = _interopRequireDefault(_BtcCoinSelect);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-
-function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var BtcAccount = function () {
-  function BtcAccount(info, device, coinData) {
-    var _this = this;
-
-    _classCallCheck(this, BtcAccount);
-
-    var assign = function assign() {
-      _this.accountId = info.accountId;
-      _this.label = info.label;
-      _this.coinType = info.coinType;
-      _this.index = info.index;
-      _this.balance = info.balance;
-      _this.externalPublicKeyIndex = info.externalPublicKeyIndex;
-      _this.changePublicKeyIndex = info.changePublicKeyIndex;
-    };
-    assign();
-    this._device = device;
-    this._coinData = coinData;
-    this._listenedTxs = [];
-    this._listenedAddresses = [];
-
-    this._txListener = function () {
-      var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(error, txInfo) {
-        var isLost = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
-        return regeneratorRuntime.wrap(function _callee$(_context) {
-          while (1) {
-            switch (_context.prev = _context.next) {
-              case 0:
-                if (!(error !== _D2.default.error.succeed)) {
-                  _context.next = 3;
-                  break;
-                }
-
-                console.warn('BtcAccount txListener', error);
-                return _context.abrupt('return');
-
-              case 3:
-                console.log('newTransaction status', txInfo);
-
-                if (!isLost) {
-                  _context.next = 8;
-                  break;
-                }
-
-                _context.next = 7;
-                return _this._handleRemovedTx(txInfo.txId);
-
-              case 7:
-                return _context.abrupt('return');
-
-              case 8:
-                _context.next = 10;
-                return _this._handleNewTx(txInfo);
-
-              case 10:
-              case 'end':
-                return _context.stop();
-            }
-          }
-        }, _callee, _this);
-      }));
-
-      return function (_x2, _x3) {
-        return _ref.apply(this, arguments);
-      };
-    }();
-
-    this._addressListener = function () {
-      var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(error, addressInfo, txInfo, removedTxId) {
-        return regeneratorRuntime.wrap(function _callee2$(_context2) {
-          while (1) {
-            switch (_context2.prev = _context2.next) {
-              case 0:
-                if (!(error !== _D2.default.error.succeed)) {
-                  _context2.next = 3;
-                  break;
-                }
-
-                console.warn('BtcAccount addressListener', error);
-                return _context2.abrupt('return');
-
-              case 3:
-
-                addressInfo = _D2.default.copy(addressInfo);
-                txInfo = _D2.default.copy(txInfo);
-
-                if (!removedTxId) {
-                  _context2.next = 9;
-                  break;
-                }
-
-                _context2.next = 8;
-                return _this._handleRemovedTx(removedTxId);
-
-              case 8:
-                return _context2.abrupt('return');
-
-              case 9:
-                _context2.next = 11;
-                return _this._handleNewTx(txInfo);
-
-              case 11:
-              case 'end':
-                return _context2.stop();
-            }
-          }
-        }, _callee2, _this);
-      }));
-
-      return function (_x4, _x5, _x6, _x7) {
-        return _ref2.apply(this, arguments);
-      };
-    }();
-  }
-
-  _createClass(BtcAccount, [{
-    key: 'init',
-    value: function () {
-      var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
-        var accountId;
-        return regeneratorRuntime.wrap(function _callee3$(_context3) {
-          while (1) {
-            switch (_context3.prev = _context3.next) {
-              case 0:
-                accountId = this.accountId;
-                _context3.next = 3;
-                return this._coinData.getAddressInfos({ accountId: accountId });
-
-              case 3:
-                this.addressInfos = _context3.sent;
-                _context3.next = 6;
-                return this._coinData.getTxInfos({ accountId: accountId });
-
-              case 6:
-                this.txInfos = _context3.sent.txInfos;
-                _context3.next = 9;
-                return this._coinData.getUtxos({ accountId: accountId });
-
-              case 9:
-                this.utxos = _context3.sent;
-
-              case 10:
-              case 'end':
-                return _context3.stop();
-            }
-          }
-        }, _callee3, this);
-      }));
-
-      function init() {
-        return _ref3.apply(this, arguments);
-      }
-
-      return init;
-    }()
-  }, {
-    key: 'sync',
-    value: function () {
-      var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4() {
-        var _this2 = this;
-
-        var firstSync = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
-        var offlineMode = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
-        var checkAddressInfos, blobs, responses, listenAddressInfo;
-        return regeneratorRuntime.wrap(function _callee4$(_context4) {
-          while (1) {
-            switch (_context4.prev = _context4.next) {
-              case 0:
-                if (offlineMode) {
-                  _context4.next = 3;
-                  break;
-                }
-
-                _context4.next = 3;
-                return this._checkAddressIndexAndGenerateNew(true);
-
-              case 3:
-                checkAddressInfos = _D2.default.copy(this.addressInfos);
-
-              case 4:
-                if (false) {}
-
-                _context4.next = 7;
-                return this._coinData.checkAddresses(this.coinType, checkAddressInfos);
-
-              case 7:
-                blobs = _context4.sent;
-                _context4.next = 10;
-                return Promise.all(blobs.map(function (blob) {
-                  if (blob.removedTxId) {
-                    var removedTxInfo = _this2.txInfos.find(function (txInfo) {
-                      return txInfo.txId === blob.removedTxId;
-                    });
-                    // let the txListener handle the overTime pending tx
-                    if (removedTxInfo && removedTxInfo.confirmations !== _D2.default.tx.confirmation.pending) {
-                      return _this2._handleRemovedTx(blob.removedTxId);
-                    }
-                  } else {
-                    return _this2._handleNewTx(blob.txInfo);
-                  }
-                }));
-
-              case 10:
-                responses = _context4.sent;
-
-                if (!offlineMode) {
-                  _context4.next = 13;
-                  break;
-                }
-
-                return _context4.abrupt('break', 22);
-
-              case 13:
-                if (!(responses.length === 0)) {
-                  _context4.next = 15;
-                  break;
-                }
-
-                return _context4.abrupt('break', 22);
-
-              case 15:
-                _context4.t0 = _D2.default;
-                _context4.next = 18;
-                return this._checkAddressIndexAndGenerateNew(true);
-
-              case 18:
-                _context4.t1 = _context4.sent;
-                checkAddressInfos = _context4.t0.copy.call(_context4.t0, _context4.t1);
-                _context4.next = 4;
-                break;
-
-              case 22:
-
-                if (firstSync) {
-                  listenAddressInfo = this._getAddressInfos(this.externalPublicKeyIndex, this.externalPublicKeyIndex + 1, _D2.default.address.external)[0];
-
-                  if (listenAddressInfo && !this._listenedAddresses.includes(listenAddressInfo.address)) {
-                    this._listenedAddresses.push(listenAddressInfo.address);
-                    this._coinData.listenAddresses(this.coinType, [_D2.default.copy(listenAddressInfo)], this._addressListener);
-                  }
-                  this.txInfos.filter(function (txInfo) {
-                    return txInfo.confirmations !== _D2.default.tx.confirmation.dropped;
-                  }).filter(function (txInfo) {
-                    return txInfo.confirmations < _D2.default.tx.getMatureConfirms(_this2.coinType);
-                  }).filter(function (txInfo) {
-                    return !_this2._listenedTxs.includes(txInfo.txId);
-                  }).forEach(function (txInfo) {
-                    _this2._listenedTxs.push(txInfo.txId);
-                    _this2._coinData.listenTx(_this2.coinType, _D2.default.copy(txInfo), _this2._txListener);
-                  });
-                }
-
-              case 23:
-              case 'end':
-                return _context4.stop();
-            }
-          }
-        }, _callee4, this);
-      }));
-
-      function sync() {
-        return _ref4.apply(this, arguments);
-      }
-
-      return sync;
-    }()
-  }, {
-    key: 'delete',
-    value: function () {
-      var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5() {
-        return regeneratorRuntime.wrap(function _callee5$(_context5) {
-          while (1) {
-            switch (_context5.prev = _context5.next) {
-              case 0:
-                this._coinData.removeNetworkListener(this.coinType, this._txListener);
-                this._coinData.removeNetworkListener(this.coinType, this._addressListener);
-                _context5.next = 4;
-                return this._coinData.deleteAccount(this._toAccountInfo());
-
-              case 4:
-              case 'end':
-                return _context5.stop();
-            }
-          }
-        }, _callee5, this);
-      }));
-
-      function _delete() {
-        return _ref5.apply(this, arguments);
-      }
-
-      return _delete;
-    }()
-  }, {
-    key: 'rename',
-    value: function () {
-      var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6(newName) {
-        var oldAccountInfo;
-        return regeneratorRuntime.wrap(function _callee6$(_context6) {
-          while (1) {
-            switch (_context6.prev = _context6.next) {
-              case 0:
-                newName = newName || this.label;
-                oldAccountInfo = this._toAccountInfo();
-
-                oldAccountInfo.label = newName;
-                _context6.next = 5;
-                return this._coinData.renameAccount(oldAccountInfo);
-
-              case 5:
-                this.label = newName;
-
-              case 6:
-              case 'end':
-                return _context6.stop();
-            }
-          }
-        }, _callee6, this);
-      }));
-
-      function rename(_x10) {
-        return _ref6.apply(this, arguments);
-      }
-
-      return rename;
-    }()
-  }, {
-    key: 'updateTxComment',
-    value: function () {
-      var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7(txInfo) {
-        var oldTxInfo;
-        return regeneratorRuntime.wrap(function _callee7$(_context7) {
-          while (1) {
-            switch (_context7.prev = _context7.next) {
-              case 0:
-                oldTxInfo = this.txInfos.find(function (t) {
-                  return t.txId === txInfo.txId && t.accountId === txInfo.accountId;
-                });
-
-                if (oldTxInfo) {
-                  _context7.next = 4;
-                  break;
-                }
-
-                console.warn('this txInfo not in the list', txInfo);
-                throw _D2.default.error.unknown;
-
-              case 4:
-                _context7.next = 6;
-                return this._coinData.updateTxComment(txInfo);
-
-              case 6:
-                oldTxInfo.comment = txInfo.comment;
-
-              case 7:
-              case 'end':
-                return _context7.stop();
-            }
-          }
-        }, _callee7, this);
-      }));
-
-      function updateTxComment(_x11) {
-        return _ref7.apply(this, arguments);
-      }
-
-      return updateTxComment;
-    }()
-  }, {
-    key: '_handleRemovedTx',
-    value: function () {
-      var _ref8 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8(removedTxId) {
-        var _this3 = this;
-
-        var removedTxInfo, addressInfos, _loop, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, addressInfo, removeUtxos, updateUtxos;
-
-        return regeneratorRuntime.wrap(function _callee8$(_context8) {
-          while (1) {
-            switch (_context8.prev = _context8.next) {
-              case 0:
-                console.warn('btc removed txId', removedTxId);
-                // async operation may lead to disorder. so we need a simple lock
-
-              case 1:
-                if (!this.busy) {
-                  _context8.next = 6;
-                  break;
-                }
-
-                _context8.next = 4;
-                return _D2.default.wait(2);
-
-              case 4:
-                _context8.next = 1;
-                break;
-
-              case 6:
-                this.busy = true;
-
-                // update removed txInfo
-                removedTxInfo = this.txInfos.find(function (txInfo) {
-                  return txInfo.txId === removedTxId;
-                });
-
-                if (removedTxInfo) {
-                  _context8.next = 11;
-                  break;
-                }
-
-                console.warn(this.accountId, 'removed txId not found', removedTxId);
-                return _context8.abrupt('return');
-
-              case 11:
-                console.log('btc removed txInfo', removedTxInfo);
-                removedTxInfo.confirmations = _D2.default.tx.confirmation.dropped;
-
-                // update addressInfos
-                addressInfos = this.addressInfos.filter(function (addressInfo) {
-                  return addressInfo.txs.includes(removedTxId);
-                });
-
-                _loop = function _loop(addressInfo) {
-                  var oldAddressInfo = _this3.addressInfos.find(function (a) {
-                    return a.address === addressInfo.address;
-                  });
-                  oldAddressInfo.txs = oldAddressInfo.txs.filter(function (txId) {
-                    return txId !== removedTxId;
-                  });
-                };
-
-                _iteratorNormalCompletion = true;
-                _didIteratorError = false;
-                _iteratorError = undefined;
-                _context8.prev = 18;
-
-                for (_iterator = addressInfos[Symbol.iterator](); !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-                  addressInfo = _step.value;
-
-                  _loop(addressInfo);
-                }
-
-                // remove utxos come from this tx
-                _context8.next = 26;
-                break;
-
-              case 22:
-                _context8.prev = 22;
-                _context8.t0 = _context8['catch'](18);
-                _didIteratorError = true;
-                _iteratorError = _context8.t0;
-
-              case 26:
-                _context8.prev = 26;
-                _context8.prev = 27;
-
-                if (!_iteratorNormalCompletion && _iterator.return) {
-                  _iterator.return();
-                }
-
-              case 29:
-                _context8.prev = 29;
-
-                if (!_didIteratorError) {
-                  _context8.next = 32;
-                  break;
-                }
-
-                throw _iteratorError;
-
-              case 32:
-                return _context8.finish(29);
-
-              case 33:
-                return _context8.finish(26);
-
-              case 34:
-                removeUtxos = this.utxos.filter(function (utxo) {
-                  return utxo.txId === removedTxId;
-                });
-
-                this.utxos = this.utxos.filter(function (utxo) {
-                  return !removeUtxos.some(function (u) {
-                    return u.txId === utxo.txId;
-                  });
-                });
-
-                // revert utxos using by this tx
-                updateUtxos = [];
-
-                removedTxInfo.inputs.forEach(function (input) {
-                  if (!input.isMine) return;
-                  var revertUtxo = _this3.utxos.find(function (utxo) {
-                    return input.prevTxId === utxo.txId && input.prevOutIndex === utxo.index;
-                  });
-                  if (!revertUtxo) {
-                    console.warn('revertUtxo not found', input);
-                    return;
-                  }
-
-                  // the spent utxo may be reused again before detected(e.g. resend tx), we need to check
-                  var reusedTxInfo = _this3.txInfos.filter(function (txInfo) {
-                    return txInfo.confirmations !== _D2.default.tx.confirmation.dropped && txInfo.inputs.some(function (i) {
-                      return i.prevAddress === input.prevAddress && i.prevOutIndex === input.prevOutIndex;
-                    });
-                  });
-                  if (reusedTxInfo) {
-                    console.info('utxo has been reused', input, removedTxInfo);
-                  } else {
-                    revertUtxo.status = _D2.default.utxo.status.unspent;
-                    updateUtxos.push(revertUtxo);
-                  }
-                });
-
-                this.balance = this.utxos.filter(function (utxo) {
-                  return utxo.status === _D2.default.utxo.status.unspent || utxo.status === _D2.default.utxo.status.unspent_pending;
-                }).reduce(function (sum, utxo) {
-                  return sum + utxo.value;
-                }, 0).toString();
-
-                _context8.next = 41;
-                return this._coinData.removeTx(this._toAccountInfo(), _D2.default.copy(addressInfos), _D2.default.copy(removedTxInfo), _D2.default.copy(updateUtxos), _D2.default.copy(removeUtxos));
-
-              case 41:
-                this.busy = false;
-
-              case 42:
-              case 'end':
-                return _context8.stop();
-            }
-          }
-        }, _callee8, this, [[18, 22, 26, 34], [27,, 29, 33]]);
-      }));
-
-      function _handleRemovedTx(_x12) {
-        return _ref8.apply(this, arguments);
-      }
-
-      return _handleRemovedTx;
-    }()
-
-    /**
-     * handle new transaction
-     * complete txInfo, generate utxos
-     */
-
-  }, {
-    key: '_handleNewTx',
-    value: function () {
-      var _ref9 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee9(txInfo) {
-        var _this4 = this;
-
-        var value, fee, input, utxos, unspentOutputs, unspentUtxos, spentInputs, spentUtxos;
-        return regeneratorRuntime.wrap(function _callee9$(_context9) {
-          while (1) {
-            switch (_context9.prev = _context9.next) {
-              case 0:
-                console.log('btc newTransaction', txInfo);
-
-                // async operation may lead to disorder. so we need a simple lock
-                // eslint-disable-next-line
-
-              case 1:
-                if (!this.busy) {
-                  _context9.next = 6;
-                  break;
-                }
-
-                _context9.next = 4;
-                return _D2.default.wait(2);
-
-              case 4:
-                _context9.next = 1;
-                break;
-
-              case 6:
-                this.busy = true;
-
-                // update txInfo and addressInfos
-                txInfo.inputs.forEach(function (input) {
-                  input.isMine = _this4.addressInfos.some(function (a) {
-                    return a.address === input.prevAddress;
-                  });
-                });
-                txInfo.outputs.forEach(function (output) {
-                  output.isMine = _this4.addressInfos.some(function (a) {
-                    return a.address === output.address;
-                  });
-                });
-
-                // calculate value
-                value = 0;
-
-                value -= txInfo.inputs.reduce(function (sum, input) {
-                  return sum + (input.isMine ? input.value : 0);
-                }, 0);
-                value += txInfo.outputs.reduce(function (sum, output) {
-                  return sum + (output.isMine ? output.value : 0);
-                }, 0);
-                txInfo.value = value.toString();
-
-                // calculate fee
-                fee = 0;
-
-                fee += txInfo.inputs.reduce(function (sum, input) {
-                  return sum + input.value;
-                }, 0);
-                fee -= txInfo.outputs.reduce(function (sum, output) {
-                  return sum + output.value;
-                }, 0);
-                txInfo.fee = fee.toString();
-
-                input = txInfo.inputs.find(function (input) {
-                  return input.isMine;
-                });
-
-                txInfo.direction = input ? _D2.default.tx.direction.out : _D2.default.tx.direction.in;
-                txInfo.showAddresses = txInfo.direction === _D2.default.tx.direction.in ? txInfo.inputs.filter(function (input) {
-                  return !input.isMine;
-                }).map(function (input) {
-                  return input.prevAddress;
-                }) : txInfo.outputs.filter(function (output) {
-                  return !output.isMine;
-                }).map(function (output) {
-                  return output.address;
-                });
-                if (txInfo.showAddresses.length === 0) txInfo.showAddresses.push('self');
-
-                // find out utxos for address
-                utxos = [];
-                unspentOutputs = txInfo.outputs.filter(function (output) {
-                  return output.isMine;
-                });
-                unspentUtxos = unspentOutputs.map(function (output) {
-                  var addressInfo = _this4.addressInfos.find(function (a) {
-                    return a.address === output.address;
-                  });
-                  return {
-                    accountId: addressInfo.accountId,
-                    coinType: addressInfo.coinType,
-                    address: addressInfo.address,
-                    path: addressInfo.path,
-                    txId: txInfo.txId,
-                    index: output.index,
-                    script: output.script,
-                    value: output.value,
-                    status: txInfo.confirmations === _D2.default.tx.confirmation.inMemory ? _D2.default.utxo.status.unspent_pending : _D2.default.utxo.status.unspent
-                  };
-                });
-
-                utxos.push.apply(utxos, _toConsumableArray(unspentUtxos));
-
-                spentInputs = txInfo.inputs.filter(function (input) {
-                  return input.isMine;
-                });
-
-                if (spentInputs.length > 0) {
-                  spentUtxos = spentInputs.map(function (input) {
-                    var addressInfo = _this4.addressInfos.find(function (a) {
-                      return a.address === input.prevAddress;
-                    });
-                    return {
-                      accountId: addressInfo.accountId,
-                      coinType: addressInfo.coinType,
-                      address: addressInfo.address,
-                      path: addressInfo.path,
-                      txId: input.prevTxId,
-                      index: input.prevOutIndex,
-                      script: input.prevOutScript,
-                      value: input.value,
-                      status: txInfo.confirmations === _D2.default.tx.confirmation.inMemory ? _D2.default.utxo.status.spent_pending : _D2.default.utxo.status.spent
-                    };
-                  });
-
-                  utxos.push.apply(utxos, _toConsumableArray(spentUtxos));
-                }
-                _context9.next = 29;
-                return this._handleNewTxInner(txInfo, utxos);
-
-              case 29:
-
-                this.busy = false;
-
-              case 30:
-              case 'end':
-                return _context9.stop();
-            }
-          }
-        }, _callee9, this);
-      }));
-
-      function _handleNewTx(_x13) {
-        return _ref9.apply(this, arguments);
-      }
-
-      return _handleNewTx;
-    }()
-
-    /**
-     * handle new transaction
-     * update account, store utxo, addressInfo, txInfo
-     */
-
-  }, {
-    key: '_handleNewTxInner',
-    value: function () {
-      var _ref10 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee10(txInfo, utxos) {
-        var _this5 = this;
-
-        var index, relativeAddresses, maxExternalIndex, maxChangeIndex;
-        return regeneratorRuntime.wrap(function _callee10$(_context10) {
-          while (1) {
-            switch (_context10.prev = _context10.next) {
-              case 0:
-                console.log('newTransaction, utxos', txInfo, utxos);
-
-              case 1:
-                if (!this.innerBusy) {
-                  _context10.next = 6;
-                  break;
-                }
-
-                _context10.next = 4;
-                return _D2.default.wait(2);
-
-              case 4:
-                _context10.next = 1;
-                break;
-
-              case 6:
-                this.innerBusy = true;
-
-                // update account info
-                index = this.txInfos.findIndex(function (t) {
-                  return t.txId === txInfo.txId;
-                });
-
-                if (index === -1) {
-                  txInfo.comment = '';
-                  this.txInfos.push(txInfo);
-                } else {
-                  txInfo.comment = this.txInfos[index].comment;
-                  this.txInfos[index] = txInfo;
-                }
-
-                // update utxos
-                // unspent_pending can update to other state
-                // unspent can update to pending_spent and spent
-                // pending_spent can update to spent
-                utxos = utxos.filter(function (utxo) {
-                  var oldUtxo = _this5.utxos.find(function (oldUtxo) {
-                    return oldUtxo.txId === utxo.txId && oldUtxo.index === utxo.index;
-                  });
-                  if (!oldUtxo) return true;
-                  if (oldUtxo.status === _D2.default.utxo.status.unspent_pending) return true;
-                  if (oldUtxo.status === _D2.default.utxo.status.unspent) return utxo.status === _D2.default.utxo.status.spent_pending || utxo.status === _D2.default.utxo.status.spent;
-                  if (oldUtxo.status === _D2.default.utxo.status.spent_pending) return utxo.status === _D2.default.utxo.status.spent;
-                  return false;
-                });
-                this.utxos = this.utxos.filter(function (oldUtxo) {
-                  return !utxos.some(function (utxo) {
-                    return oldUtxo.txId === utxo.txId && oldUtxo.index === utxo.index;
-                  });
-                }).concat(utxos);
-
-                // update balance
-                this.balance = this.utxos.filter(function (utxo) {
-                  return utxo.status === _D2.default.utxo.status.unspent || utxo.status === _D2.default.utxo.status.unspent_pending;
-                }).reduce(function (sum, utxo) {
-                  return sum + utxo.value;
-                }, 0).toString();
-
-                // update addressInfos
-                relativeAddresses = [];
-                maxExternalIndex = this.externalPublicKeyIndex;
-                maxChangeIndex = this.changePublicKeyIndex;
-
-                txInfo.inputs.filter(function (input) {
-                  return input.isMine;
-                }).forEach(function (input) {
-                  var addressInfo = _this5.addressInfos.find(function (a) {
-                    return a.address === input.prevAddress;
-                  });
-                  if (!relativeAddresses.some(function (a) {
-                    return a.address === addressInfo.address;
-                  })) {
-                    relativeAddresses.push(addressInfo);
-                    if (!addressInfo.txs.includes(txInfo.txId)) {
-                      addressInfo.txs.push(txInfo.txId);
-                    }
-
-                    if (addressInfo.type === _D2.default.address.external) {
-                      maxExternalIndex = Math.max(maxExternalIndex, addressInfo.index);
-                    } else {
-                      maxChangeIndex = Math.max(maxChangeIndex, addressInfo.index);
-                    }
-                  }
-                });
-                txInfo.outputs.filter(function (input) {
-                  return input.isMine;
-                }).forEach(function (output) {
-                  var addressInfo = _this5.addressInfos.find(function (a) {
-                    return a.address === output.address;
-                  });
-                  if (!relativeAddresses.some(function (a) {
-                    return a.address === addressInfo.address;
-                  })) {
-                    relativeAddresses.push(addressInfo);
-                    if (!addressInfo.txs.includes(txInfo.txId)) {
-                      addressInfo.txs.push(txInfo.txId);
-                    }
-
-                    if (addressInfo.type === _D2.default.address.external) {
-                      maxExternalIndex = Math.max(maxExternalIndex, addressInfo.index + 1);
-                    } else {
-                      maxChangeIndex = Math.max(maxChangeIndex, addressInfo.index + 1);
-                    }
-                  }
-                });
-
-                // update addressIndex
-                this.externalPublicKeyIndex = Math.max(maxExternalIndex, this.externalPublicKeyIndex);
-                this.changePublicKeyIndex = Math.max(maxChangeIndex, this.changePublicKeyIndex);
-
-                // listen unmatured tx
-                _context10.next = 21;
-                return this._coinData.newTx(this._toAccountInfo(), _D2.default.copy(relativeAddresses), _D2.default.copy(txInfo), _D2.default.copy(utxos));
-
-              case 21:
-
-                if (txInfo.confirmations < _D2.default.tx.getMatureConfirms(this.coinType)) {
-                  if (!this._listenedTxs.some(function (tx) {
-                    return tx === txInfo.txId;
-                  })) {
-                    this._listenedTxs.push(txInfo.txId);
-                    this._coinData.listenTx(this.coinType, _D2.default.copy(txInfo), this._txListener);
-                  }
-                }
-
-                this.innerBusy = false;
-
-              case 23:
-              case 'end':
-                return _context10.stop();
-            }
-          }
-        }, _callee10, this);
-      }));
-
-      function _handleNewTxInner(_x14, _x15) {
-        return _ref10.apply(this, arguments);
-      }
-
-      return _handleNewTxInner;
-    }()
-
-    /**
-     * check address index and genreate new necessary addressInfos
-     * @private
-     */
-
-  }, {
-    key: '_checkAddressIndexAndGenerateNew',
-    value: function () {
-      var _ref11 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee12() {
-        var _this6 = this,
-            _addressInfos;
-
-        var sync = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
-        var maxAddressIndexLength, checkAndGenerate, newAddressInfos;
-        return regeneratorRuntime.wrap(function _callee12$(_context12) {
-          while (1) {
-            switch (_context12.prev = _context12.next) {
-              case 0:
-                maxAddressIndexLength = sync ? 20 : 1;
-
-                checkAndGenerate = function () {
-                  var _ref12 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee11(type) {
-                    var maxIndex, nextIndex, isExternal, newNextIndex, addressInfos, i, address;
-                    return regeneratorRuntime.wrap(function _callee11$(_context11) {
-                      while (1) {
-                        switch (_context11.prev = _context11.next) {
-                          case 0:
-                            maxIndex = _this6.addressInfos.filter(function (addressInfo) {
-                              return addressInfo.type === type;
-                            }).reduce(function (max, addressInfo) {
-                              return Math.max(max, addressInfo.index);
-                            }, -1);
-                            nextIndex = maxIndex + 1;
-                            isExternal = type === _D2.default.address.external;
-                            newNextIndex = isExternal ? _this6.externalPublicKeyIndex : _this6.changePublicKeyIndex;
-
-                            newNextIndex += maxAddressIndexLength;
-
-                            if (!(newNextIndex <= nextIndex)) {
-                              _context11.next = 7;
-                              break;
-                            }
-
-                            return _context11.abrupt('return', []);
-
-                          case 7:
-
-                            console.log(_this6.accountId, 'generating', type, 'addressInfos, from', nextIndex, 'to', newNextIndex);
-                            addressInfos = [];
-                            i = nextIndex;
-
-                          case 10:
-                            if (!(i < newNextIndex)) {
-                              _context11.next = 18;
-                              break;
-                            }
-
-                            _context11.next = 13;
-                            return _this6._device.getAddress(_this6.coinType, _D2.default.makeBip44Path(_this6.coinType, _this6.index, type, i));
-
-                          case 13:
-                            address = _context11.sent;
-
-                            addressInfos.push({
-                              address: address,
-                              accountId: _this6.accountId,
-                              coinType: _this6.coinType,
-                              path: _D2.default.makeBip44Path(_this6.coinType, _this6.index, type, i),
-                              type: type,
-                              index: i,
-                              txs: []
-                            });
-
-                          case 15:
-                            i++;
-                            _context11.next = 10;
-                            break;
-
-                          case 18:
-                            return _context11.abrupt('return', addressInfos);
-
-                          case 19:
-                          case 'end':
-                            return _context11.stop();
-                        }
-                      }
-                    }, _callee11, _this6);
-                  }));
-
-                  return function checkAndGenerate(_x17) {
-                    return _ref12.apply(this, arguments);
-                  };
-                }();
-
-                _context12.t0 = [];
-                _context12.next = 5;
-                return checkAndGenerate(_D2.default.address.external);
-
-              case 5:
-                _context12.t1 = _context12.sent;
-                _context12.next = 8;
-                return checkAndGenerate(_D2.default.address.change);
-
-              case 8:
-                _context12.t2 = _context12.sent;
-                newAddressInfos = _context12.t0.concat.call(_context12.t0, _context12.t1, _context12.t2);
-                _context12.next = 12;
-                return this._coinData.newAddressInfos(this._toAccountInfo(), _D2.default.copy(newAddressInfos));
-
-              case 12:
-                (_addressInfos = this.addressInfos).push.apply(_addressInfos, _toConsumableArray(newAddressInfos));
-                return _context12.abrupt('return', newAddressInfos);
-
-              case 14:
-              case 'end':
-                return _context12.stop();
-            }
-          }
-        }, _callee12, this);
-      }));
-
-      function _checkAddressIndexAndGenerateNew() {
-        return _ref11.apply(this, arguments);
-      }
-
-      return _checkAddressIndexAndGenerateNew;
-    }()
-  }, {
-    key: '_getAddressInfos',
-    value: function _getAddressInfos(startIndex, stopIndex, type) {
-      var copy = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : true;
-
-      var addressInfos = this.addressInfos.filter(function (a) {
-        return a.type === type && a.index >= startIndex && a.index < stopIndex;
-      });
-      if (copy) addressInfos = addressInfos.map(function (addressInfo) {
-        return _D2.default.copy(addressInfo);
-      });
-      return addressInfos;
-    }
-  }, {
-    key: '_toAccountInfo',
-    value: function _toAccountInfo() {
-      return {
-        accountId: this.accountId,
-        label: this.label,
-        coinType: this.coinType,
-        index: this.index,
-        balance: this.balance,
-        externalPublicKeyIndex: this.externalPublicKeyIndex,
-        changePublicKeyIndex: this.changePublicKeyIndex
-      };
-    }
-  }, {
-    key: 'getTxInfos',
-    value: function () {
-      var _ref13 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee13(startIndex, endIndex) {
-        var accountId;
-        return regeneratorRuntime.wrap(function _callee13$(_context13) {
-          while (1) {
-            switch (_context13.prev = _context13.next) {
-              case 0:
-                accountId = this.accountId;
-                return _context13.abrupt('return', this._coinData.getTxInfos({ accountId: accountId, startIndex: startIndex, endIndex: endIndex }));
-
-              case 2:
-              case 'end':
-                return _context13.stop();
-            }
-          }
-        }, _callee13, this);
-      }));
-
-      function getTxInfos(_x19, _x20) {
-        return _ref13.apply(this, arguments);
-      }
-
-      return getTxInfos;
-    }()
-  }, {
-    key: 'getAddress',
-    value: function () {
-      var _ref14 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee14() {
-        var isStoring = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
-        var address, listenAddressInfo, prefix;
-        return regeneratorRuntime.wrap(function _callee14$(_context14) {
-          while (1) {
-            switch (_context14.prev = _context14.next) {
-              case 0:
-                _context14.next = 2;
-                return this._device.getAddress(this.coinType, _D2.default.makeBip44Path(this.coinType, this.index, _D2.default.address.external, this.externalPublicKeyIndex), true, isStoring);
-
-              case 2:
-                address = _context14.sent;
-                _context14.next = 5;
-                return this._checkAddressIndexAndGenerateNew();
-
-              case 5:
-                listenAddressInfo = this._getAddressInfos(this.externalPublicKeyIndex, this.externalPublicKeyIndex + 1, _D2.default.address.external)[0];
-
-                if (listenAddressInfo && !this._listenedAddresses.includes(listenAddressInfo.address)) {
-                  this._listenedAddresses.push(listenAddressInfo.address);
-                  this._coinData.listenAddresses(this.coinType, [_D2.default.copy(listenAddressInfo)], this._addressListener);
-                }
-
-                prefix = '';
-                return _context14.abrupt('return', { address: address, qrAddress: prefix + address });
-
-              case 9:
-              case 'end':
-                return _context14.stop();
-            }
-          }
-        }, _callee14, this);
-      }));
-
-      function getAddress() {
-        return _ref14.apply(this, arguments);
-      }
-
-      return getAddress;
-    }()
-  }, {
-    key: 'getSuggestedFee',
-    value: function getSuggestedFee() {
-      return this._coinData.getSuggestedFee(this.coinType).fee;
-    }
-
-    // noinspection JSMethodCanBeStatic
-
-  }, {
-    key: 'checkAddress',
-    value: function checkAddress(address) {
-      return _D2.default.address.checkBtcAddress(address);
-    }
-
-    /**
-     *
-     * @param details
-     * {
-     *   sendAll: bool,
-     *   oldTxId: string, // resend mode only
-     *   feeRate: string (satoshi),
-     *   outputs: [{
-     *     address: base58 string,
-     *     value: string (satoshi)
-     *   }],
-     *   comment: string (optional)
-     * }
-     * @returns {Promise<prepareTx>}
-     * {
-     *   total: number (satoshi)
-     *   fee: number (satoshi)
-     *   feeRate: number (satoshi),
-     *   utxos: utxo array,
-     *   outputs: [{
-     *     address: base58 string,
-     *     value: number (satoshi)
-     *   }],
-     *   deviceLimit: bool,
-     *   oldTxInfo: txInfo // exist if resend
-     * }
-     */
-
-  }, {
-    key: 'prepareTx',
-    value: function () {
-      var _ref15 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee15(details) {
-        var _this7 = this;
-
-        var utxos, oldUtxos, oldTxInfo, proposal, totalUtxos, totalOut, prepareTxData;
-        return regeneratorRuntime.wrap(function _callee15$(_context15) {
-          while (1) {
-            switch (_context15.prev = _context15.next) {
-              case 0:
-                console.log('prepareTx details', details);
-
-                if (!(Number(details.feeRate) === 0)) {
-                  _context15.next = 4;
-                  break;
-                }
-
-                console.warn('fee can not be 0');
-                throw _D2.default.error.networkFeeTooSmall;
-
-              case 4:
-                if (_D2.default.isBtc(this.coinType)) {
-                  _context15.next = 6;
-                  break;
-                }
-
-                throw _D2.default.error.coinNotSupported;
-
-              case 6:
-                if (!_D2.default.isDecimal(details.feeRate)) {
-                  _context15.next = 8;
-                  break;
-                }
-
-                throw _D2.default.error.valueIsDecimal;
-
-              case 8:
-                details.outputs.forEach(function (output) {
-                  if (_D2.default.isDecimal(output.value)) throw _D2.default.error.valueIsDecimal;
-                });
-
-                details = _D2.default.copy(details);
-                details.feeRate = Number(details.feeRate);
-                details.outputs.forEach(function (output) {
-                  output.value = Number(output.value);
-                });
-
-                utxos = this.utxos.filter(function (utxo) {
-                  return utxo.status === _D2.default.utxo.status.unspent || utxo.status === _D2.default.utxo.status.unspent_pending;
-                }).filter(function (utxo) {
-                  return utxo.value > 0;
-                }).map(function (utxo) {
-                  return _D2.default.copy(utxo);
-                });
-                oldUtxos = [];
-                oldTxInfo = void 0;
-
-                if (!details.oldTxId) {
-                  _context15.next = 22;
-                  break;
-                }
-
-                oldTxInfo = this.txInfos.find(function (txInfo) {
-                  return txInfo.txId === details.oldTxId;
-                });
-
-                if (oldTxInfo) {
-                  _context15.next = 20;
-                  break;
-                }
-
-                console.warn('oldTxId not found in history');
-                throw _D2.default.error.unknown;
-
-              case 20:
-
-                oldTxInfo.inputs.forEach(function (input) {
-                  var oldUtxo = _this7.utxos.find(function (utxo) {
-                    return utxo.txId === input.prevTxId && utxo.index === input.prevOutIndex;
-                  });
-                  if (!oldUtxo) {
-                    console.warn('oldUtxo not found in history', input);
-                    throw _D2.default.error.unknown;
-                  }
-                  oldUtxos.push(oldUtxo);
-                });
-                utxos = utxos.filter(function (utxo) {
-                  return !oldUtxos.some(function (u) {
-                    return u.txId === utxo.txId && u.index === utxo.index;
-                  });
-                });
-
-              case 22:
-                proposal = _BtcCoinSelect2.default.selectCoinSet(utxos, oldUtxos, details.outputs, details.feeRate, details.sendAll);
-                totalUtxos = proposal.willSpentUtxos.reduce(function (sum, utxo) {
-                  return utxo.value + sum;
-                }, 0);
-                // reset the output[0].value if this two flags = true
-
-                if (details.sendAll || proposal.deviceLimit) {
-                  details.outputs[0].value = totalUtxos - proposal.fee;
-                }
-                totalOut = details.outputs.reduce(function (sum, output) {
-                  return sum + output.value;
-                }, 0);
-                prepareTxData = {
-                  feeRate: details.feeRate,
-                  outputs: details.outputs,
-                  fee: proposal.fee,
-                  total: totalOut + proposal.fee,
-                  utxos: proposal.willSpentUtxos,
-                  comment: details.comment || ''
-                };
-
-                if (proposal.deviceLimit) {
-                  // deviceLimit = true means device can not carry more utxos to sign, this is the largest value that device can sent
-                  prepareTxData.deviceLimit = proposal.deviceLimit;
-                }
-                if (oldTxInfo) {
-                  prepareTxData.oldTxInfo = _D2.default.copy(oldTxInfo);
-                }
-                return _context15.abrupt('return', prepareTxData);
-
-              case 30:
-              case 'end':
-                return _context15.stop();
-            }
-          }
-        }, _callee15, this);
-      }));
-
-      function prepareTx(_x22) {
-        return _ref15.apply(this, arguments);
-      }
-
-      return prepareTx;
-    }()
-
-    /**
-     * use the result of prepareTx to make transaction
-     * @param prepareTx
-     * @returns {Promise<{txInfo, utxos, hex}>}
-     * @see prepareTx
-     */
-
-  }, {
-    key: 'buildTx',
-    value: function () {
-      var _ref16 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee16(prepareTx) {
-        var _this8 = this;
-
-        var totalOut, totalIn, rawTx, changeValue, changeAddressInfo, signedTx, txInfo, changeOutput, changeAddressBuffer, changeUtxo;
-        return regeneratorRuntime.wrap(function _callee16$(_context16) {
-          while (1) {
-            switch (_context16.prev = _context16.next) {
-              case 0:
-                totalOut = prepareTx.outputs.reduce(function (sum, output) {
-                  return sum + output.value;
-                }, 0);
-
-                if (!(totalOut + prepareTx.fee !== prepareTx.total)) {
-                  _context16.next = 3;
-                  break;
-                }
-
-                throw _D2.default.error.unknown;
-
-              case 3:
-                totalIn = prepareTx.utxos.reduce(function (sum, utxo) {
-                  return sum + utxo.value;
-                }, 0);
-
-                if (!(totalIn < prepareTx.total)) {
-                  _context16.next = 6;
-                  break;
-                }
-
-                throw _D2.default.error.balanceNotEnough;
-
-              case 6:
-                rawTx = {
-                  inputs: _D2.default.copy(prepareTx.utxos),
-                  outputs: _D2.default.copy(prepareTx.outputs),
-                  changePath: null
-                };
-                changeValue = totalIn - prepareTx.total;
-                changeAddressInfo = void 0;
-
-                if (!(changeValue !== 0)) {
-                  _context16.next = 15;
-                  break;
-                }
-
-                _context16.next = 12;
-                return this._checkAddressIndexAndGenerateNew();
-
-              case 12:
-                changeAddressInfo = this.addressInfos.find(function (addressInfo) {
-                  return addressInfo.type === _D2.default.address.change && addressInfo.index === _this8.changePublicKeyIndex;
-                });
-                rawTx.outputs.push({ address: changeAddressInfo.address, value: changeValue });
-                rawTx.changePath = changeAddressInfo.path;
-
-              case 15:
-
-                console.log('presign tx', rawTx);
-                _context16.next = 18;
-                return this._device.signTransaction(this.coinType, rawTx);
-
-              case 18:
-                signedTx = _context16.sent;
-                txInfo = {
-                  accountId: this.accountId,
-                  coinType: this.coinType,
-                  txId: signedTx.id,
-                  version: 1,
-                  blockNumber: -1,
-                  confirmations: -1,
-                  time: new Date().getTime(),
-                  direction: _D2.default.tx.direction.out,
-                  value: '-' + prepareTx.total.toString(),
-                  fee: prepareTx.fee.toString(),
-                  showAddresses: prepareTx.outputs.map(function (output) {
-                    return output.address;
-                  }),
-                  inputs: prepareTx.utxos.map(function (utxo) {
-                    return {
-                      prevAddress: utxo.address,
-                      prevTxId: utxo.txId,
-                      prevOutIndex: utxo.index,
-                      prevOutScript: utxo.script,
-                      isMine: true,
-                      value: utxo.value
-                    };
-                  }),
-                  outputs: rawTx.outputs.map(function (output, index) {
-                    return {
-                      address: output.address,
-                      isMine: output.address === (changeAddressInfo && changeAddressInfo.address),
-                      index: index,
-                      script: _D2.default.address.makeOutputScript(output.address),
-                      value: output.value
-                    };
-                  }),
-                  comment: prepareTx.comment
-
-                  // update utxo spent status from unspent to spent pending
-                };
-                prepareTx.utxos.forEach(function (utxo) {
-                  utxo.status = _D2.default.utxo.status.spent_pending;
-                });
-
-                // add change utxo if exist
-                if (changeValue !== 0) {
-                  changeOutput = txInfo.outputs[txInfo.outputs.length - 1];
-                  changeAddressBuffer = _D2.default.address.toBuffer(changeAddressInfo.address);
-                  changeUtxo = {
-                    accountId: this.accountId,
-                    coinType: this.coinType,
-                    address: changeOutput.address,
-                    path: changeAddressInfo.path,
-                    txId: txInfo.txId,
-                    index: txInfo.outputs.length - 1,
-                    value: changeValue,
-                    status: _D2.default.utxo.status.unspent_pending,
-                    // P2PKH script
-                    script: '76a914' + changeAddressBuffer.toString('hex') + '88ac'
-                  };
-
-                  prepareTx.utxos.push(changeUtxo);
-                }
-
-                return _context16.abrupt('return', {
-                  txInfo: txInfo,
-                  hex: signedTx.hex,
-                  oldTxInfo: prepareTx.oldTxInfo
-                });
-
-              case 23:
-              case 'end':
-                return _context16.stop();
-            }
-          }
-        }, _callee16, this);
-      }));
-
-      function buildTx(_x23) {
-        return _ref16.apply(this, arguments);
-      }
-
-      return buildTx;
-    }()
-
-    /**
-     * broadcast transaction to btcNetwork
-     * @param signedTx
-     * @param test won't broadcast to btcNetwork if true
-     * @see signedTx
-     */
-
-  }, {
-    key: 'sendTx',
-    value: function () {
-      var _ref17 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee17(signedTx) {
-        var test = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
-        return regeneratorRuntime.wrap(function _callee17$(_context17) {
-          while (1) {
-            switch (_context17.prev = _context17.next) {
-              case 0:
-                // broadcast transaction to network
-                console.log('sendTx', signedTx);
-
-                if (test) {
-                  _context17.next = 4;
-                  break;
-                }
-
-                _context17.next = 4;
-                return this._coinData.sendTx(this._toAccountInfo(), signedTx.hex);
-
-              case 4:
-                if (!signedTx.oldTxInfo) {
-                  _context17.next = 7;
-                  break;
-                }
-
-                _context17.next = 7;
-                return this._handleRemovedTx(signedTx.oldTxInfo.txId);
-
-              case 7:
-                _context17.next = 9;
-                return this._handleNewTx(signedTx.txInfo);
-
-              case 9:
-              case 'end':
-                return _context17.stop();
-            }
-          }
-        }, _callee17, this);
-      }));
-
-      function sendTx(_x25) {
-        return _ref17.apply(this, arguments);
-      }
-
-      return sendTx;
-    }()
-  }]);
-
-  return BtcAccount;
-}();
-
-exports.default = BtcAccount;
-
-/***/ }),
-
-/***/ "./src/sdk/BtcCoinSelect.js":
-/*!**********************************!*\
-  !*** ./src/sdk/BtcCoinSelect.js ***!
-  \**********************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _D = __webpack_require__(/*! ./D */ "./src/sdk/D.js");
-
-var _D2 = _interopRequireDefault(_D);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-/**
- * device has limit of apdu data length = 2k, support up to 45 inputs + 2 outputs
- * we set a algorithm here:
- * 1. follow bnb algorithm:
- *    https://github.com/bitcoin/bitcoin/blob/6f5372a1714383bb5e47a5ba89dc4d93020a2943/src/wallet/coinselection.cpp
- * 2. if tx length exceed the limit, recalculate utxos and use utxos as few as possible
- * 3. if tx length exceed the limit with the least utxos, and return an warning field
- */
-function selectCoinSet(utxos, presetUtxos, outputs, feeRate, sendAll) {
-  var maxApduDataLength = 2000;
-  var calculateApduLength = function calculateApduLength(utxos, outputSize) {
-    // const of apdu with change output
-    var apduDataHead = 47;
-    var constTxField = 14;
-    var maxToBeSignedOutputScriptLength = utxos.reduce(function (max, utxo) {
-      return Math.max(max, utxo.script.length / 2);
-    }, 0);
-    return apduDataHead + constTxField + utxos.length * 41 + (outputSize + 1) * 34 + maxToBeSignedOutputScriptLength;
-  };
-
-  var proposalBnb = void 0;
-  if (!sendAll) {
-    proposalBnb = _coinSelectBnb(utxos, presetUtxos, outputs, feeRate, sendAll);
-  }
-  if (proposalBnb) {
-    var apduDataLength = calculateApduLength(proposalBnb.willSpentUtxos, outputs.length);
-    if (apduDataLength <= maxApduDataLength) {
-      return proposalBnb;
-    }
-  }
-
-  // recalculate utxos and use utxos as few as possible
-  utxos = utxos.sort(function (a, b) {
-    return b.value - a.value;
-  }); // sort max => min
-  var proposalClassic = _coinSelectClassic(utxos, presetUtxos, outputs, feeRate, sendAll);
-  if (calculateApduLength(proposalClassic.willSpentUtxos, outputs.length) <= maxApduDataLength) {
-    return proposalClassic;
-  }
-
-  // with limit of apdu data = 2k
-  // and outputscript that going to spent using p2pkh,
-  // and output.length = 2, then maxInputSize = 45
-  var maxInputSize = 45;
-  while (calculateApduLength(utxos.slice(0, maxInputSize), outputs.length) > maxApduDataLength) {
-    maxInputSize--;
-  }
-  if (maxInputSize <= 0) {
-    console.warn('too many outputs that no space for inputs in apdu');
-    throw _D2.default.error.tooManyOutputs;
-  }
-
-  utxos = utxos.slice(0, maxInputSize);
-  outputs.forEach(function (output) {
-    return output.value = 0;
-  });
-  var proposalLimit = _coinSelectClassic(utxos, presetUtxos, outputs, feeRate, true);
-  proposalLimit.deviceLimit = true;
-  return proposalLimit;
-}
-
-// calculate tx length using compressed public key size
-function calculateFee(utxos, outputs, feeRate, needChange) {
-  var totalOut = outputs.reduce(function (sum, output) {
-    return output.value + sum;
-  }, 0);
-  var totalUtxos = utxos.reduce(function (sum, utxo) {
-    return utxo.value + sum;
-  }, 0);
-
-  // input length range = [147, 148], use larger one here
-  var txLength = 10 + 148 * utxos.length + 34 * outputs.length;
-  var fee = txLength * feeRate;
-  var changeValue = totalUtxos - totalOut - fee;
-
-  if (changeValue >= 0 && changeValue <= 34 * feeRate) {
-    // in this case, it's unnecessary for a change which is too small
-    fee += changeValue;
-    return fee;
-  }
-  if (needChange) {
-    // add fee for change utxo length
-    fee += 34 * feeRate;
-  }
-  return fee;
-}
-
-function _coinSelectBnb(utxos, presetUtxos, outputs, feeRate, sendAll) {
-  // TODO implement bnb algorithm
-
-  // this simple algorithm will use utxo as much as possible
-  // to reduce utxo amount when utxos.length >= 20
-  if (utxos.length <= 20) {
-    return null;
-  }
-  utxos = utxos.sort(function (a, b) {
-    return a.value - b.value;
-  }); // sort min => max
-  try {
-    return _coinSelectClassic(utxos, presetUtxos, outputs, feeRate, sendAll);
-  } catch (e) {
-    console.warn('_coinSelectBnb', e);
-    return null;
-  }
-}
-
-function _coinSelectClassic(utxos, presetUtxos, outputs, feeRate, sendAll) {
-  var totalOut = outputs.reduce(function (sum, output) {
-    return output.value + sum;
-  }, 0);
-  var totalAvailable = utxos.reduce(function (sum, utxo) {
-    return utxo.value + sum;
-  }, 0) + presetUtxos.reduce(function (sum, utxo) {
-    return utxo.value + sum;
-  }, 0);
-
-  var fee = 0;
-  while (true) {
-    if (totalAvailable < fee + totalOut) throw _D2.default.error.balanceNotEnough;
-
-    // noinspection JSUnresolvedVariable
-
-    var _getEnoughUtxo2 = _getEnoughUtxo(utxos, presetUtxos, totalOut + fee, sendAll),
-        totalUtxo = _getEnoughUtxo2.totalUtxo,
-        willSpentUtxos = _getEnoughUtxo2.willSpentUtxos;
-    // new fee calculated
-
-
-    fee = calculateFee(willSpentUtxos, outputs, feeRate, !sendAll);
-    if (totalUtxo >= totalOut + fee) {
-      return { willSpentUtxos: willSpentUtxos, fee: fee };
-    }
-    // new fee + total out is larger than new total, calculate again
-  }
-}
-
-function _getEnoughUtxo(utxos, presetUtxos, total, sendAll) {
-  var willSpentUtxos = Array.from(presetUtxos);
-  var totalUtxo = willSpentUtxos.reduce(function (sum, utxo) {
-    return utxo.value + sum;
-  }, 0);
-
-  var _iteratorNormalCompletion = true;
-  var _didIteratorError = false;
-  var _iteratorError = undefined;
-
-  try {
-    for (var _iterator = utxos[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-      var utxo = _step.value;
-
-      if (!sendAll && totalUtxo >= total) {
-        break;
-      }
-      totalUtxo += utxo.value;
-      willSpentUtxos.push(utxo);
-    }
-  } catch (err) {
-    _didIteratorError = true;
-    _iteratorError = err;
-  } finally {
-    try {
-      if (!_iteratorNormalCompletion && _iterator.return) {
-        _iterator.return();
-      }
-    } finally {
-      if (_didIteratorError) {
-        throw _iteratorError;
-      }
-    }
-  }
-
-  if (!sendAll && totalUtxo < total) {
-    throw _D2.default.error.balanceNotEnough;
-  }
-  return { totalUtxo: totalUtxo, willSpentUtxos: willSpentUtxos };
-}
-
-exports.default = {
-  selectCoinSet: selectCoinSet
-};
+/***/ "./package.json":
+/*!**********************!*\
+  !*** ./package.json ***!
+  \**********************/
+/*! exports provided: name, version, description, main, directories, devDependencies, scripts, repository, keywords, author, license, dependencies, default */
+/***/ (function(module) {
+
+module.exports = {"name":"esecubit-wallet-sdk","version":"0.5.0","description":"SDK for EsecuBit wallet.","main":"index.js","directories":{"test":"test"},"devDependencies":{"babel-core":"^6.26.3","babel-loader":"^7.1.4","babel-plugin-add-module-exports":"^0.2.1","babel-polyfill":"^6.26.0","babel-preset-env":"^1.7.0","babel-preset-es2015":"^6.24.1","babel-preset-stage-0":"^6.24.1","babelify":"^8.0.0","chai":"^4.1.2","css-loader":"^0.28.11","eslint":"^4.19.1","eslint-config-standard":"^11.0.0","eslint-friendly-formatter":"^4.0.1","eslint-loader":"^2.0.0","eslint-plugin-import":"^2.13.0","eslint-plugin-node":"^6.0.1","eslint-plugin-promise":"^3.8.0","eslint-plugin-standard":"^3.1.0","eslint-plugin-vue":"^4.0.0","mini-css-extract-plugin":"^0.4.0","mocha":"^5.2.0","style-loader":"^0.21.0","uglifyjs-webpack-plugin":"^1.2.6","webpack":"^4.12.1","webpack-cli":"^2.1.5","webpack-dev-server":"^3.1.4"},"scripts":{"test":"echo \"Error: no test specified\" && exit 1","start":"npm run server","dev":"npm run server","build":"npx webpack --config build/webpack.config.chrome.sdk.js","server":"npx webpack-dev-server --progress --open --config build/webpack.config.dev.js","watch":"npx webpack --progress --watch --config build/webpack.config.chrome.app.js"},"repository":{"type":"git","url":"https://github.com/EsecuBit/EsecuBit-wallet-sdk"},"keywords":[],"author":"EsecuBit","license":"LGPLv3","dependencies":{"bech32":"^1.1.3","bigdecimal":"^0.6.1","bigi":"^1.4.2","bitcoinjs-lib":"^3.3.2","bitpony":"0.0.1","bs58":"^4.0.1","bs58check":"^2.1.1","buffer":"^5.1.0","bytebuffer":"^5.0.1","create-hash":"^1.2.0","create-hmac":"^1.1.7","crypto-js":"^3.1.9-1","ecurve":"^1.0.6","keccak":"^1.4.0","rlp":"^2.0.0"}};
 
 /***/ }),
 
@@ -43793,6 +47067,10 @@ var _bs58check = __webpack_require__(/*! bs58check */ "./node_modules/bs58check/
 
 var _bs58check2 = _interopRequireDefault(_bs58check);
 
+var _bitcoinjsLib = __webpack_require__(/*! bitcoinjs-lib */ "./node_modules/bitcoinjs-lib/src/index.js");
+
+var _bitcoinjsLib2 = _interopRequireDefault(_bitcoinjsLib);
+
 var _keccak = __webpack_require__(/*! keccak */ "./node_modules/keccak/js.js");
 
 var _keccak2 = _interopRequireDefault(_keccak);
@@ -43806,6 +47084,8 @@ var _bech2 = _interopRequireDefault(_bech);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var D = {
+  sdkVersion: __webpack_require__(/*! ../../package.json */ "./package.json").version,
+
   // wallet status
   status: {
     plugIn: 1,
@@ -43836,6 +47116,9 @@ var D = {
     fatOutOfRange: 122,
     fatInvalidFile: 123,
     fatOutOfSpace: 124,
+    fatFileNotExists: 125,
+    fatInvalidFileData: 126,
+    fatWalletIdNotMatch: 127,
 
     databaseOpenFailed: 201,
     databaseExecFailed: 202,
@@ -43853,6 +47136,10 @@ var D = {
     networkGasTooLow: 408,
     networkGasPriceTooLow: 409,
 
+    networkEosTokenNotFound: 450,
+    networkEosTxExpired: 451,
+    networkEosUnsatisfiedAuth: 452,
+
     balanceNotEnough: 501,
     tooManyOutputs: 502,
 
@@ -43862,6 +47149,8 @@ var D = {
     valueIsDecimal: 604, // value has decimal
     invalidDataNotHex: 605, // data is not 0-9 a-f A-F string
     valueIsNotDecimal: 606, // value is not 0-9 string
+    invalidParams: 607,
+    permissionNotFound: 608, // for eos
 
     offlineModeNotAllowed: 701, // no device ever connected before
     offlineModeUnnecessary: 702, // device has connected
@@ -43887,12 +47176,68 @@ var D = {
   coin: {
     main: {
       btc: 'btc',
-      eth: 'eth'
+      eth: 'eth',
+      eos: 'eos'
     },
     test: {
       btcTestNet3: 'btc_testnet3',
       ethRinkeby: 'eth_rinkeby',
-      ethRopsten: 'eth_ropsten'
+      ethRopsten: 'eth_ropsten',
+      eosJungle: 'eos_jungle',
+      eosKylin: 'eos_kylin',
+      eosSys: 'eos_sys'
+    },
+
+    params: {
+      btc: {
+        getNetwork: function getNetwork(coinType) {
+          switch (coinType) {
+            case D.coin.main.btc:
+              return _bitcoinjsLib2.default.networks.bitcoin;
+            case D.coin.test.btcTestNet3:
+              return _bitcoinjsLib2.default.networks.testnet;
+          }
+        }
+      },
+
+      eth: {
+        getChainId: function getChainId(coinType) {
+          switch (coinType) {
+            case D.coin.main.eth:
+              return 1;
+            case D.coin.test.ethRopsten:
+              return 3;
+            case D.coin.test.ethRinkeby:
+              return 4;
+            default:
+              throw D.error.coinNotSupported;
+          }
+        }
+      },
+
+      eos: {
+        chainId: {
+          main: Buffer.from('aca376f206b8fc25a6ed44dbdc66547c36c6c33e3a119ffbeaef943642f0e906', 'hex'), // main network
+          jungle: Buffer.from('038f4b0fc8ff18a4f0842a8f0564611f6e96e8535901dd45e43ac8691a1c4dca', 'hex'), // jungle testnet
+          sys: Buffer.from('cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f', 'hex'), // local developer
+          kylin: Buffer.from('5fff1dae8dc8e2fc4d5b23b2c7665c97f9e9d8edf2b6485a86ba311c25639191', 'hex') // kylin testnet
+        },
+
+        getChainId: function getChainId(coinType) {
+          switch (coinType) {
+            case D.coin.main.eos:
+              return D.coin.params.eos.chainId.main;
+            case D.coin.test.eosJungle:
+              return D.coin.params.eos.chainId.jungle;
+            case D.coin.test.eosKylin:
+              return D.coin.params.eos.chainId.kylin;
+            case D.coin.test.eosSys:
+              return D.coin.params.eos.chainId.sys;
+            default:
+              throw D.error.coinNotSupported;
+          }
+        }
+      }
     }
   },
 
@@ -43905,36 +47250,29 @@ var D = {
     p2wsh: 'p2wsh',
     p2pk: 'p2pk',
 
+    checkAddress: function checkAddress(coinType, address) {
+      if (D.isBtc(coinType)) {
+        return D.address.checkBtcAddress(address);
+      } else if (D.isEth(coinType)) {
+        return D.address.checkEthAddress(address);
+      } else if (D.isEos(coinType)) {
+        return D.address.checkEosAddress(address);
+      } else {
+        throw D.error.coinNotSupported;
+      }
+    },
+    checkEosAddress: function checkEosAddress() {
+      throw D.error.notImplemented;
+    },
     checkBtcAddress: function checkBtcAddress(address) {
       var buffer = void 0;
-
-      // segwit address, bech32 encoded
-      var decodedBech32 = void 0;
-      try {
-        decodedBech32 = _bech2.default.decode(address);
-      } catch (e) {
-        console.debug('address', address, 'is not bech32 encoded');
-      }
-      if (decodedBech32) {
-        if (D.test.coin && decodedBech32.prefix !== 'tb') throw D.error.invalidAddress;
-        if (!D.test.coin && decodedBech32.prefix !== 'bc') throw D.error.invalidAddress;
-        buffer = _bech2.default.fromWords(decodedBech32.words.slice(1));
-        if (buffer.length === 20) return D.address.p2pkh;
-        if (buffer.length === 32) return D.address.p2wsh;
-        console.info('address', address, 'is bech32 encoded but has invalid length');
-
-        // hardware wallet not support yet
-        if (!D.test.jsWallet) throw D.error.invalidAddress;
-      }
 
       // normal address, base58 encoded
       try {
         buffer = _bs58check2.default.decode(address);
       } catch (e) {
-        console.warn(e);
-        throw D.error.invalidAddress;
+        console.debug('address', address, 'is not base58 encoded');
       }
-      // address
       if (buffer.length === 21) {
         var network = buffer.readUInt8(0);
         switch (network) {
@@ -43958,6 +47296,7 @@ var D = {
             throw D.error.invalidAddress;
         }
       }
+
       // publickey
       if (buffer.length === 78) {
         var versionBytes = buffer.readUInt32BE(0);
@@ -43975,6 +47314,25 @@ var D = {
           default:
             throw D.error.invalidAddress;
         }
+      }
+
+      // segwit address, bech32 encoded
+      var decodedBech32 = void 0;
+      try {
+        decodedBech32 = _bech2.default.decode(address);
+      } catch (e) {
+        console.debug('address', address, 'is not bech32 encoded');
+      }
+      if (decodedBech32) {
+        if (D.test.coin && decodedBech32.prefix !== 'tb') throw D.error.invalidAddress;
+        if (!D.test.coin && decodedBech32.prefix !== 'bc') throw D.error.invalidAddress;
+        buffer = _bech2.default.fromWords(decodedBech32.words.slice(1));
+        if (buffer.length === 20) return D.address.p2pkh;
+        if (buffer.length === 32) return D.address.p2wsh;
+        console.info('address', address, 'is bech32 encoded but has invalid length');
+
+        // hardware wallet not support yet
+        if (!D.test.jsWallet) throw D.error.invalidAddress;
       }
       throw D.error.invalidAddress;
     },
@@ -44161,7 +47519,9 @@ var D = {
     confirmation: {
       dropped: -2,
       pending: -1,
-      inMemory: 0
+      inMemory: 0,
+      waiting: 0, // for eos
+      excuted: 1 // for eos
     },
 
     getMatureConfirms: function getMatureConfirms(coinType) {
@@ -44217,11 +47577,15 @@ var D = {
   isEth: function isEth(coinType) {
     return coinType.includes('eth');
   },
+  isEos: function isEos(coinType) {
+    return coinType.includes('eos');
+  },
   suppertedLegals: function suppertedLegals() {
     return Object.values(this.unit.legal);
   },
   supportedCoinTypes: function supportedCoinTypes() {
-    return D.test.coin ? [D.coin.test.btcTestNet3, D.coin.test.ethRinkeby] : [D.coin.main.btc, D.coin.main.eth];
+    // TODO recover, S300 not support ETH yet
+    return D.test.coin ? [D.coin.test.btcTestNet3] : [D.coin.main.btc];
   },
   recoverCoinTypes: function recoverCoinTypes() {
     return D.supportedCoinTypes();
@@ -44373,15 +47737,16 @@ var D = {
    * @param object
    */
   copy: function copy(object) {
+    if (object === undefined) return object;
+    if (object === null) return object;
     return JSON.parse(JSON.stringify(object));
   },
 
 
   test: {
     coin: false,
-    data: false,
     jsWallet: false,
-    sync: false,
+    mockTransmitter: false,
     mockDevice: false,
 
     generateSeed: function generateSeed() {
@@ -44418,21 +47783,21 @@ var _CoinData = __webpack_require__(/*! ./data/CoinData */ "./src/sdk/data/CoinD
 
 var _CoinData2 = _interopRequireDefault(_CoinData);
 
-var _BtcAccount = __webpack_require__(/*! ./BtcAccount */ "./src/sdk/BtcAccount.js");
+var _BtcAccount = __webpack_require__(/*! ./account/BtcAccount */ "./src/sdk/account/BtcAccount.js");
 
 var _BtcAccount2 = _interopRequireDefault(_BtcAccount);
 
-var _EthAccount = __webpack_require__(/*! ./EthAccount */ "./src/sdk/EthAccount.js");
+var _EthAccount = __webpack_require__(/*! ./account/EthAccount */ "./src/sdk/account/EthAccount.js");
 
 var _EthAccount2 = _interopRequireDefault(_EthAccount);
-
-var _Provider = __webpack_require__(/*! ./Provider */ "./src/sdk/Provider.js");
-
-var _Provider2 = _interopRequireDefault(_Provider);
 
 var _Settings = __webpack_require__(/*! ./Settings */ "./src/sdk/Settings.js");
 
 var _Settings2 = _interopRequireDefault(_Settings);
+
+var _CoreWallet = __webpack_require__(/*! ./device/CoreWallet */ "./src/sdk/device/CoreWallet.js");
+
+var _CoreWallet2 = _interopRequireDefault(_CoreWallet);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -44440,19 +47805,22 @@ function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, a
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
+/**
+ * Main entry of SDK, singleton. Object to manage wallet operation and wallet data.
+ */
 var EsWallet = function () {
   _createClass(EsWallet, null, [{
     key: 'supportedCoinTypes',
 
     /**
-     * get supported coin types
+     * Get supported coin types.
      */
     value: function supportedCoinTypes() {
       return _D2.default.supportedCoinTypes();
     }
 
     /**
-     * get supported legal currency types
+     * Get supported legal currency types.
      */
 
   }, {
@@ -44475,10 +47843,11 @@ var EsWallet = function () {
     this._settings = new _Settings2.default();
     this._info = {};
     this._esAccounts = [];
-    this._device = _D2.default.test.jsWallet ? new _Provider2.default.SoftWallet() : new _Provider2.default.HardWallet();
     this._coinData = new _CoinData2.default();
     this._status = _D2.default.status.plugOut;
     this._callback = null;
+
+    this._device = new _CoreWallet2.default();
     this._device.listenPlug(function () {
       var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(error, plugStatus) {
         var newInfo;
@@ -44679,73 +48048,58 @@ var EsWallet = function () {
       var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
         var _this2 = this;
 
-        var testSeed, info, lastWalletId, accounts;
+        var info, lastWalletId, accounts;
         return regeneratorRuntime.wrap(function _callee3$(_context3) {
           while (1) {
             switch (_context3.prev = _context3.next) {
               case 0:
                 this._esAccounts = [];
 
-                // testSeed for soft wallet
-                testSeed = void 0;
+                info = void 0;
 
-                if (!_D2.default.test.jsWallet) {
-                  _context3.next = 6;
+                if (this.offlineMode) {
+                  _context3.next = 10;
                   break;
                 }
 
                 _context3.next = 5;
-                return this.getTestSeed();
+                return this._device.init();
 
               case 5:
-                testSeed = _context3.sent;
-
-              case 6:
-                info = void 0;
-
-                if (this.offlineMode) {
-                  _context3.next = 15;
-                  break;
-                }
-
-                _context3.next = 10;
-                return this._device.init(testSeed);
-
-              case 10:
                 info = _context3.sent;
-                _context3.next = 13;
+                _context3.next = 8;
                 return this._settings.setSetting('lastWalletId', info.walletId);
 
-              case 13:
-                _context3.next = 21;
+              case 8:
+                _context3.next = 16;
                 break;
 
-              case 15:
-                _context3.next = 17;
+              case 10:
+                _context3.next = 12;
                 return this._settings.getSetting('lastWalletId');
 
-              case 17:
+              case 12:
                 lastWalletId = _context3.sent;
 
                 if (lastWalletId) {
-                  _context3.next = 20;
+                  _context3.next = 15;
                   break;
                 }
 
                 throw _D2.default.error.offlineModeNotAllowed;
 
-              case 20:
+              case 15:
                 info = { walletId: lastWalletId };
 
-              case 21:
-                _context3.next = 23;
+              case 16:
+                _context3.next = 18;
                 return this._coinData.init(info, this.offlineMode);
 
-              case 23:
-                _context3.next = 25;
+              case 18:
+                _context3.next = 20;
                 return this._coinData.getAccounts();
 
-              case 25:
+              case 20:
                 accounts = _context3.sent;
 
                 accounts = accounts.filter(function (account) {
@@ -44759,15 +48113,15 @@ var EsWallet = function () {
                   var esAccount = _D2.default.isEth(account.coinType) ? new _EthAccount2.default(account, _this2._device, _this2._coinData) : new _BtcAccount2.default(account, _this2._device, _this2._coinData);
                   _this2._esAccounts.push(esAccount);
                 });
-                _context3.next = 30;
+                _context3.next = 25;
                 return Promise.all(this._esAccounts.map(function (esAccount) {
                   return esAccount.init();
                 }));
 
-              case 30:
+              case 25:
                 return _context3.abrupt('return', info);
 
-              case 31:
+              case 26:
               case 'end':
                 return _context3.stop();
             }
@@ -44787,172 +48141,210 @@ var EsWallet = function () {
       var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4() {
         var _this3 = this;
 
-        var _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, coinType, _iteratorNormalCompletion2, _didIteratorError2, _iteratorError2, _iterator2, _step2, esAccount;
+        var recoveryFinish, _loop, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, esAccount, _iteratorNormalCompletion2, _didIteratorError2, _iteratorError2, _iterator2, _step2, coinType;
 
-        return regeneratorRuntime.wrap(function _callee4$(_context4) {
+        return regeneratorRuntime.wrap(function _callee4$(_context5) {
           while (1) {
-            switch (_context4.prev = _context4.next) {
+            switch (_context5.prev = _context5.next) {
               case 0:
-                if (!(this._esAccounts.length === 0)) {
-                  _context4.next = 67;
+                _context5.next = 2;
+                return Promise.all(this._esAccounts.map(function (esAccount) {
+                  return esAccount.sync(true, _this3.offlineMode);
+                }));
+
+              case 2:
+                _context5.next = 4;
+                return this._settings.getSetting('recoveryFinish', this._info.walletId);
+
+              case 4:
+                recoveryFinish = _context5.sent;
+
+                if (!(!recoveryFinish || this._esAccounts.length === 0)) {
+                  _context5.next = 72;
                   break;
                 }
 
                 if (!this.offlineMode) {
-                  _context4.next = 3;
+                  _context5.next = 8;
                   break;
                 }
 
                 throw _D2.default.error.offlineModeNotAllowed;
 
-              case 3:
-                console.log('no accounts, new wallet, start recovery');
-                _context4.prev = 4;
+              case 8:
+                console.log('start recovery', recoveryFinish, this._esAccounts.length);
+                _context5.prev = 9;
+                _loop = /*#__PURE__*/regeneratorRuntime.mark(function _loop(esAccount) {
+                  return regeneratorRuntime.wrap(function _loop$(_context4) {
+                    while (1) {
+                      switch (_context4.prev = _context4.next) {
+                        case 0:
+                          _context4.next = 2;
+                          return esAccount.getTxInfos();
 
-                // Here we can't use Promise.all() in recover, because data may be invalid when one
-                // of account occur errors, while other type of account is still running recover.
-                // In this case, deleting all account may failed because account which is still running
-                // may writing account data into database later. We don't have mechanism to make them stop.
+                        case 2:
+                          _context4.t0 = _context4.sent.total;
+
+                          if (!(_context4.t0 === 0)) {
+                            _context4.next = 8;
+                            break;
+                          }
+
+                          console.warn(esAccount.accountId, 'has no txInfo before recovery, delete it');
+                          _this3._esAccounts = _this3._esAccounts.filter(function (a) {
+                            return a !== esAccount;
+                          });
+                          _context4.next = 8;
+                          return esAccount.delete();
+
+                        case 8:
+                        case 'end':
+                          return _context4.stop();
+                      }
+                    }
+                  }, _loop, _this3);
+                });
+
+                // make sure no empty account before recover
+                // if last recovery is stopped unexcepted, we will have part of accounts
                 _iteratorNormalCompletion = true;
                 _didIteratorError = false;
                 _iteratorError = undefined;
-                _context4.prev = 8;
-                _iterator = _D2.default.recoverCoinTypes()[Symbol.iterator]();
+                _context5.prev = 14;
+                _iterator = this._esAccounts[Symbol.iterator]();
 
-              case 10:
+              case 16:
                 if (_iteratorNormalCompletion = (_step = _iterator.next()).done) {
-                  _context4.next = 17;
+                  _context5.next = 22;
                   break;
                 }
 
-                coinType = _step.value;
-                _context4.next = 14;
-                return this._recover(coinType);
-
-              case 14:
-                _iteratorNormalCompletion = true;
-                _context4.next = 10;
-                break;
-
-              case 17:
-                _context4.next = 23;
-                break;
+                esAccount = _step.value;
+                return _context5.delegateYield(_loop(esAccount), 't0', 19);
 
               case 19:
-                _context4.prev = 19;
-                _context4.t0 = _context4['catch'](8);
-                _didIteratorError = true;
-                _iteratorError = _context4.t0;
+                _iteratorNormalCompletion = true;
+                _context5.next = 16;
+                break;
 
-              case 23:
-                _context4.prev = 23;
-                _context4.prev = 24;
+              case 22:
+                _context5.next = 28;
+                break;
+
+              case 24:
+                _context5.prev = 24;
+                _context5.t1 = _context5['catch'](14);
+                _didIteratorError = true;
+                _iteratorError = _context5.t1;
+
+              case 28:
+                _context5.prev = 28;
+                _context5.prev = 29;
 
                 if (!_iteratorNormalCompletion && _iterator.return) {
                   _iterator.return();
                 }
 
-              case 26:
-                _context4.prev = 26;
+              case 31:
+                _context5.prev = 31;
 
                 if (!_didIteratorError) {
-                  _context4.next = 29;
+                  _context5.next = 34;
                   break;
                 }
 
                 throw _iteratorError;
 
-              case 29:
-                return _context4.finish(26);
+              case 34:
+                return _context5.finish(31);
 
-              case 30:
-                return _context4.finish(23);
+              case 35:
+                return _context5.finish(28);
 
-              case 31:
-                _context4.next = 65;
-                break;
+              case 36:
 
-              case 33:
-                _context4.prev = 33;
-                _context4.t1 = _context4['catch'](4);
-
-                console.warn('recover error', _context4.t1);
-                console.warn('recover account failed, deleting all accounts', this._esAccounts);
+                // Here we can't use Promise.all() in recover, because data may be invalid when one
+                // of account occur errors, while other type of account is still running recover.
+                // In this case, deleting all account may failed because account which is still running
+                // may writing account data into database later. We don't have mechanism to make them stop.
                 _iteratorNormalCompletion2 = true;
                 _didIteratorError2 = false;
                 _iteratorError2 = undefined;
-                _context4.prev = 40;
-                _iterator2 = this._esAccounts[Symbol.iterator]();
+                _context5.prev = 39;
+                _iterator2 = _D2.default.recoverCoinTypes()[Symbol.iterator]();
 
-              case 42:
+              case 41:
                 if (_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done) {
-                  _context4.next = 49;
+                  _context5.next = 48;
                   break;
                 }
 
-                esAccount = _step2.value;
-                _context4.next = 46;
-                return esAccount.delete();
+                coinType = _step2.value;
+                _context5.next = 45;
+                return this._recover(coinType);
 
-              case 46:
+              case 45:
                 _iteratorNormalCompletion2 = true;
-                _context4.next = 42;
+                _context5.next = 41;
                 break;
 
-              case 49:
-                _context4.next = 55;
+              case 48:
+                _context5.next = 54;
                 break;
 
-              case 51:
-                _context4.prev = 51;
-                _context4.t2 = _context4['catch'](40);
+              case 50:
+                _context5.prev = 50;
+                _context5.t2 = _context5['catch'](39);
                 _didIteratorError2 = true;
-                _iteratorError2 = _context4.t2;
+                _iteratorError2 = _context5.t2;
 
-              case 55:
-                _context4.prev = 55;
-                _context4.prev = 56;
+              case 54:
+                _context5.prev = 54;
+                _context5.prev = 55;
 
                 if (!_iteratorNormalCompletion2 && _iterator2.return) {
                   _iterator2.return();
                 }
 
-              case 58:
-                _context4.prev = 58;
+              case 57:
+                _context5.prev = 57;
 
                 if (!_didIteratorError2) {
-                  _context4.next = 61;
+                  _context5.next = 60;
                   break;
                 }
 
                 throw _iteratorError2;
 
+              case 60:
+                return _context5.finish(57);
+
               case 61:
-                return _context4.finish(58);
+                return _context5.finish(54);
 
               case 62:
-                return _context4.finish(55);
+                _context5.next = 64;
+                return this._settings.setSetting('recoveryFinish', true, this._info.walletId);
 
-              case 63:
-                this._esAccounts = [];
-                throw _context4.t1;
-
-              case 65:
-                _context4.next = 69;
+              case 64:
+                _context5.next = 72;
                 break;
 
-              case 67:
-                _context4.next = 69;
-                return Promise.all(this._esAccounts.map(function (esAccount) {
-                  return esAccount.sync(true, _this3.offlineMode);
-                }));
+              case 66:
+                _context5.prev = 66;
+                _context5.t3 = _context5['catch'](9);
 
-              case 69:
+                console.warn('recover error', _context5.t3);
+                console.warn('recover account failed, recoveryFinish = false, wait for recover next time', this._esAccounts);
+                this._esAccounts = [];
+                throw _context5.t3;
+
+              case 72:
               case 'end':
-                return _context4.stop();
+                return _context5.stop();
             }
           }
-        }, _callee4, this, [[4, 33], [8, 19, 23, 31], [24,, 26, 30], [40, 51, 55, 63], [56,, 58, 62]]);
+        }, _callee4, this, [[9, 66], [14, 24, 28, 36], [29,, 31, 35], [39, 50, 54, 62], [55,, 57, 61]]);
       }));
 
       function _sync() {
@@ -44967,42 +48359,42 @@ var EsWallet = function () {
       var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(coinType) {
         var _this4 = this;
 
-        var _loop, _ret;
+        var _loop2, _ret2;
 
-        return regeneratorRuntime.wrap(function _callee5$(_context6) {
+        return regeneratorRuntime.wrap(function _callee5$(_context7) {
           while (1) {
-            switch (_context6.prev = _context6.next) {
+            switch (_context7.prev = _context7.next) {
               case 0:
-                _loop = /*#__PURE__*/regeneratorRuntime.mark(function _loop() {
+                _loop2 = /*#__PURE__*/regeneratorRuntime.mark(function _loop2() {
                   var account, esAccount;
-                  return regeneratorRuntime.wrap(function _loop$(_context5) {
+                  return regeneratorRuntime.wrap(function _loop2$(_context6) {
                     while (1) {
-                      switch (_context5.prev = _context5.next) {
+                      switch (_context6.prev = _context6.next) {
                         case 0:
-                          _context5.next = 2;
+                          _context6.next = 2;
                           return _this4._coinData.newAccount(coinType);
 
                         case 2:
-                          account = _context5.sent;
+                          account = _context6.sent;
                           esAccount = void 0;
 
                           if (!_D2.default.isBtc(coinType)) {
-                            _context5.next = 8;
+                            _context6.next = 8;
                             break;
                           }
 
                           esAccount = new _BtcAccount2.default(account, _this4._device, _this4._coinData);
-                          _context5.next = 13;
+                          _context6.next = 13;
                           break;
 
                         case 8:
                           if (!_D2.default.isEth(coinType)) {
-                            _context5.next = 12;
+                            _context6.next = 12;
                             break;
                           }
 
                           esAccount = new _EthAccount2.default(account, _this4._device, _this4._coinData);
-                          _context5.next = 13;
+                          _context6.next = 13;
                           break;
 
                         case 12:
@@ -45011,27 +48403,27 @@ var EsWallet = function () {
                         case 13:
                           _this4._esAccounts.push(esAccount);
 
-                          _context5.next = 16;
+                          _context6.next = 16;
                           return esAccount.init();
 
                         case 16:
-                          _context5.next = 18;
+                          _context6.next = 18;
                           return esAccount.sync(true);
 
                         case 18:
-                          _context5.next = 20;
+                          _context6.next = 20;
                           return esAccount.getTxInfos();
 
                         case 20:
-                          _context5.t0 = _context5.sent.total;
+                          _context6.t0 = _context6.sent.total;
 
-                          if (!(_context5.t0 === 0)) {
-                            _context5.next = 31;
+                          if (!(_context6.t0 === 0)) {
+                            _context6.next = 31;
                             break;
                           }
 
                           if (!(esAccount.index !== 0)) {
-                            _context5.next = 29;
+                            _context6.next = 29;
                             break;
                           }
 
@@ -45039,49 +48431,49 @@ var EsWallet = function () {
                           _this4._esAccounts = _this4._esAccounts.filter(function (a) {
                             return a !== esAccount;
                           });
-                          _context5.next = 27;
+                          _context6.next = 27;
                           return esAccount.delete();
 
                         case 27:
-                          _context5.next = 30;
+                          _context6.next = 30;
                           break;
 
                         case 29:
                           console.log(esAccount.accountId, 'has no txInfo, but it is the first account, keep it');
 
                         case 30:
-                          return _context5.abrupt('return', 'break');
+                          return _context6.abrupt('return', 'break');
 
                         case 31:
                         case 'end':
-                          return _context5.stop();
+                          return _context6.stop();
                       }
                     }
-                  }, _loop, _this4);
+                  }, _loop2, _this4);
                 });
 
               case 1:
                 if (false) {}
 
-                return _context6.delegateYield(_loop(), 't0', 3);
+                return _context7.delegateYield(_loop2(), 't0', 3);
 
               case 3:
-                _ret = _context6.t0;
+                _ret2 = _context7.t0;
 
-                if (!(_ret === 'break')) {
-                  _context6.next = 6;
+                if (!(_ret2 === 'break')) {
+                  _context7.next = 6;
                   break;
                 }
 
-                return _context6.abrupt('break', 8);
+                return _context7.abrupt('break', 8);
 
               case 6:
-                _context6.next = 1;
+                _context7.next = 1;
                 break;
 
               case 8:
               case 'end':
-                return _context6.stop();
+                return _context7.stop();
             }
           }
         }, _callee5, this);
@@ -45182,9 +48574,9 @@ var EsWallet = function () {
     value: function () {
       var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6(filter) {
         var order;
-        return regeneratorRuntime.wrap(function _callee6$(_context7) {
+        return regeneratorRuntime.wrap(function _callee6$(_context8) {
           while (1) {
-            switch (_context7.prev = _context7.next) {
+            switch (_context8.prev = _context8.next) {
               case 0:
                 order = {};
 
@@ -45193,13 +48585,13 @@ var EsWallet = function () {
                 order[_D2.default.coin.test.btcTestNet3] = 100;
                 order[_D2.default.coin.test.ethRinkeby] = 101;
                 order[_D2.default.coin.test.ethRopsten] = 102;
-                return _context7.abrupt('return', this._esAccounts.sort(function (a, b) {
+                return _context8.abrupt('return', this._esAccounts.sort(function (a, b) {
                   return order[a.coinType] - order[b.coinType];
                 }));
 
               case 7:
               case 'end':
-                return _context7.stop();
+                return _context8.stop();
             }
           }
         }, _callee6, this);
@@ -45216,30 +48608,30 @@ var EsWallet = function () {
     value: function () {
       var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7(coinType) {
         var account, esAccount;
-        return regeneratorRuntime.wrap(function _callee7$(_context8) {
+        return regeneratorRuntime.wrap(function _callee7$(_context9) {
           while (1) {
-            switch (_context8.prev = _context8.next) {
+            switch (_context9.prev = _context9.next) {
               case 0:
-                _context8.next = 2;
+                _context9.next = 2;
                 return this._coinData.newAccount(coinType);
 
               case 2:
-                account = _context8.sent;
+                account = _context9.sent;
                 esAccount = _D2.default.isBtc(coinType) ? new _BtcAccount2.default(account, this._device, this._coinData) : new _EthAccount2.default(account, this._device, this._coinData);
-                _context8.next = 6;
+                _context9.next = 6;
                 return esAccount.init();
 
               case 6:
-                _context8.next = 8;
+                _context9.next = 8;
                 return esAccount.sync();
 
               case 8:
                 this._esAccounts.push(esAccount);
-                return _context8.abrupt('return', esAccount);
+                return _context9.abrupt('return', esAccount);
 
               case 10:
               case 'end':
-                return _context8.stop();
+                return _context9.stop();
             }
           }
         }, _callee7, this);
@@ -45257,32 +48649,32 @@ var EsWallet = function () {
       var _ref8 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8() {
         var availables, _iteratorNormalCompletion3, _didIteratorError3, _iteratorError3, _iterator3, _step3, coinType;
 
-        return regeneratorRuntime.wrap(function _callee8$(_context9) {
+        return regeneratorRuntime.wrap(function _callee8$(_context10) {
           while (1) {
-            switch (_context9.prev = _context9.next) {
+            switch (_context10.prev = _context10.next) {
               case 0:
                 availables = [];
                 _iteratorNormalCompletion3 = true;
                 _didIteratorError3 = false;
                 _iteratorError3 = undefined;
-                _context9.prev = 4;
+                _context10.prev = 4;
                 _iterator3 = _D2.default.supportedCoinTypes()[Symbol.iterator]();
 
               case 6:
                 if (_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done) {
-                  _context9.next = 16;
+                  _context10.next = 16;
                   break;
                 }
 
                 coinType = _step3.value;
-                _context9.next = 10;
+                _context10.next = 10;
                 return this._coinData._newAccountIndex(coinType);
 
               case 10:
-                _context9.t0 = _context9.sent;
+                _context10.t0 = _context10.sent;
 
-                if (!(_context9.t0 >= 0)) {
-                  _context9.next = 13;
+                if (!(_context10.t0 >= 0)) {
+                  _context10.next = 13;
                   break;
                 }
 
@@ -45290,49 +48682,49 @@ var EsWallet = function () {
 
               case 13:
                 _iteratorNormalCompletion3 = true;
-                _context9.next = 6;
+                _context10.next = 6;
                 break;
 
               case 16:
-                _context9.next = 22;
+                _context10.next = 22;
                 break;
 
               case 18:
-                _context9.prev = 18;
-                _context9.t1 = _context9['catch'](4);
+                _context10.prev = 18;
+                _context10.t1 = _context10['catch'](4);
                 _didIteratorError3 = true;
-                _iteratorError3 = _context9.t1;
+                _iteratorError3 = _context10.t1;
 
               case 22:
-                _context9.prev = 22;
-                _context9.prev = 23;
+                _context10.prev = 22;
+                _context10.prev = 23;
 
                 if (!_iteratorNormalCompletion3 && _iterator3.return) {
                   _iterator3.return();
                 }
 
               case 25:
-                _context9.prev = 25;
+                _context10.prev = 25;
 
                 if (!_didIteratorError3) {
-                  _context9.next = 28;
+                  _context10.next = 28;
                   break;
                 }
 
                 throw _iteratorError3;
 
               case 28:
-                return _context9.finish(25);
+                return _context10.finish(25);
 
               case 29:
-                return _context9.finish(22);
+                return _context10.finish(22);
 
               case 30:
-                return _context9.abrupt('return', availables);
+                return _context10.abrupt('return', availables);
 
               case 31:
               case 'end':
-                return _context9.stop();
+                return _context10.stop();
             }
           }
         }, _callee8, this, [[4, 18, 22, 30], [23,, 25, 29]]);
@@ -45365,1152 +48757,21 @@ var EsWallet = function () {
       return this._coinData.convertValue(coinType, value, fromUnit, toUnit);
     }
   }, {
-    key: 'setTestSeed',
-    value: function () {
-      var _ref9 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee9(testSeed) {
-        return regeneratorRuntime.wrap(function _callee9$(_context10) {
-          while (1) {
-            switch (_context10.prev = _context10.next) {
-              case 0:
-                _context10.next = 2;
-                return this._settings.setSetting('testSeed', testSeed);
-
-              case 2:
-              case 'end':
-                return _context10.stop();
-            }
-          }
-        }, _callee9, this);
-      }));
-
-      function setTestSeed(_x6) {
-        return _ref9.apply(this, arguments);
-      }
-
-      return setTestSeed;
-    }()
-  }, {
     key: 'getTestSeed',
-    value: function () {
-      var _ref10 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee10() {
-        var testSeed;
-        return regeneratorRuntime.wrap(function _callee10$(_context11) {
-          while (1) {
-            switch (_context11.prev = _context11.next) {
-              case 0:
-                if (!this.busy) {
-                  _context11.next = 5;
-                  break;
-                }
-
-                _context11.next = 3;
-                return _D2.default.wait(2);
-
-              case 3:
-                _context11.next = 0;
-                break;
-
-              case 5:
-                this.busy = true;
-
-                _context11.next = 8;
-                return this._settings.getSetting('testSeed');
-
-              case 8:
-                testSeed = _context11.sent;
-
-                if (testSeed) {
-                  _context11.next = 13;
-                  break;
-                }
-
-                testSeed = _D2.default.test.generateSeed();
-                _context11.next = 13;
-                return this.setTestSeed(testSeed);
-
-              case 13:
-
-                this.busy = false;
-                return _context11.abrupt('return', testSeed);
-
-              case 15:
-              case 'end':
-                return _context11.stop();
-            }
-          }
-        }, _callee10, this);
-      }));
-
-      function getTestSeed() {
-        return _ref10.apply(this, arguments);
-      }
-
-      return getTestSeed;
-    }()
+    value: function getTestSeed() {
+      return new _Settings2.default().getTestSeed();
+    }
+  }, {
+    key: 'setTestSeed',
+    value: function setTestSeed(testSeed) {
+      return new _Settings2.default().setTestSeed(testSeed);
+    }
   }]);
 
   return EsWallet;
 }();
 
 exports.default = EsWallet;
-
-/***/ }),
-
-/***/ "./src/sdk/EthAccount.js":
-/*!*******************************!*\
-  !*** ./src/sdk/EthAccount.js ***!
-  \*******************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _D = __webpack_require__(/*! ./D */ "./src/sdk/D.js");
-
-var _D2 = _interopRequireDefault(_D);
-
-var _bigi = __webpack_require__(/*! bigi */ "./node_modules/bigi/lib/index.js");
-
-var _bigi2 = _interopRequireDefault(_bigi);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var EthAccount = function () {
-  function EthAccount(info, device, coinData) {
-    var _this = this;
-
-    _classCallCheck(this, EthAccount);
-
-    var assign = function assign() {
-      _this.accountId = info.accountId;
-      _this.label = info.label;
-      _this.coinType = info.coinType;
-      _this.index = info.index;
-      _this.balance = info.balance;
-      _this.externalPublicKeyIndex = info.externalPublicKeyIndex;
-      _this.changePublicKeyIndex = info.changePublicKeyIndex;
-    };
-    assign();
-    this._device = device;
-    this._coinData = coinData;
-    this._listenedTxs = [];
-
-    this._txListener = function () {
-      var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(error, txInfo) {
-        var isLost = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
-        var index;
-        return regeneratorRuntime.wrap(function _callee$(_context) {
-          while (1) {
-            switch (_context.prev = _context.next) {
-              case 0:
-                if (!(error !== _D2.default.error.succeed)) {
-                  _context.next = 3;
-                  break;
-                }
-
-                console.warn('EthAccount txListener', error);
-                return _context.abrupt('return');
-
-              case 3:
-                console.log('newTransaction status', txInfo);
-
-                if (!isLost) {
-                  _context.next = 8;
-                  break;
-                }
-
-                _context.next = 7;
-                return _this._handleRemovedTx(_this.addressInfos[0], txInfo.txId);
-
-              case 7:
-                return _context.abrupt('return');
-
-              case 8:
-                index = _this.txInfos.findIndex(function (t) {
-                  return t.txId === txInfo.txId;
-                });
-
-                if (index === -1) {
-                  console.warn('this should not happen, add it');
-                  _this.txInfos.push(txInfo);
-                  index = _this.txInfos.length - 1;
-                } else {
-                  // only update comfirmations, because txInfo may contains old gas(gasLimit, not gasUsed)
-                  _this.txInfos[index].confirmations = txInfo.confirmations;
-                }
-                _context.next = 12;
-                return _this._handleNewTx(_this.addressInfos[0], _this.txInfos[index]);
-
-              case 12:
-              case 'end':
-                return _context.stop();
-            }
-          }
-        }, _callee, _this);
-      }));
-
-      return function (_x2, _x3) {
-        return _ref.apply(this, arguments);
-      };
-    }();
-
-    this._addressListener = function () {
-      var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(error, addressInfo, txInfo, removedTxId) {
-        return regeneratorRuntime.wrap(function _callee2$(_context2) {
-          while (1) {
-            switch (_context2.prev = _context2.next) {
-              case 0:
-                if (!(error !== _D2.default.error.succeed)) {
-                  _context2.next = 3;
-                  break;
-                }
-
-                console.warn('EthAccount addressListener', error);
-                return _context2.abrupt('return');
-
-              case 3:
-                if (!removedTxId) {
-                  _context2.next = 7;
-                  break;
-                }
-
-                _context2.next = 6;
-                return _this._handleRemovedTx(addressInfo, removedTxId);
-
-              case 6:
-                return _context2.abrupt('return');
-
-              case 7:
-                _context2.next = 9;
-                return _this._handleNewTx(addressInfo, txInfo);
-
-              case 9:
-              case 'end':
-                return _context2.stop();
-            }
-          }
-        }, _callee2, _this);
-      }));
-
-      return function (_x4, _x5, _x6, _x7) {
-        return _ref2.apply(this, arguments);
-      };
-    }();
-  }
-
-  _createClass(EthAccount, [{
-    key: 'init',
-    value: function () {
-      var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
-        var accountId;
-        return regeneratorRuntime.wrap(function _callee3$(_context3) {
-          while (1) {
-            switch (_context3.prev = _context3.next) {
-              case 0:
-                accountId = this.accountId;
-                _context3.next = 3;
-                return this._coinData.getAddressInfos({ accountId: accountId });
-
-              case 3:
-                this.addressInfos = _context3.sent;
-                _context3.next = 6;
-                return this._coinData.getTxInfos({ accountId: accountId });
-
-              case 6:
-                this.txInfos = _context3.sent.txInfos;
-
-              case 7:
-              case 'end':
-                return _context3.stop();
-            }
-          }
-        }, _callee3, this);
-      }));
-
-      function init() {
-        return _ref3.apply(this, arguments);
-      }
-
-      return init;
-    }()
-  }, {
-    key: 'sync',
-    value: function () {
-      var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4() {
-        var _this2 = this;
-
-        var firstSync = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
-        var offlineMode = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
-        var blobs;
-        return regeneratorRuntime.wrap(function _callee4$(_context4) {
-          while (1) {
-            switch (_context4.prev = _context4.next) {
-              case 0:
-                if (offlineMode) {
-                  _context4.next = 3;
-                  break;
-                }
-
-                _context4.next = 3;
-                return this._generateAddressIfNotExist();
-
-              case 3:
-                _context4.next = 5;
-                return this._coinData.checkAddresses(this.coinType, this.addressInfos);
-
-              case 5:
-                blobs = _context4.sent;
-                _context4.next = 8;
-                return Promise.all(blobs.map(function (blob) {
-                  if (blob.removedTxId) {
-                    return _this2._handleRemovedTx(blob.addressInfo, blob.removedTxId);
-                  } else {
-                    return _this2._handleNewTx(blob.addressInfo, blob.txInfo, blob.utxos);
-                  }
-                }));
-
-              case 8:
-
-                if (firstSync) {
-                  this._coinData.listenAddresses(this.coinType, _D2.default.copy(this.addressInfos), this._addressListener);
-                  this.txInfos.filter(function (txInfo) {
-                    return txInfo.confirmations !== _D2.default.tx.confirmation.dropped;
-                  }).filter(function (txInfo) {
-                    return txInfo.confirmations < _D2.default.tx.getMatureConfirms(_this2.coinType);
-                  }).filter(function (txInfo) {
-                    return !_this2._listenedTxs.includes(txInfo.txId);
-                  }).forEach(function (txInfo) {
-                    _this2._listenedTxs.push(txInfo.txId);
-                    _this2._coinData.listenTx(_this2.coinType, _D2.default.copy(txInfo), _this2._txListener);
-                  });
-                }
-
-              case 9:
-              case 'end':
-                return _context4.stop();
-            }
-          }
-        }, _callee4, this);
-      }));
-
-      function sync() {
-        return _ref4.apply(this, arguments);
-      }
-
-      return sync;
-    }()
-  }, {
-    key: 'delete',
-    value: function () {
-      var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5() {
-        return regeneratorRuntime.wrap(function _callee5$(_context5) {
-          while (1) {
-            switch (_context5.prev = _context5.next) {
-              case 0:
-                this._coinData.removeNetworkListener(this.coinType, this._txListener);
-                this._coinData.removeNetworkListener(this.coinType, this._addressListener);
-                _context5.next = 4;
-                return this._coinData.deleteAccount(this._toAccountInfo());
-
-              case 4:
-              case 'end':
-                return _context5.stop();
-            }
-          }
-        }, _callee5, this);
-      }));
-
-      function _delete() {
-        return _ref5.apply(this, arguments);
-      }
-
-      return _delete;
-    }()
-  }, {
-    key: 'rename',
-    value: function () {
-      var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6(newName) {
-        var oldAccountInfo;
-        return regeneratorRuntime.wrap(function _callee6$(_context6) {
-          while (1) {
-            switch (_context6.prev = _context6.next) {
-              case 0:
-                newName = newName || this.label;
-                oldAccountInfo = this._toAccountInfo();
-
-                oldAccountInfo.label = newName;
-                _context6.next = 5;
-                return this._coinData.renameAccount(oldAccountInfo);
-
-              case 5:
-                this.label = newName;
-
-              case 6:
-              case 'end':
-                return _context6.stop();
-            }
-          }
-        }, _callee6, this);
-      }));
-
-      function rename(_x10) {
-        return _ref6.apply(this, arguments);
-      }
-
-      return rename;
-    }()
-  }, {
-    key: 'updateTxComment',
-    value: function () {
-      var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7(txInfo) {
-        var oldTxInfo;
-        return regeneratorRuntime.wrap(function _callee7$(_context7) {
-          while (1) {
-            switch (_context7.prev = _context7.next) {
-              case 0:
-                oldTxInfo = this.txInfos.find(function (t) {
-                  return t.txId === txInfo.txId && t.accountId === txInfo.accountId;
-                });
-
-                if (oldTxInfo) {
-                  _context7.next = 4;
-                  break;
-                }
-
-                console.warn('this txInfo not in the list', txInfo);
-                throw _D2.default.error.unknown;
-
-              case 4:
-                _context7.next = 6;
-                return this._coinData.updateTxComment(txInfo);
-
-              case 6:
-                oldTxInfo.comment = txInfo.comment;
-
-              case 7:
-              case 'end':
-                return _context7.stop();
-            }
-          }
-        }, _callee7, this);
-      }));
-
-      function updateTxComment(_x11) {
-        return _ref7.apply(this, arguments);
-      }
-
-      return updateTxComment;
-    }()
-  }, {
-    key: '_generateAddressIfNotExist',
-    value: function () {
-      var _ref8 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8() {
-        var path, address, addressInfo;
-        return regeneratorRuntime.wrap(function _callee8$(_context8) {
-          while (1) {
-            switch (_context8.prev = _context8.next) {
-              case 0:
-                if (!(this.addressInfos.length === 0)) {
-                  _context8.next = 8;
-                  break;
-                }
-
-                path = _D2.default.makeBip44Path(this.coinType, this.index, _D2.default.address.external, 0);
-                _context8.next = 4;
-                return this._device.getAddress(this.coinType, path);
-
-              case 4:
-                address = _context8.sent;
-                addressInfo = {
-                  address: address,
-                  accountId: this.accountId,
-                  coinType: this.coinType,
-                  path: path,
-                  type: _D2.default.address.external,
-                  index: 0,
-                  txs: []
-                };
-
-                this.addressInfos.push(addressInfo);
-                this._coinData.newAddressInfos(this._toAccountInfo(), [addressInfo]);
-
-              case 8:
-              case 'end':
-                return _context8.stop();
-            }
-          }
-        }, _callee8, this);
-      }));
-
-      function _generateAddressIfNotExist() {
-        return _ref8.apply(this, arguments);
-      }
-
-      return _generateAddressIfNotExist;
-    }()
-  }, {
-    key: '_handleRemovedTx',
-    value: function () {
-      var _ref9 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee9(addressInfo, removedTxId) {
-        var removedTxInfo, newBalance;
-        return regeneratorRuntime.wrap(function _callee9$(_context9) {
-          while (1) {
-            switch (_context9.prev = _context9.next) {
-              case 0:
-                console.warn('eth removed txId', removedTxId);
-                // async operation may lead to disorder. so we need a simple lock
-
-              case 1:
-                if (!this.busy) {
-                  _context9.next = 6;
-                  break;
-                }
-
-                _context9.next = 4;
-                return _D2.default.wait(2);
-
-              case 4:
-                _context9.next = 1;
-                break;
-
-              case 6:
-                this.busy = true;
-
-                removedTxInfo = this.txInfos.find(function (txInfo) {
-                  return txInfo.txId === removedTxId;
-                });
-
-                if (removedTxInfo) {
-                  _context9.next = 11;
-                  break;
-                }
-
-                console.warn(this.accountId, 'removed txId not found', removedTxId);
-                return _context9.abrupt('return');
-
-              case 11:
-                console.log('eth removed txInfo', removedTxInfo);
-
-                removedTxInfo.confirmations = _D2.default.tx.confirmation.dropped;
-                this.addressInfos[0].txs = this.addressInfos[0].txs.filter(function (txId) {
-                  return txId !== removedTxId;
-                });
-
-                // can't use BigInteger.ZERO here, addTo, subTo will modify the value of BigInteger.ZERO
-                newBalance = new _bigi2.default();
-
-                newBalance.fromInt(0);
-                this.txInfos.filter(function (txInfo) {
-                  return txInfo.confirmations !== _D2.default.tx.confirmation.dropped;
-                }).forEach(function (txInfo) {
-                  newBalance.addTo(new _bigi2.default(txInfo.value), newBalance);
-                  if (txInfo.direction === _D2.default.tx.direction.out) {
-                    newBalance.subTo(new _bigi2.default(txInfo.fee), newBalance);
-                  }
-                });
-                this.balance = newBalance.toString(10);
-
-                _context9.next = 20;
-                return this._coinData.removeTx(this._toAccountInfo(), _D2.default.copy([this.addressInfos[0]]), _D2.default.copy(removedTxInfo));
-
-              case 20:
-                this.busy = false;
-
-              case 21:
-              case 'end':
-                return _context9.stop();
-            }
-          }
-        }, _callee9, this);
-      }));
-
-      function _handleRemovedTx(_x12, _x13) {
-        return _ref9.apply(this, arguments);
-      }
-
-      return _handleRemovedTx;
-    }()
-
-    /**
-     * handle when new transaction comes:
-     * 1. store/update new txInfo after filling "isMine" and "value" field
-     * 2. store utxo, addressInfo, txInfo
-     */
-
-  }, {
-    key: '_handleNewTx',
-    value: function () {
-      var _ref10 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee10(addressInfo, txInfo) {
-        var _this3 = this;
-
-        var input, index, newBalance;
-        return regeneratorRuntime.wrap(function _callee10$(_context10) {
-          while (1) {
-            switch (_context10.prev = _context10.next) {
-              case 0:
-                console.log('eth newTransaction', addressInfo, txInfo);
-                // async operation may lead to disorder. so we need a simple lock
-
-              case 1:
-                if (!this.busy) {
-                  _context10.next = 6;
-                  break;
-                }
-
-                _context10.next = 4;
-                return _D2.default.wait(2);
-
-              case 4:
-                _context10.next = 1;
-                break;
-
-              case 6:
-                this.busy = true;
-
-                txInfo = _D2.default.copy(txInfo);
-                addressInfo = _D2.default.copy(addressInfo);
-                txInfo.inputs.forEach(function (input) {
-                  input['isMine'] = _this3.addressInfos.some(function (a) {
-                    return a.address.toLowerCase() === input.prevAddress.toLowerCase();
-                  });
-                });
-                txInfo.outputs.forEach(function (output) {
-                  output['isMine'] = _this3.addressInfos.some(function (a) {
-                    return a.address.toLowerCase() === output.address.toLowerCase();
-                  });
-                });
-                input = txInfo.inputs.find(function (input) {
-                  return input.isMine;
-                });
-
-                txInfo.direction = input ? _D2.default.tx.direction.out : _D2.default.tx.direction.in;
-                txInfo.fee = new _bigi2.default(txInfo.gas).multiply(new _bigi2.default(txInfo.gasPrice)).toString(10);
-
-                txInfo.value = txInfo.inputs[0].value;
-                if (txInfo.direction === _D2.default.tx.direction.out) txInfo.value = '-' + input.value;
-
-                txInfo.showAddresses = txInfo.direction === _D2.default.tx.direction.in ? txInfo.inputs.filter(function (inputs) {
-                  return !inputs.isMine;
-                }).map(function (inputs) {
-                  return inputs.prevAddress;
-                }) : txInfo.outputs.filter(function (output) {
-                  return !output.isMine;
-                }).map(function (output) {
-                  return output.address;
-                });
-                if (txInfo.showAddresses.length === 0) {
-                  txInfo.value = '0';
-                  txInfo.showAddresses.push('self');
-                }
-
-                // update account info
-                index = this.txInfos.findIndex(function (t) {
-                  return t.txId === txInfo.txId;
-                });
-
-                if (index === -1) {
-                  txInfo.comment = '';
-                  this.txInfos.push(txInfo);
-                } else {
-                  txInfo.comment = this.txInfos[index].comment;
-                  this.txInfos[index] = txInfo;
-                }
-                this.addressInfos.find(function (a) {
-                  return a.address === addressInfo.address;
-                }).txs = _D2.default.copy(addressInfo.txs);
-
-                // can't use BigInteger.ZERO here, addTo, subTo will modify the value of BigInteger.ZERO
-                newBalance = new _bigi2.default();
-
-                newBalance.fromInt(0);
-                this.txInfos.filter(function (txInfo) {
-                  return txInfo.confirmations !== _D2.default.tx.confirmation.dropped;
-                }).forEach(function (txInfo) {
-                  newBalance.addTo(new _bigi2.default(txInfo.value), newBalance);
-                  if (txInfo.direction === _D2.default.tx.direction.out) {
-                    newBalance.subTo(new _bigi2.default(txInfo.fee), newBalance);
-                  }
-                });
-                this.balance = newBalance.toString(10);
-
-                _context10.next = 27;
-                return this._coinData.newTx(this._toAccountInfo(), _D2.default.copy([addressInfo]), _D2.default.copy(txInfo), []);
-
-              case 27:
-
-                if (txInfo.confirmations !== _D2.default.tx.confirmation.dropped && txInfo.confirmations < _D2.default.tx.getMatureConfirms(this.coinType) && !this._listenedTxs.some(function (tx) {
-                  return tx === txInfo.txId;
-                })) {
-                  this._listenedTxs.push(txInfo.txId);
-                  this._coinData.listenTx(this.coinType, _D2.default.copy(txInfo), this._txListener);
-                }
-
-                this.busy = false;
-
-              case 29:
-              case 'end':
-                return _context10.stop();
-            }
-          }
-        }, _callee10, this);
-      }));
-
-      function _handleNewTx(_x14, _x15) {
-        return _ref10.apply(this, arguments);
-      }
-
-      return _handleNewTx;
-    }()
-  }, {
-    key: '_toAccountInfo',
-    value: function _toAccountInfo() {
-      return {
-        accountId: this.accountId,
-        label: this.label,
-        coinType: this.coinType,
-        index: this.index,
-        balance: this.balance,
-        externalPublicKeyIndex: this.externalPublicKeyIndex,
-        changePublicKeyIndex: this.changePublicKeyIndex
-      };
-    }
-  }, {
-    key: 'getTxInfos',
-    value: function getTxInfos(startIndex, endIndex) {
-      var accountId = this.accountId;
-      return this._coinData.getTxInfos({ accountId: accountId, startIndex: startIndex, endIndex: endIndex });
-    }
-  }, {
-    key: 'getAddress',
-    value: function () {
-      var _ref11 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee11() {
-        var isStoring = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
-        var path, address, prefix;
-        return regeneratorRuntime.wrap(function _callee11$(_context11) {
-          while (1) {
-            switch (_context11.prev = _context11.next) {
-              case 0:
-                _context11.next = 2;
-                return this._generateAddressIfNotExist();
-
-              case 2:
-                path = _D2.default.makeBip44Path(this.coinType, this.index, _D2.default.address.external, 0);
-                _context11.next = 5;
-                return this._device.getAddress(this.coinType, path, true, isStoring);
-
-              case 5:
-                address = _context11.sent;
-
-                address = _D2.default.address.toEthChecksumAddress(address);
-                prefix = '';
-                return _context11.abrupt('return', { address: address, qrAddress: prefix + address });
-
-              case 9:
-              case 'end':
-                return _context11.stop();
-            }
-          }
-        }, _callee11, this);
-      }));
-
-      function getAddress() {
-        return _ref11.apply(this, arguments);
-      }
-
-      return getAddress;
-    }()
-  }, {
-    key: 'getSuggestedFee',
-    value: function getSuggestedFee() {
-      return this._coinData.getSuggestedFee(this.coinType).fee;
-    }
-
-    // noinspection JSMethodCanBeStatic
-
-  }, {
-    key: 'checkAddress',
-    value: function checkAddress(address) {
-      return _D2.default.address.checkEthAddress(address);
-    }
-
-    /**
-     *
-     * @param details
-     * {
-     *   sendAll: bool,
-     *   oldTxId: string, // resend only
-     *   output: {
-     *     address: hex string,
-     *     value: string (decimal string Wei)
-     *   }
-     *   gasPrice: string (=gasPrice, decimal string Wei),
-     *   gasLimit: string (decimal string Wei),
-     *   data: hex string (optional),
-     *   comment: string (optional)
-     * }
-     * @returns {Promise<{total: *, fee: number, gasPrice: string, gasLimit: string, nonce: number, input: *, output: *, data: string}>}
-     * {
-     *   total: string (decimal string Wei)
-     *   fee: string (decimal string Wei)
-     *   gasPrice: string (decimal string Wei)
-     *   gasLimit: string (decimal string Wei)
-     *   nonce: string
-     *   intput: addressInfo
-     *   output: {
-     *     address: hex string,
-     *     value: string (decimal string Wei)
-     *   }
-     *   data: hex string
-     * }
-     */
-
-  }, {
-    key: 'prepareTx',
-    value: function () {
-      var _ref12 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee12(details) {
-        var gasPrice, gasLimit, output, value, data, minGas, input, nonce, oldTxInfo, fee, balance, total, prepareTx;
-        return regeneratorRuntime.wrap(function _callee12$(_context12) {
-          while (1) {
-            switch (_context12.prev = _context12.next) {
-              case 0:
-                console.log('prepareTx details', details);
-
-                if (!(Number(details.gasPrice) === 0)) {
-                  _context12.next = 4;
-                  break;
-                }
-
-                console.warn('fee can not be 0');
-                throw _D2.default.error.networkFeeTooSmall;
-
-              case 4:
-                if (_D2.default.isEth(this.coinType)) {
-                  _context12.next = 6;
-                  break;
-                }
-
-                throw _D2.default.error.coinNotSupported;
-
-              case 6:
-                if (!_D2.default.isDecimal(details.gasLimit)) {
-                  _context12.next = 8;
-                  break;
-                }
-
-                throw _D2.default.error.valueIsDecimal;
-
-              case 8:
-                if (!_D2.default.isDecimal(details.gasPrice)) {
-                  _context12.next = 10;
-                  break;
-                }
-
-                throw _D2.default.error.valueIsDecimal;
-
-              case 10:
-                if (!_D2.default.isDecimal(details.output.value)) {
-                  _context12.next = 12;
-                  break;
-                }
-
-                throw _D2.default.error.valueIsDecimal;
-
-              case 12:
-                gasPrice = new _bigi2.default(details.gasPrice);
-                gasLimit = new _bigi2.default(details.gasLimit || '21000');
-                output = _D2.default.copy(details.output);
-                value = new _bigi2.default(output.value);
-
-                if (!details.data) {
-                  _context12.next = 25;
-                  break;
-                }
-
-                data = details.data;
-
-                if (data.startsWith('0x')) data = data.slice(2);
-                data = (data.length % 2 === 0 ? '' : '0') + data;
-
-                if (data.match(/^[0-9a-fA-F]*$/)) {
-                  _context12.next = 22;
-                  break;
-                }
-
-                throw _D2.default.error.invalidDataNotHex;
-
-              case 22:
-                details.data = '0x' + data;
-                _context12.next = 26;
-                break;
-
-              case 25:
-                details.data = '0x';
-
-              case 26:
-                minGas = 21000 + (details.data ? 68 * (details.data.length / 2 - 1) : 0);
-
-                if (!(minGas > gasLimit)) {
-                  _context12.next = 29;
-                  break;
-                }
-
-                throw _D2.default.error.networkGasTooLow;
-
-              case 29:
-                input = _D2.default.copy(this.addressInfos[0]);
-                nonce = void 0;
-
-                if (!details.oldTxId) {
-                  _context12.next = 39;
-                  break;
-                }
-
-                oldTxInfo = this.txInfos.find(function (txInfo) {
-                  return txInfo.txId === details.oldTxId;
-                });
-
-                if (oldTxInfo) {
-                  _context12.next = 36;
-                  break;
-                }
-
-                console.warn('oldTxId not found in history');
-                throw _D2.default.error.unknown;
-
-              case 36:
-                nonce = oldTxInfo.nonce;
-                _context12.next = 40;
-                break;
-
-              case 39:
-                nonce = this.txInfos.filter(function (txInfo) {
-                  return txInfo.confirmations !== _D2.default.tx.confirmation.dropped;
-                }).filter(function (txInfo) {
-                  return txInfo.direction === _D2.default.tx.direction.out;
-                }).length;
-
-              case 40:
-                fee = gasLimit.multiply(gasPrice);
-                balance = new _bigi2.default(this.balance);
-                total = void 0;
-                // noinspection JSUnresolvedVariable
-
-                if (!details.sendAll) {
-                  _context12.next = 51;
-                  break;
-                }
-
-                if (!(balance.compareTo(fee) < 0)) {
-                  _context12.next = 46;
-                  break;
-                }
-
-                throw _D2.default.error.balanceNotEnough;
-
-              case 46:
-                total = balance;
-                value = total.subtract(fee);
-                output.value = value.toString(10);
-                _context12.next = 54;
-                break;
-
-              case 51:
-                total = value.add(fee);
-
-                if (!(total.compareTo(balance) > 0)) {
-                  _context12.next = 54;
-                  break;
-                }
-
-                throw _D2.default.error.balanceNotEnough;
-
-              case 54:
-                prepareTx = {
-                  total: total.toString(10),
-                  fee: fee.toString(10),
-                  gasPrice: gasPrice.toString(10),
-                  gasLimit: gasLimit.toString(10),
-                  nonce: nonce,
-                  input: input,
-                  output: output,
-                  data: details.data,
-                  comment: details.comment || ''
-                };
-
-                console.log('prepareTx', prepareTx);
-                return _context12.abrupt('return', prepareTx);
-
-              case 57:
-              case 'end':
-                return _context12.stop();
-            }
-          }
-        }, _callee12, this);
-      }));
-
-      function prepareTx(_x17) {
-        return _ref12.apply(this, arguments);
-      }
-
-      return prepareTx;
-    }()
-
-    /**
-     * use the result of prepareTx to make transaction
-     * @param prepareTx
-     * @returns {Promise<{txInfo, addressInfo, hex}>}
-     * @see prepareTx
-     */
-
-  }, {
-    key: 'buildTx',
-    value: function () {
-      var _ref13 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee13(prepareTx) {
-        var output, gasPrice, gasLimit, value, preSignTx, signedTx;
-        return regeneratorRuntime.wrap(function _callee13$(_context13) {
-          while (1) {
-            switch (_context13.prev = _context13.next) {
-              case 0:
-                output = _D2.default.copy(prepareTx.output);
-                gasPrice = new _bigi2.default(prepareTx.gasPrice).toString(16);
-
-                gasPrice = '0x' + (gasPrice.length % 2 === 0 ? '' : '0') + gasPrice;
-                // '0x00' will be encode as 0x00; '0x', '', null, 0 will be encode as 0x80, shit
-                if (gasPrice === '0x00') gasPrice = '0x';
-
-                gasLimit = new _bigi2.default(prepareTx.gasLimit).toString(16);
-
-                gasLimit = '0x' + (gasLimit.length % 2 === 0 ? '' : '0') + gasLimit;
-                if (gasLimit === '0x00') gasLimit = '0x';
-
-                value = new _bigi2.default(output.value).toString(16);
-
-                value = '0x' + (value.length % 2 === 0 ? '' : '0') + value;
-                if (value === '0x00') value = '0x';
-
-                preSignTx = {
-                  input: { address: prepareTx.input.address, path: prepareTx.input.path },
-                  output: { address: output.address, value: value },
-                  nonce: prepareTx.nonce,
-                  gasPrice: gasPrice,
-                  gasLimit: gasLimit,
-                  data: prepareTx.data
-                };
-
-                console.log('preSignTx', preSignTx);
-                _context13.next = 14;
-                return this._device.signTransaction(this.coinType, preSignTx);
-
-              case 14:
-                signedTx = _context13.sent;
-                return _context13.abrupt('return', {
-                  txInfo: {
-                    accountId: this.accountId,
-                    coinType: this.coinType,
-                    txId: signedTx.id,
-                    blockNumber: -1,
-                    confirmations: -1,
-                    time: new Date().getTime(),
-                    direction: _D2.default.tx.direction.out,
-                    showAddresses: [output.address],
-                    value: '-' + output.value,
-                    inputs: [{
-                      prevAddress: prepareTx.input.address,
-                      isMine: true,
-                      value: output.value
-                    }],
-                    outputs: [{
-                      address: output.address,
-                      isMine: false,
-                      value: output.value
-                    }],
-                    gas: _bigi2.default.fromHex(gasLimit.slice(2)).toString(10),
-                    gasPrice: _bigi2.default.fromHex(gasPrice.slice(2)).toString(10),
-                    fee: prepareTx.fee,
-                    nonce: prepareTx.nonce,
-                    data: prepareTx.data,
-                    comment: prepareTx.comment
-                  },
-                  addressInfo: prepareTx.input,
-                  hex: signedTx.hex
-                });
-
-              case 16:
-              case 'end':
-                return _context13.stop();
-            }
-          }
-        }, _callee13, this);
-      }));
-
-      function buildTx(_x18) {
-        return _ref13.apply(this, arguments);
-      }
-
-      return buildTx;
-    }()
-
-    /**
-     * broadcast transaction to btcNetwork
-     * @param signedTx
-     * @param test won't broadcast to ethNetwork if true
-     * @see signedTx
-     */
-
-  }, {
-    key: 'sendTx',
-    value: function () {
-      var _ref14 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee14(signedTx) {
-        var test = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
-        return regeneratorRuntime.wrap(function _callee14$(_context14) {
-          while (1) {
-            switch (_context14.prev = _context14.next) {
-              case 0:
-                // broadcast transaction to network
-                console.log('sendTx', signedTx);
-
-                if (test) {
-                  _context14.next = 4;
-                  break;
-                }
-
-                _context14.next = 4;
-                return this._coinData.sendTx(this._toAccountInfo(), [], signedTx.txInfo, signedTx.hex);
-
-              case 4:
-                this._handleNewTx(signedTx.addressInfo, signedTx.txInfo, []);
-
-              case 5:
-              case 'end':
-                return _context14.stop();
-            }
-          }
-        }, _callee14, this);
-      }));
-
-      function sendTx(_x20) {
-        return _ref14.apply(this, arguments);
-      }
-
-      return sendTx;
-    }()
-  }]);
-
-  return EthAccount;
-}();
-
-exports.default = EthAccount;
 
 /***/ }),
 
@@ -46532,26 +48793,44 @@ var _IndexedDB = __webpack_require__(/*! ./data/database/IndexedDB */ "./src/sdk
 
 var _IndexedDB2 = _interopRequireDefault(_IndexedDB);
 
-var _JsWallet = __webpack_require__(/*! ./device/JsWallet */ "./src/sdk/device/JsWallet.js");
+var _JsWallet = __webpack_require__(/*! ./device/implements/JsWallet */ "./src/sdk/device/implements/JsWallet.js");
 
 var _JsWallet2 = _interopRequireDefault(_JsWallet);
 
-var _CoreWallet = __webpack_require__(/*! ./device/CoreWallet */ "./src/sdk/device/CoreWallet.js");
+var _NetBankWallet = __webpack_require__(/*! ./device/implements/NetBankWallet */ "./src/sdk/device/implements/NetBankWallet.js");
 
-var _CoreWallet2 = _interopRequireDefault(_CoreWallet);
+var _NetBankWallet2 = _interopRequireDefault(_NetBankWallet);
 
-var _HidTransmitter = __webpack_require__(/*! ./device/transmit/HidTransmitter */ "./src/sdk/device/transmit/HidTransmitter.js");
+var _S300Wallet = __webpack_require__(/*! ./device/implements/S300Wallet */ "./src/sdk/device/implements/S300Wallet.js");
+
+var _S300Wallet2 = _interopRequireDefault(_S300Wallet);
+
+var _JsTransmitter = __webpack_require__(/*! ./device/implements/transmit/JsTransmitter */ "./src/sdk/device/implements/transmit/JsTransmitter.js");
+
+var _JsTransmitter2 = _interopRequireDefault(_JsTransmitter);
+
+var _MockTransmitter = __webpack_require__(/*! ./device/implements/transmit/MockTransmitter */ "./src/sdk/device/implements/transmit/MockTransmitter.js");
+
+var _MockTransmitter2 = _interopRequireDefault(_MockTransmitter);
+
+var _HidTransmitter = __webpack_require__(/*! ./device/implements/transmit/HidTransmitter */ "./src/sdk/device/implements/transmit/HidTransmitter.js");
 
 var _HidTransmitter2 = _interopRequireDefault(_HidTransmitter);
+
+var _CcidTransmitter = __webpack_require__(/*! ./device/implements/transmit/CcidTransmitter */ "./src/sdk/device/implements/transmit/CcidTransmitter.js");
+
+var _CcidTransmitter2 = _interopRequireDefault(_CcidTransmitter);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var Provider = {
-  DB: _IndexedDB2.default,
-  SoftWallet: _JsWallet2.default,
-  HardWallet: _CoreWallet2.default,
-  Transmitter: _HidTransmitter2.default
+  Transmitters: [_JsTransmitter2.default, _MockTransmitter2.default, _CcidTransmitter2.default, _HidTransmitter2.default],
+
+  Wallets: [_JsWallet2.default, _S300Wallet2.default, _NetBankWallet2.default],
+
+  DB: _IndexedDB2.default
 };
+
 exports.default = Provider;
 
 /***/ }),
@@ -46576,7 +48855,7 @@ var _Provider = __webpack_require__(/*! ./Provider */ "./src/sdk/Provider.js");
 
 var _Provider2 = _interopRequireDefault(_Provider);
 
-var _D = __webpack_require__(/*! ./D */ "./src/sdk/D.js");
+var _D = __webpack_require__(!(function webpackMissingModule() { var e = new Error("Cannot find module 'esecubit-wallet-sdk/src/sdk/D'"); e.code = 'MODULE_NOT_FOUND'; throw e; }()));
 
 var _D2 = _interopRequireDefault(_D);
 
@@ -46633,6 +48912,8 @@ var Settings = function () {
     key: 'getSetting',
     value: function () {
       var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(key) {
+        var namespace = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : undefined;
+        var value;
         return regeneratorRuntime.wrap(function _callee2$(_context2) {
           while (1) {
             switch (_context2.prev = _context2.next) {
@@ -46646,9 +48927,15 @@ var Settings = function () {
                 return this._init();
 
               case 3:
-                return _context2.abrupt('return', this._settingDb.getSettings(key));
+                if (namespace) key = key + '_' + namespace;
+                _context2.next = 6;
+                return this._settingDb.getSettings(key);
 
-              case 4:
+              case 6:
+                value = _context2.sent;
+                return _context2.abrupt('return', value && JSON.parse(value) || undefined);
+
+              case 8:
               case 'end':
                 return _context2.stop();
             }
@@ -46656,7 +48943,7 @@ var Settings = function () {
         }, _callee2, this);
       }));
 
-      function getSetting(_x) {
+      function getSetting(_x2) {
         return _ref2.apply(this, arguments);
       }
 
@@ -46666,6 +48953,7 @@ var Settings = function () {
     key: 'setSetting',
     value: function () {
       var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(key, value) {
+        var namespace = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : undefined;
         return regeneratorRuntime.wrap(function _callee3$(_context3) {
           while (1) {
             switch (_context3.prev = _context3.next) {
@@ -46679,10 +48967,11 @@ var Settings = function () {
                 return this._init();
 
               case 3:
-                _context3.next = 5;
-                return this._settingDb.saveOrUpdateSettings(key, value);
+                if (namespace) key = key + '_' + namespace;
+                _context3.next = 6;
+                return this._settingDb.saveOrUpdateSettings(key, JSON.stringify(value));
 
-              case 5:
+              case 6:
               case 'end':
                 return _context3.stop();
             }
@@ -46690,11 +48979,77 @@ var Settings = function () {
         }, _callee3, this);
       }));
 
-      function setSetting(_x2, _x3) {
+      function setSetting(_x4, _x5) {
         return _ref3.apply(this, arguments);
       }
 
       return setSetting;
+    }()
+  }, {
+    key: 'getTestSeed',
+    value: function () {
+      var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4() {
+        var testSeed;
+        return regeneratorRuntime.wrap(function _callee4$(_context4) {
+          while (1) {
+            switch (_context4.prev = _context4.next) {
+              case 0:
+                _context4.next = 2;
+                return new Settings().getSetting('testSeed');
+
+              case 2:
+                testSeed = _context4.sent;
+
+                if (testSeed) {
+                  _context4.next = 7;
+                  break;
+                }
+
+                testSeed = _D2.default.test.generateSeed();
+                _context4.next = 7;
+                return this.setTestSeed(testSeed);
+
+              case 7:
+                return _context4.abrupt('return', testSeed);
+
+              case 8:
+              case 'end':
+                return _context4.stop();
+            }
+          }
+        }, _callee4, this);
+      }));
+
+      function getTestSeed() {
+        return _ref4.apply(this, arguments);
+      }
+
+      return getTestSeed;
+    }()
+  }, {
+    key: 'setTestSeed',
+    value: function () {
+      var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(testSeed) {
+        return regeneratorRuntime.wrap(function _callee5$(_context5) {
+          while (1) {
+            switch (_context5.prev = _context5.next) {
+              case 0:
+                _context5.next = 2;
+                return new Settings().setSetting('testSeed', testSeed);
+
+              case 2:
+              case 'end':
+                return _context5.stop();
+            }
+          }
+        }, _callee5, this);
+      }));
+
+      function setTestSeed(_x6) {
+        return _ref5.apply(this, arguments);
+      }
+
+      return setTestSeed;
     }()
   }]);
 
@@ -46702,6 +49057,2765 @@ var Settings = function () {
 }();
 
 exports.default = Settings;
+
+/***/ }),
+
+/***/ "./src/sdk/account/BtcAccount.js":
+/*!***************************************!*\
+  !*** ./src/sdk/account/BtcAccount.js ***!
+  \***************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _D = __webpack_require__(/*! ../D */ "./src/sdk/D.js");
+
+var _D2 = _interopRequireDefault(_D);
+
+var _BtcCoinSelect = __webpack_require__(/*! ./BtcCoinSelect */ "./src/sdk/account/BtcCoinSelect.js");
+
+var _BtcCoinSelect2 = _interopRequireDefault(_BtcCoinSelect);
+
+var _IAccount2 = __webpack_require__(/*! ./IAccount */ "./src/sdk/account/IAccount.js");
+
+var _IAccount3 = _interopRequireDefault(_IAccount2);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var BtcAccount = function (_IAccount) {
+  _inherits(BtcAccount, _IAccount);
+
+  function BtcAccount() {
+    _classCallCheck(this, BtcAccount);
+
+    return _possibleConstructorReturn(this, (BtcAccount.__proto__ || Object.getPrototypeOf(BtcAccount)).apply(this, arguments));
+  }
+
+  _createClass(BtcAccount, [{
+    key: '_handleRemovedTx',
+    value: function () {
+      var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(removedTxId) {
+        var _this2 = this;
+
+        var removedTxInfo, addressInfos, _loop, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, addressInfo, removeUtxos, updateUtxos;
+
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                console.warn('btc removed txId', removedTxId);
+                // async operation may lead to disorder. so we need a simple lock
+
+              case 1:
+                if (!this.busy) {
+                  _context.next = 6;
+                  break;
+                }
+
+                _context.next = 4;
+                return _D2.default.wait(2);
+
+              case 4:
+                _context.next = 1;
+                break;
+
+              case 6:
+                this.busy = true;
+
+                // update removed txInfo
+                removedTxInfo = this.txInfos.find(function (txInfo) {
+                  return txInfo.txId === removedTxId;
+                });
+
+                if (removedTxInfo) {
+                  _context.next = 11;
+                  break;
+                }
+
+                console.warn(this.accountId, 'removed txId not found', removedTxId);
+                return _context.abrupt('return');
+
+              case 11:
+                console.log('btc removed txInfo', removedTxInfo);
+                removedTxInfo.confirmations = _D2.default.tx.confirmation.dropped;
+
+                // update addressInfos
+                addressInfos = this.addressInfos.filter(function (addressInfo) {
+                  return addressInfo.txs.includes(removedTxId);
+                });
+
+                _loop = function _loop(addressInfo) {
+                  var oldAddressInfo = _this2.addressInfos.find(function (a) {
+                    return a.address === addressInfo.address;
+                  });
+                  oldAddressInfo.txs = oldAddressInfo.txs.filter(function (txId) {
+                    return txId !== removedTxId;
+                  });
+                };
+
+                _iteratorNormalCompletion = true;
+                _didIteratorError = false;
+                _iteratorError = undefined;
+                _context.prev = 18;
+
+                for (_iterator = addressInfos[Symbol.iterator](); !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                  addressInfo = _step.value;
+
+                  _loop(addressInfo);
+                }
+
+                // remove utxos come from this tx
+                _context.next = 26;
+                break;
+
+              case 22:
+                _context.prev = 22;
+                _context.t0 = _context['catch'](18);
+                _didIteratorError = true;
+                _iteratorError = _context.t0;
+
+              case 26:
+                _context.prev = 26;
+                _context.prev = 27;
+
+                if (!_iteratorNormalCompletion && _iterator.return) {
+                  _iterator.return();
+                }
+
+              case 29:
+                _context.prev = 29;
+
+                if (!_didIteratorError) {
+                  _context.next = 32;
+                  break;
+                }
+
+                throw _iteratorError;
+
+              case 32:
+                return _context.finish(29);
+
+              case 33:
+                return _context.finish(26);
+
+              case 34:
+                removeUtxos = this.utxos.filter(function (utxo) {
+                  return utxo.txId === removedTxId;
+                });
+
+                this.utxos = this.utxos.filter(function (utxo) {
+                  return !removeUtxos.some(function (u) {
+                    return u.txId === utxo.txId;
+                  });
+                });
+
+                // revert utxos using by this tx
+                updateUtxos = [];
+
+                removedTxInfo.inputs.forEach(function (input) {
+                  if (!input.isMine) return;
+                  var revertUtxo = _this2.utxos.find(function (utxo) {
+                    return input.prevTxId === utxo.txId && input.prevOutIndex === utxo.index;
+                  });
+                  if (!revertUtxo) {
+                    console.warn('revertUtxo not found', input);
+                    return;
+                  }
+
+                  // the spent utxo may be reused again before detected(e.g. resend tx), we need to check
+                  var reusedTxInfo = _this2.txInfos.filter(function (txInfo) {
+                    return txInfo.confirmations !== _D2.default.tx.confirmation.dropped && txInfo.inputs.some(function (i) {
+                      return i.prevAddress === input.prevAddress && i.prevOutIndex === input.prevOutIndex;
+                    });
+                  });
+                  if (reusedTxInfo) {
+                    console.log('utxo has been reused', input, removedTxInfo);
+                  } else {
+                    revertUtxo.status = _D2.default.utxo.status.unspent;
+                    updateUtxos.push(revertUtxo);
+                  }
+                });
+
+                this.balance = this.utxos.filter(function (utxo) {
+                  return utxo.status === _D2.default.utxo.status.unspent || utxo.status === _D2.default.utxo.status.unspent_pending;
+                }).reduce(function (sum, utxo) {
+                  return sum + utxo.value;
+                }, 0).toString();
+
+                _context.next = 41;
+                return this._coinData.removeTx(this._toAccountInfo(), _D2.default.copy(addressInfos), _D2.default.copy(removedTxInfo), _D2.default.copy(updateUtxos), _D2.default.copy(removeUtxos));
+
+              case 41:
+                this.busy = false;
+
+              case 42:
+              case 'end':
+                return _context.stop();
+            }
+          }
+        }, _callee, this, [[18, 22, 26, 34], [27,, 29, 33]]);
+      }));
+
+      function _handleRemovedTx(_x) {
+        return _ref.apply(this, arguments);
+      }
+
+      return _handleRemovedTx;
+    }()
+
+    /**
+     * handle new transaction
+     * complete txInfo, generate utxos
+     */
+
+  }, {
+    key: '_handleNewTx',
+    value: function () {
+      var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(txInfo) {
+        var _this3 = this;
+
+        var value, fee, input, utxos, unspentOutputs, unspentUtxos, spentInputs, spentUtxos;
+        return regeneratorRuntime.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                console.log('btc newTransaction', txInfo);
+
+                // async operation may lead to disorder. so we need a simple lock
+                // eslint-disable-next-line
+
+              case 1:
+                if (!this.busy) {
+                  _context2.next = 6;
+                  break;
+                }
+
+                _context2.next = 4;
+                return _D2.default.wait(2);
+
+              case 4:
+                _context2.next = 1;
+                break;
+
+              case 6:
+                this.busy = true;
+
+                // update txInfo and addressInfos
+                txInfo.inputs.forEach(function (input) {
+                  input.isMine = _this3.addressInfos.some(function (a) {
+                    return a.address === input.prevAddress;
+                  });
+                });
+                txInfo.outputs.forEach(function (output) {
+                  output.isMine = _this3.addressInfos.some(function (a) {
+                    return a.address === output.address;
+                  });
+                });
+
+                // calculate value
+                value = 0;
+
+                value -= txInfo.inputs.reduce(function (sum, input) {
+                  return sum + (input.isMine ? input.value : 0);
+                }, 0);
+                value += txInfo.outputs.reduce(function (sum, output) {
+                  return sum + (output.isMine ? output.value : 0);
+                }, 0);
+                txInfo.value = value.toString();
+
+                // calculate fee
+                fee = 0;
+
+                fee += txInfo.inputs.reduce(function (sum, input) {
+                  return sum + input.value;
+                }, 0);
+                fee -= txInfo.outputs.reduce(function (sum, output) {
+                  return sum + output.value;
+                }, 0);
+                txInfo.fee = fee.toString();
+
+                input = txInfo.inputs.find(function (input) {
+                  return input.isMine;
+                });
+
+                txInfo.direction = input ? _D2.default.tx.direction.out : _D2.default.tx.direction.in;
+                txInfo.showAddresses = txInfo.direction === _D2.default.tx.direction.in ? txInfo.inputs.filter(function (input) {
+                  return !input.isMine;
+                }).map(function (input) {
+                  return input.prevAddress;
+                }) : txInfo.outputs.filter(function (output) {
+                  return !output.isMine;
+                }).map(function (output) {
+                  return output.address;
+                });
+                if (txInfo.showAddresses.length === 0) txInfo.showAddresses.push('self');
+
+                // find out utxos for address
+                utxos = [];
+                unspentOutputs = txInfo.outputs.filter(function (output) {
+                  return output.isMine;
+                });
+                unspentUtxos = unspentOutputs.map(function (output) {
+                  var addressInfo = _this3.addressInfos.find(function (a) {
+                    return a.address === output.address;
+                  });
+                  return {
+                    accountId: addressInfo.accountId,
+                    coinType: addressInfo.coinType,
+                    address: addressInfo.address,
+                    path: addressInfo.path,
+                    txId: txInfo.txId,
+                    index: output.index,
+                    script: output.script,
+                    value: output.value,
+                    status: txInfo.confirmations === _D2.default.tx.confirmation.inMemory ? _D2.default.utxo.status.unspent_pending : _D2.default.utxo.status.unspent
+                  };
+                });
+
+                utxos.push.apply(utxos, _toConsumableArray(unspentUtxos));
+
+                spentInputs = txInfo.inputs.filter(function (input) {
+                  return input.isMine;
+                });
+
+                if (spentInputs.length > 0) {
+                  spentUtxos = spentInputs.map(function (input) {
+                    var addressInfo = _this3.addressInfos.find(function (a) {
+                      return a.address === input.prevAddress;
+                    });
+                    return {
+                      accountId: addressInfo.accountId,
+                      coinType: addressInfo.coinType,
+                      address: addressInfo.address,
+                      path: addressInfo.path,
+                      txId: input.prevTxId,
+                      index: input.prevOutIndex,
+                      script: input.prevOutScript,
+                      value: input.value,
+                      status: txInfo.confirmations === _D2.default.tx.confirmation.inMemory ? _D2.default.utxo.status.spent_pending : _D2.default.utxo.status.spent
+                    };
+                  });
+
+                  utxos.push.apply(utxos, _toConsumableArray(spentUtxos));
+                }
+                _context2.next = 29;
+                return this._handleNewTxInner(txInfo, utxos);
+
+              case 29:
+
+                this.busy = false;
+
+              case 30:
+              case 'end':
+                return _context2.stop();
+            }
+          }
+        }, _callee2, this);
+      }));
+
+      function _handleNewTx(_x2) {
+        return _ref2.apply(this, arguments);
+      }
+
+      return _handleNewTx;
+    }()
+
+    /**
+     * handle new transaction
+     * update account, store utxo, addressInfo, txInfo
+     */
+
+  }, {
+    key: '_handleNewTxInner',
+    value: function () {
+      var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(txInfo, utxos) {
+        var _this4 = this;
+
+        var index, relativeAddresses, maxExternalIndex, maxChangeIndex;
+        return regeneratorRuntime.wrap(function _callee3$(_context3) {
+          while (1) {
+            switch (_context3.prev = _context3.next) {
+              case 0:
+                console.log('btc newTransaction, utxos', txInfo, utxos);
+
+              case 1:
+                if (!this.innerBusy) {
+                  _context3.next = 6;
+                  break;
+                }
+
+                _context3.next = 4;
+                return _D2.default.wait(2);
+
+              case 4:
+                _context3.next = 1;
+                break;
+
+              case 6:
+                this.innerBusy = true;
+
+                // update account info
+                index = this.txInfos.findIndex(function (t) {
+                  return t.txId === txInfo.txId;
+                });
+
+                if (index === -1) {
+                  txInfo.comment = '';
+                  this.txInfos.push(txInfo);
+                } else {
+                  txInfo.comment = this.txInfos[index].comment;
+                  this.txInfos[index] = txInfo;
+                }
+
+                // update utxos
+                // unspent_pending can update to other state
+                // unspent can update to pending_spent and spent
+                // pending_spent can update to spent
+                utxos = utxos.filter(function (utxo) {
+                  var oldUtxo = _this4.utxos.find(function (oldUtxo) {
+                    return oldUtxo.txId === utxo.txId && oldUtxo.index === utxo.index;
+                  });
+                  if (!oldUtxo) return true;
+                  if (oldUtxo.status === _D2.default.utxo.status.unspent_pending) return true;
+                  if (oldUtxo.status === _D2.default.utxo.status.unspent) return utxo.status === _D2.default.utxo.status.spent_pending || utxo.status === _D2.default.utxo.status.spent;
+                  if (oldUtxo.status === _D2.default.utxo.status.spent_pending) return utxo.status === _D2.default.utxo.status.spent;
+                  return false;
+                });
+                this.utxos = this.utxos.filter(function (oldUtxo) {
+                  return !utxos.some(function (utxo) {
+                    return oldUtxo.txId === utxo.txId && oldUtxo.index === utxo.index;
+                  });
+                }).concat(utxos);
+
+                // update balance
+                this.balance = this.utxos.filter(function (utxo) {
+                  return utxo.status === _D2.default.utxo.status.unspent || utxo.status === _D2.default.utxo.status.unspent_pending;
+                }).reduce(function (sum, utxo) {
+                  return sum + utxo.value;
+                }, 0).toString();
+
+                // update addressInfos
+                relativeAddresses = [];
+                maxExternalIndex = this.externalPublicKeyIndex;
+                maxChangeIndex = this.changePublicKeyIndex;
+
+                txInfo.inputs.filter(function (input) {
+                  return input.isMine;
+                }).forEach(function (input) {
+                  var addressInfo = _this4.addressInfos.find(function (a) {
+                    return a.address === input.prevAddress;
+                  });
+                  if (!relativeAddresses.some(function (a) {
+                    return a.address === addressInfo.address;
+                  })) {
+                    relativeAddresses.push(addressInfo);
+                    if (!addressInfo.txs.includes(txInfo.txId)) {
+                      addressInfo.txs.push(txInfo.txId);
+                    }
+
+                    if (addressInfo.type === _D2.default.address.external) {
+                      maxExternalIndex = Math.max(maxExternalIndex, addressInfo.index);
+                    } else {
+                      maxChangeIndex = Math.max(maxChangeIndex, addressInfo.index);
+                    }
+                  }
+                });
+                txInfo.outputs.filter(function (input) {
+                  return input.isMine;
+                }).forEach(function (output) {
+                  var addressInfo = _this4.addressInfos.find(function (a) {
+                    return a.address === output.address;
+                  });
+                  if (!relativeAddresses.some(function (a) {
+                    return a.address === addressInfo.address;
+                  })) {
+                    relativeAddresses.push(addressInfo);
+                    if (!addressInfo.txs.includes(txInfo.txId)) {
+                      addressInfo.txs.push(txInfo.txId);
+                    }
+
+                    if (addressInfo.type === _D2.default.address.external) {
+                      maxExternalIndex = Math.max(maxExternalIndex, addressInfo.index + 1);
+                    } else {
+                      maxChangeIndex = Math.max(maxChangeIndex, addressInfo.index + 1);
+                    }
+                  }
+                });
+
+                // update addressIndex
+                this.externalPublicKeyIndex = Math.max(maxExternalIndex, this.externalPublicKeyIndex);
+                this.changePublicKeyIndex = Math.max(maxChangeIndex, this.changePublicKeyIndex);
+
+                // listen unmatured tx
+                _context3.next = 21;
+                return this._coinData.newTx(this._toAccountInfo(), _D2.default.copy(relativeAddresses), _D2.default.copy(txInfo), _D2.default.copy(utxos));
+
+              case 21:
+
+                if (txInfo.confirmations < _D2.default.tx.getMatureConfirms(this.coinType)) {
+                  if (!this._listenedTxs.some(function (tx) {
+                    return tx === txInfo.txId;
+                  })) {
+                    this._listenedTxs.push(txInfo.txId);
+                    this._coinData.listenTx(this.coinType, _D2.default.copy(txInfo), this._txListener);
+                  }
+                }
+
+                this.innerBusy = false;
+
+              case 23:
+              case 'end':
+                return _context3.stop();
+            }
+          }
+        }, _callee3, this);
+      }));
+
+      function _handleNewTxInner(_x3, _x4) {
+        return _ref3.apply(this, arguments);
+      }
+
+      return _handleNewTxInner;
+    }()
+
+    /**
+     * check address index and genreate new necessary addressInfos
+     * @private
+     */
+
+  }, {
+    key: '_checkAddressIndexAndGenerateNew',
+    value: function () {
+      var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5() {
+        var _this5 = this,
+            _addressInfos;
+
+        var sync = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+        var maxAddressIndexLength, checkAndGenerate, newAddressInfos;
+        return regeneratorRuntime.wrap(function _callee5$(_context5) {
+          while (1) {
+            switch (_context5.prev = _context5.next) {
+              case 0:
+                maxAddressIndexLength = sync ? 20 : 1;
+
+                checkAndGenerate = function () {
+                  var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(type) {
+                    var maxIndex, nextIndex, isExternal, newNextIndex, addressInfos, i, address;
+                    return regeneratorRuntime.wrap(function _callee4$(_context4) {
+                      while (1) {
+                        switch (_context4.prev = _context4.next) {
+                          case 0:
+                            maxIndex = _this5.addressInfos.filter(function (addressInfo) {
+                              return addressInfo.type === type;
+                            }).reduce(function (max, addressInfo) {
+                              return Math.max(max, addressInfo.index);
+                            }, -1);
+                            nextIndex = maxIndex + 1;
+                            isExternal = type === _D2.default.address.external;
+                            newNextIndex = isExternal ? _this5.externalPublicKeyIndex : _this5.changePublicKeyIndex;
+
+                            newNextIndex += maxAddressIndexLength;
+
+                            if (!(newNextIndex <= nextIndex)) {
+                              _context4.next = 7;
+                              break;
+                            }
+
+                            return _context4.abrupt('return', []);
+
+                          case 7:
+
+                            console.log(_this5.accountId, 'generating', type, 'addressInfos, from', nextIndex, 'to', newNextIndex);
+                            addressInfos = [];
+                            i = nextIndex;
+
+                          case 10:
+                            if (!(i < newNextIndex)) {
+                              _context4.next = 18;
+                              break;
+                            }
+
+                            _context4.next = 13;
+                            return _this5._device.getAddress(_this5.coinType, _D2.default.makeBip44Path(_this5.coinType, _this5.index, type, i));
+
+                          case 13:
+                            address = _context4.sent;
+
+                            addressInfos.push({
+                              address: address,
+                              accountId: _this5.accountId,
+                              coinType: _this5.coinType,
+                              path: _D2.default.makeBip44Path(_this5.coinType, _this5.index, type, i),
+                              type: type,
+                              index: i,
+                              txs: []
+                            });
+
+                          case 15:
+                            i++;
+                            _context4.next = 10;
+                            break;
+
+                          case 18:
+                            return _context4.abrupt('return', addressInfos);
+
+                          case 19:
+                          case 'end':
+                            return _context4.stop();
+                        }
+                      }
+                    }, _callee4, _this5);
+                  }));
+
+                  return function checkAndGenerate(_x6) {
+                    return _ref5.apply(this, arguments);
+                  };
+                }();
+
+                _context5.t0 = [];
+                _context5.next = 5;
+                return checkAndGenerate(_D2.default.address.external);
+
+              case 5:
+                _context5.t1 = _context5.sent;
+                _context5.next = 8;
+                return checkAndGenerate(_D2.default.address.change);
+
+              case 8:
+                _context5.t2 = _context5.sent;
+                newAddressInfos = _context5.t0.concat.call(_context5.t0, _context5.t1, _context5.t2);
+
+                if (!(newAddressInfos.length > 0)) {
+                  _context5.next = 13;
+                  break;
+                }
+
+                _context5.next = 13;
+                return this._coinData.newAddressInfos(this._toAccountInfo(), _D2.default.copy(newAddressInfos));
+
+              case 13:
+                (_addressInfos = this.addressInfos).push.apply(_addressInfos, _toConsumableArray(newAddressInfos));
+                return _context5.abrupt('return', newAddressInfos);
+
+              case 15:
+              case 'end':
+                return _context5.stop();
+            }
+          }
+        }, _callee5, this);
+      }));
+
+      function _checkAddressIndexAndGenerateNew() {
+        return _ref4.apply(this, arguments);
+      }
+
+      return _checkAddressIndexAndGenerateNew;
+    }()
+  }, {
+    key: 'getAddress',
+    value: function () {
+      var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6() {
+        var isStoring = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+        var address, listenAddressInfo, prefix;
+        return regeneratorRuntime.wrap(function _callee6$(_context6) {
+          while (1) {
+            switch (_context6.prev = _context6.next) {
+              case 0:
+                _context6.next = 2;
+                return this._device.getAddress(this.coinType, _D2.default.makeBip44Path(this.coinType, this.index, _D2.default.address.external, this.externalPublicKeyIndex), true, isStoring);
+
+              case 2:
+                address = _context6.sent;
+                _context6.next = 5;
+                return this._checkAddressIndexAndGenerateNew();
+
+              case 5:
+                listenAddressInfo = _D2.default.copy(this.addressInfos[this.externalPublicKeyIndex]);
+
+                if (listenAddressInfo && !this._listenedAddresses.includes(listenAddressInfo.address)) {
+                  this._listenedAddresses.push(listenAddressInfo.address);
+                  this._coinData.listenAddresses(this.coinType, [_D2.default.copy(listenAddressInfo)], this._addressListener);
+                }
+
+                prefix = '';
+                return _context6.abrupt('return', { address: address, qrAddress: prefix + address });
+
+              case 9:
+              case 'end':
+                return _context6.stop();
+            }
+          }
+        }, _callee6, this);
+      }));
+
+      function getAddress() {
+        return _ref6.apply(this, arguments);
+      }
+
+      return getAddress;
+    }()
+
+    /**
+     *
+     * @param details
+     * {
+     *   sendAll: bool,
+     *   oldTxId: hex string, // resend mode only
+     *   feeRate: decimal integer string / number (satoshi),
+     *   outputs: [{
+     *     address: base58 string,
+     *     value: decimal integer string / number (satoshi)
+     *   }],
+     *   comment: string (optional)
+     * }
+     * @returns {Promise<prepareTx>}
+     * {
+     *   total: number (satoshi)
+     *   fee: number (satoshi)
+     *   feeRate: number (satoshi),
+     *   utxos: utxo array,
+     *   outputs: [{
+     *     address: base58 string,
+     *     value: number (satoshi)
+     *   }],
+     *   deviceLimit: bool,
+     *   oldTxInfo: txInfo // exist if resend
+     * }
+     */
+
+  }, {
+    key: 'prepareTx',
+    value: function () {
+      var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7(details) {
+        var _this6 = this;
+
+        var utxos, oldUtxos, oldTxInfo, proposal, totalUtxos, totalOut, prepareTxData;
+        return regeneratorRuntime.wrap(function _callee7$(_context7) {
+          while (1) {
+            switch (_context7.prev = _context7.next) {
+              case 0:
+                console.log('prepareTx details', details);
+
+                if (!(Number(details.feeRate) === 0)) {
+                  _context7.next = 4;
+                  break;
+                }
+
+                console.warn('fee can not be 0');
+                throw _D2.default.error.networkFeeTooSmall;
+
+              case 4:
+                if (_D2.default.isBtc(this.coinType)) {
+                  _context7.next = 6;
+                  break;
+                }
+
+                throw _D2.default.error.coinNotSupported;
+
+              case 6:
+                if (!_D2.default.isDecimal(details.feeRate)) {
+                  _context7.next = 8;
+                  break;
+                }
+
+                throw _D2.default.error.valueIsDecimal;
+
+              case 8:
+                details.outputs.forEach(function (output) {
+                  if (_D2.default.isDecimal(output.value)) throw _D2.default.error.valueIsDecimal;
+                });
+
+                details = _D2.default.copy(details);
+                details.feeRate = Number(details.feeRate);
+                details.outputs.forEach(function (output) {
+                  output.value = Number(output.value);
+                });
+
+                utxos = this.utxos.filter(function (utxo) {
+                  return utxo.status === _D2.default.utxo.status.unspent || utxo.status === _D2.default.utxo.status.unspent_pending;
+                }).filter(function (utxo) {
+                  return utxo.value > 0;
+                }).map(function (utxo) {
+                  return _D2.default.copy(utxo);
+                });
+                oldUtxos = [];
+                oldTxInfo = void 0;
+
+                if (!details.oldTxId) {
+                  _context7.next = 22;
+                  break;
+                }
+
+                oldTxInfo = this.txInfos.find(function (txInfo) {
+                  return txInfo.txId === details.oldTxId;
+                });
+
+                if (oldTxInfo) {
+                  _context7.next = 20;
+                  break;
+                }
+
+                console.warn('oldTxId not found in history');
+                throw _D2.default.error.unknown;
+
+              case 20:
+
+                oldTxInfo.inputs.forEach(function (input) {
+                  var oldUtxo = _this6.utxos.find(function (utxo) {
+                    return utxo.txId === input.prevTxId && utxo.index === input.prevOutIndex;
+                  });
+                  if (!oldUtxo) {
+                    console.warn('oldUtxo not found in history', input);
+                    throw _D2.default.error.unknown;
+                  }
+                  oldUtxos.push(oldUtxo);
+                });
+                utxos = utxos.filter(function (utxo) {
+                  return !oldUtxos.some(function (u) {
+                    return u.txId === utxo.txId && u.index === utxo.index;
+                  });
+                });
+
+              case 22:
+                proposal = _BtcCoinSelect2.default.selectCoinSet(utxos, oldUtxos, details.outputs, details.feeRate, details.sendAll);
+                totalUtxos = proposal.willSpentUtxos.reduce(function (sum, utxo) {
+                  return utxo.value + sum;
+                }, 0);
+                // reset the output[0].value if this two flags = true
+
+                if (details.sendAll || proposal.deviceLimit) {
+                  details.outputs[0].value = totalUtxos - proposal.fee;
+                }
+                totalOut = details.outputs.reduce(function (sum, output) {
+                  return sum + output.value;
+                }, 0);
+                prepareTxData = {
+                  feeRate: details.feeRate,
+                  outputs: details.outputs,
+                  fee: proposal.fee,
+                  total: totalOut + proposal.fee,
+                  utxos: proposal.willSpentUtxos,
+                  comment: details.comment || ''
+                };
+
+                if (proposal.deviceLimit) {
+                  // deviceLimit = true means device can not carry more utxos to sign, this is the largest value that device can sent
+                  prepareTxData.deviceLimit = proposal.deviceLimit;
+                }
+                if (oldTxInfo) {
+                  prepareTxData.oldTxInfo = _D2.default.copy(oldTxInfo);
+                }
+                return _context7.abrupt('return', prepareTxData);
+
+              case 30:
+              case 'end':
+                return _context7.stop();
+            }
+          }
+        }, _callee7, this);
+      }));
+
+      function prepareTx(_x8) {
+        return _ref7.apply(this, arguments);
+      }
+
+      return prepareTx;
+    }()
+
+    /**
+     * use the result of prepareTx to make transaction
+     * @param prepareTx
+     * @returns {Promise<{txInfo, utxos, hex}>}
+     * @see prepareTx
+     */
+
+  }, {
+    key: 'buildTx',
+    value: function () {
+      var _ref8 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8(prepareTx) {
+        var _this7 = this;
+
+        var totalOut, totalIn, rawTx, changeValue, changeAddressInfo, signedTx, txInfo, changeOutput, changeAddressBuffer, changeUtxo;
+        return regeneratorRuntime.wrap(function _callee8$(_context8) {
+          while (1) {
+            switch (_context8.prev = _context8.next) {
+              case 0:
+                totalOut = prepareTx.outputs.reduce(function (sum, output) {
+                  return sum + output.value;
+                }, 0);
+
+                if (!(totalOut + prepareTx.fee !== prepareTx.total)) {
+                  _context8.next = 3;
+                  break;
+                }
+
+                throw _D2.default.error.unknown;
+
+              case 3:
+                totalIn = prepareTx.utxos.reduce(function (sum, utxo) {
+                  return sum + utxo.value;
+                }, 0);
+
+                if (!(totalIn < prepareTx.total)) {
+                  _context8.next = 6;
+                  break;
+                }
+
+                throw _D2.default.error.balanceNotEnough;
+
+              case 6:
+                rawTx = {
+                  inputs: _D2.default.copy(prepareTx.utxos),
+                  outputs: _D2.default.copy(prepareTx.outputs),
+                  changePath: null
+                };
+                changeValue = totalIn - prepareTx.total;
+                changeAddressInfo = void 0;
+
+                if (!(changeValue !== 0)) {
+                  _context8.next = 15;
+                  break;
+                }
+
+                _context8.next = 12;
+                return this._checkAddressIndexAndGenerateNew();
+
+              case 12:
+                changeAddressInfo = this.addressInfos.find(function (addressInfo) {
+                  return addressInfo.type === _D2.default.address.change && addressInfo.index === _this7.changePublicKeyIndex;
+                });
+                rawTx.outputs.push({ address: changeAddressInfo.address, value: changeValue });
+                rawTx.changePath = changeAddressInfo.path;
+
+              case 15:
+
+                console.log('presign tx', rawTx);
+                _context8.next = 18;
+                return this._device.signTransaction(this.coinType, rawTx);
+
+              case 18:
+                signedTx = _context8.sent;
+                txInfo = {
+                  accountId: this.accountId,
+                  coinType: this.coinType,
+                  txId: signedTx.id,
+                  version: 1,
+                  blockNumber: -1,
+                  confirmations: -1,
+                  time: new Date().getTime(),
+                  direction: _D2.default.tx.direction.out,
+                  value: '-' + prepareTx.total.toString(),
+                  fee: prepareTx.fee.toString(),
+                  showAddresses: prepareTx.outputs.map(function (output) {
+                    return output.address;
+                  }),
+                  inputs: prepareTx.utxos.map(function (utxo) {
+                    return {
+                      prevAddress: utxo.address,
+                      prevTxId: utxo.txId,
+                      prevOutIndex: utxo.index,
+                      prevOutScript: utxo.script,
+                      isMine: true,
+                      value: utxo.value
+                    };
+                  }),
+                  outputs: rawTx.outputs.map(function (output, index) {
+                    return {
+                      address: output.address,
+                      isMine: output.address === (changeAddressInfo && changeAddressInfo.address),
+                      index: index,
+                      script: _D2.default.address.makeOutputScript(output.address),
+                      value: output.value
+                    };
+                  }),
+                  comment: prepareTx.comment
+
+                  // update utxo spent status from unspent to spent pending
+                };
+                prepareTx.utxos.forEach(function (utxo) {
+                  utxo.status = _D2.default.utxo.status.spent_pending;
+                });
+
+                // add change utxo if exist
+                if (changeValue !== 0) {
+                  changeOutput = txInfo.outputs[txInfo.outputs.length - 1];
+                  changeAddressBuffer = _D2.default.address.toBuffer(changeAddressInfo.address);
+                  changeUtxo = {
+                    accountId: this.accountId,
+                    coinType: this.coinType,
+                    address: changeOutput.address,
+                    path: changeAddressInfo.path,
+                    txId: txInfo.txId,
+                    index: txInfo.outputs.length - 1,
+                    value: changeValue,
+                    status: _D2.default.utxo.status.unspent_pending,
+                    // P2PKH script
+                    script: '76a914' + changeAddressBuffer.toString('hex') + '88ac'
+                  };
+
+                  prepareTx.utxos.push(changeUtxo);
+                }
+
+                return _context8.abrupt('return', {
+                  txInfo: txInfo,
+                  hex: signedTx.hex,
+                  oldTxInfo: prepareTx.oldTxInfo
+                });
+
+              case 23:
+              case 'end':
+                return _context8.stop();
+            }
+          }
+        }, _callee8, this);
+      }));
+
+      function buildTx(_x9) {
+        return _ref8.apply(this, arguments);
+      }
+
+      return buildTx;
+    }()
+
+    /**
+     * broadcast transaction to btcNetwork
+     * @param signedTx
+     * @param test won't broadcast to btcNetwork if true
+     * @see signedTx
+     */
+
+  }, {
+    key: 'sendTx',
+    value: function () {
+      var _ref9 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee9(signedTx) {
+        var test = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+        return regeneratorRuntime.wrap(function _callee9$(_context9) {
+          while (1) {
+            switch (_context9.prev = _context9.next) {
+              case 0:
+                // broadcast transaction to network
+                console.log('sendTx', signedTx);
+
+                if (test) {
+                  _context9.next = 4;
+                  break;
+                }
+
+                _context9.next = 4;
+                return this._coinData.sendTx(this._toAccountInfo(), signedTx.hex);
+
+              case 4:
+                if (!signedTx.oldTxInfo) {
+                  _context9.next = 7;
+                  break;
+                }
+
+                _context9.next = 7;
+                return this._handleRemovedTx(signedTx.oldTxInfo.txId);
+
+              case 7:
+                _context9.next = 9;
+                return this._handleNewTx(signedTx.txInfo);
+
+              case 9:
+              case 'end':
+                return _context9.stop();
+            }
+          }
+        }, _callee9, this);
+      }));
+
+      function sendTx(_x11) {
+        return _ref9.apply(this, arguments);
+      }
+
+      return sendTx;
+    }()
+  }]);
+
+  return BtcAccount;
+}(_IAccount3.default);
+
+exports.default = BtcAccount;
+
+/***/ }),
+
+/***/ "./src/sdk/account/BtcCoinSelect.js":
+/*!******************************************!*\
+  !*** ./src/sdk/account/BtcCoinSelect.js ***!
+  \******************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _D = __webpack_require__(/*! ../D */ "./src/sdk/D.js");
+
+var _D2 = _interopRequireDefault(_D);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+/**
+ * device has limit of apdu data length = 2k, support up to 45 inputs + 2 outputs
+ * we set a algorithm here:
+ * 1. follow bnb algorithm:
+ *    https://github.com/bitcoin/bitcoin/blob/6f5372a1714383bb5e47a5ba89dc4d93020a2943/src/wallet/coinselection.cpp
+ * 2. if tx length exceed the limit, recalculate utxos and use utxos as few as possible
+ * 3. if tx length exceed the limit with the least utxos, and return an warning field
+ */
+function selectCoinSet(utxos, presetUtxos, outputs, feeRate, sendAll) {
+  var maxApduDataLength = 2000;
+  var calculateApduLength = function calculateApduLength(utxos, outputSize) {
+    // const of apdu with change output
+    var apduDataHead = 47;
+    var constTxField = 14;
+    var maxToBeSignedOutputScriptLength = utxos.reduce(function (max, utxo) {
+      return Math.max(max, utxo.script.length / 2);
+    }, 0);
+    return apduDataHead + constTxField + utxos.length * 41 + (outputSize + 1) * 34 + maxToBeSignedOutputScriptLength;
+  };
+
+  var proposalBnb = void 0;
+  if (!sendAll) {
+    proposalBnb = _coinSelectBnb(utxos, presetUtxos, outputs, feeRate, sendAll);
+  }
+  if (proposalBnb) {
+    var apduDataLength = calculateApduLength(proposalBnb.willSpentUtxos, outputs.length);
+    if (apduDataLength <= maxApduDataLength) {
+      return proposalBnb;
+    }
+  }
+
+  // recalculate utxos and use utxos as few as possible
+  utxos = utxos.sort(function (a, b) {
+    return b.value - a.value;
+  }); // sort max => min
+  var proposalClassic = _coinSelectClassic(utxos, presetUtxos, outputs, feeRate, sendAll);
+  if (calculateApduLength(proposalClassic.willSpentUtxos, outputs.length) <= maxApduDataLength) {
+    return proposalClassic;
+  }
+
+  // with limit of apdu data = 2k
+  // and outputscript that going to spent using p2pkh,
+  // and output.length = 2, then maxInputSize = 45
+  var maxInputSize = 45;
+  while (calculateApduLength(utxos.slice(0, maxInputSize), outputs.length) > maxApduDataLength) {
+    maxInputSize--;
+  }
+  if (maxInputSize <= 0) {
+    console.warn('too many outputs that no space for inputs in apdu');
+    throw _D2.default.error.tooManyOutputs;
+  }
+
+  utxos = utxos.slice(0, maxInputSize);
+  outputs.forEach(function (output) {
+    output.value = 0;
+  });
+  var proposalLimit = _coinSelectClassic(utxos, presetUtxos, outputs, feeRate, true);
+  proposalLimit.deviceLimit = true;
+  return proposalLimit;
+}
+
+// calculate tx length using compressed public key size
+function calculateFee(utxos, outputs, feeRate, needChange) {
+  var totalOut = outputs.reduce(function (sum, output) {
+    return output.value + sum;
+  }, 0);
+  var totalUtxos = utxos.reduce(function (sum, utxo) {
+    return utxo.value + sum;
+  }, 0);
+
+  // input length range = [147, 148], use larger one here
+  var txLength = 10 + 148 * utxos.length + 34 * outputs.length;
+  var fee = txLength * feeRate;
+  var changeValue = totalUtxos - totalOut - fee;
+
+  if (changeValue >= 0 && changeValue <= 34 * feeRate) {
+    // in this case, it's unnecessary for a change which is too small
+    fee += changeValue;
+    return fee;
+  }
+  if (needChange) {
+    // add fee for change utxo length
+    fee += 34 * feeRate;
+  }
+  return fee;
+}
+
+function _coinSelectBnb(utxos, presetUtxos, outputs, feeRate, sendAll) {
+  // TODO implement bnb algorithm
+
+  // this simple algorithm will use utxo as much as possible
+  // to reduce utxo amount when utxos.length >= 20
+  if (utxos.length <= 20) {
+    return null;
+  }
+  utxos = utxos.sort(function (a, b) {
+    return a.value - b.value;
+  }); // sort min => max
+  try {
+    return _coinSelectClassic(utxos, presetUtxos, outputs, feeRate, sendAll);
+  } catch (e) {
+    console.warn('_coinSelectBnb', e);
+    return null;
+  }
+}
+
+function _coinSelectClassic(utxos, presetUtxos, outputs, feeRate, sendAll) {
+  var totalOut = outputs.reduce(function (sum, output) {
+    return output.value + sum;
+  }, 0);
+  var totalAvailable = utxos.reduce(function (sum, utxo) {
+    return utxo.value + sum;
+  }, 0) + presetUtxos.reduce(function (sum, utxo) {
+    return utxo.value + sum;
+  }, 0);
+
+  var fee = 0;
+  while (true) {
+    if (totalAvailable < fee + totalOut) throw _D2.default.error.balanceNotEnough;
+
+    // noinspection JSUnresolvedVariable
+
+    var _getEnoughUtxo2 = _getEnoughUtxo(utxos, presetUtxos, totalOut + fee, sendAll),
+        totalUtxo = _getEnoughUtxo2.totalUtxo,
+        willSpentUtxos = _getEnoughUtxo2.willSpentUtxos;
+    // new fee calculated
+
+
+    fee = calculateFee(willSpentUtxos, outputs, feeRate, !sendAll);
+    if (totalUtxo >= totalOut + fee) {
+      return { willSpentUtxos: willSpentUtxos, fee: fee };
+    }
+    // new fee + total out is larger than new total, calculate again
+  }
+}
+
+function _getEnoughUtxo(utxos, presetUtxos, total, sendAll) {
+  var willSpentUtxos = Array.from(presetUtxos);
+  var totalUtxo = willSpentUtxos.reduce(function (sum, utxo) {
+    return utxo.value + sum;
+  }, 0);
+
+  var _iteratorNormalCompletion = true;
+  var _didIteratorError = false;
+  var _iteratorError = undefined;
+
+  try {
+    for (var _iterator = utxos[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+      var utxo = _step.value;
+
+      if (!sendAll && totalUtxo >= total) {
+        break;
+      }
+      totalUtxo += utxo.value;
+      willSpentUtxos.push(utxo);
+    }
+  } catch (err) {
+    _didIteratorError = true;
+    _iteratorError = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion && _iterator.return) {
+        _iterator.return();
+      }
+    } finally {
+      if (_didIteratorError) {
+        throw _iteratorError;
+      }
+    }
+  }
+
+  if (!sendAll && totalUtxo < total) {
+    throw _D2.default.error.balanceNotEnough;
+  }
+  return { totalUtxo: totalUtxo, willSpentUtxos: willSpentUtxos };
+}
+
+exports.default = {
+  selectCoinSet: selectCoinSet
+};
+
+/***/ }),
+
+/***/ "./src/sdk/account/EthAccount.js":
+/*!***************************************!*\
+  !*** ./src/sdk/account/EthAccount.js ***!
+  \***************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _D = __webpack_require__(/*! ../D */ "./src/sdk/D.js");
+
+var _D2 = _interopRequireDefault(_D);
+
+var _bigi = __webpack_require__(/*! bigi */ "./node_modules/bigi/lib/index.js");
+
+var _bigi2 = _interopRequireDefault(_bigi);
+
+var _IAccount2 = __webpack_require__(/*! ./IAccount */ "./src/sdk/account/IAccount.js");
+
+var _IAccount3 = _interopRequireDefault(_IAccount2);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var EthAccount = function (_IAccount) {
+  _inherits(EthAccount, _IAccount);
+
+  function EthAccount() {
+    _classCallCheck(this, EthAccount);
+
+    return _possibleConstructorReturn(this, (EthAccount.__proto__ || Object.getPrototypeOf(EthAccount)).apply(this, arguments));
+  }
+
+  _createClass(EthAccount, [{
+    key: '_checkAddressIndexAndGenerateNew',
+    value: function () {
+      var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+        var path, address, addressInfo;
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                if (!(this.addressInfos.length === 0)) {
+                  _context.next = 9;
+                  break;
+                }
+
+                path = _D2.default.makeBip44Path(this.coinType, this.index, _D2.default.address.external, 0);
+                _context.next = 4;
+                return this._device.getAddress(this.coinType, path);
+
+              case 4:
+                address = _context.sent;
+                addressInfo = {
+                  address: address,
+                  accountId: this.accountId,
+                  coinType: this.coinType,
+                  path: path,
+                  type: _D2.default.address.external,
+                  index: 0,
+                  txs: []
+                };
+
+                this.addressInfos.push(addressInfo);
+                this._coinData.newAddressInfos(this._toAccountInfo(), [addressInfo]);
+                return _context.abrupt('return', [this.addressInfos]);
+
+              case 9:
+                return _context.abrupt('return', []);
+
+              case 10:
+              case 'end':
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function _checkAddressIndexAndGenerateNew() {
+        return _ref.apply(this, arguments);
+      }
+
+      return _checkAddressIndexAndGenerateNew;
+    }()
+  }, {
+    key: '_handleRemovedTx',
+    value: function () {
+      var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(removedTxId) {
+        var removedTxInfo, newBalance;
+        return regeneratorRuntime.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                console.warn('eth removed txId', removedTxId);
+                // async operation may lead to disorder. so we need a simple lock
+
+              case 1:
+                if (!this.busy) {
+                  _context2.next = 6;
+                  break;
+                }
+
+                _context2.next = 4;
+                return _D2.default.wait(2);
+
+              case 4:
+                _context2.next = 1;
+                break;
+
+              case 6:
+                this.busy = true;
+
+                removedTxInfo = this.txInfos.find(function (txInfo) {
+                  return txInfo.txId === removedTxId;
+                });
+
+                if (removedTxInfo) {
+                  _context2.next = 11;
+                  break;
+                }
+
+                console.warn(this.accountId, 'removed txId not found', removedTxId);
+                return _context2.abrupt('return');
+
+              case 11:
+                console.log('eth removed txInfo', removedTxInfo);
+
+                removedTxInfo.confirmations = _D2.default.tx.confirmation.dropped;
+                this.addressInfos[0].txs = this.addressInfos[0].txs.filter(function (txId) {
+                  return txId !== removedTxId;
+                });
+
+                // can't use BigInteger.ZERO here, addTo, subTo will modify the value of BigInteger.ZERO
+                newBalance = new _bigi2.default();
+
+                newBalance.fromInt(0);
+                this.txInfos.filter(function (txInfo) {
+                  return txInfo.confirmations !== _D2.default.tx.confirmation.dropped;
+                }).forEach(function (txInfo) {
+                  newBalance.addTo(new _bigi2.default(txInfo.value), newBalance);
+                  if (txInfo.direction === _D2.default.tx.direction.out) {
+                    newBalance.subTo(new _bigi2.default(txInfo.fee), newBalance);
+                  }
+                });
+                this.balance = newBalance.toString(10);
+
+                _context2.next = 20;
+                return this._coinData.removeTx(this._toAccountInfo(), _D2.default.copy([this.addressInfos[0]]), _D2.default.copy(removedTxInfo));
+
+              case 20:
+                this.busy = false;
+
+              case 21:
+              case 'end':
+                return _context2.stop();
+            }
+          }
+        }, _callee2, this);
+      }));
+
+      function _handleRemovedTx(_x) {
+        return _ref2.apply(this, arguments);
+      }
+
+      return _handleRemovedTx;
+    }()
+  }, {
+    key: '_handleNewTx',
+    value: function () {
+      var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(txInfo) {
+        var _this2 = this;
+
+        var input, index, newBalance;
+        return regeneratorRuntime.wrap(function _callee3$(_context3) {
+          while (1) {
+            switch (_context3.prev = _context3.next) {
+              case 0:
+                console.log('eth newTransaction', txInfo);
+                // async operation may lead to disorder. so we need a simple lock
+
+              case 1:
+                if (!this.busy) {
+                  _context3.next = 6;
+                  break;
+                }
+
+                _context3.next = 4;
+                return _D2.default.wait(2);
+
+              case 4:
+                _context3.next = 1;
+                break;
+
+              case 6:
+                this.busy = true;
+
+                txInfo = _D2.default.copy(txInfo);
+                txInfo.inputs.forEach(function (input) {
+                  input['isMine'] = _this2.addressInfos.some(function (a) {
+                    return a.address.toLowerCase() === input.prevAddress.toLowerCase();
+                  });
+                });
+                txInfo.outputs.forEach(function (output) {
+                  output['isMine'] = _this2.addressInfos.some(function (a) {
+                    return a.address.toLowerCase() === output.address.toLowerCase();
+                  });
+                });
+                input = txInfo.inputs.find(function (input) {
+                  return input.isMine;
+                });
+
+                txInfo.direction = input ? _D2.default.tx.direction.out : _D2.default.tx.direction.in;
+                txInfo.fee = new _bigi2.default(txInfo.gas).multiply(new _bigi2.default(txInfo.gasPrice)).toString(10);
+
+                txInfo.value = txInfo.inputs[0].value;
+                if (txInfo.direction === _D2.default.tx.direction.out) txInfo.value = '-' + input.value;
+
+                txInfo.showAddresses = txInfo.direction === _D2.default.tx.direction.in ? txInfo.inputs.filter(function (inputs) {
+                  return !inputs.isMine;
+                }).map(function (inputs) {
+                  return inputs.prevAddress;
+                }) : txInfo.outputs.filter(function (output) {
+                  return !output.isMine;
+                }).map(function (output) {
+                  return output.address;
+                });
+                if (txInfo.showAddresses.length === 0) {
+                  txInfo.value = '0';
+                  txInfo.showAddresses.push('self');
+                }
+
+                // update account info
+                index = this.txInfos.findIndex(function (t) {
+                  return t.txId === txInfo.txId;
+                });
+
+                if (index === -1) {
+                  txInfo.comment = '';
+                  this.txInfos.push(txInfo);
+                } else {
+                  txInfo.comment = this.txInfos[index].comment;
+                  this.txInfos[index] = txInfo;
+                }
+                if (!this.addressInfos[0].txs.includes(txInfo.txId)) {
+                  this.addressInfos[0].txs.push(txInfo.txId);
+                }
+
+                // can't use BigInteger.ZERO here, addTo, subTo will modify the value of BigInteger.ZERO
+                newBalance = new _bigi2.default();
+
+                newBalance.fromInt(0);
+                this.txInfos.filter(function (txInfo) {
+                  return txInfo.confirmations !== _D2.default.tx.confirmation.dropped;
+                }).forEach(function (txInfo) {
+                  newBalance.addTo(new _bigi2.default(txInfo.value), newBalance);
+                  if (txInfo.direction === _D2.default.tx.direction.out) {
+                    newBalance.subTo(new _bigi2.default(txInfo.fee), newBalance);
+                  }
+                });
+                this.balance = newBalance.toString(10);
+
+                _context3.next = 26;
+                return this._coinData.newTx(this._toAccountInfo(), _D2.default.copy([this.addressInfos[0]]), _D2.default.copy(txInfo), []);
+
+              case 26:
+
+                if (txInfo.confirmations !== _D2.default.tx.confirmation.dropped && txInfo.confirmations < _D2.default.tx.getMatureConfirms(this.coinType) && !this._listenedTxs.some(function (tx) {
+                  return tx === txInfo.txId;
+                })) {
+                  this._listenedTxs.push(txInfo.txId);
+                  this._coinData.listenTx(this.coinType, _D2.default.copy(txInfo), this._txListener);
+                }
+
+                this.busy = false;
+
+              case 28:
+              case 'end':
+                return _context3.stop();
+            }
+          }
+        }, _callee3, this);
+      }));
+
+      function _handleNewTx(_x2) {
+        return _ref3.apply(this, arguments);
+      }
+
+      return _handleNewTx;
+    }()
+  }, {
+    key: 'getAddress',
+    value: function () {
+      var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4() {
+        var isStoring = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+        var path, address, prefix;
+        return regeneratorRuntime.wrap(function _callee4$(_context4) {
+          while (1) {
+            switch (_context4.prev = _context4.next) {
+              case 0:
+                _context4.next = 2;
+                return this._checkAddressIndexAndGenerateNew();
+
+              case 2:
+                path = _D2.default.makeBip44Path(this.coinType, this.index, _D2.default.address.external, 0);
+                _context4.next = 5;
+                return this._device.getAddress(this.coinType, path, true, isStoring);
+
+              case 5:
+                address = _context4.sent;
+
+                address = _D2.default.address.toEthChecksumAddress(address);
+                prefix = '';
+                return _context4.abrupt('return', { address: address, qrAddress: prefix + address });
+
+              case 9:
+              case 'end':
+                return _context4.stop();
+            }
+          }
+        }, _callee4, this);
+      }));
+
+      function getAddress() {
+        return _ref4.apply(this, arguments);
+      }
+
+      return getAddress;
+    }()
+
+    /**
+     *
+     * @param details
+     * {
+     *   sendAll: bool,
+     *   oldTxId: hex string, // resend only
+     *   output: {
+     *     address: hex string,
+     *     value: decimal integer string integer (Wei)
+     *   }
+     *   gasPrice: decimal integer string (Wei),
+     *   gasLimit: decimal integer string (Wei),
+     *   data: （0x) hex string (optional),
+     *   comment: string (optional)
+     * }
+     * @returns {Promise<{total: *, fee: number, gasPrice: string, gasLimit: string, nonce: number, input: *, output: *, data: string}>}
+     * {
+     *   total: decimal integer string (Wei)
+     *   fee: decimal integer string (Wei)
+     *   gasPrice: decimal integer string (Wei)
+     *   gasLimit: decimal integer string ( Wei)
+     *   nonce: decimal integer string
+     *   intput: addressInfo
+     *   output: {
+     *     address: hex string,
+     *     value: string (decimal integer string Wei)
+     *   }
+     *   data: hex string
+     * }
+     */
+
+  }, {
+    key: 'prepareTx',
+    value: function () {
+      var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(details) {
+        var gasPrice, gasLimit, output, value, data, minGas, input, nonce, oldTxInfo, fee, balance, total, prepareTx;
+        return regeneratorRuntime.wrap(function _callee5$(_context5) {
+          while (1) {
+            switch (_context5.prev = _context5.next) {
+              case 0:
+                console.log('prepareTx details', details);
+
+                if (!(Number(details.gasPrice) === 0)) {
+                  _context5.next = 4;
+                  break;
+                }
+
+                console.warn('fee can not be 0');
+                throw _D2.default.error.networkFeeTooSmall;
+
+              case 4:
+                if (_D2.default.isEth(this.coinType)) {
+                  _context5.next = 6;
+                  break;
+                }
+
+                throw _D2.default.error.coinNotSupported;
+
+              case 6:
+                if (!_D2.default.isDecimal(details.gasLimit)) {
+                  _context5.next = 8;
+                  break;
+                }
+
+                throw _D2.default.error.valueIsDecimal;
+
+              case 8:
+                if (!_D2.default.isDecimal(details.gasPrice)) {
+                  _context5.next = 10;
+                  break;
+                }
+
+                throw _D2.default.error.valueIsDecimal;
+
+              case 10:
+                if (!_D2.default.isDecimal(details.output.value)) {
+                  _context5.next = 12;
+                  break;
+                }
+
+                throw _D2.default.error.valueIsDecimal;
+
+              case 12:
+                gasPrice = new _bigi2.default(details.gasPrice);
+                gasLimit = new _bigi2.default(details.gasLimit || '21000');
+                output = _D2.default.copy(details.output);
+                value = new _bigi2.default(output.value);
+
+                if (!details.data) {
+                  _context5.next = 25;
+                  break;
+                }
+
+                data = details.data;
+
+                if (data.startsWith('0x')) data = data.slice(2);
+                data = (data.length % 2 === 0 ? '' : '0') + data;
+
+                if (data.match(/^[0-9a-fA-F]*$/)) {
+                  _context5.next = 22;
+                  break;
+                }
+
+                throw _D2.default.error.invalidDataNotHex;
+
+              case 22:
+                details.data = '0x' + data;
+                _context5.next = 26;
+                break;
+
+              case 25:
+                details.data = '0x';
+
+              case 26:
+                minGas = 21000 + (details.data ? 68 * (details.data.length / 2 - 1) : 0);
+
+                if (!(minGas > gasLimit)) {
+                  _context5.next = 29;
+                  break;
+                }
+
+                throw _D2.default.error.networkGasTooLow;
+
+              case 29:
+                input = _D2.default.copy(this.addressInfos[0]);
+                nonce = void 0;
+
+                if (!details.oldTxId) {
+                  _context5.next = 39;
+                  break;
+                }
+
+                oldTxInfo = this.txInfos.find(function (txInfo) {
+                  return txInfo.txId === details.oldTxId;
+                });
+
+                if (oldTxInfo) {
+                  _context5.next = 36;
+                  break;
+                }
+
+                console.warn('oldTxId not found in history');
+                throw _D2.default.error.unknown;
+
+              case 36:
+                nonce = oldTxInfo.nonce;
+                _context5.next = 40;
+                break;
+
+              case 39:
+                nonce = this.txInfos.filter(function (txInfo) {
+                  return txInfo.confirmations !== _D2.default.tx.confirmation.dropped;
+                }).filter(function (txInfo) {
+                  return txInfo.direction === _D2.default.tx.direction.out;
+                }).length;
+
+              case 40:
+                fee = gasLimit.multiply(gasPrice);
+                balance = new _bigi2.default(this.balance);
+                total = void 0;
+                // noinspection JSUnresolvedVariable
+
+                if (!details.sendAll) {
+                  _context5.next = 51;
+                  break;
+                }
+
+                if (!(balance.compareTo(fee) < 0)) {
+                  _context5.next = 46;
+                  break;
+                }
+
+                throw _D2.default.error.balanceNotEnough;
+
+              case 46:
+                total = balance;
+                value = total.subtract(fee);
+                output.value = value.toString(10);
+                _context5.next = 54;
+                break;
+
+              case 51:
+                total = value.add(fee);
+
+                if (!(total.compareTo(balance) > 0)) {
+                  _context5.next = 54;
+                  break;
+                }
+
+                throw _D2.default.error.balanceNotEnough;
+
+              case 54:
+                prepareTx = {
+                  total: total.toString(10),
+                  fee: fee.toString(10),
+                  gasPrice: gasPrice.toString(10),
+                  gasLimit: gasLimit.toString(10),
+                  nonce: nonce,
+                  input: input,
+                  output: output,
+                  data: details.data,
+                  comment: details.comment || ''
+                };
+
+                console.log('prepareTx', prepareTx);
+                return _context5.abrupt('return', prepareTx);
+
+              case 57:
+              case 'end':
+                return _context5.stop();
+            }
+          }
+        }, _callee5, this);
+      }));
+
+      function prepareTx(_x4) {
+        return _ref5.apply(this, arguments);
+      }
+
+      return prepareTx;
+    }()
+
+    /**
+     * use the result of prepareTx to make transaction
+     * @param prepareTx
+     * @returns {Promise<{txInfo, addressInfo, hex}>}
+     * @see prepareTx
+     */
+
+  }, {
+    key: 'buildTx',
+    value: function () {
+      var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6(prepareTx) {
+        var output, gasPrice, gasLimit, value, preSignTx, signedTx;
+        return regeneratorRuntime.wrap(function _callee6$(_context6) {
+          while (1) {
+            switch (_context6.prev = _context6.next) {
+              case 0:
+                output = _D2.default.copy(prepareTx.output);
+                gasPrice = new _bigi2.default(prepareTx.gasPrice).toString(16);
+
+                gasPrice = '0x' + (gasPrice.length % 2 === 0 ? '' : '0') + gasPrice;
+                // '0x00' will be encode as 0x00; '0x', '', null, 0 will be encode as 0x80, shit
+                if (gasPrice === '0x00') gasPrice = '0x';
+
+                gasLimit = new _bigi2.default(prepareTx.gasLimit).toString(16);
+
+                gasLimit = '0x' + (gasLimit.length % 2 === 0 ? '' : '0') + gasLimit;
+                if (gasLimit === '0x00') gasLimit = '0x';
+
+                value = new _bigi2.default(output.value).toString(16);
+
+                value = '0x' + (value.length % 2 === 0 ? '' : '0') + value;
+                if (value === '0x00') value = '0x';
+
+                preSignTx = {
+                  input: { address: prepareTx.input.address, path: prepareTx.input.path },
+                  output: { address: output.address, value: value },
+                  nonce: prepareTx.nonce,
+                  gasPrice: gasPrice,
+                  gasLimit: gasLimit,
+                  data: prepareTx.data
+                };
+
+                console.log('preSignTx', preSignTx);
+                _context6.next = 14;
+                return this._device.signTransaction(this.coinType, preSignTx);
+
+              case 14:
+                signedTx = _context6.sent;
+                return _context6.abrupt('return', {
+                  txInfo: {
+                    accountId: this.accountId,
+                    coinType: this.coinType,
+                    txId: signedTx.id,
+                    blockNumber: -1,
+                    confirmations: -1,
+                    time: new Date().getTime(),
+                    direction: _D2.default.tx.direction.out,
+                    showAddresses: [output.address],
+                    value: '-' + output.value,
+                    inputs: [{
+                      prevAddress: prepareTx.input.address,
+                      isMine: true,
+                      value: output.value
+                    }],
+                    outputs: [{
+                      address: output.address,
+                      isMine: false,
+                      value: output.value
+                    }],
+                    gas: _bigi2.default.fromHex(gasLimit.slice(2)).toString(10),
+                    gasPrice: _bigi2.default.fromHex(gasPrice.slice(2)).toString(10),
+                    fee: prepareTx.fee,
+                    nonce: prepareTx.nonce,
+                    data: prepareTx.data,
+                    comment: prepareTx.comment
+                  },
+                  addressInfo: prepareTx.input,
+                  hex: signedTx.hex
+                });
+
+              case 16:
+              case 'end':
+                return _context6.stop();
+            }
+          }
+        }, _callee6, this);
+      }));
+
+      function buildTx(_x5) {
+        return _ref6.apply(this, arguments);
+      }
+
+      return buildTx;
+    }()
+
+    /**
+     * broadcast transaction to btcNetwork
+     * @param signedTx
+     * @param test won't broadcast to ethNetwork if true
+     * @see signedTx
+     */
+
+  }, {
+    key: 'sendTx',
+    value: function () {
+      var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7(signedTx) {
+        var test = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+        return regeneratorRuntime.wrap(function _callee7$(_context7) {
+          while (1) {
+            switch (_context7.prev = _context7.next) {
+              case 0:
+                // broadcast transaction to network
+                console.log('sendTx', signedTx);
+
+                if (test) {
+                  _context7.next = 4;
+                  break;
+                }
+
+                _context7.next = 4;
+                return this._coinData.sendTx(this._toAccountInfo(), signedTx.hex);
+
+              case 4:
+                _context7.next = 6;
+                return this._handleNewTx(signedTx.txInfo);
+
+              case 6:
+              case 'end':
+                return _context7.stop();
+            }
+          }
+        }, _callee7, this);
+      }));
+
+      function sendTx(_x7) {
+        return _ref7.apply(this, arguments);
+      }
+
+      return sendTx;
+    }()
+  }]);
+
+  return EthAccount;
+}(_IAccount3.default);
+
+exports.default = EthAccount;
+
+/***/ }),
+
+/***/ "./src/sdk/account/IAccount.js":
+/*!*************************************!*\
+  !*** ./src/sdk/account/IAccount.js ***!
+  \*************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _D = __webpack_require__(/*! ../D */ "./src/sdk/D.js");
+
+var _D2 = _interopRequireDefault(_D);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var IAccount = function () {
+  function IAccount(info, device, coinData) {
+    var _this = this;
+
+    _classCallCheck(this, IAccount);
+
+    this._fromAccountInfo(info);
+    this._device = device;
+    this._coinData = coinData;
+    this._listenedTxs = [];
+    this._listenedAddresses = [];
+
+    this._txListener = function () {
+      var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(error, txInfo) {
+        var isLost = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+        var index;
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                if (!(error !== _D2.default.error.succeed)) {
+                  _context.next = 3;
+                  break;
+                }
+
+                console.warn('IAccount txListener', error);
+                return _context.abrupt('return');
+
+              case 3:
+                console.log('newTransaction status', txInfo);
+
+                if (!isLost) {
+                  _context.next = 8;
+                  break;
+                }
+
+                _context.next = 7;
+                return _this._handleRemovedTx(txInfo.txId);
+
+              case 7:
+                return _context.abrupt('return');
+
+              case 8:
+                index = _this.txInfos.findIndex(function (t) {
+                  return t.txId === txInfo.txId;
+                });
+
+                if (index === -1) {
+                  console.warn('this should not happen, add it');
+                  _this.txInfos.push(txInfo);
+                  index = _this.txInfos.length - 1;
+                } else {
+                  // only update comfirmations, because txInfo may contains old info (e.g. gasLimit become gasUsed)
+                  _this.txInfos[index].confirmations = txInfo.confirmations;
+                }
+                _context.next = 12;
+                return _this._handleNewTx(_this.txInfos[index]);
+
+              case 12:
+              case 'end':
+                return _context.stop();
+            }
+          }
+        }, _callee, _this);
+      }));
+
+      return function (_x2, _x3) {
+        return _ref.apply(this, arguments);
+      };
+    }();
+
+    this._addressListener = function () {
+      var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(error, addressInfo, txInfo, removedTxId) {
+        return regeneratorRuntime.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                if (!(error !== _D2.default.error.succeed)) {
+                  _context2.next = 3;
+                  break;
+                }
+
+                console.warn('IAccount addressListener', error);
+                return _context2.abrupt('return');
+
+              case 3:
+                if (!removedTxId) {
+                  _context2.next = 7;
+                  break;
+                }
+
+                _context2.next = 6;
+                return _this._handleRemovedTx(removedTxId);
+
+              case 6:
+                return _context2.abrupt('return');
+
+              case 7:
+                _context2.next = 9;
+                return _this._handleNewTx(txInfo);
+
+              case 9:
+              case 'end':
+                return _context2.stop();
+            }
+          }
+        }, _callee2, _this);
+      }));
+
+      return function (_x4, _x5, _x6, _x7) {
+        return _ref2.apply(this, arguments);
+      };
+    }();
+  }
+
+  _createClass(IAccount, [{
+    key: '_toAccountInfo',
+    value: function _toAccountInfo() {
+      var info = {};
+      Object.entries(this).forEach(function (_ref3) {
+        var _ref4 = _slicedToArray(_ref3, 2),
+            key = _ref4[0],
+            value = _ref4[1];
+
+        if (key.startsWith('_')) return;
+        if (typeof value === 'function') return;
+        info[key] = value;
+      });
+      return info;
+    }
+  }, {
+    key: '_fromAccountInfo',
+    value: function _fromAccountInfo(info) {
+      var _this2 = this;
+
+      Object.entries(info).forEach(function (_ref5) {
+        var _ref6 = _slicedToArray(_ref5, 2),
+            key = _ref6[0],
+            value = _ref6[1];
+
+        if (key.startsWith('_')) return;
+        if (typeof value === 'function') return;
+        _this2[key] = value;
+      });
+    }
+  }, {
+    key: 'init',
+    value: function () {
+      var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
+        var accountId;
+        return regeneratorRuntime.wrap(function _callee3$(_context3) {
+          while (1) {
+            switch (_context3.prev = _context3.next) {
+              case 0:
+                accountId = this.accountId;
+                _context3.next = 3;
+                return this._coinData.getAddressInfos({ accountId: accountId });
+
+              case 3:
+                this.addressInfos = _context3.sent;
+                _context3.next = 6;
+                return this._coinData.getTxInfos({ accountId: accountId });
+
+              case 6:
+                this.txInfos = _context3.sent.txInfos;
+                _context3.next = 9;
+                return this._coinData.getUtxos({ accountId: accountId });
+
+              case 9:
+                this.utxos = _context3.sent;
+
+              case 10:
+              case 'end':
+                return _context3.stop();
+            }
+          }
+        }, _callee3, this);
+      }));
+
+      function init() {
+        return _ref7.apply(this, arguments);
+      }
+
+      return init;
+    }()
+  }, {
+    key: 'sync',
+    value: function () {
+      var _ref8 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4() {
+        var _this3 = this;
+
+        var firstSync = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+        var offlineMode = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+
+        var checkAddressInfos, blobs, responses, listenAddressInfos, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, addressInfo;
+
+        return regeneratorRuntime.wrap(function _callee4$(_context4) {
+          while (1) {
+            switch (_context4.prev = _context4.next) {
+              case 0:
+                if (offlineMode) {
+                  _context4.next = 3;
+                  break;
+                }
+
+                _context4.next = 3;
+                return this._checkAddressIndexAndGenerateNew(true);
+
+              case 3:
+                checkAddressInfos = _D2.default.copy(this.addressInfos);
+
+              case 4:
+                if (!(checkAddressInfos.length > 0)) {
+                  _context4.next = 22;
+                  break;
+                }
+
+                _context4.next = 7;
+                return this._coinData.checkAddresses(this.coinType, checkAddressInfos);
+
+              case 7:
+                blobs = _context4.sent;
+                _context4.next = 10;
+                return Promise.all(blobs.map(function (blob) {
+                  if (blob.removedTxId) {
+                    var removedTxInfo = _this3.txInfos.find(function (txInfo) {
+                      return txInfo.txId === blob.removedTxId;
+                    });
+                    // let the txListener handle the overTime pending tx
+                    if (removedTxInfo && removedTxInfo.confirmations !== _D2.default.tx.confirmation.pending) {
+                      return _this3._handleRemovedTx(blob.removedTxId);
+                    }
+                  } else {
+                    return _this3._handleNewTx(blob.txInfo);
+                  }
+                }));
+
+              case 10:
+                responses = _context4.sent;
+
+                if (!offlineMode) {
+                  _context4.next = 13;
+                  break;
+                }
+
+                return _context4.abrupt('break', 22);
+
+              case 13:
+                if (!(responses.length === 0)) {
+                  _context4.next = 15;
+                  break;
+                }
+
+                return _context4.abrupt('break', 22);
+
+              case 15:
+                _context4.t0 = _D2.default;
+                _context4.next = 18;
+                return this._checkAddressIndexAndGenerateNew(true);
+
+              case 18:
+                _context4.t1 = _context4.sent;
+                checkAddressInfos = _context4.t0.copy.call(_context4.t0, _context4.t1);
+                _context4.next = 4;
+                break;
+
+              case 22:
+                if (!firstSync) {
+                  _context4.next = 46;
+                  break;
+                }
+
+                _context4.next = 25;
+                return this._getActiveAddressInfos();
+
+              case 25:
+                listenAddressInfos = _context4.sent;
+                _iteratorNormalCompletion = true;
+                _didIteratorError = false;
+                _iteratorError = undefined;
+                _context4.prev = 29;
+
+                for (_iterator = listenAddressInfos[Symbol.iterator](); !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                  addressInfo = _step.value;
+
+                  if (!this._listenedAddresses.includes(addressInfo.address)) {
+                    this._listenedAddresses.push(addressInfo.address);
+                    this._coinData.listenAddresses(this.coinType, [_D2.default.copy(addressInfo)], this._addressListener);
+                  }
+                }
+
+                _context4.next = 37;
+                break;
+
+              case 33:
+                _context4.prev = 33;
+                _context4.t2 = _context4['catch'](29);
+                _didIteratorError = true;
+                _iteratorError = _context4.t2;
+
+              case 37:
+                _context4.prev = 37;
+                _context4.prev = 38;
+
+                if (!_iteratorNormalCompletion && _iterator.return) {
+                  _iterator.return();
+                }
+
+              case 40:
+                _context4.prev = 40;
+
+                if (!_didIteratorError) {
+                  _context4.next = 43;
+                  break;
+                }
+
+                throw _iteratorError;
+
+              case 43:
+                return _context4.finish(40);
+
+              case 44:
+                return _context4.finish(37);
+
+              case 45:
+                this.txInfos.filter(function (txInfo) {
+                  return txInfo.confirmations !== _D2.default.tx.confirmation.dropped;
+                }).filter(function (txInfo) {
+                  return txInfo.confirmations < _D2.default.tx.getMatureConfirms(_this3.coinType);
+                }).filter(function (txInfo) {
+                  return !_this3._listenedTxs.includes(txInfo.txId);
+                }).forEach(function (txInfo) {
+                  _this3._listenedTxs.push(txInfo.txId);
+                  _this3._coinData.listenTx(_this3.coinType, _D2.default.copy(txInfo), _this3._txListener);
+                });
+
+              case 46:
+              case 'end':
+                return _context4.stop();
+            }
+          }
+        }, _callee4, this, [[29, 33, 37, 45], [38,, 40, 44]]);
+      }));
+
+      function sync() {
+        return _ref8.apply(this, arguments);
+      }
+
+      return sync;
+    }()
+
+    /**
+     * delete account only when there are no transaction in it
+     * @returns {Promise<void>}
+     */
+
+  }, {
+    key: 'delete',
+    value: function () {
+      var _ref9 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5() {
+        return regeneratorRuntime.wrap(function _callee5$(_context5) {
+          while (1) {
+            switch (_context5.prev = _context5.next) {
+              case 0:
+                this._coinData.removeNetworkListener(this.coinType, this._txListener);
+                this._coinData.removeNetworkListener(this.coinType, this._addressListener);
+                _context5.next = 4;
+                return this._coinData.deleteAccount(this._toAccountInfo());
+
+              case 4:
+              case 'end':
+                return _context5.stop();
+            }
+          }
+        }, _callee5, this);
+      }));
+
+      function _delete() {
+        return _ref9.apply(this, arguments);
+      }
+
+      return _delete;
+    }()
+  }, {
+    key: 'rename',
+    value: function () {
+      var _ref10 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6(newName) {
+        var oldAccountInfo;
+        return regeneratorRuntime.wrap(function _callee6$(_context6) {
+          while (1) {
+            switch (_context6.prev = _context6.next) {
+              case 0:
+                newName = newName || this.label;
+                oldAccountInfo = this._toAccountInfo();
+
+                oldAccountInfo.label = newName;
+                _context6.next = 5;
+                return this._coinData.renameAccount(oldAccountInfo);
+
+              case 5:
+                this.label = newName;
+
+              case 6:
+              case 'end':
+                return _context6.stop();
+            }
+          }
+        }, _callee6, this);
+      }));
+
+      function rename(_x10) {
+        return _ref10.apply(this, arguments);
+      }
+
+      return rename;
+    }()
+  }, {
+    key: 'updateTxComment',
+    value: function () {
+      var _ref11 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7(txInfo) {
+        var oldTxInfo;
+        return regeneratorRuntime.wrap(function _callee7$(_context7) {
+          while (1) {
+            switch (_context7.prev = _context7.next) {
+              case 0:
+                oldTxInfo = this.txInfos.find(function (t) {
+                  return t.txId === txInfo.txId && t.accountId === txInfo.accountId;
+                });
+
+                if (oldTxInfo) {
+                  _context7.next = 4;
+                  break;
+                }
+
+                console.warn('this txInfo not in the list', txInfo);
+                throw _D2.default.error.invalidParams;
+
+              case 4:
+                _context7.next = 6;
+                return this._coinData.updateTxComment(txInfo);
+
+              case 6:
+                oldTxInfo.comment = txInfo.comment;
+
+              case 7:
+              case 'end':
+                return _context7.stop();
+            }
+          }
+        }, _callee7, this);
+      }));
+
+      function updateTxComment(_x11) {
+        return _ref11.apply(this, arguments);
+      }
+
+      return updateTxComment;
+    }()
+  }, {
+    key: 'getTxInfos',
+    value: function getTxInfos(startIndex, endIndex) {
+      var accountId = this.accountId;
+      return this._coinData.getTxInfos({ accountId: accountId, startIndex: startIndex, endIndex: endIndex });
+    }
+  }, {
+    key: 'getSuggestedFee',
+    value: function getSuggestedFee() {
+      return this._coinData.getSuggestedFee(this.coinType).fee;
+    }
+
+    // noinspection JSMethodCanBeStatic
+
+  }, {
+    key: 'checkAddress',
+    value: function checkAddress(address) {
+      return _D2.default.address.checkAddress(this.coinType, address);
+    }
+  }, {
+    key: '_getActiveAddressInfos',
+    value: function () {
+      var _ref12 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8() {
+        return regeneratorRuntime.wrap(function _callee8$(_context8) {
+          while (1) {
+            switch (_context8.prev = _context8.next) {
+              case 0:
+                _context8.next = 2;
+                return this._checkAddressIndexAndGenerateNew();
+
+              case 2:
+                return _context8.abrupt('return', [this.addressInfos[this.externalPublicKeyIndex]]);
+
+              case 3:
+              case 'end':
+                return _context8.stop();
+            }
+          }
+        }, _callee8, this);
+      }));
+
+      function _getActiveAddressInfos() {
+        return _ref12.apply(this, arguments);
+      }
+
+      return _getActiveAddressInfos;
+    }()
+
+    // noinspection JSMethodCanBeStatic
+
+  }, {
+    key: '_checkAddressIndexAndGenerateNew',
+    value: function () {
+      var _ref13 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee9() {
+        var sync = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+        return regeneratorRuntime.wrap(function _callee9$(_context9) {
+          while (1) {
+            switch (_context9.prev = _context9.next) {
+              case 0:
+                throw _D2.default.error.notImplemented;
+
+              case 1:
+              case 'end':
+                return _context9.stop();
+            }
+          }
+        }, _callee9, this);
+      }));
+
+      function _checkAddressIndexAndGenerateNew() {
+        return _ref13.apply(this, arguments);
+      }
+
+      return _checkAddressIndexAndGenerateNew;
+    }()
+  }, {
+    key: '_handleRemovedTx',
+    value: function () {
+      var _ref14 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee10(txId) {
+        return regeneratorRuntime.wrap(function _callee10$(_context10) {
+          while (1) {
+            switch (_context10.prev = _context10.next) {
+              case 0:
+                throw _D2.default.error.notImplemented;
+
+              case 1:
+              case 'end':
+                return _context10.stop();
+            }
+          }
+        }, _callee10, this);
+      }));
+
+      function _handleRemovedTx(_x13) {
+        return _ref14.apply(this, arguments);
+      }
+
+      return _handleRemovedTx;
+    }()
+
+    /**
+     * handle when new transaction comes:
+     * 1. store/update new txInfo after filling "isMine" and "value" field
+     * 2. store utxo, addressInfo, txInfo
+     */
+
+  }, {
+    key: '_handleNewTx',
+    value: function () {
+      var _ref15 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee11(txInfo) {
+        return regeneratorRuntime.wrap(function _callee11$(_context11) {
+          while (1) {
+            switch (_context11.prev = _context11.next) {
+              case 0:
+                throw _D2.default.error.notImplemented;
+
+              case 1:
+              case 'end':
+                return _context11.stop();
+            }
+          }
+        }, _callee11, this);
+      }));
+
+      function _handleNewTx(_x14) {
+        return _ref15.apply(this, arguments);
+      }
+
+      return _handleNewTx;
+    }()
+  }, {
+    key: 'getAddress',
+    value: function () {
+      var _ref16 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee12() {
+        var isStoring = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+        return regeneratorRuntime.wrap(function _callee12$(_context12) {
+          while (1) {
+            switch (_context12.prev = _context12.next) {
+              case 0:
+                throw _D2.default.error.notImplemented;
+
+              case 1:
+              case 'end':
+                return _context12.stop();
+            }
+          }
+        }, _callee12, this);
+      }));
+
+      function getAddress() {
+        return _ref16.apply(this, arguments);
+      }
+
+      return getAddress;
+    }()
+
+    /**
+     * prepare transaction info before transaction
+     */
+
+  }, {
+    key: 'prepareTx',
+    value: function () {
+      var _ref17 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee13(details) {
+        return regeneratorRuntime.wrap(function _callee13$(_context13) {
+          while (1) {
+            switch (_context13.prev = _context13.next) {
+              case 0:
+                throw _D2.default.error.notImplemented;
+
+              case 1:
+              case 'end':
+                return _context13.stop();
+            }
+          }
+        }, _callee13, this);
+      }));
+
+      function prepareTx(_x16) {
+        return _ref17.apply(this, arguments);
+      }
+
+      return prepareTx;
+    }()
+
+    /**
+     * use the result of prepareTx to make transaction
+     * @param prepareTx
+     * @returns {Promise<{txInfo, addressInfo, hex}>}
+     * @see prepareTx
+     */
+
+  }, {
+    key: 'buildTx',
+    value: function () {
+      var _ref18 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee14(prepareTx) {
+        return regeneratorRuntime.wrap(function _callee14$(_context14) {
+          while (1) {
+            switch (_context14.prev = _context14.next) {
+              case 0:
+                throw _D2.default.error.notImplemented;
+
+              case 1:
+              case 'end':
+                return _context14.stop();
+            }
+          }
+        }, _callee14, this);
+      }));
+
+      function buildTx(_x17) {
+        return _ref18.apply(this, arguments);
+      }
+
+      return buildTx;
+    }()
+
+    /**
+     * broadcast transaction to btcNetwork
+     * @param signedTx
+     * @param test won't broadcast to network if true
+     * @see signedTx
+     */
+
+  }, {
+    key: 'sendTx',
+    value: function () {
+      var _ref19 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee15(signedTx) {
+        var test = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+        return regeneratorRuntime.wrap(function _callee15$(_context15) {
+          while (1) {
+            switch (_context15.prev = _context15.next) {
+              case 0:
+                throw _D2.default.error.notImplemented;
+
+              case 1:
+              case 'end':
+                return _context15.stop();
+            }
+          }
+        }, _callee15, this);
+      }));
+
+      function sendTx(_x19) {
+        return _ref19.apply(this, arguments);
+      }
+
+      return sendTx;
+    }()
+  }]);
+
+  return IAccount;
+}();
+
+exports.default = IAccount;
 
 /***/ }),
 
@@ -46796,10 +51910,10 @@ var CoinData = function () {
           while (1) {
             switch (_context4.prev = _context4.next) {
               case 0:
-                _context4.prev = 0;
+                console.log('walletInfo', info);
+                _context4.prev = 1;
 
                 // db
-                console.log('walletInfo', info);
                 this._db = new _Provider2.default.DB(info.walletId);
                 _context4.next = 5;
                 return this._db.init();
@@ -47062,7 +52176,7 @@ var CoinData = function () {
 
               case 19:
                 _context4.prev = 19;
-                _context4.t0 = _context4['catch'](0);
+                _context4.t0 = _context4['catch'](1);
 
                 if (!(typeof _context4.t0 === 'number')) {
                   _context4.next = 23;
@@ -47080,7 +52194,7 @@ var CoinData = function () {
                 return _context4.stop();
             }
           }
-        }, _callee4, this, [[0, 19]]);
+        }, _callee4, this, [[1, 19]]);
       }));
 
       function init(_x) {
@@ -47182,6 +52296,11 @@ var CoinData = function () {
         return listener !== callback;
       });
     }
+
+    /**
+     * Get network API providers. Thanks for their helps.
+     */
+
   }, {
     key: 'getProviders',
     value: function getProviders() {
@@ -47190,13 +52309,19 @@ var CoinData = function () {
         providers[coin] = {};
       });
       Object.values(this._network).forEach(function (network) {
-        providers[network.coinType]['network'] = network.provider;
+        if (network.provider) {
+          providers[network.coinType]['network'] = network.provider;
+        }
       });
       Object.values(this._networkFee).forEach(function (fee) {
-        providers[fee.coinType]['fee'] = fee.provider;
+        if (fee.provider) {
+          providers[fee.coinType]['fee'] = fee.provider;
+        }
       });
       Object.values(this._exchange).forEach(function (exchange) {
-        providers[exchange.coinType]['exchange'] = exchange.provider;
+        if (exchange.provider) {
+          providers[exchange.coinType]['exchange'] = exchange.provider;
+        }
       });
       return providers;
     }
@@ -47678,6 +52803,35 @@ var CoinData = function () {
       return sendTx;
     }()
   }, {
+    key: 'getEosBlockInfo',
+    value: function () {
+      var _ref21 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee17(coinType) {
+        return regeneratorRuntime.wrap(function _callee17$(_context17) {
+          while (1) {
+            switch (_context17.prev = _context17.next) {
+              case 0:
+                // TODO complete
+                console.warn('implement CoinData.getEosBlockInfo()!');
+                // main
+                // return {ref_block_num: 56170, ref_block_prefix: 3374189397}
+                // jungle
+                return _context17.abrupt('return', { ref_block_num: 713, ref_block_prefix: 3472406222 });
+
+              case 2:
+              case 'end':
+                return _context17.stop();
+            }
+          }
+        }, _callee17, this);
+      }));
+
+      function getEosBlockInfo(_x26) {
+        return _ref21.apply(this, arguments);
+      }
+
+      return getEosBlockInfo;
+    }()
+  }, {
     key: 'getSuggestedFee',
     value: function getSuggestedFee(coinType) {
       if (!_D2.default.supportedCoinTypes().includes(coinType)) {
@@ -48062,7 +53216,7 @@ var IDatabase = function () {
   }, {
     key: 'newTx',
     value: function () {
-      var _ref14 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee14(account, addressInfo, txInfo) {
+      var _ref14 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee14(account, addressInfos, txInfo) {
         var utxos = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : [];
         return regeneratorRuntime.wrap(function _callee14$(_context14) {
           while (1) {
@@ -48085,9 +53239,11 @@ var IDatabase = function () {
       return newTx;
     }()
   }, {
-    key: 'getFee',
+    key: 'removeTx',
     value: function () {
-      var _ref15 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee15(coinType) {
+      var _ref15 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee15(account, addressInfos, txInfo) {
+        var updateUtxos = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : [];
+        var removeUtxos = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : [];
         return regeneratorRuntime.wrap(function _callee15$(_context15) {
           while (1) {
             switch (_context15.prev = _context15.next) {
@@ -48102,16 +53258,16 @@ var IDatabase = function () {
         }, _callee15, this);
       }));
 
-      function getFee(_x16) {
+      function removeTx(_x18, _x19, _x20) {
         return _ref15.apply(this, arguments);
       }
 
-      return getFee;
+      return removeTx;
     }()
   }, {
-    key: 'saveOrUpdateFee',
+    key: 'getFee',
     value: function () {
-      var _ref16 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee16(fee) {
+      var _ref16 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee16(coinType) {
         return regeneratorRuntime.wrap(function _callee16$(_context16) {
           while (1) {
             switch (_context16.prev = _context16.next) {
@@ -48126,16 +53282,16 @@ var IDatabase = function () {
         }, _callee16, this);
       }));
 
-      function saveOrUpdateFee(_x17) {
+      function getFee(_x21) {
         return _ref16.apply(this, arguments);
       }
 
-      return saveOrUpdateFee;
+      return getFee;
     }()
   }, {
-    key: 'getExchange',
+    key: 'saveOrUpdateFee',
     value: function () {
-      var _ref17 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee17(coinType) {
+      var _ref17 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee17(fee) {
         return regeneratorRuntime.wrap(function _callee17$(_context17) {
           while (1) {
             switch (_context17.prev = _context17.next) {
@@ -48150,16 +53306,16 @@ var IDatabase = function () {
         }, _callee17, this);
       }));
 
-      function getExchange(_x18) {
+      function saveOrUpdateFee(_x22) {
         return _ref17.apply(this, arguments);
       }
 
-      return getExchange;
+      return saveOrUpdateFee;
     }()
   }, {
-    key: 'saveOrUpdateExchange',
+    key: 'getExchange',
     value: function () {
-      var _ref18 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee18(exchange) {
+      var _ref18 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee18(coinType) {
         return regeneratorRuntime.wrap(function _callee18$(_context18) {
           while (1) {
             switch (_context18.prev = _context18.next) {
@@ -48174,16 +53330,16 @@ var IDatabase = function () {
         }, _callee18, this);
       }));
 
-      function saveOrUpdateExchange(_x19) {
+      function getExchange(_x23) {
         return _ref18.apply(this, arguments);
       }
 
-      return saveOrUpdateExchange;
+      return getExchange;
     }()
   }, {
-    key: 'getSettings',
+    key: 'saveOrUpdateExchange',
     value: function () {
-      var _ref19 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee19(coinType) {
+      var _ref19 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee19(exchange) {
         return regeneratorRuntime.wrap(function _callee19$(_context19) {
           while (1) {
             switch (_context19.prev = _context19.next) {
@@ -48198,16 +53354,16 @@ var IDatabase = function () {
         }, _callee19, this);
       }));
 
-      function getSettings(_x20) {
+      function saveOrUpdateExchange(_x24) {
         return _ref19.apply(this, arguments);
       }
 
-      return getSettings;
+      return saveOrUpdateExchange;
     }()
   }, {
-    key: 'saveOrUpdateSettings',
+    key: 'getSettings',
     value: function () {
-      var _ref20 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee20(exchange) {
+      var _ref20 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee20(coinType) {
         return regeneratorRuntime.wrap(function _callee20$(_context20) {
           while (1) {
             switch (_context20.prev = _context20.next) {
@@ -48222,8 +53378,32 @@ var IDatabase = function () {
         }, _callee20, this);
       }));
 
-      function saveOrUpdateSettings(_x21) {
+      function getSettings(_x25) {
         return _ref20.apply(this, arguments);
+      }
+
+      return getSettings;
+    }()
+  }, {
+    key: 'saveOrUpdateSettings',
+    value: function () {
+      var _ref21 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee21(exchange) {
+        return regeneratorRuntime.wrap(function _callee21$(_context21) {
+          while (1) {
+            switch (_context21.prev = _context21.next) {
+              case 0:
+                throw _D2.default.error.notImplemented;
+
+              case 1:
+              case 'end':
+                return _context21.stop();
+            }
+          }
+        }, _callee21, this);
+      }));
+
+      function saveOrUpdateSettings(_x26) {
+        return _ref21.apply(this, arguments);
       }
 
       return saveOrUpdateSettings;
@@ -48362,11 +53542,74 @@ var IndexedDB = function (_IDatabase) {
                      *   accountId: string,
                      *   label: string,
                      *   coinType: string,
-                     *   index: 0,
-                     *   balance: string, // (decimal string satoshi)
-                     *   fee: string, // (decimal string satoshi, fee = outputs - inputs)
+                     *   index: number,
+                     *   balance: string, // (decimal string)
                      *   externalPublicKeyIndex: int, // current external address index
                      *   changePublicKeyIndex: int // current change address index
+                     *
+                     *   // eos
+                     *   actionSeq: number,
+                     *   tokens: {
+                     *     EOS: {
+                     *       code: eosio.token,
+                     *       symbol: EOS,
+                     *       value: number
+                     *     },
+                     *     ...
+                     *   }
+                     *   resources: {
+                     *     ram: {
+                     *       weight: number,
+                     *       used: number,
+                     *       total: number
+                     *     }
+                     *     net: {
+                     *       weight: number,
+                     *       used: number,
+                     *       available: number,
+                     *       max: number,
+                     *     }
+                     *     cpu: {
+                     *       used: number,
+                     *       available: number,
+                     *       max: number,
+                     *     }
+                     *     stake: {
+                     *       total: {
+                     *         bandwidth: number,
+                     *         cpu: number
+                     *       }
+                     *     }
+                     *     vote: {
+                     *       proxy: string,
+                     *       producers: [string],
+                     *       staked: number,
+                     *       isProxy: bool
+                     *     }
+                     *   }
+                     *   permissions: {
+                     *     owner: {
+                     *       name: 'owner',
+                     *       parent: string,
+                     *       threshold: number,
+                     *       keys: [{
+                     *         publicKey: string,
+                     *         weight: number,
+                     *         path: string
+                     *       }, ...]
+                     *     },
+                     *     active: {
+                     *       name: 'active',
+                     *       parent: string,
+                     *       threshold: number,
+                     *       pKeys: [{
+                     *         publicKey: string,
+                     *         weight: number,
+                     *         path: string
+                     *       }, ...]
+                     *     },
+                     *     ...
+                     *   }
                      * }
                      */
                     if (!db.objectStoreNames.contains('account')) {
@@ -48388,6 +53631,7 @@ var IndexedDB = function (_IDatabase) {
                      *   direction: D.tx.direction.in / D.tx.direction.out,
                      *   inputs: [{prevTxId, prevAddress, prevOutIndex, prevOutScript, index, value, isMine}, ...]
                      *   outputs: [{address, index, value, isMine}, ...]
+                     *   showAddresses: [address] // addresses shown in the tx list, senders if you are receiver, recivers if not
                      *   value: string (decimal string satoshi) // value that shows the account balance changes, calculated by inputs and outputs
                      *   comment: string
                      * }
@@ -48397,20 +53641,43 @@ var IndexedDB = function (_IDatabase) {
                      *   accountId: string,
                      *   coinType: string,
                      *   txId: string,
-                     *   version: number,
                      *   blockNumber: number,
                      *   confirmations: number, // see D.tx.confirmation
                      *   time: number,
                      *   direction: D.tx.direction.in / D.tx.direction.out,
-                     *   inputs: [{prevAddress, prevOutIndex, index, value, isMine}, ...]
-                     *   outputs: [{address, index, value, isMine}, ...]
+                     *   inputs: [{prevAddress, value, isMine}, ...]
+                     *   outputs: [{address, value, isMine}, ...]
+                     *   showAddresses: [address] // addresses shown in the tx list, senders if you are receiver, and receivers if not
                      *   value: string (decimal string Wei), // value that shows the account balance changes, calculated by inputs and outputs
+                     *
                      *   gas: string (decimal string Wei),
                      *   gasPrice: string (decimal string Wei),
-                     *   fee: gas * gasPrice
-                     *   data: hex string
-                     *   nonce: number
+                     *   fee: gas * gasPrice,
+                     *   data: hex string,
+                     *   nonce: number,
                      *   comment: string
+                     * }
+                     *
+                     * eos:
+                     * {
+                     *   accountId: string,
+                     *   coinType: string,
+                     *   txId: string,
+                     *   blockNumber: number,
+                     *   confirmations: number, // see D.tx.confirmation
+                     *   time: number,
+                     *   // direction: D.tx.direction.in / D.tx.direction.out
+                     *   // inputs: [{prevAddress, value, isMine}, ...]
+                     *   // outputs: [{address, value, isMine}, ...]
+                     *   // showAddresses: [address, ...]
+                     *   // value: decimal integer string,
+                     *   comment: string, // comment in local
+                     *
+                     *   actions: [{account, name, authorization, data}...],
+                     *   showData: {
+                     *     type: string,
+                     *     ...
+                     *   }
                      * }
                      */
                     if (!db.objectStoreNames.contains('txInfo')) {
@@ -48654,7 +53921,7 @@ var IndexedDB = function (_IDatabase) {
         };
 
         accountRequest().then(addressInfosRequest).then(resolve).catch(function (e) {
-          console.warn('newAddressInfos', e);
+          console.warn('deleteAccount', e);
           reject(_D2.default.error.databaseExecFailed);
         });
       });
@@ -49284,7 +54551,6 @@ var BlockchainInfo = function (_ICoinNetwork) {
     var _this = _possibleConstructorReturn(this, (BlockchainInfo.__proto__ || Object.getPrototypeOf(BlockchainInfo)).call(this, coinType));
 
     _this._supportMultiAddresses = true;
-    _this.coinType = coinType;
     _this.indexMap = {};
     return _this;
   }
@@ -49444,7 +54710,9 @@ var BlockchainInfo = function (_ICoinNetwork) {
       var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(addresses) {
         var _this2 = this;
 
-        var maxAddressesSize, response, offset, _response$txs, _response$addresses, querySize, subResponse, selfTx, blobs, _loop, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, rAddress;
+        var offset = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
+
+        var maxAddressesSize, response, _response$txs, _response$addresses, querySize, subResponse, selfTx, blobs, _loop, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, rAddress;
 
         return regeneratorRuntime.wrap(function _callee3$(_context4) {
           while (1) {
@@ -49456,30 +54724,29 @@ var BlockchainInfo = function (_ICoinNetwork) {
                   txs: [],
                   addresses: []
                 };
-                offset = 0;
 
-              case 3:
+              case 2:
                 if (!(offset < addresses.length)) {
-                  _context4.next = 14;
+                  _context4.next = 13;
                   break;
                 }
 
                 querySize = addresses.length - offset;
 
                 if (querySize > maxAddressesSize) querySize = maxAddressesSize;
-                _context4.next = 8;
+                _context4.next = 7;
                 return this._queryAddresses(addresses.slice(offset, offset + querySize));
 
-              case 8:
+              case 7:
                 subResponse = _context4.sent;
 
                 (_response$txs = response.txs).push.apply(_response$txs, _toConsumableArray(subResponse.txs));
                 (_response$addresses = response.addresses).push.apply(_response$addresses, _toConsumableArray(subResponse.addresses));
                 offset += querySize;
-                _context4.next = 3;
+                _context4.next = 2;
                 break;
 
-              case 14:
+              case 13:
                 selfTx = function selfTx(rTx, address) {
                   return rTx.inputs.map(function (input) {
                     return input.prev_out.addr;
@@ -49500,7 +54767,7 @@ var BlockchainInfo = function (_ICoinNetwork) {
                           });
                           _context3.next = 3;
                           return Promise.all(txs.map(function (rTx) {
-                            return _this2.wrapTx(rTx, rAddress.address);
+                            return _this2._wrapTx(rTx, rAddress.address);
                           }));
 
                         case 3:
@@ -49522,69 +54789,69 @@ var BlockchainInfo = function (_ICoinNetwork) {
                 _iteratorNormalCompletion = true;
                 _didIteratorError = false;
                 _iteratorError = undefined;
-                _context4.prev = 20;
+                _context4.prev = 19;
                 _iterator = response.addresses[Symbol.iterator]();
 
-              case 22:
+              case 21:
                 if (_iteratorNormalCompletion = (_step = _iterator.next()).done) {
-                  _context4.next = 28;
+                  _context4.next = 27;
                   break;
                 }
 
                 rAddress = _step.value;
-                return _context4.delegateYield(_loop(rAddress), 't0', 25);
+                return _context4.delegateYield(_loop(rAddress), 't0', 24);
 
-              case 25:
+              case 24:
                 _iteratorNormalCompletion = true;
-                _context4.next = 22;
+                _context4.next = 21;
                 break;
 
-              case 28:
-                _context4.next = 34;
+              case 27:
+                _context4.next = 33;
                 break;
 
-              case 30:
-                _context4.prev = 30;
-                _context4.t1 = _context4['catch'](20);
+              case 29:
+                _context4.prev = 29;
+                _context4.t1 = _context4['catch'](19);
                 _didIteratorError = true;
                 _iteratorError = _context4.t1;
 
-              case 34:
+              case 33:
+                _context4.prev = 33;
                 _context4.prev = 34;
-                _context4.prev = 35;
 
                 if (!_iteratorNormalCompletion && _iterator.return) {
                   _iterator.return();
                 }
 
-              case 37:
-                _context4.prev = 37;
+              case 36:
+                _context4.prev = 36;
 
                 if (!_didIteratorError) {
-                  _context4.next = 40;
+                  _context4.next = 39;
                   break;
                 }
 
                 throw _iteratorError;
 
+              case 39:
+                return _context4.finish(36);
+
               case 40:
-                return _context4.finish(37);
+                return _context4.finish(33);
 
               case 41:
-                return _context4.finish(34);
-
-              case 42:
                 return _context4.abrupt('return', blobs);
 
-              case 43:
+              case 42:
               case 'end':
                 return _context4.stop();
             }
           }
-        }, _callee3, this, [[20, 30, 34, 42], [35,, 37, 41]]);
+        }, _callee3, this, [[19, 29, 33, 41], [34,, 36, 40]]);
       }));
 
-      function queryAddresses(_x) {
+      function queryAddresses(_x2) {
         return _ref3.apply(this, arguments);
       }
 
@@ -49651,7 +54918,7 @@ var BlockchainInfo = function (_ICoinNetwork) {
         }, _callee4, this);
       }));
 
-      function _queryAddresses(_x2) {
+      function _queryAddresses(_x3) {
         return _ref4.apply(this, arguments);
       }
 
@@ -49671,7 +54938,7 @@ var BlockchainInfo = function (_ICoinNetwork) {
 
               case 2:
                 response = _context6.sent;
-                return _context6.abrupt('return', this.wrapTx(response));
+                return _context6.abrupt('return', this._wrapTx(response));
 
               case 4:
               case 'end':
@@ -49681,7 +54948,7 @@ var BlockchainInfo = function (_ICoinNetwork) {
         }, _callee5, this);
       }));
 
-      function queryTx(_x3) {
+      function queryTx(_x4) {
         return _ref5.apply(this, arguments);
       }
 
@@ -49711,7 +54978,7 @@ var BlockchainInfo = function (_ICoinNetwork) {
         }, _callee6, this);
       }));
 
-      function queryRawTx(_x4) {
+      function queryRawTx(_x5) {
         return _ref6.apply(this, arguments);
       }
 
@@ -49723,7 +54990,7 @@ var BlockchainInfo = function (_ICoinNetwork) {
       return this.post([this._apiUrl, 'pushtx'].join('/'), 'tx=' + rawTransaction);
     }
   }, {
-    key: 'wrapTx',
+    key: '_wrapTx',
     value: function () {
       var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8(rTx, address) {
         var _this4 = this;
@@ -49796,7 +55063,7 @@ var BlockchainInfo = function (_ICoinNetwork) {
                     }, _callee7, _this4);
                   }));
 
-                  return function (_x7) {
+                  return function (_x8) {
                     return _ref8.apply(this, arguments);
                   };
                 }()));
@@ -49822,11 +55089,11 @@ var BlockchainInfo = function (_ICoinNetwork) {
         }, _callee8, this);
       }));
 
-      function wrapTx(_x5, _x6) {
+      function _wrapTx(_x6, _x7) {
         return _ref7.apply(this, arguments);
       }
 
-      return wrapTx;
+      return _wrapTx;
     }()
   }]);
 
@@ -49897,13 +55164,10 @@ urls[_D2.default.coin.test.ethRopsten] = 'ropsten.etherscan.io';
 var EtherScanIo = function (_ICoinNetwork) {
   _inherits(EtherScanIo, _ICoinNetwork);
 
-  function EtherScanIo(coinType) {
+  function EtherScanIo() {
     _classCallCheck(this, EtherScanIo);
 
-    var _this = _possibleConstructorReturn(this, (EtherScanIo.__proto__ || Object.getPrototypeOf(EtherScanIo)).call(this, coinType));
-
-    _this.coinType = coinType;
-    return _this;
+    return _possibleConstructorReturn(this, (EtherScanIo.__proto__ || Object.getPrototypeOf(EtherScanIo)).apply(this, arguments));
   }
 
   _createClass(EtherScanIo, [{
@@ -50108,6 +55372,7 @@ var EtherScanIo = function (_ICoinNetwork) {
       var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(address) {
         var _this2 = this;
 
+        var offset = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
         var response;
         return regeneratorRuntime.wrap(function _callee5$(_context5) {
           while (1) {
@@ -50122,7 +55387,7 @@ var EtherScanIo = function (_ICoinNetwork) {
                   address: address,
                   txCount: response.length,
                   txs: response.map(function (tx) {
-                    return _this2.wrapTx(tx);
+                    return _this2._wrapTx(tx);
                   })
                 });
 
@@ -50134,7 +55399,7 @@ var EtherScanIo = function (_ICoinNetwork) {
         }, _callee5, this);
       }));
 
-      function queryAddress(_x5) {
+      function queryAddress(_x6) {
         return _ref5.apply(this, arguments);
       }
 
@@ -50154,7 +55419,7 @@ var EtherScanIo = function (_ICoinNetwork) {
 
               case 2:
                 response = _context6.sent;
-                return _context6.abrupt('return', this.wrapTx(response));
+                return _context6.abrupt('return', this._wrapTx(response));
 
               case 4:
               case 'end':
@@ -50164,7 +55429,7 @@ var EtherScanIo = function (_ICoinNetwork) {
         }, _callee6, this);
       }));
 
-      function queryTx(_x6) {
+      function queryTx(_x7) {
         return _ref6.apply(this, arguments);
       }
 
@@ -50188,15 +55453,15 @@ var EtherScanIo = function (_ICoinNetwork) {
         }, _callee7, this);
       }));
 
-      function sendTx(_x7) {
+      function sendTx(_x8) {
         return _ref7.apply(this, arguments);
       }
 
       return sendTx;
     }()
   }, {
-    key: 'wrapTx',
-    value: function wrapTx(rTx) {
+    key: '_wrapTx',
+    value: function _wrapTx(rTx) {
       // if no blockNumber, that tx is in the pool, and confirmations should be 0
       var blockNumber = Number(rTx.blockNumber) || this._blockHeight + 1;
       var confirmations = Number(rTx.confirmations) || this._blockHeight - blockNumber + 1;
@@ -50394,9 +55659,7 @@ var ICoinNetwork = function () {
 
                 setTimeout(blockHeightRequest, 0);
 
-                return _context2.abrupt('return', { blockHeight: this._blockHeight });
-
-              case 8:
+              case 7:
               case 'end':
                 return _context2.stop();
             }
@@ -50505,7 +55768,6 @@ var ICoinNetwork = function () {
   }, {
     key: 'getRequestPeroid',
     value: function getRequestPeroid() {
-      if (!_D2.default.isBtc(this.coinType) && !_D2.default.isEth(this.coinType)) throw _D2.default.error.coinNotSupported;
       var blockHeightRequestPeriod = void 0;
       var txIncludedRequestPeriod = void 0;
       if (_D2.default.isBtc(this.coinType)) {
@@ -50514,6 +55776,12 @@ var ICoinNetwork = function () {
       } else if (_D2.default.isEth(this.coinType)) {
         blockHeightRequestPeriod = 20;
         txIncludedRequestPeriod = 5;
+      } else if (_D2.default.isEos(this.coinType)) {
+        blockHeightRequestPeriod = 20;
+        txIncludedRequestPeriod = 5;
+      } else {
+        console.warn('getRequestPeroid no match coin period');
+        throw _D2.default.error.coinNotSupported;
       }
       return { blockHeightRequestPeriod: blockHeightRequestPeriod, txIncludedRequestPeriod: txIncludedRequestPeriod };
     }
@@ -50901,16 +56169,11 @@ var ICoinNetwork = function () {
     value: function getTxLink(txInfo) {
       throw _D2.default.error.notImplemented;
     }
-
-    /**
-     * @return addressInfo array
-     * @see addressInfo
-     */
-
   }, {
     key: 'queryAddresses',
     value: function () {
       var _ref10 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee10(addresses) {
+        var offset = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
         return regeneratorRuntime.wrap(function _callee10$(_context10) {
           while (1) {
             switch (_context10.prev = _context10.next) {
@@ -50925,29 +56188,17 @@ var ICoinNetwork = function () {
         }, _callee10, this);
       }));
 
-      function queryAddresses(_x7) {
+      function queryAddresses(_x8) {
         return _ref10.apply(this, arguments);
       }
 
       return queryAddresses;
     }()
-
-    /**
-     * @return addressInfo:
-     * {
-     *    address: string,
-     *    txCount: int,
-     *    txs: tx array
-     * }
-     *
-     * @see queryTx
-     *
-     */
-
   }, {
     key: 'queryAddress',
     value: function () {
       var _ref11 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee11(address) {
+        var offset = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
         return regeneratorRuntime.wrap(function _callee11$(_context11) {
           while (1) {
             switch (_context11.prev = _context11.next) {
@@ -50962,7 +56213,7 @@ var ICoinNetwork = function () {
         }, _callee11, this);
       }));
 
-      function queryAddress(_x8) {
+      function queryAddress(_x10) {
         return _ref11.apply(this, arguments);
       }
 
@@ -51016,7 +56267,7 @@ var ICoinNetwork = function () {
         }, _callee12, this);
       }));
 
-      function queryTx(_x9) {
+      function queryTx(_x11) {
         return _ref12.apply(this, arguments);
       }
 
@@ -51040,7 +56291,7 @@ var ICoinNetwork = function () {
         }, _callee13, this);
       }));
 
-      function queryRawTx(_x10) {
+      function queryRawTx(_x12) {
         return _ref13.apply(this, arguments);
       }
 
@@ -51064,7 +56315,7 @@ var ICoinNetwork = function () {
         }, _callee14, this);
       }));
 
-      function sendTx(_x11) {
+      function sendTx(_x13) {
         return _ref14.apply(this, arguments);
       }
 
@@ -51599,11 +56850,1689 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _Provider = __webpack_require__(/*! ../Provider */ "./src/sdk/Provider.js");
+
+var _Provider2 = _interopRequireDefault(_Provider);
+
 var _D = __webpack_require__(/*! ../D */ "./src/sdk/D.js");
 
 var _D2 = _interopRequireDefault(_D);
 
-var _Provider = __webpack_require__(/*! ../Provider */ "./src/sdk/Provider.js");
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var CoreWallet = function () {
+  function CoreWallet() {
+    _classCallCheck(this, CoreWallet);
+
+    this._transmitter = null;
+    this._wallet = null;
+    this._externlistener = function () {};
+  }
+
+  _createClass(CoreWallet, [{
+    key: 'listenPlug',
+    value: function listenPlug(listener) {
+      var _this = this;
+
+      this._externlistener = listener || this._externlistener;
+
+      if (this._transmitter) {
+        _D2.default.dispatch(function () {
+          return _this._externlistener(_D2.default.error.succeed, _D2.default.status.plugIn);
+        });
+        return;
+      }
+
+      var _loop = function _loop(Transmitter) {
+        var transmitter = new Transmitter();
+        var plugInListener = function plugInListener(error, status) {
+          if (!_this._transmitter && status == _D2.default.status.plugOut) {
+            console.debug('other transmitter plug out, ignore', transmitter);
+            return;
+          }
+          if (_this._transmitter && status == _D2.default.status.plugIn) {
+            console.debug('already a transmitter pluged in, ignore', transmitter);
+            return;
+          }
+          console.info('transmitter pluged event', transmitter, error, status);
+
+          if (error !== _D2.default.error.succeed) {
+            _D2.default.dispatch(function () {
+              return _this._externlistener(error, status);
+            });
+            return;
+          }
+
+          if (status === _D2.default.status.plugIn) {
+            _this._transmitter = transmitter;
+          } else if (status === _D2.default.status.plugOut) {
+            _this._transmitter = null;
+          } else {
+            console.warn('unknown status', error, status);
+          }
+          _D2.default.dispatch(function () {
+            return _this._externlistener(error, status);
+          });
+        };
+        console.debug('listenPlug', transmitter);
+        transmitter.listenPlug(plugInListener);
+      };
+
+      var _iteratorNormalCompletion = true;
+      var _didIteratorError = false;
+      var _iteratorError = undefined;
+
+      try {
+        for (var _iterator = _Provider2.default.Transmitters[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+          var Transmitter = _step.value;
+
+          _loop(Transmitter);
+        }
+      } catch (err) {
+        _didIteratorError = true;
+        _iteratorError = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion && _iterator.return) {
+            _iterator.return();
+          }
+        } finally {
+          if (_didIteratorError) {
+            throw _iteratorError;
+          }
+        }
+      }
+    }
+  }, {
+    key: 'init',
+    value: function () {
+      var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+        var _iteratorNormalCompletion2, _didIteratorError2, _iteratorError2, _iterator2, _step2, Wallet, wallet, walletInfo;
+
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                if (this._transmitter) {
+                  _context.next = 3;
+                  break;
+                }
+
+                console.warn('device not connected');
+                throw _D2.default.error.deviceNotInit;
+
+              case 3:
+                _iteratorNormalCompletion2 = true;
+                _didIteratorError2 = false;
+                _iteratorError2 = undefined;
+                _context.prev = 6;
+                _iterator2 = _Provider2.default.Wallets[Symbol.iterator]();
+
+              case 8:
+                if (_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done) {
+                  _context.next = 24;
+                  break;
+                }
+
+                Wallet = _step2.value;
+                wallet = new Wallet(this._transmitter);
+                _context.prev = 11;
+                _context.next = 14;
+                return wallet.init();
+
+              case 14:
+                walletInfo = _context.sent;
+
+                this._wallet = wallet;
+                return _context.abrupt('return', walletInfo);
+
+              case 19:
+                _context.prev = 19;
+                _context.t0 = _context['catch'](11);
+
+              case 21:
+                _iteratorNormalCompletion2 = true;
+                _context.next = 8;
+                break;
+
+              case 24:
+                _context.next = 30;
+                break;
+
+              case 26:
+                _context.prev = 26;
+                _context.t1 = _context['catch'](6);
+                _didIteratorError2 = true;
+                _iteratorError2 = _context.t1;
+
+              case 30:
+                _context.prev = 30;
+                _context.prev = 31;
+
+                if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                  _iterator2.return();
+                }
+
+              case 33:
+                _context.prev = 33;
+
+                if (!_didIteratorError2) {
+                  _context.next = 36;
+                  break;
+                }
+
+                throw _iteratorError2;
+
+              case 36:
+                return _context.finish(33);
+
+              case 37:
+                return _context.finish(30);
+
+              case 38:
+                console.warn('no suitable wallet found', this._transmitter, _Provider2.default.Wallets);
+                throw _D2.default.error.deviceProtocol;
+
+              case 40:
+              case 'end':
+                return _context.stop();
+            }
+          }
+        }, _callee, this, [[6, 26, 30, 38], [11, 19], [31,, 33, 37]]);
+      }));
+
+      function init() {
+        return _ref.apply(this, arguments);
+      }
+
+      return init;
+    }()
+  }, {
+    key: 'verifyPin',
+    value: function () {
+      var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
+        return regeneratorRuntime.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                if (this._wallet) {
+                  _context2.next = 3;
+                  break;
+                }
+
+                console.warn('init wallet first');
+                throw _D2.default.error.deviceNotInit;
+
+              case 3:
+                return _context2.abrupt('return', this._wallet.verifyPin());
+
+              case 4:
+              case 'end':
+                return _context2.stop();
+            }
+          }
+        }, _callee2, this);
+      }));
+
+      function verifyPin() {
+        return _ref2.apply(this, arguments);
+      }
+
+      return verifyPin;
+    }()
+  }, {
+    key: 'getWalletInfo',
+    value: function () {
+      var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
+        return regeneratorRuntime.wrap(function _callee3$(_context3) {
+          while (1) {
+            switch (_context3.prev = _context3.next) {
+              case 0:
+                if (this._wallet) {
+                  _context3.next = 3;
+                  break;
+                }
+
+                console.warn('init wallet first');
+                throw _D2.default.error.deviceNotInit;
+
+              case 3:
+                return _context3.abrupt('return', this._wallet.getWalletInfo());
+
+              case 4:
+              case 'end':
+                return _context3.stop();
+            }
+          }
+        }, _callee3, this);
+      }));
+
+      function getWalletInfo() {
+        return _ref3.apply(this, arguments);
+      }
+
+      return getWalletInfo;
+    }()
+  }, {
+    key: 'getAddress',
+    value: function () {
+      var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(coinType, path) {
+        var isShowing = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+        var isStoring = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
+        return regeneratorRuntime.wrap(function _callee4$(_context4) {
+          while (1) {
+            switch (_context4.prev = _context4.next) {
+              case 0:
+                if (this._wallet) {
+                  _context4.next = 3;
+                  break;
+                }
+
+                console.warn('init wallet first');
+                throw _D2.default.error.deviceNotInit;
+
+              case 3:
+                return _context4.abrupt('return', this._wallet.getAddress(coinType, path, isShowing, isStoring));
+
+              case 4:
+              case 'end':
+                return _context4.stop();
+            }
+          }
+        }, _callee4, this);
+      }));
+
+      function getAddress(_x3, _x4) {
+        return _ref4.apply(this, arguments);
+      }
+
+      return getAddress;
+    }()
+  }, {
+    key: 'signTransaction',
+    value: function () {
+      var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(coinType, tx) {
+        return regeneratorRuntime.wrap(function _callee5$(_context5) {
+          while (1) {
+            switch (_context5.prev = _context5.next) {
+              case 0:
+                if (this._wallet) {
+                  _context5.next = 3;
+                  break;
+                }
+
+                console.warn('init wallet first');
+                throw _D2.default.error.deviceNotInit;
+
+              case 3:
+                return _context5.abrupt('return', this._wallet.signTransaction(coinType, tx));
+
+              case 4:
+              case 'end':
+                return _context5.stop();
+            }
+          }
+        }, _callee5, this);
+      }));
+
+      function signTransaction(_x5, _x6) {
+        return _ref5.apply(this, arguments);
+      }
+
+      return signTransaction;
+    }()
+  }, {
+    key: '_sendApdu',
+    value: function _sendApdu(apdu) {
+      var isEnc = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+
+      if (!this._wallet) {
+        console.warn('init wallet first');
+        throw _D2.default.error.deviceNotInit;
+      }
+      return this._wallet._sendApdu(apdu, isEnc);
+    }
+  }]);
+
+  return CoreWallet;
+}();
+
+exports.default = CoreWallet;
+
+/***/ }),
+
+/***/ "./src/sdk/device/implements/EosFcBuffer.js":
+/*!**************************************************!*\
+  !*** ./src/sdk/device/implements/EosFcBuffer.js ***!
+  \**************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
+var _bytebuffer = __webpack_require__(/*! bytebuffer */ "./node_modules/bytebuffer/dist/bytebuffer.js");
+
+var _bytebuffer2 = _interopRequireDefault(_bytebuffer);
+
+var _buffer = __webpack_require__(/*! buffer */ "./node_modules/node-libs-browser/node_modules/buffer/index.js");
+
+var _D = __webpack_require__(/*! ../../D */ "./src/sdk/D.js");
+
+var _D2 = _interopRequireDefault(_D);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var FcBuffer = {
+  serializeTx: function serializeTx(tx) {
+    var buffer = new _bytebuffer2.default(100, true, true);
+
+    try {
+      FcBuffer.uint32.appendByteBuffer(buffer, tx.expiration);
+      FcBuffer.uint16.appendByteBuffer(buffer, tx.ref_block_num);
+      FcBuffer.uint32.appendByteBuffer(buffer, tx.ref_block_prefix);
+      FcBuffer.varuint32.appendByteBuffer(buffer, tx.max_net_usage_words);
+      FcBuffer.uint8.appendByteBuffer(buffer, tx.max_cpu_usage_ms);
+      FcBuffer.varuint32.appendByteBuffer(buffer, tx.delay_sec);
+      FcBuffer.actions.appendByteBuffer(buffer, tx.context_free_actions);
+      FcBuffer.actions.appendByteBuffer(buffer, tx.actions);
+      FcBuffer.transactionExtensions.appendByteBuffer(buffer, tx.transaction_extensions);
+
+      buffer = buffer.copy(0, buffer.offset);
+      return _buffer.Buffer.from(buffer.buffer);
+    } catch (e) {
+      console.warn(e);
+      console.warn('serializeTx failed', tx);
+      throw _D2.default.error.invalidParams;
+    }
+  },
+
+
+  uint8: {
+    appendByteBuffer: function appendByteBuffer(b, value) {
+      b.writeUint8(value);
+    }
+  },
+
+  uint16: {
+    appendByteBuffer: function appendByteBuffer(b, value) {
+      b.writeUint16(value);
+    }
+  },
+
+  uint32: {
+    appendByteBuffer: function appendByteBuffer(b, value) {
+      b.writeUint32(value);
+    }
+  },
+
+  varuint32: {
+    appendByteBuffer: function appendByteBuffer(b, value) {
+      b.writeVarint32(value);
+    }
+  },
+
+  string: {
+    appendByteBuffer: function appendByteBuffer(b, value) {
+      b.writeVString(value);
+    }
+  },
+
+  name: {
+    appendByteBuffer: function appendByteBuffer(b, value) {
+      b.writeUint64(this.encodeName(value, false));
+    },
+
+
+    /**
+     * Copy from eos.js.
+     *
+     * Encode a name (a base32 string) to a number.
+     *
+     * For performance reasons, the blockchain uses the numerical encoding of strings
+     * for very common types like account names.
+     *
+     * @see types.hpp string_to_name
+     *
+     * @arg {string} name - A string to encode, up to 12 characters long.
+     * @arg {string} [littleEndian = true] - Little or Bigendian encoding
+     *
+     * @return {string<uint64>} - compressed string (from name arg).  A string is
+     * always used because a number could exceed JavaScript's 52 bit limit.
+     */
+    encodeName: function encodeName(name) {
+      var Long = _bytebuffer2.default.Long;
+      var charmap = '.12345abcdefghijklmnopqrstuvwxyz';
+      var charidx = function charidx(ch) {
+        var idx = charmap.indexOf(ch);
+        if (idx === -1) throw new TypeError('Invalid character: \'' + ch + '\'');
+        return idx;
+      };
+
+      var littleEndian = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+
+      if (typeof name !== 'string') throw new TypeError('name parameter is a required string');
+
+      if (name.length > 12) throw new TypeError('A name can be up to 12 characters long');
+
+      var bitstr = '';
+      for (var i = 0; i <= 12; i++) {
+        // process all 64 bits (even if name is short)
+        var c = i < name.length ? charidx(name[i]) : 0;
+        var bitlen = i < 12 ? 5 : 4;
+        var bits = Number(c).toString(2);
+        if (bits.length > bitlen) {
+          throw new TypeError('Invalid name ' + name);
+        }
+        bits = '0'.repeat(bitlen - bits.length) + bits;
+        bitstr += bits;
+      }
+
+      var value = Long.fromString(bitstr, true, 2);
+
+      // convert to LITTLE_ENDIAN
+      var leHex = '';
+      var bytes = littleEndian ? value.toBytesLE() : value.toBytesBE();
+      var _iteratorNormalCompletion = true;
+      var _didIteratorError = false;
+      var _iteratorError = void 0;
+
+      var _iterator = bytes[Symbol.iterator]();
+      var _step = void 0;
+      try {
+        for (; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+          var b = _step.value;
+          var n = Number(b).toString(16);
+          leHex += (n.length === 1 ? '0' : '') + n;
+        }
+      } catch (err) {
+        _didIteratorError = true;
+        _iteratorError = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion && _iterator.return) {
+            _iterator.return();
+          }
+        } catch (e) {
+          console.warn(e);
+        }
+      }
+      if (_didIteratorError) {
+        throw _iteratorError;
+      }
+
+      var ulName = Long.fromString(leHex, true, 16).toString();
+      // console.log('encodeName', name, value.toString(), ulName.toString(), JSON.stringify(bitstr.split(/(.....)/).slice(1)))
+      return ulName.toString();
+    }
+  },
+
+  actions: {
+    appendByteBuffer: function appendByteBuffer(b, value) {
+      b.writeVarint32(value.length);
+      var _iteratorNormalCompletion2 = true;
+      var _didIteratorError2 = false;
+      var _iteratorError2 = undefined;
+
+      try {
+        for (var _iterator2 = value[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+          var item = _step2.value;
+
+          if (!item.account || !item.name || !item.authorization || !item.data) {
+            console.warn('invalid actions item params', b, item);
+            throw _D2.default.error.invalidParams;
+          }
+          FcBuffer.name.appendByteBuffer(b, item.account);
+          FcBuffer.name.appendByteBuffer(b, item.name);
+          FcBuffer.authorization.appendByteBuffer(b, item.authorization);
+          FcBuffer.data.appendByteBuffer(b, item.data, item.account, item.name);
+        }
+      } catch (err) {
+        _didIteratorError2 = true;
+        _iteratorError2 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion2 && _iterator2.return) {
+            _iterator2.return();
+          }
+        } finally {
+          if (_didIteratorError2) {
+            throw _iteratorError2;
+          }
+        }
+      }
+    }
+  },
+
+  authorization: {
+    appendByteBuffer: function appendByteBuffer(b, value) {
+      b.writeVarint32(value.length);
+      var _iteratorNormalCompletion3 = true;
+      var _didIteratorError3 = false;
+      var _iteratorError3 = undefined;
+
+      try {
+        for (var _iterator3 = value[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+          var item = _step3.value;
+
+          if (!item.actor || !item.permission) {
+            console.warn('invalid authorization item params', b, item);
+            throw _D2.default.error.invalidParams;
+          }
+          FcBuffer.name.appendByteBuffer(b, item.actor);
+          FcBuffer.name.appendByteBuffer(b, item.permission);
+        }
+      } catch (err) {
+        _didIteratorError3 = true;
+        _iteratorError3 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion3 && _iterator3.return) {
+            _iterator3.return();
+          }
+        } finally {
+          if (_didIteratorError3) {
+            throw _iteratorError3;
+          }
+        }
+      }
+    }
+  },
+
+  data: {
+    appendByteBuffer: function appendByteBuffer(b, value, account, name) {
+      var type = Object.values(FcBuffer.data.types).find(function (type) {
+        return type._name === name;
+      });
+      if (!type) {
+        console.warn('unsupport data type', b, value, account, name);
+        throw _D2.default.error.invalidParams;
+      }
+
+      var content = new _bytebuffer2.default(20, true, true);
+      Object.entries(type).forEach(function (_ref) {
+        var _ref2 = _slicedToArray(_ref, 2),
+            key = _ref2[0],
+            itemType = _ref2[1];
+
+        if (key.startsWith('_')) return;
+        var item = value[key];
+        if (item === undefined) {
+          console.warn('item not found in type', b, value, key, type);
+          throw _D2.default.error.invalidParams;
+        }
+        FcBuffer[itemType].appendByteBuffer(content, item);
+      });
+
+      b.writeVarint32(content.offset);
+      content = content.copy(0, content.offset);
+      // noinspection JSUnresolvedFunction
+      content.copyTo(b);
+    },
+
+
+    types: {
+      EosIoTokenTransfer: {
+        _name: 'transfer',
+        from: 'name',
+        to: 'name',
+        quantity: 'asset',
+        memo: 'string'
+      },
+      EosIoDelegatebw: {
+        _name: 'delegatebw',
+        from: 'name',
+        receiver: 'name',
+        stake_net_quantity: 'asset',
+        stake_cpu_quantity: 'asset',
+        transfer: 'uint8'
+      }
+    }
+  },
+
+  asset: {
+    appendByteBuffer: function appendByteBuffer(b, str) {
+      // copy from eos.js, ignore contract part(useless yet)
+      var _str$split = str.split(' '),
+          _str$split2 = _slicedToArray(_str$split, 1),
+          amountRaw = _str$split2[0];
+
+      var amountMatch = amountRaw.match(/^(-?[0-9]+(\.[0-9]+)?)( |$)/);
+      var amount = amountMatch ? amountMatch[1] : null;
+
+      var precisionMatch = str.match(/(^| )([0-9]+),([A-Z]+)(@|$)/);
+      var precisionSymbol = precisionMatch ? Number(precisionMatch[2]) : null;
+      var precisionAmount = amount ? (amount.split('.')[1] || '').length : null;
+      var precision = precisionSymbol != null ? precisionSymbol : precisionAmount;
+
+      var symbolMatch = str.match(/(^| |,)([A-Z]+)(@|$)/);
+      var symbol = symbolMatch ? symbolMatch[2] : null;
+
+      if (precision === undefined || symbol === undefined || amount === undefined) {
+        console.warn('parse asset failed', str, precision, symbol, amount);
+        throw _D2.default.error.invalidParams;
+      }
+
+      if (precision < 0 || precision > 18) {
+        console.warn('Precision should be 18 characters or less', symbol, precision);
+        throw _D2.default.error.invalidParams;
+      }
+      if (symbol.length > 7) {
+        console.warn('Invalid symbol, Symbol should be ASCII or 7 characters or less', symbol);
+        throw _D2.default.error.invalidParams;
+      }
+
+      b.writeUint64(amount.replace('.', ''));
+      b.writeUint8(precision);
+      b.writeUTF8String(symbol);
+
+      var appendLen = 7 - symbol.length;
+      while (appendLen--) {
+        b.writeByte(0);
+      }
+    }
+  },
+
+  transactionExtensions: {
+    appendByteBuffer: function appendByteBuffer(b, value) {
+      // eos don't support transactionExtensions yet
+      if (value && value.length > 0) {
+        console.warn('currently not support transactionExtensions');
+        throw _D2.default.error.invalidParams;
+      }
+      // vector
+      b.writeByte(0);
+    }
+  }
+};
+
+exports.default = FcBuffer;
+
+/***/ }),
+
+/***/ "./src/sdk/device/implements/JsWallet.js":
+/*!***********************************************!*\
+  !*** ./src/sdk/device/implements/JsWallet.js ***!
+  \***********************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function(Buffer) {
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); // powered by btc-js and web3
+
+var _ecurve = __webpack_require__(/*! ecurve */ "./node_modules/ecurve/lib/index.js");
+
+var _ecurve2 = _interopRequireDefault(_ecurve);
+
+var _bitcoinjsLib = __webpack_require__(/*! bitcoinjs-lib */ "./node_modules/bitcoinjs-lib/src/index.js");
+
+var _bitcoinjsLib2 = _interopRequireDefault(_bitcoinjsLib);
+
+var _bigi = __webpack_require__(/*! bigi */ "./node_modules/bigi/lib/index.js");
+
+var _bigi2 = _interopRequireDefault(_bigi);
+
+var _createHmac = __webpack_require__(/*! create-hmac */ "./node_modules/create-hmac/browser.js");
+
+var _createHmac2 = _interopRequireDefault(_createHmac);
+
+var _rlp = __webpack_require__(/*! rlp */ "./node_modules/rlp/index.js");
+
+var _rlp2 = _interopRequireDefault(_rlp);
+
+var _D = __webpack_require__(/*! ../../D */ "./src/sdk/D.js");
+
+var _D2 = _interopRequireDefault(_D);
+
+var _EosFcBuffer = __webpack_require__(/*! ./EosFcBuffer */ "./src/sdk/device/implements/EosFcBuffer.js");
+
+var _EosFcBuffer2 = _interopRequireDefault(_EosFcBuffer);
+
+var _createHash = __webpack_require__(/*! create-hash */ "./node_modules/create-hash/browser.js");
+
+var _createHash2 = _interopRequireDefault(_createHash);
+
+var _bs = __webpack_require__(/*! bs58 */ "./node_modules/bs58/index.js");
+
+var _bs2 = _interopRequireDefault(_bs);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+/**
+ * A wallet implemented by JavaScript.
+ *
+ * ** Caution: Just for test usage. Data is not stored securely! **
+ *
+ */
+var JsWallet = function () {
+  /**
+   * @param initParam has multiple types:
+   *                  string: use this as bip32 seed.
+   *                  other: regard as transmitter. Will call getSeed() in init()
+   */
+  function JsWallet(initParam) {
+    _classCallCheck(this, JsWallet);
+
+    if (typeof initParam === 'string') {
+      this._seed = initParam;
+    } else if (initParam) {
+      this._transmitter = initParam;
+    }
+    this.cache = {};
+  }
+
+  _createClass(JsWallet, [{
+    key: 'init',
+    value: function () {
+      var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+        var walletId;
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                _context.t0 = this._seed;
+
+                if (_context.t0) {
+                  _context.next = 5;
+                  break;
+                }
+
+                _context.next = 4;
+                return this._transmitter.getSeed();
+
+              case 4:
+                _context.t0 = _context.sent;
+
+              case 5:
+                this._seed = _context.t0;
+
+                this._root = _bitcoinjsLib2.default.HDNode.fromSeedHex(this._seed);
+
+                walletId = _D2.default.test.coin ? '01' : '00';
+
+                walletId += _D2.default.test.jsWallet ? '01' : '00';
+                _context.t1 = _D2.default.address;
+                _context.next = 12;
+                return this.getAddress(_D2.default.coin.main.btc, "m/44'/0'/0'/0/0");
+
+              case 12:
+                _context.t2 = _context.sent;
+                walletId += _context.t1.toBuffer.call(_context.t1, _context.t2).toString('hex');
+
+                console.log('seed', this._seed);
+                console.log('walletId', walletId);
+                return _context.abrupt('return', { walletId: walletId });
+
+              case 17:
+              case 'end':
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function init() {
+        return _ref.apply(this, arguments);
+      }
+
+      return init;
+    }()
+
+    // noinspection JSMethodCanBeStatic
+
+  }, {
+    key: 'getWalletInfo',
+    value: function () {
+      var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
+        return regeneratorRuntime.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                return _context2.abrupt('return', {
+                  sdk_version: _D2.default.sdkVersion,
+                  cos_version: '20181026'
+                });
+
+              case 1:
+              case 'end':
+                return _context2.stop();
+            }
+          }
+        }, _callee2, this);
+      }));
+
+      function getWalletInfo() {
+        return _ref2.apply(this, arguments);
+      }
+
+      return getWalletInfo;
+    }()
+
+    // noinspection JSMethodCanBeStatic
+
+  }, {
+    key: 'verifyPin',
+    value: function () {
+      var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
+        return regeneratorRuntime.wrap(function _callee3$(_context3) {
+          while (1) {
+            switch (_context3.prev = _context3.next) {
+              case 0:
+                return _context3.abrupt('return', true);
+
+              case 1:
+              case 'end':
+                return _context3.stop();
+            }
+          }
+        }, _callee3, this);
+      }));
+
+      function verifyPin() {
+        return _ref3.apply(this, arguments);
+      }
+
+      return verifyPin;
+    }()
+  }, {
+    key: '_derive',
+    value: function () {
+      var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(path) {
+        var node, lastIndex, parentPath;
+        return regeneratorRuntime.wrap(function _callee4$(_context4) {
+          while (1) {
+            switch (_context4.prev = _context4.next) {
+              case 0:
+                _context4.prev = 0;
+                node = this._root;
+
+                path = path.toString();
+
+                lastIndex = path.lastIndexOf('/');
+                parentPath = path.slice(0, lastIndex);
+
+                path = path.slice(lastIndex + 1);
+                // build cache to improve speed
+                if (this.cache[parentPath]) {
+                  node = this.cache[parentPath];
+                } else {
+                  node = node.derivePath(parentPath);
+                  this.cache[parentPath] = node;
+                }
+                return _context4.abrupt('return', node.derivePath(path));
+
+              case 10:
+                _context4.prev = 10;
+                _context4.t0 = _context4['catch'](0);
+
+                console.warn(_context4.t0);
+                throw _D2.default.error.unknown;
+
+              case 14:
+              case 'end':
+                return _context4.stop();
+            }
+          }
+        }, _callee4, this, [[0, 10]]);
+      }));
+
+      function _derive(_x) {
+        return _ref4.apply(this, arguments);
+      }
+
+      return _derive;
+    }()
+  }, {
+    key: 'getPublicKey',
+    value: function () {
+      var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(coinType, keyPath) {
+        var node, publicKey, checksum;
+        return regeneratorRuntime.wrap(function _callee5$(_context5) {
+          while (1) {
+            switch (_context5.prev = _context5.next) {
+              case 0:
+                _context5.next = 2;
+                return this._derive(keyPath);
+
+              case 2:
+                node = _context5.sent;
+                publicKey = node.getPublicKeyBuffer();
+                // let chainCode = node.chainCode
+
+                if (_D2.default.isEos(coinType)) {
+                  checksum = (0, _createHash2.default)('ripemd160').update(publicKey).digest().slice(0, 4);
+
+                  publicKey = 'EOS' + _bs2.default.encode(Buffer.concat([publicKey, checksum]));
+                } else {
+                  publicKey.toString('hex');
+                }
+                return _context5.abrupt('return', publicKey);
+
+              case 6:
+              case 'end':
+                return _context5.stop();
+            }
+          }
+        }, _callee5, this);
+      }));
+
+      function getPublicKey(_x2, _x3) {
+        return _ref5.apply(this, arguments);
+      }
+
+      return getPublicKey;
+    }()
+  }, {
+    key: 'getAddress',
+    value: function () {
+      var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8(coinType, addressPath) {
+        var _this = this;
+
+        var btcAddress, ethAddress, address;
+        return regeneratorRuntime.wrap(function _callee8$(_context8) {
+          while (1) {
+            switch (_context8.prev = _context8.next) {
+              case 0:
+                btcAddress = function () {
+                  var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6(addressPath) {
+                    var node;
+                    return regeneratorRuntime.wrap(function _callee6$(_context6) {
+                      while (1) {
+                        switch (_context6.prev = _context6.next) {
+                          case 0:
+                            _context6.next = 2;
+                            return _this._derive(addressPath);
+
+                          case 2:
+                            node = _context6.sent;
+
+                            node.keyPair.network = _D2.default.coin.params.btc.getNetwork(coinType);
+                            return _context6.abrupt('return', node.getAddress());
+
+                          case 5:
+                          case 'end':
+                            return _context6.stop();
+                        }
+                      }
+                    }, _callee6, _this);
+                  }));
+
+                  return function btcAddress(_x6) {
+                    return _ref7.apply(this, arguments);
+                  };
+                }();
+
+                ethAddress = function () {
+                  var _ref8 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7(addressPath) {
+                    var node, uncompressedPublicKey, withoutHead, hash;
+                    return regeneratorRuntime.wrap(function _callee7$(_context7) {
+                      while (1) {
+                        switch (_context7.prev = _context7.next) {
+                          case 0:
+                            _context7.next = 2;
+                            return _this._derive(addressPath);
+
+                          case 2:
+                            node = _context7.sent;
+                            uncompressedPublicKey = node.keyPair.Q.getEncoded(false);
+                            withoutHead = uncompressedPublicKey.slice(1);
+                            hash = _D2.default.address.keccak256(withoutHead);
+                            return _context7.abrupt('return', '0x' + hash.slice(-40));
+
+                          case 7:
+                          case 'end':
+                            return _context7.stop();
+                        }
+                      }
+                    }, _callee7, _this);
+                  }));
+
+                  return function ethAddress(_x7) {
+                    return _ref8.apply(this, arguments);
+                  };
+                }();
+
+                address = void 0;
+                _context8.t0 = coinType;
+                _context8.next = _context8.t0 === _D2.default.coin.main.btc ? 6 : _context8.t0 === _D2.default.coin.test.btcTestNet3 ? 6 : _context8.t0 === _D2.default.coin.main.eth ? 10 : _context8.t0 === _D2.default.coin.test.ethRinkeby ? 10 : 14;
+                break;
+
+              case 6:
+                _context8.next = 8;
+                return btcAddress(addressPath);
+
+              case 8:
+                address = _context8.sent;
+                return _context8.abrupt('break', 15);
+
+              case 10:
+                _context8.next = 12;
+                return ethAddress(addressPath);
+
+              case 12:
+                address = _context8.sent;
+                return _context8.abrupt('break', 15);
+
+              case 14:
+                throw _D2.default.error.coinNotSupported;
+
+              case 15:
+                console.debug('path, address', addressPath, address);
+                return _context8.abrupt('return', address);
+
+              case 17:
+              case 'end':
+                return _context8.stop();
+            }
+          }
+        }, _callee8, this);
+      }));
+
+      function getAddress(_x4, _x5) {
+        return _ref6.apply(this, arguments);
+      }
+
+      return getAddress;
+    }()
+
+    // noinspection JSMethodCanBeStatic
+
+  }, {
+    key: 'getRandom',
+    value: function () {
+      var _ref9 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee9(length) {
+        return regeneratorRuntime.wrap(function _callee9$(_context9) {
+          while (1) {
+            switch (_context9.prev = _context9.next) {
+              case 0:
+                Buffer.from(_D2.default.getRandomHex(length * 2), 'hex');
+
+              case 1:
+              case 'end':
+                return _context9.stop();
+            }
+          }
+        }, _callee9, this);
+      }));
+
+      function getRandom(_x8) {
+        return _ref9.apply(this, arguments);
+      }
+
+      return getRandom;
+    }()
+
+    /**
+     * @prarms tx:
+     * btc:
+     * {
+     *   inputs: [{
+     *     address: base58 string,
+     *     path: string,
+     *     txId: hex string,
+     *     index: number,
+     *     script: string,
+     *   }],
+     *   outputs: [{
+     *     address: base58 string,
+     *     value: number
+     *   }]
+     * }
+     *
+     * eth:
+     * {
+     *   input: {
+     *     address: 0x string,
+     *     path: string,
+     *   ],
+     *   output: {
+     *     address: 0x string,
+     *     value: number
+     *   },
+     *   nonce: number,
+     *   gasPrice: 0x string,
+     *   gasLimit: 0x string,
+     *   data: hex string,
+     * }
+     */
+
+  }, {
+    key: 'signTransaction',
+    value: function () {
+      var _ref10 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee10(coinType, tx) {
+        return regeneratorRuntime.wrap(function _callee10$(_context10) {
+          while (1) {
+            switch (_context10.prev = _context10.next) {
+              case 0:
+                _context10.next = 2;
+                return this.verifyPin();
+
+              case 2:
+                if (!_D2.default.isBtc(coinType)) {
+                  _context10.next = 6;
+                  break;
+                }
+
+                return _context10.abrupt('return', this._signBtc(coinType, tx));
+
+              case 6:
+                if (!_D2.default.isEth(coinType)) {
+                  _context10.next = 10;
+                  break;
+                }
+
+                return _context10.abrupt('return', this._signEth(coinType, tx));
+
+              case 10:
+                if (!_D2.default.isEos(coinType)) {
+                  _context10.next = 14;
+                  break;
+                }
+
+                return _context10.abrupt('return', this._signEos(coinType, tx));
+
+              case 14:
+                throw _D2.default.error.coinNotSupported;
+
+              case 15:
+              case 'end':
+                return _context10.stop();
+            }
+          }
+        }, _callee10, this);
+      }));
+
+      function signTransaction(_x9, _x10) {
+        return _ref10.apply(this, arguments);
+      }
+
+      return signTransaction;
+    }()
+  }, {
+    key: '_signBtc',
+    value: function () {
+      var _ref11 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee11(coinType, tx) {
+        var network, txb, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, input, _iteratorNormalCompletion2, _didIteratorError2, _iteratorError2, _iterator2, _step2, output, i, _iteratorNormalCompletion3, _didIteratorError3, _iteratorError3, _iterator3, _step3, _input, key, transaction;
+
+        return regeneratorRuntime.wrap(function _callee11$(_context11) {
+          while (1) {
+            switch (_context11.prev = _context11.next) {
+              case 0:
+                _context11.prev = 0;
+                network = _D2.default.coin.params.btc.getNetwork(coinType);
+                txb = new _bitcoinjsLib2.default.TransactionBuilder(network);
+
+                txb.setVersion(1);
+                _iteratorNormalCompletion = true;
+                _didIteratorError = false;
+                _iteratorError = undefined;
+                _context11.prev = 7;
+                for (_iterator = tx.inputs[Symbol.iterator](); !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                  input = _step.value;
+
+                  txb.addInput(input.txId, input.index, 0xfffffffd); // opt-in full-RBF, BIP 125
+                }
+                _context11.next = 15;
+                break;
+
+              case 11:
+                _context11.prev = 11;
+                _context11.t0 = _context11['catch'](7);
+                _didIteratorError = true;
+                _iteratorError = _context11.t0;
+
+              case 15:
+                _context11.prev = 15;
+                _context11.prev = 16;
+
+                if (!_iteratorNormalCompletion && _iterator.return) {
+                  _iterator.return();
+                }
+
+              case 18:
+                _context11.prev = 18;
+
+                if (!_didIteratorError) {
+                  _context11.next = 21;
+                  break;
+                }
+
+                throw _iteratorError;
+
+              case 21:
+                return _context11.finish(18);
+
+              case 22:
+                return _context11.finish(15);
+
+              case 23:
+                _iteratorNormalCompletion2 = true;
+                _didIteratorError2 = false;
+                _iteratorError2 = undefined;
+                _context11.prev = 26;
+                for (_iterator2 = tx.outputs[Symbol.iterator](); !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+                  output = _step2.value;
+
+                  txb.addOutput(output.address, output.value);
+                }
+                _context11.next = 34;
+                break;
+
+              case 30:
+                _context11.prev = 30;
+                _context11.t1 = _context11['catch'](26);
+                _didIteratorError2 = true;
+                _iteratorError2 = _context11.t1;
+
+              case 34:
+                _context11.prev = 34;
+                _context11.prev = 35;
+
+                if (!_iteratorNormalCompletion2 && _iterator2.return) {
+                  _iterator2.return();
+                }
+
+              case 37:
+                _context11.prev = 37;
+
+                if (!_didIteratorError2) {
+                  _context11.next = 40;
+                  break;
+                }
+
+                throw _iteratorError2;
+
+              case 40:
+                return _context11.finish(37);
+
+              case 41:
+                return _context11.finish(34);
+
+              case 42:
+                i = 0;
+                _iteratorNormalCompletion3 = true;
+                _didIteratorError3 = false;
+                _iteratorError3 = undefined;
+                _context11.prev = 46;
+
+                for (_iterator3 = tx.inputs[Symbol.iterator](); !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+                  _input = _step3.value;
+                  key = this._root.derivePath(_input.path);
+
+                  txb.sign(i, key);
+                  i++;
+                }
+                _context11.next = 54;
+                break;
+
+              case 50:
+                _context11.prev = 50;
+                _context11.t2 = _context11['catch'](46);
+                _didIteratorError3 = true;
+                _iteratorError3 = _context11.t2;
+
+              case 54:
+                _context11.prev = 54;
+                _context11.prev = 55;
+
+                if (!_iteratorNormalCompletion3 && _iterator3.return) {
+                  _iterator3.return();
+                }
+
+              case 57:
+                _context11.prev = 57;
+
+                if (!_didIteratorError3) {
+                  _context11.next = 60;
+                  break;
+                }
+
+                throw _iteratorError3;
+
+              case 60:
+                return _context11.finish(57);
+
+              case 61:
+                return _context11.finish(54);
+
+              case 62:
+                transaction = txb.build();
+                return _context11.abrupt('return', { id: transaction.getId(), hex: transaction.toHex() });
+
+              case 66:
+                _context11.prev = 66;
+                _context11.t3 = _context11['catch'](0);
+
+                console.warn(_context11.t3);
+                throw _D2.default.error.unknown;
+
+              case 70:
+              case 'end':
+                return _context11.stop();
+            }
+          }
+        }, _callee11, this, [[0, 66], [7, 11, 15, 23], [16,, 18, 22], [26, 30, 34, 42], [35,, 37, 41], [46, 50, 54, 62], [55,, 57, 61]]);
+      }));
+
+      function _signBtc(_x11, _x12) {
+        return _ref11.apply(this, arguments);
+      }
+
+      return _signBtc;
+    }()
+  }, {
+    key: '_signEth',
+    value: function () {
+      var _ref12 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee12(coinType, tx) {
+        var chainId, unsignedTx, rlpUnsignedTx, rlpHash, node, _sign2, _sign3, recId, r, s, v, signedTx, rawTx, txId;
+
+        return regeneratorRuntime.wrap(function _callee12$(_context12) {
+          while (1) {
+            switch (_context12.prev = _context12.next) {
+              case 0:
+                chainId = _D2.default.coin.params.eth.getChainId(coinType);
+
+                if (chainId) {
+                  _context12.next = 3;
+                  break;
+                }
+
+                throw _D2.default.error.coinNotSupported;
+
+              case 3:
+                unsignedTx = [tx.nonce, tx.gasPrice, tx.gasLimit, tx.output.address, tx.output.value, tx.data, chainId, 0, 0];
+                rlpUnsignedTx = _rlp2.default.encode(unsignedTx);
+                rlpHash = _D2.default.address.keccak256(rlpUnsignedTx);
+                _context12.next = 8;
+                return this._derive(tx.input.path);
+
+              case 8:
+                node = _context12.sent;
+                _sign2 = this._sign(Buffer.from(rlpHash.slice(2), 'hex'), node.keyPair.d), _sign3 = _slicedToArray(_sign2, 3), recId = _sign3[0], r = _sign3[1], s = _sign3[2];
+                v = chainId * 2 + 35 + recId;
+                signedTx = [tx.nonce, tx.gasPrice, tx.gasLimit, tx.output.address, tx.output.value, tx.data, v, '0x' + r.toString('hex'), '0x' + s.toString('hex')];
+                rawTx = _rlp2.default.encode(signedTx).toString('hex');
+                txId = _D2.default.address.keccak256(_rlp2.default.encode(signedTx));
+                return _context12.abrupt('return', {
+                  id: txId,
+                  hex: rawTx
+                });
+
+              case 15:
+              case 'end':
+                return _context12.stop();
+            }
+          }
+        }, _callee12, this);
+      }));
+
+      function _signEth(_x13, _x14) {
+        return _ref12.apply(this, arguments);
+      }
+
+      return _signEth;
+    }()
+
+    // noinspection JSMethodCanBeStatic
+
+  }, {
+    key: '_signEos',
+    value: function () {
+      var _ref13 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee13(coinType, tx) {
+        var chainId, rawTx, packedContextFreeData, signBuf, hash, signedTx, _iteratorNormalCompletion4, _didIteratorError4, _iteratorError4, _iterator4, _step4, keyPath, node, _sign4, _sign5, recId, r, s, i, buffer, checkBuffer, check, signature, txId;
+
+        return regeneratorRuntime.wrap(function _callee13$(_context13) {
+          while (1) {
+            switch (_context13.prev = _context13.next) {
+              case 0:
+                chainId = _D2.default.coin.params.eos.getChainId(coinType);
+                rawTx = _EosFcBuffer2.default.serializeTx(tx);
+
+                console.log('_signEos rawTx', rawTx.toString('hex'));
+                packedContextFreeData = Buffer.from('0000000000000000000000000000000000000000000000000000000000000000', 'hex');
+                signBuf = Buffer.concat([chainId, rawTx, packedContextFreeData]);
+                hash = (0, _createHash2.default)('sha256').update(signBuf).digest();
+
+
+                tx = _D2.default.copy(tx);
+                signedTx = {
+                  compression: 'none',
+                  packedContextFreeData: '',
+                  packed_trx: rawTx.toString('hex'),
+                  signatures: []
+                };
+                _iteratorNormalCompletion4 = true;
+                _didIteratorError4 = false;
+                _iteratorError4 = undefined;
+                _context13.prev = 11;
+                _iterator4 = tx.keyPaths[Symbol.iterator]();
+
+              case 13:
+                if (_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done) {
+                  _context13.next = 31;
+                  break;
+                }
+
+                keyPath = _step4.value;
+                _context13.next = 17;
+                return this._derive(keyPath);
+
+              case 17:
+                node = _context13.sent;
+                _sign4 = this._sign(hash, node.keyPair.d), _sign5 = _slicedToArray(_sign4, 3), recId = _sign5[0], r = _sign5[1], s = _sign5[2];
+                i = recId + 4 + 27;
+                buffer = Buffer.allocUnsafe(65);
+
+                buffer.writeUInt8(i, 0);
+                r.copy(buffer, 1);
+                s.copy(buffer, 33);
+
+                checkBuffer = Buffer.concat([buffer, Buffer.from('K1')]);
+                check = (0, _createHash2.default)('ripemd160').update(checkBuffer).digest().slice(0, 4);
+                signature = _bs2.default.encode(Buffer.concat([buffer, check]));
+
+                signedTx.signatures.push('SIG_K1_' + signature);
+
+              case 28:
+                _iteratorNormalCompletion4 = true;
+                _context13.next = 13;
+                break;
+
+              case 31:
+                _context13.next = 37;
+                break;
+
+              case 33:
+                _context13.prev = 33;
+                _context13.t0 = _context13['catch'](11);
+                _didIteratorError4 = true;
+                _iteratorError4 = _context13.t0;
+
+              case 37:
+                _context13.prev = 37;
+                _context13.prev = 38;
+
+                if (!_iteratorNormalCompletion4 && _iterator4.return) {
+                  _iterator4.return();
+                }
+
+              case 40:
+                _context13.prev = 40;
+
+                if (!_didIteratorError4) {
+                  _context13.next = 43;
+                  break;
+                }
+
+                throw _iteratorError4;
+
+              case 43:
+                return _context13.finish(40);
+
+              case 44:
+                return _context13.finish(37);
+
+              case 45:
+                txId = (0, _createHash2.default)('sha256').update(rawTx).digest().toString('hex');
+                return _context13.abrupt('return', { txId: txId, signedTx: signedTx });
+
+              case 47:
+              case 'end':
+                return _context13.stop();
+            }
+          }
+        }, _callee13, this, [[11, 33, 37, 45], [38,, 40, 44]]);
+      }));
+
+      function _signEos(_x15, _x16) {
+        return _ref13.apply(this, arguments);
+      }
+
+      return _signEos;
+    }()
+
+    // copy from ecdsa.sign(hash, d) in bitcoinjs, returing [recId, r, s] format
+
+  }, {
+    key: '_sign',
+    value: function _sign(hash, d) {
+      var secp256k1 = _ecurve2.default.getCurveByName('secp256k1');
+      var N_OVER_TWO = secp256k1.n.shiftRight(1);
+      var x = d.toBuffer(32);
+      var e = _bigi2.default.fromBuffer(hash);
+      var n = secp256k1.n;
+      var G = secp256k1.G;
+
+      var deterministicGenerateK = function deterministicGenerateK(hash, x, checkSig) {
+        var ZERO = Buffer.alloc(1, 0);
+        var ONE = Buffer.alloc(1, 1);
+
+        // Step A, ignored as hash already provided
+        // Step B
+        // Step C
+        var k = Buffer.alloc(32, 0);
+        var v = Buffer.alloc(32, 1);
+
+        // Step D
+        k = (0, _createHmac2.default)('sha256', k).update(v).update(ZERO).update(x).update(hash).digest();
+
+        // Step E
+        v = (0, _createHmac2.default)('sha256', k).update(v).digest();
+
+        // Step F
+        k = (0, _createHmac2.default)('sha256', k).update(v).update(ONE).update(x).update(hash).digest();
+
+        // Step G
+        v = (0, _createHmac2.default)('sha256', k).update(v).digest();
+
+        // Step H1/H2a, ignored as tlen === qlen (256 bit)
+        // Step H2b
+        v = (0, _createHmac2.default)('sha256', k).update(v).digest();
+
+        var T = _bigi2.default.fromBuffer(v);
+
+        // Step H3, repeat until T is within the interval [1, n - 1] and is suitable for ECDSA
+        while (T.signum() <= 0 || T.compareTo(secp256k1.n) >= 0 || !checkSig(T)) {
+          k = (0, _createHmac2.default)('sha256', k).update(v).update(ZERO).digest();
+
+          v = (0, _createHmac2.default)('sha256', k).update(v).digest();
+
+          // Step H1/H2a, again, ignored as tlen === qlen (256 bit)
+          // Step H2b again
+          v = (0, _createHmac2.default)('sha256', k).update(v).digest();
+          T = _bigi2.default.fromBuffer(v);
+        }
+
+        return T;
+      };
+
+      var r = Buffer.alloc(0);
+      var s = Buffer.alloc(0);
+      var recId = 0;
+      deterministicGenerateK(hash, x, function (k) {
+        var Q = G.multiply(k);
+
+        if (secp256k1.isInfinity(Q)) return false;
+
+        r = Q.affineX.mod(n);
+        if (r.signum() === 0) return false;
+        // eos canonical signature, both r and s should be < 0x80
+        // see https://github.com/EOSIO/eosjs-ecc/commit/09c823ac4c4fb4f7257d8ed2df45a34215a8c537
+        if (r.compareTo(N_OVER_TWO) > 0) return false;
+
+        // for recId, see https://bitcoin.stackexchange.com/questions/38351/ecdsa-v-r-s-what-is-v
+        recId = Q.affineY.mod(_bigi2.default.fromHex('02')).intValue();
+
+        s = k.modInverse(n).multiply(e.add(d.multiply(r))).mod(n);
+        // noinspection RedundantIfStatementJS
+        if (s.signum() === 0) return false;
+
+        // make s be lower s
+        if (s.compareTo(N_OVER_TWO) > 0) {
+          s = n.subtract(s);
+          recId = recId ? 0 : 1;
+        }
+
+        if (Q.affineX.compareTo(secp256k1.p.mod(n)) < 0) {
+          recId += 2;
+        }
+        return true;
+      });
+      return [recId, r.toBuffer(), s.toBuffer()];
+    }
+  }]);
+
+  return JsWallet;
+}();
+
+exports.default = JsWallet;
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../../../../node_modules/node-libs-browser/node_modules/buffer/index.js */ "./node_modules/node-libs-browser/node_modules/buffer/index.js").Buffer))
+
+/***/ }),
+
+/***/ "./src/sdk/device/implements/NetBankWallet.js":
+/*!****************************************************!*\
+  !*** ./src/sdk/device/implements/NetBankWallet.js ***!
+  \****************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _D = __webpack_require__(/*! ../../D */ "./src/sdk/D.js");
+
+var _D2 = _interopRequireDefault(_D);
+
+var _Provider = __webpack_require__(/*! ../../Provider */ "./src/sdk/Provider.js");
 
 var _Provider2 = _interopRequireDefault(_Provider);
 
@@ -51626,8 +58555,6 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var allEnc = true;
 
 // rewrite _containKeys to make empty value available, so we can use it to build presign tx
 // noinspection JSPotentiallyInvalidConstructorUsage
@@ -51660,18 +58587,15 @@ _bitpony2.default.prototype._containKeys = function (keys) {
   }
 };
 
-var CoreWallet = function () {
-  function CoreWallet() {
-    _classCallCheck(this, CoreWallet);
+var NetBankWallet = function () {
+  function NetBankWallet(transmitter) {
+    _classCallCheck(this, NetBankWallet);
 
-    if (CoreWallet.prototype.Instance) {
-      return CoreWallet.prototype.Instance;
-    }
-    CoreWallet.prototype.Instance = this;
-    this._transmitter = new _Provider2.default.Transmitter();
+    this._transmitter = transmitter;
+    this._allEnc = true;
   }
 
-  _createClass(CoreWallet, [{
+  _createClass(NetBankWallet, [{
     key: 'init',
     value: function () {
       var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
@@ -51726,7 +58650,7 @@ var CoreWallet = function () {
               case 2:
                 cosVersion = _context2.sent;
                 return _context2.abrupt('return', {
-                  sdk_version: '0.4.0',
+                  sdk_version: _D2.default.sdkVersion,
                   cos_version: cosVersion
                 });
 
@@ -51837,7 +58761,7 @@ var CoreWallet = function () {
                 address = String.fromCharCode.apply(null, response);
                 // device only return mainnet address
 
-                if (_D2.default.isBtc(coinType) && _D2.default.test.coin) {
+                if (coinType === _D2.default.coin.test.btcTestNet3) {
                   addressBuffer = _D2.default.address.toBuffer(address);
 
                   addressBuffer = _buffer.Buffer.concat([_buffer.Buffer.from('6F', 'hex'), addressBuffer]);
@@ -52241,854 +59165,21 @@ var CoreWallet = function () {
     value: function _sendApdu(apdu) {
       var isEnc = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
 
-      return this._transmitter.sendApdu(apdu, allEnc || isEnc);
+      return this._transmitter.sendApdu(apdu, this._allEnc || isEnc);
     }
   }]);
 
-  return CoreWallet;
+  return NetBankWallet;
 }();
 
-exports.default = CoreWallet;
+exports.default = NetBankWallet;
 
 /***/ }),
 
-/***/ "./src/sdk/device/JsWallet.js":
-/*!************************************!*\
-  !*** ./src/sdk/device/JsWallet.js ***!
-  \************************************/
-/*! no static exports found */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-/* WEBPACK VAR INJECTION */(function(Buffer) {
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); // powered by btc-js and web3
-
-var _ecurve = __webpack_require__(/*! ecurve */ "./node_modules/ecurve/lib/index.js");
-
-var _ecurve2 = _interopRequireDefault(_ecurve);
-
-var _bitcoinjsLib = __webpack_require__(/*! bitcoinjs-lib */ "./node_modules/bitcoinjs-lib/src/index.js");
-
-var _bitcoinjsLib2 = _interopRequireDefault(_bitcoinjsLib);
-
-var _bigi = __webpack_require__(/*! bigi */ "./node_modules/bigi/lib/index.js");
-
-var _bigi2 = _interopRequireDefault(_bigi);
-
-var _createHmac = __webpack_require__(/*! create-hmac */ "./node_modules/create-hmac/browser.js");
-
-var _createHmac2 = _interopRequireDefault(_createHmac);
-
-var _rlp = __webpack_require__(/*! rlp */ "./node_modules/rlp/index.js");
-
-var _rlp2 = _interopRequireDefault(_rlp);
-
-var _D = __webpack_require__(/*! ../D */ "./src/sdk/D.js");
-
-var _D2 = _interopRequireDefault(_D);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var JsWallet = function () {
-  function JsWallet() {
-    _classCallCheck(this, JsWallet);
-
-    if (JsWallet.prototype.Instance) {
-      return JsWallet.prototype.Instance;
-    }
-    JsWallet.prototype.Instance = this;
-    this.cache = {};
-  }
-
-  _createClass(JsWallet, [{
-    key: 'init',
-    value: function () {
-      var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(seed) {
-        var btcNetwork, walletId;
-        return regeneratorRuntime.wrap(function _callee$(_context) {
-          while (1) {
-            switch (_context.prev = _context.next) {
-              case 0:
-                btcNetwork = _D2.default.test.coin ? _bitcoinjsLib2.default.networks.testnet : _bitcoinjsLib2.default.networks.btc;
-
-                this.btcNetwork = btcNetwork;
-                this._root = _bitcoinjsLib2.default.HDNode.fromSeedHex(seed, btcNetwork);
-
-                walletId = _D2.default.test.coin ? '01' : '00';
-
-                walletId += _D2.default.test.jsWallet ? '01' : '00';
-                _context.t0 = _D2.default.address;
-                _context.next = 8;
-                return this.getAddress(_D2.default.coin.main.btc, "m/44'/0'/0'/0/0");
-
-              case 8:
-                _context.t1 = _context.sent;
-                walletId += _context.t0.toBuffer.call(_context.t0, _context.t1).toString('hex');
-
-                console.log('seed', seed);
-                console.log('walletId', walletId);
-                return _context.abrupt('return', { walletId: walletId });
-
-              case 13:
-              case 'end':
-                return _context.stop();
-            }
-          }
-        }, _callee, this);
-      }));
-
-      function init(_x) {
-        return _ref.apply(this, arguments);
-      }
-
-      return init;
-    }()
-
-    // noinspection JSMethodCanBeStatic
-
-  }, {
-    key: 'listenPlug',
-    value: function () {
-      var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(callback) {
-        return regeneratorRuntime.wrap(function _callee2$(_context2) {
-          while (1) {
-            switch (_context2.prev = _context2.next) {
-              case 0:
-                callback(_D2.default.error.succeed, _D2.default.status.plugIn);
-
-              case 1:
-              case 'end':
-                return _context2.stop();
-            }
-          }
-        }, _callee2, this);
-      }));
-
-      function listenPlug(_x2) {
-        return _ref2.apply(this, arguments);
-      }
-
-      return listenPlug;
-    }()
-
-    // noinspection JSMethodCanBeStatic
-
-  }, {
-    key: 'getWalletInfo',
-    value: function () {
-      var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
-        return regeneratorRuntime.wrap(function _callee3$(_context3) {
-          while (1) {
-            switch (_context3.prev = _context3.next) {
-              case 0:
-                return _context3.abrupt('return', {
-                  sdk_version: '0.4.0',
-                  cos_version: '20180927'
-                });
-
-              case 1:
-              case 'end':
-                return _context3.stop();
-            }
-          }
-        }, _callee3, this);
-      }));
-
-      function getWalletInfo() {
-        return _ref3.apply(this, arguments);
-      }
-
-      return getWalletInfo;
-    }()
-
-    // noinspection JSMethodCanBeStatic
-
-  }, {
-    key: 'verifyPin',
-    value: function () {
-      var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4() {
-        return regeneratorRuntime.wrap(function _callee4$(_context4) {
-          while (1) {
-            switch (_context4.prev = _context4.next) {
-              case 0:
-                return _context4.abrupt('return', true);
-
-              case 1:
-              case 'end':
-                return _context4.stop();
-            }
-          }
-        }, _callee4, this);
-      }));
-
-      function verifyPin() {
-        return _ref4.apply(this, arguments);
-      }
-
-      return verifyPin;
-    }()
-  }, {
-    key: '_derive',
-    value: function () {
-      var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(path, pPublicKey) {
-        var node, ECPair, HDNode, curve, Q, pChainCode, keyPair, lastIndex, parentPath;
-        return regeneratorRuntime.wrap(function _callee5$(_context5) {
-          while (1) {
-            switch (_context5.prev = _context5.next) {
-              case 0:
-                _context5.prev = 0;
-                node = this._root;
-
-                path = path.toString();
-                if (pPublicKey) {
-                  ECPair = _bitcoinjsLib2.default.ECPair;
-                  HDNode = _bitcoinjsLib2.default.HDNode;
-                  curve = _ecurve2.default.getCurveByName('secp256k1');
-                  Q = _ecurve2.default.Point.decodeFrom(curve, Buffer.from(pPublicKey.publicKey, 'hex'));
-                  pChainCode = Buffer.from(pPublicKey.chainCode, 'hex');
-                  keyPair = new ECPair(null, Q, { network: this.btcNetwork });
-
-                  node = new HDNode(keyPair, pChainCode);
-                } else {
-                  // build cache to improve speed
-                  lastIndex = path.lastIndexOf('/');
-                  parentPath = path.slice(0, lastIndex);
-
-                  path = path.slice(lastIndex + 1);
-                  if (this.cache[parentPath]) {
-                    node = this.cache[parentPath];
-                  } else {
-                    node = node.derivePath(parentPath);
-                    this.cache[parentPath] = node;
-                  }
-                }
-                return _context5.abrupt('return', node.derivePath(path));
-
-              case 7:
-                _context5.prev = 7;
-                _context5.t0 = _context5['catch'](0);
-
-                console.warn(_context5.t0);
-                throw _D2.default.error.unknown;
-
-              case 11:
-              case 'end':
-                return _context5.stop();
-            }
-          }
-        }, _callee5, this, [[0, 7]]);
-      }));
-
-      function _derive(_x3, _x4) {
-        return _ref5.apply(this, arguments);
-      }
-
-      return _derive;
-    }()
-  }, {
-    key: 'getPublicKey',
-    value: function () {
-      var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6(publicKeyPath, pPublicKey) {
-        var node, publicKey, chainCode;
-        return regeneratorRuntime.wrap(function _callee6$(_context6) {
-          while (1) {
-            switch (_context6.prev = _context6.next) {
-              case 0:
-                _context6.next = 2;
-                return this._derive(publicKeyPath, pPublicKey);
-
-              case 2:
-                node = _context6.sent;
-                publicKey = node.getPublicKeyBuffer().toString('hex');
-                chainCode = node.chainCode.toString('hex');
-                return _context6.abrupt('return', { publicKey: publicKey, chainCode: chainCode });
-
-              case 6:
-              case 'end':
-                return _context6.stop();
-            }
-          }
-        }, _callee6, this);
-      }));
-
-      function getPublicKey(_x5, _x6) {
-        return _ref6.apply(this, arguments);
-      }
-
-      return getPublicKey;
-    }()
-  }, {
-    key: 'getAddress',
-    value: function () {
-      var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee9(coinType, addressPath) {
-        var _this = this;
-
-        var btcAddress, ethAddress, address;
-        return regeneratorRuntime.wrap(function _callee9$(_context9) {
-          while (1) {
-            switch (_context9.prev = _context9.next) {
-              case 0:
-                btcAddress = function () {
-                  var _ref8 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7(addressPath) {
-                    var node;
-                    return regeneratorRuntime.wrap(function _callee7$(_context7) {
-                      while (1) {
-                        switch (_context7.prev = _context7.next) {
-                          case 0:
-                            _context7.next = 2;
-                            return _this._derive(addressPath);
-
-                          case 2:
-                            node = _context7.sent;
-                            return _context7.abrupt('return', node.getAddress());
-
-                          case 4:
-                          case 'end':
-                            return _context7.stop();
-                        }
-                      }
-                    }, _callee7, _this);
-                  }));
-
-                  return function btcAddress(_x9) {
-                    return _ref8.apply(this, arguments);
-                  };
-                }();
-
-                ethAddress = function () {
-                  var _ref9 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8(addressPath) {
-                    var node, uncompressedPublicKey, withoutHead, hash;
-                    return regeneratorRuntime.wrap(function _callee8$(_context8) {
-                      while (1) {
-                        switch (_context8.prev = _context8.next) {
-                          case 0:
-                            _context8.next = 2;
-                            return _this._derive(addressPath);
-
-                          case 2:
-                            node = _context8.sent;
-                            uncompressedPublicKey = node.keyPair.Q.getEncoded(false);
-                            withoutHead = uncompressedPublicKey.slice(1);
-                            hash = _D2.default.address.keccak256(withoutHead);
-                            return _context8.abrupt('return', '0x' + hash.slice(-40));
-
-                          case 7:
-                          case 'end':
-                            return _context8.stop();
-                        }
-                      }
-                    }, _callee8, _this);
-                  }));
-
-                  return function ethAddress(_x10) {
-                    return _ref9.apply(this, arguments);
-                  };
-                }();
-
-                address = void 0;
-                _context9.t0 = coinType;
-                _context9.next = _context9.t0 === _D2.default.coin.main.btc ? 6 : _context9.t0 === _D2.default.coin.test.btcTestNet3 ? 6 : _context9.t0 === _D2.default.coin.main.eth ? 10 : _context9.t0 === _D2.default.coin.test.ethRinkeby ? 10 : 14;
-                break;
-
-              case 6:
-                _context9.next = 8;
-                return btcAddress(addressPath);
-
-              case 8:
-                address = _context9.sent;
-                return _context9.abrupt('break', 15);
-
-              case 10:
-                _context9.next = 12;
-                return ethAddress(addressPath);
-
-              case 12:
-                address = _context9.sent;
-                return _context9.abrupt('break', 15);
-
-              case 14:
-                throw _D2.default.error.coinNotSupported;
-
-              case 15:
-                console.debug('path, address', addressPath, address);
-                return _context9.abrupt('return', address);
-
-              case 17:
-              case 'end':
-                return _context9.stop();
-            }
-          }
-        }, _callee9, this);
-      }));
-
-      function getAddress(_x7, _x8) {
-        return _ref7.apply(this, arguments);
-      }
-
-      return getAddress;
-    }()
-
-    // noinspection JSMethodCanBeStatic
-
-  }, {
-    key: 'getRandom',
-    value: function () {
-      var _ref10 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee10(length) {
-        return regeneratorRuntime.wrap(function _callee10$(_context10) {
-          while (1) {
-            switch (_context10.prev = _context10.next) {
-              case 0:
-                Buffer.from(_D2.default.getRandomHex(length * 2), 'hex');
-
-              case 1:
-              case 'end':
-                return _context10.stop();
-            }
-          }
-        }, _callee10, this);
-      }));
-
-      function getRandom(_x11) {
-        return _ref10.apply(this, arguments);
-      }
-
-      return getRandom;
-    }()
-  }, {
-    key: 'publicKeyToAddress',
-    value: function () {
-      var _ref11 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee11(publicKey) {
-        var ECPair, curve, Q, keyPair;
-        return regeneratorRuntime.wrap(function _callee11$(_context11) {
-          while (1) {
-            switch (_context11.prev = _context11.next) {
-              case 0:
-                ECPair = _bitcoinjsLib2.default.ECPair;
-                curve = _ecurve2.default.getCurveByName('secp256k1');
-                Q = _ecurve2.default.Point.decodeFrom(curve, Buffer.from(publicKey, 'hex'));
-                keyPair = new ECPair(null, Q, { network: this.btcNetwork });
-                return _context11.abrupt('return', keyPair.getAddress());
-
-              case 5:
-              case 'end':
-                return _context11.stop();
-            }
-          }
-        }, _callee11, this);
-      }));
-
-      function publicKeyToAddress(_x12) {
-        return _ref11.apply(this, arguments);
-      }
-
-      return publicKeyToAddress;
-    }()
-
-    /**
-     * @prarms tx:
-     * btc:
-     * {
-     *   inputs: [{
-     *     address: base58 string,
-     *     path: string,
-     *     txId: hex string,
-     *     index: number,
-     *     script: string,
-     *   }],
-     *   outputs: [{
-     *     address: base58 string,
-     *     value: number
-     *   }]
-     * }
-     *
-     * eth:
-     * {
-     *   input: {
-     *     address: 0x string,
-     *     path: string,
-     *   ],
-     *   output: {
-     *     address: 0x string,
-     *     value: number
-     *   },
-     *   nonce: number,
-     *   gasPrice: 0x string,
-     *   gasLimit: 0x string,
-     *   data: hex string,
-     * }
-     */
-
-  }, {
-    key: 'signTransaction',
-    value: function () {
-      var _ref12 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee14(coinType, tx) {
-        var _this2 = this;
-
-        var signBtc, signEth;
-        return regeneratorRuntime.wrap(function _callee14$(_context14) {
-          while (1) {
-            switch (_context14.prev = _context14.next) {
-              case 0:
-                signBtc = function () {
-                  var _ref13 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee12() {
-                    var txb, _iteratorNormalCompletion, _didIteratorError, _iteratorError, _iterator, _step, input, _iteratorNormalCompletion2, _didIteratorError2, _iteratorError2, _iterator2, _step2, output, i, _iteratorNormalCompletion3, _didIteratorError3, _iteratorError3, _iterator3, _step3, _input, key, transaction;
-
-                    return regeneratorRuntime.wrap(function _callee12$(_context12) {
-                      while (1) {
-                        switch (_context12.prev = _context12.next) {
-                          case 0:
-                            _context12.prev = 0;
-                            txb = new _bitcoinjsLib2.default.TransactionBuilder(_this2.btcNetwork);
-
-                            txb.setVersion(1);
-                            _iteratorNormalCompletion = true;
-                            _didIteratorError = false;
-                            _iteratorError = undefined;
-                            _context12.prev = 6;
-                            for (_iterator = tx.inputs[Symbol.iterator](); !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-                              input = _step.value;
-
-                              txb.addInput(input.txId, input.index, 0xfffffffd); // opt-in full-RBF, BIP 125
-                            }
-                            _context12.next = 14;
-                            break;
-
-                          case 10:
-                            _context12.prev = 10;
-                            _context12.t0 = _context12['catch'](6);
-                            _didIteratorError = true;
-                            _iteratorError = _context12.t0;
-
-                          case 14:
-                            _context12.prev = 14;
-                            _context12.prev = 15;
-
-                            if (!_iteratorNormalCompletion && _iterator.return) {
-                              _iterator.return();
-                            }
-
-                          case 17:
-                            _context12.prev = 17;
-
-                            if (!_didIteratorError) {
-                              _context12.next = 20;
-                              break;
-                            }
-
-                            throw _iteratorError;
-
-                          case 20:
-                            return _context12.finish(17);
-
-                          case 21:
-                            return _context12.finish(14);
-
-                          case 22:
-                            _iteratorNormalCompletion2 = true;
-                            _didIteratorError2 = false;
-                            _iteratorError2 = undefined;
-                            _context12.prev = 25;
-                            for (_iterator2 = tx.outputs[Symbol.iterator](); !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-                              output = _step2.value;
-
-                              txb.addOutput(output.address, output.value);
-                            }
-                            _context12.next = 33;
-                            break;
-
-                          case 29:
-                            _context12.prev = 29;
-                            _context12.t1 = _context12['catch'](25);
-                            _didIteratorError2 = true;
-                            _iteratorError2 = _context12.t1;
-
-                          case 33:
-                            _context12.prev = 33;
-                            _context12.prev = 34;
-
-                            if (!_iteratorNormalCompletion2 && _iterator2.return) {
-                              _iterator2.return();
-                            }
-
-                          case 36:
-                            _context12.prev = 36;
-
-                            if (!_didIteratorError2) {
-                              _context12.next = 39;
-                              break;
-                            }
-
-                            throw _iteratorError2;
-
-                          case 39:
-                            return _context12.finish(36);
-
-                          case 40:
-                            return _context12.finish(33);
-
-                          case 41:
-                            i = 0;
-                            _iteratorNormalCompletion3 = true;
-                            _didIteratorError3 = false;
-                            _iteratorError3 = undefined;
-                            _context12.prev = 45;
-
-                            for (_iterator3 = tx.inputs[Symbol.iterator](); !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-                              _input = _step3.value;
-                              key = _this2._root.derivePath(_input.path);
-
-                              txb.sign(i, key);
-                              i++;
-                            }
-                            _context12.next = 53;
-                            break;
-
-                          case 49:
-                            _context12.prev = 49;
-                            _context12.t2 = _context12['catch'](45);
-                            _didIteratorError3 = true;
-                            _iteratorError3 = _context12.t2;
-
-                          case 53:
-                            _context12.prev = 53;
-                            _context12.prev = 54;
-
-                            if (!_iteratorNormalCompletion3 && _iterator3.return) {
-                              _iterator3.return();
-                            }
-
-                          case 56:
-                            _context12.prev = 56;
-
-                            if (!_didIteratorError3) {
-                              _context12.next = 59;
-                              break;
-                            }
-
-                            throw _iteratorError3;
-
-                          case 59:
-                            return _context12.finish(56);
-
-                          case 60:
-                            return _context12.finish(53);
-
-                          case 61:
-                            transaction = txb.build();
-                            return _context12.abrupt('return', { id: transaction.getId(), hex: transaction.toHex() });
-
-                          case 65:
-                            _context12.prev = 65;
-                            _context12.t3 = _context12['catch'](0);
-
-                            console.warn(_context12.t3);
-                            throw _D2.default.error.unknown;
-
-                          case 69:
-                          case 'end':
-                            return _context12.stop();
-                        }
-                      }
-                    }, _callee12, _this2, [[0, 65], [6, 10, 14, 22], [15,, 17, 21], [25, 29, 33, 41], [34,, 36, 40], [45, 49, 53, 61], [54,, 56, 60]]);
-                  }));
-
-                  return function signBtc() {
-                    return _ref13.apply(this, arguments);
-                  };
-                }();
-
-                signEth = function () {
-                  var _ref14 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee13() {
-                    var sign, chainIds, chainId, unsignedTx, rlpUnsignedTx, rlpHash, node, _sign, _sign2, v, r, s, signedTx, rawTx, txId;
-
-                    return regeneratorRuntime.wrap(function _callee13$(_context13) {
-                      while (1) {
-                        switch (_context13.prev = _context13.next) {
-                          case 0:
-                            // copy from ecdsa.sign(hash, d) in bitcoinjs, returing [v, r, s] format
-                            sign = function sign(hash, d) {
-                              var secp256k1 = _ecurve2.default.getCurveByName('secp256k1');
-                              var N_OVER_TWO = secp256k1.n.shiftRight(1);
-                              var x = d.toBuffer(32);
-                              var e = _bigi2.default.fromBuffer(hash);
-                              var n = secp256k1.n;
-                              var G = secp256k1.G;
-
-                              var deterministicGenerateK = function deterministicGenerateK(hash, x, checkSig) {
-                                var ZERO = Buffer.alloc(1, 0);
-                                var ONE = Buffer.alloc(1, 1);
-
-                                // Step A, ignored as hash already provided
-                                // Step B
-                                // Step C
-                                var k = Buffer.alloc(32, 0);
-                                var v = Buffer.alloc(32, 1);
-
-                                // Step D
-                                k = (0, _createHmac2.default)('sha256', k).update(v).update(ZERO).update(x).update(hash).digest();
-
-                                // Step E
-                                v = (0, _createHmac2.default)('sha256', k).update(v).digest();
-
-                                // Step F
-                                k = (0, _createHmac2.default)('sha256', k).update(v).update(ONE).update(x).update(hash).digest();
-
-                                // Step G
-                                v = (0, _createHmac2.default)('sha256', k).update(v).digest();
-
-                                // Step H1/H2a, ignored as tlen === qlen (256 bit)
-                                // Step H2b
-                                v = (0, _createHmac2.default)('sha256', k).update(v).digest();
-
-                                var T = _bigi2.default.fromBuffer(v);
-
-                                // Step H3, repeat until T is within the interval [1, n - 1] and is suitable for ECDSA
-                                while (T.signum() <= 0 || T.compareTo(secp256k1.n) >= 0 || !checkSig(T)) {
-                                  k = (0, _createHmac2.default)('sha256', k).update(v).update(ZERO).digest();
-
-                                  v = (0, _createHmac2.default)('sha256', k).update(v).digest();
-
-                                  // Step H1/H2a, again, ignored as tlen === qlen (256 bit)
-                                  // Step H2b again
-                                  v = (0, _createHmac2.default)('sha256', k).update(v).digest();
-                                  T = _bigi2.default.fromBuffer(v);
-                                }
-
-                                return T;
-                              };
-
-                              var r = void 0,
-                                  s = void 0,
-                                  odd = void 0;
-                              deterministicGenerateK(hash, x, function (k) {
-                                var Q = G.multiply(k);
-
-                                if (secp256k1.isInfinity(Q)) return false;
-
-                                r = Q.affineX.mod(n);
-                                odd = Q.affineY.mod(_bigi2.default.fromHex('02')).intValue();
-                                if (r.signum() === 0) return false;
-
-                                s = k.modInverse(n).multiply(e.add(d.multiply(r))).mod(n);
-                                // noinspection RedundantIfStatementJS
-                                if (s.signum() === 0) return false;
-
-                                if (s.compareTo(N_OVER_TWO) > 0) {
-                                  s = n.subtract(s);
-                                  odd = odd ? 0 : 1;
-                                }
-
-                                return true;
-                              });
-                              var v = chainId * 2 + 35 + odd;
-                              return [v, '0x' + r.toHex(), '0x' + s.toHex()];
-                            };
-
-                            chainIds = {};
-
-                            chainIds[_D2.default.coin.main.eth] = 1;
-                            chainIds[_D2.default.coin.test.ethRinkeby] = 4;
-                            chainId = chainIds[coinType];
-
-                            if (chainId) {
-                              _context13.next = 7;
-                              break;
-                            }
-
-                            throw _D2.default.error.coinNotSupported;
-
-                          case 7:
-                            unsignedTx = [tx.nonce, tx.gasPrice, tx.gasLimit, tx.output.address, tx.output.value, tx.data, chainId, 0, 0];
-                            rlpUnsignedTx = _rlp2.default.encode(unsignedTx);
-                            rlpHash = _D2.default.address.keccak256(rlpUnsignedTx);
-                            _context13.next = 12;
-                            return _this2._derive(tx.input.path);
-
-                          case 12:
-                            node = _context13.sent;
-                            _sign = sign(Buffer.from(rlpHash.slice(2), 'hex'), node.keyPair.d), _sign2 = _slicedToArray(_sign, 3), v = _sign2[0], r = _sign2[1], s = _sign2[2];
-                            signedTx = [tx.nonce, tx.gasPrice, tx.gasLimit, tx.output.address, tx.output.value, tx.data, v, r, s];
-                            rawTx = _rlp2.default.encode(signedTx).toString('hex');
-                            txId = _D2.default.address.keccak256(_rlp2.default.encode(signedTx));
-                            return _context13.abrupt('return', {
-                              id: txId,
-                              hex: rawTx
-                            });
-
-                          case 18:
-                          case 'end':
-                            return _context13.stop();
-                        }
-                      }
-                    }, _callee13, _this2);
-                  }));
-
-                  return function signEth() {
-                    return _ref14.apply(this, arguments);
-                  };
-                }();
-
-                _context14.next = 4;
-                return this.verifyPin();
-
-              case 4:
-                if (!_D2.default.isBtc(coinType)) {
-                  _context14.next = 8;
-                  break;
-                }
-
-                return _context14.abrupt('return', signBtc());
-
-              case 8:
-                if (!_D2.default.isEth(coinType)) {
-                  _context14.next = 12;
-                  break;
-                }
-
-                return _context14.abrupt('return', signEth());
-
-              case 12:
-                throw _D2.default.error.coinNotSupported;
-
-              case 13:
-              case 'end':
-                return _context14.stop();
-            }
-          }
-        }, _callee14, this);
-      }));
-
-      function signTransaction(_x13, _x14) {
-        return _ref12.apply(this, arguments);
-      }
-
-      return signTransaction;
-    }()
-  }]);
-
-  return JsWallet;
-}();
-
-exports.default = JsWallet;
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../../../node_modules/node-libs-browser/node_modules/buffer/index.js */ "./node_modules/node-libs-browser/node_modules/buffer/index.js").Buffer))
-
-/***/ }),
-
-/***/ "./src/sdk/device/transmit/HidTransmitter.js":
-/*!***************************************************!*\
-  !*** ./src/sdk/device/transmit/HidTransmitter.js ***!
-  \***************************************************/
+/***/ "./src/sdk/device/implements/S300Wallet.js":
+/*!*************************************************!*\
+  !*** ./src/sdk/device/implements/S300Wallet.js ***!
+  \*************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -53105,11 +59196,1080 @@ var _D = __webpack_require__(/*! ../../D */ "./src/sdk/D.js");
 
 var _D2 = _interopRequireDefault(_D);
 
-var _MockDevice = __webpack_require__(/*! ./io/MockDevice */ "./src/sdk/device/transmit/io/MockDevice.js");
+var _rlp = __webpack_require__(/*! rlp */ "./node_modules/rlp/index.js");
+
+var _rlp2 = _interopRequireDefault(_rlp);
+
+var _bigi = __webpack_require__(/*! bigi */ "./node_modules/bigi/lib/index.js");
+
+var _bigi2 = _interopRequireDefault(_bigi);
+
+var _bitpony = __webpack_require__(/*! bitpony */ "./node_modules/bitpony/bitpony.js");
+
+var _bitpony2 = _interopRequireDefault(_bitpony);
+
+var _buffer = __webpack_require__(/*! buffer */ "./node_modules/node-libs-browser/node_modules/buffer/index.js");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+// rewrite _containKeys to make empty value available, so we can use it to build presign tx
+// noinspection JSPotentiallyInvalidConstructorUsage
+_bitpony2.default.prototype._containKeys = function (keys) {
+  var _iteratorNormalCompletion = true;
+  var _didIteratorError = false;
+  var _iteratorError = undefined;
+
+  try {
+    for (var _iterator = keys[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+      var i = _step.value;
+
+      if (this.data[i] === null) {
+        throw new Error('key ' + this.type + '.' + i + ' can not be null ' + this.data[i]);
+      }
+    }
+  } catch (err) {
+    _didIteratorError = true;
+    _iteratorError = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion && _iterator.return) {
+        _iterator.return();
+      }
+    } finally {
+      if (_didIteratorError) {
+        throw _iteratorError;
+      }
+    }
+  }
+};
+
+var S300Wallet = function () {
+  function S300Wallet(transmitter) {
+    _classCallCheck(this, S300Wallet);
+
+    this._transmitter = transmitter;
+    this._allEnc = false;
+  }
+
+  _createClass(S300Wallet, [{
+    key: 'init',
+    value: function () {
+      var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+        var walletId;
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                _context.next = 2;
+                return this._transmitter.reset();
+
+              case 2:
+                _context.next = 4;
+                return this._select();
+
+              case 4:
+                walletId = _D2.default.test.coin ? '01' : '00';
+
+                walletId += _D2.default.test.jsWallet ? '01' : '00';
+                _context.t0 = _D2.default.address;
+                _context.next = 9;
+                return this.getAddress(_D2.default.coin.main.btc, "m/44'/0'/0'/0/0");
+
+              case 9:
+                _context.t1 = _context.sent;
+                walletId += _context.t0.toBuffer.call(_context.t0, _context.t1).toString('hex');
+                return _context.abrupt('return', { walletId: walletId });
+
+              case 12:
+              case 'end':
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function init() {
+        return _ref.apply(this, arguments);
+      }
+
+      return init;
+    }()
+  }, {
+    key: '_select',
+    value: function () {
+      var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
+        return regeneratorRuntime.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                _context2.next = 2;
+                return this._sendApdu('00A4040006B00000000002', false);
+
+              case 2:
+              case 'end':
+                return _context2.stop();
+            }
+          }
+        }, _callee2, this);
+      }));
+
+      function _select() {
+        return _ref2.apply(this, arguments);
+      }
+
+      return _select;
+    }()
+  }, {
+    key: 'getWalletInfo',
+    value: function () {
+      var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3() {
+        var cosVersion;
+        return regeneratorRuntime.wrap(function _callee3$(_context3) {
+          while (1) {
+            switch (_context3.prev = _context3.next) {
+              case 0:
+                _context3.next = 2;
+                return this._getCosVersion();
+
+              case 2:
+                cosVersion = _context3.sent;
+                return _context3.abrupt('return', {
+                  sdk_version: _D2.default.sdkVersion,
+                  cos_version: cosVersion
+                });
+
+              case 4:
+              case 'end':
+                return _context3.stop();
+            }
+          }
+        }, _callee3, this);
+      }));
+
+      function getWalletInfo() {
+        return _ref3.apply(this, arguments);
+      }
+
+      return getWalletInfo;
+    }()
+  }, {
+    key: '_getCosVersion',
+    value: function () {
+      var _ref4 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4() {
+        return regeneratorRuntime.wrap(function _callee4$(_context4) {
+          while (1) {
+            switch (_context4.prev = _context4.next) {
+              case 0:
+                console.warn('get version not supported yet!');
+                return _context4.abrupt('return', 'get version not supported yet');
+
+              case 2:
+              case 'end':
+                return _context4.stop();
+            }
+          }
+        }, _callee4, this);
+      }));
+
+      function _getCosVersion() {
+        return _ref4.apply(this, arguments);
+      }
+
+      return _getCosVersion;
+    }()
+  }, {
+    key: 'getAddress',
+    value: function () {
+      var _ref5 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(coinType, path) {
+        var isShowing = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+        var isStoring = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
+
+        var flag, apduHead, pathBuffer, apdu, response, address, addressBuffer, _addressBuffer;
+
+        return regeneratorRuntime.wrap(function _callee5$(_context5) {
+          while (1) {
+            switch (_context5.prev = _context5.next) {
+              case 0:
+                // bit 0: 0 not save on key / 1 save on key
+                // bit 1: 0 not show on key / 1 show on key
+                // bit 2: 0 public key / 1 address
+                // bit 3: 0 uncompressed / 1 compressed
+                // if bit2 == 0, bit0 == bit1 == 0
+                flag = 0;
+
+                flag += isStoring ? 0x01 : 0x00;
+                flag += isShowing ? 0x02 : 0x00;
+                flag += 0x04;
+                flag += 0x08;
+
+                apduHead = _buffer.Buffer.from('804600001505', 'hex');
+                pathBuffer = _D2.default.address.path.toBuffer(path);
+                apdu = _buffer.Buffer.concat([apduHead, pathBuffer]);
+
+                apdu[3] = flag;
+
+                _context5.next = 11;
+                return this._sendApdu(apdu, false);
+
+              case 11:
+                response = _context5.sent;
+                address = String.fromCharCode.apply(null, new Uint8Array(response));
+                // device only return mainnet address
+
+                if (coinType === _D2.default.coin.test.btcTestNet3) {
+                  try {
+                    addressBuffer = _D2.default.address.toBuffer(address);
+
+                    addressBuffer = _buffer.Buffer.concat([_buffer.Buffer.from('6F', 'hex'), addressBuffer]);
+                    address = _D2.default.address.toString(addressBuffer);
+                  } catch (e) {
+                    // TODO remove, S300 bug: return address with constant length 34.
+                    _addressBuffer = _D2.default.address.toBuffer(address.slice(0, address.length - 1));
+
+                    _addressBuffer = _buffer.Buffer.concat([_buffer.Buffer.from('6F', 'hex'), _addressBuffer]);
+                    address = _D2.default.address.toString(_addressBuffer);
+                  }
+                }
+                return _context5.abrupt('return', address);
+
+              case 15:
+              case 'end':
+                return _context5.stop();
+            }
+          }
+        }, _callee5, this);
+      }));
+
+      function getAddress(_x3, _x4) {
+        return _ref5.apply(this, arguments);
+      }
+
+      return getAddress;
+    }()
+
+    /**
+     * tx:
+     * btc:
+     * {
+     *   inputs: [{
+     *     address: base58 string,
+     *     path: string,
+     *     txId: hex string,
+     *     index: number,
+     *     script: string,
+     *   }],
+     *   outputs: [{
+     *     address: base58 string,
+     *     value: number
+     *   }]
+     *   changePath: string,
+     * }
+     *
+     * eth:
+     * {
+     *   input: {
+     *     address: 0x string,
+     *     path: string,
+     *   ],
+     *   output: {
+     *     address: 0x string,
+     *     value: number
+     *   },
+     *   nonce: number,
+     *   gasPrice: 0x string,
+     *   gasLimit: 0x string,
+     *   data: 0x string,
+     * }
+     */
+
+  }, {
+    key: 'signTransaction',
+    value: function () {
+      var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee10(coinType, tx) {
+        var _this = this;
+
+        var sign, signBtc, signEth;
+        return regeneratorRuntime.wrap(function _callee10$(_context10) {
+          while (1) {
+            switch (_context10.prev = _context10.next) {
+              case 0:
+                sign = function () {
+                  var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6(path, changePath, msg) {
+                    var dataLength, data, index, response, apduHead, remainLen, _apduHead, _apduHead2, _apduHead3, offset, r, s, pubKey, v, n, N_OVER_TWO, sInt, sHex;
+
+                    return regeneratorRuntime.wrap(function _callee6$(_context6) {
+                      while (1) {
+                        switch (_context6.prev = _context6.next) {
+                          case 0:
+                            // 8048 0X00 00XXXX C0 u1PathNum pu1Path C1 u1ChangePathNum pu1ChangePath C2 xxxx pu1Msg
+                            dataLength = 2 + path.length + (changePath ? 2 + changePath.length : 2) + 3 + msg.length;
+                            data = _buffer.Buffer.allocUnsafe(dataLength);
+                            index = 0;
+
+                            data[index++] = 0xC0;
+                            data[index++] = path.length / 4;
+                            path.copy(data, index);
+                            index += path.length;
+
+                            data[index++] = 0xC1;
+                            data[index++] = changePath ? changePath.length / 4 : 0;
+                            if (changePath) changePath.copy(data, index);
+                            index += changePath ? changePath.length : 0;
+
+                            data[index++] = 0xC2;
+                            data[index++] = msg.length >> 8;
+                            data[index++] = msg.length;
+                            msg.copy(data, index);
+
+                            response = void 0;
+
+                            if (!(data.length <= 0xFF)) {
+                              _context6.next = 24;
+                              break;
+                            }
+
+                            apduHead = _buffer.Buffer.from('8048030000', 'hex');
+
+                            apduHead[4] = data.length;
+                            _context6.next = 21;
+                            return _this._sendApdu(_buffer.Buffer.concat([apduHead, data]), true);
+
+                          case 21:
+                            response = _context6.sent;
+                            _context6.next = 48;
+                            break;
+
+                          case 24:
+                            remainLen = data.length;
+                            // devide tx to sign due to wallet command length limit
+
+                          case 25:
+                            if (false) {}
+
+                            if (!(remainLen <= 0xFF)) {
+                              _context6.next = 35;
+                              break;
+                            }
+
+                            _apduHead = _buffer.Buffer.from('8048020000', 'hex');
+
+                            _apduHead[4] = remainLen;
+                            _context6.next = 31;
+                            return _this._sendApdu(_buffer.Buffer.concat([_apduHead, data]), true);
+
+                          case 31:
+                            response = _context6.sent;
+                            return _context6.abrupt('break', 48);
+
+                          case 35:
+                            if (!(remainLen === data.length)) {
+                              _context6.next = 41;
+                              break;
+                            }
+
+                            // first package
+                            _apduHead2 = _buffer.Buffer.from('80480100FF', 'hex');
+                            _context6.next = 39;
+                            return _this._sendApdu(_buffer.Buffer.concat([_apduHead2, data.slice(0, 0xFF)]), true);
+
+                          case 39:
+                            _context6.next = 45;
+                            break;
+
+                          case 41:
+                            // middle package
+                            _apduHead3 = _buffer.Buffer.from('80480000FF', 'hex');
+                            offset = data.length - remainLen;
+                            _context6.next = 45;
+                            return _this._sendApdu(_buffer.Buffer.concat([_apduHead3, data.slice(offset, offset + 0xFF), true]));
+
+                          case 45:
+                            remainLen -= 0xFF;
+                            _context6.next = 25;
+                            break;
+
+                          case 48:
+                            r = response.slice(0, 32);
+                            s = response.slice(32, 64);
+                            pubKey = response.slice(64, 128);
+                            v = response[128] % 2;
+                            n = _bigi2.default.fromHex('fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141');
+                            N_OVER_TWO = n.shiftRight(1);
+                            sInt = _bigi2.default.fromBuffer(s);
+
+                            if (sInt.compareTo(N_OVER_TWO) > 0) {
+                              console.debug('s > N/2, s = N/2 - r, old s, v', s.toString('hex'), v);
+                              sInt = n.subtract(sInt);
+                              sHex = sInt.toHex();
+
+                              sHex = sHex.length % 2 ? '0' + sHex : sHex;
+                              s = _buffer.Buffer.from(sHex, 'hex');
+                              v = v ? 0 : 1;
+                              console.debug('new s, v', s.toString('hex'), v);
+                            }
+                            return _context6.abrupt('return', { v: v, r: r, s: s, pubKey: pubKey });
+
+                          case 57:
+                          case 'end':
+                            return _context6.stop();
+                        }
+                      }
+                    }, _callee6, _this);
+                  }));
+
+                  return function sign(_x7, _x8, _x9) {
+                    return _ref7.apply(this, arguments);
+                  };
+                }();
+
+                signBtc = function () {
+                  var _ref8 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8(tx) {
+                    var makeBasicScript, makePreSignScript, makeScriptSig, basicScript, signedTx, changePathBuffer, sequence;
+                    return regeneratorRuntime.wrap(function _callee8$(_context8) {
+                      while (1) {
+                        switch (_context8.prev = _context8.next) {
+                          case 0:
+                            makeBasicScript = function makeBasicScript(tx) {
+                              return {
+                                version: 1,
+                                inputs: tx.inputs.map(function (input) {
+                                  return {
+                                    hash: input.txId,
+                                    index: input.index,
+                                    scriptSig: input.script,
+                                    sequence: 0xFFFFFFFD // opt-in full-RBF, BIP 125
+                                  };
+                                }),
+                                outputs: tx.outputs.map(function (output) {
+                                  var scriptPubKey = _D2.default.address.makeOutputScript(output.address);
+                                  return {
+                                    amount: output.value,
+                                    scriptPubKey: scriptPubKey
+                                  };
+                                }),
+                                lockTime: 0
+                              };
+                            };
+
+                            makePreSignScript = function makePreSignScript(i, basicScript) {
+                              var script = _D2.default.copy(basicScript);
+                              script.inputs.forEach(function (input, j) {
+                                if (i !== j) input.scriptSig = '';
+                              });
+                              var preSignScript = _bitpony2.default.tx.write(script.version, script.inputs, script.outputs, script.lockTime);
+                              return _buffer.Buffer.concat([preSignScript, _buffer.Buffer.from('01000000', 'hex')]);
+                            };
+
+                            makeScriptSig = function makeScriptSig(r, s, pubKey) {
+                              // DER encode
+                              var scriptSigLength = 0x03 + 0x22 + 0x22 + 0x01 + 0x22;
+                              // s must < N/2, r has no limit
+                              var upperR = r[0] >= 0x80;
+                              if (upperR) scriptSigLength++;
+
+                              var scriptSig = _buffer.Buffer.allocUnsafe(scriptSigLength);
+                              var index = 0;
+                              var sigLength = 0x22 + 0x22 + (upperR ? 0x01 : 0x00);
+                              scriptSig[index++] = 0x03 + sigLength;
+                              scriptSig[index++] = 0x30;
+                              scriptSig[index++] = sigLength;
+                              // r
+                              scriptSig[index++] = 0x02;
+                              scriptSig[index++] = upperR ? 0x21 : 0x20;
+                              if (upperR) scriptSig[index++] = 0x00;
+                              r.copy(scriptSig, index);
+                              index += r.length;
+                              // s
+                              scriptSig[index++] = 0x02;
+                              scriptSig[index++] = 0x20;
+                              s.copy(scriptSig, index);
+                              index += s.length;
+                              // hashType
+                              scriptSig[index++] = 0x01;
+                              // pubKey, compressed type
+                              scriptSig[index++] = 0x21;
+                              scriptSig[index++] = pubKey[63] % 2 === 0 ? 0x02 : 0x03;
+                              pubKey = pubKey.slice(0, 32);
+                              pubKey.copy(scriptSig, index);
+
+                              return scriptSig;
+                            };
+
+                            basicScript = makeBasicScript(tx);
+                            signedTx = _D2.default.copy(basicScript);
+                            changePathBuffer = tx.changePath && _D2.default.address.path.toBuffer(tx.changePath);
+                            // execute in order
+
+                            sequence = Promise.resolve();
+
+                            tx.inputs.forEach(function (input, i) {
+                              sequence = sequence.then(_asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7() {
+                                var pathBuffer, preSignScript, _ref10, r, s, pubKey, scirptSig;
+
+                                return regeneratorRuntime.wrap(function _callee7$(_context7) {
+                                  while (1) {
+                                    switch (_context7.prev = _context7.next) {
+                                      case 0:
+                                        pathBuffer = _D2.default.address.path.toBuffer(input.path);
+                                        preSignScript = makePreSignScript(i, basicScript);
+                                        _context7.next = 4;
+                                        return sign(pathBuffer, changePathBuffer, preSignScript);
+
+                                      case 4:
+                                        _ref10 = _context7.sent;
+                                        r = _ref10.r;
+                                        s = _ref10.s;
+                                        pubKey = _ref10.pubKey;
+                                        scirptSig = makeScriptSig(r, s, pubKey);
+
+                                        signedTx.inputs[i].scriptSig = scirptSig.toString('hex');
+
+                                      case 10:
+                                      case 'end':
+                                        return _context7.stop();
+                                    }
+                                  }
+                                }, _callee7, _this);
+                              })));
+                            });
+                            _context8.next = 10;
+                            return sequence;
+
+                          case 10:
+
+                            signedTx = _bitpony2.default.tx.write(signedTx.version, signedTx.inputs, signedTx.outputs, signedTx.lockTime).toString('hex');
+                            return _context8.abrupt('return', {
+                              id: _bitpony2.default.tx.read(signedTx).hash,
+                              hex: signedTx
+                            });
+
+                          case 12:
+                          case 'end':
+                            return _context8.stop();
+                        }
+                      }
+                    }, _callee8, _this);
+                  }));
+
+                  return function signBtc(_x10) {
+                    return _ref8.apply(this, arguments);
+                  };
+                }();
+
+                signEth = function () {
+                  var _ref11 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee9(tx) {
+                    var chainIds, chainId, unsignedTx, rlpUnsignedTx, _ref12, v, r, s, signedTx, rawTx, txId;
+
+                    return regeneratorRuntime.wrap(function _callee9$(_context9) {
+                      while (1) {
+                        switch (_context9.prev = _context9.next) {
+                          case 0:
+                            chainIds = {};
+
+                            chainIds[_D2.default.coin.main.eth] = 1;
+                            chainIds[_D2.default.coin.test.ethRinkeby] = 4;
+                            chainId = chainIds[coinType];
+
+                            if (chainId) {
+                              _context9.next = 6;
+                              break;
+                            }
+
+                            throw _D2.default.error.coinNotSupported;
+
+                          case 6:
+
+                            // rlp
+                            unsignedTx = [tx.nonce, tx.gasPrice, tx.gasLimit, tx.output.address, tx.output.value, tx.data, chainId, 0, 0];
+                            rlpUnsignedTx = _rlp2.default.encode(unsignedTx);
+                            _context9.next = 10;
+                            return sign(_D2.default.address.path.toBuffer(tx.input.path), null, rlpUnsignedTx);
+
+                          case 10:
+                            _ref12 = _context9.sent;
+                            v = _ref12.v;
+                            r = _ref12.r;
+                            s = _ref12.s;
+                            signedTx = [tx.nonce, tx.gasPrice, tx.gasLimit, tx.output.address, tx.output.value, tx.data, 35 + chainId * 2 + v % 2, r, s];
+                            rawTx = _rlp2.default.encode(signedTx).toString('hex');
+                            txId = _D2.default.address.keccak256(_rlp2.default.encode(signedTx));
+                            return _context9.abrupt('return', {
+                              id: txId,
+                              hex: rawTx
+                            });
+
+                          case 18:
+                          case 'end':
+                            return _context9.stop();
+                        }
+                      }
+                    }, _callee9, _this);
+                  }));
+
+                  return function signEth(_x11) {
+                    return _ref11.apply(this, arguments);
+                  };
+                }();
+
+                if (!_D2.default.isBtc(coinType)) {
+                  _context10.next = 7;
+                  break;
+                }
+
+                return _context10.abrupt('return', signBtc(tx));
+
+              case 7:
+                if (!_D2.default.isEth(coinType)) {
+                  _context10.next = 11;
+                  break;
+                }
+
+                return _context10.abrupt('return', signEth(tx));
+
+              case 11:
+                throw _D2.default.error.coinNotSupported;
+
+              case 12:
+              case 'end':
+                return _context10.stop();
+            }
+          }
+        }, _callee10, this);
+      }));
+
+      function signTransaction(_x5, _x6) {
+        return _ref6.apply(this, arguments);
+      }
+
+      return signTransaction;
+    }()
+  }, {
+    key: '_sendApdu',
+    value: function _sendApdu(apdu) {
+      var isEnc = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+
+      // S300 currently not support enc command
+      return this._transmitter.sendApdu(apdu, false); // this._allEnc || isEnc
+    }
+  }]);
+
+  return S300Wallet;
+}();
+
+exports.default = S300Wallet;
+
+/***/ }),
+
+/***/ "./src/sdk/device/implements/transmit/CcidTransmitter.js":
+/*!***************************************************************!*\
+  !*** ./src/sdk/device/implements/transmit/CcidTransmitter.js ***!
+  \***************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _D = __webpack_require__(/*! ../../../D */ "./src/sdk/D.js");
+
+var _D2 = _interopRequireDefault(_D);
+
+var _buffer = __webpack_require__(/*! buffer */ "./node_modules/node-libs-browser/node_modules/buffer/index.js");
+
+var _MockDevice = __webpack_require__(/*! ./io/MockDevice */ "./src/sdk/device/implements/transmit/io/MockDevice.js");
 
 var _MockDevice2 = _interopRequireDefault(_MockDevice);
 
-var _jsencrypt = __webpack_require__(/*! ./jsencrypt */ "./src/sdk/device/transmit/jsencrypt.js");
+var _ChromeUsbDevice = __webpack_require__(/*! ./io/ChromeUsbDevice */ "./src/sdk/device/implements/transmit/io/ChromeUsbDevice.js");
+
+var _ChromeUsbDevice2 = _interopRequireDefault(_ChromeUsbDevice);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+/**
+ * Esecubit USB CCID protocol
+ */
+var CcidTransmitter = function () {
+  function CcidTransmitter() {
+    var _this = this;
+
+    _classCallCheck(this, CcidTransmitter);
+
+    this._device = _D2.default.test.mockDevice ? new _MockDevice2.default() : new _ChromeUsbDevice2.default();
+    this._seqNum = 0;
+
+    this._plugListener = function () {};
+    this._device.listenPlug(function (error, status) {
+      _D2.default.dispatch(function () {
+        return _this._plugListener(error, status);
+      });
+    });
+  }
+
+  _createClass(CcidTransmitter, [{
+    key: 'listenPlug',
+    value: function listenPlug(callback) {
+      if (callback) this._plugListener = callback;
+    }
+
+    // noinspection JSUnusedGlobalSymbols
+
+  }, {
+    key: 'reset',
+    value: function () {
+      var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee() {
+        return regeneratorRuntime.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                _context.next = 2;
+                return this._sendAndReceive(_buffer.Buffer.from('63000000000000000000', 'hex'));
+
+              case 2:
+                _context.next = 4;
+                return this._sendAndReceive(_buffer.Buffer.from('62000000000000010000', 'hex'));
+
+              case 4:
+              case 'end':
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function reset() {
+        return _ref.apply(this, arguments);
+      }
+
+      return reset;
+    }()
+
+    /**
+     * APDU encrypt & decrypt
+     */
+
+  }, {
+    key: 'sendApdu',
+    value: function () {
+      var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(apdu) {
+        var isEnc = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+        return regeneratorRuntime.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                return _context2.abrupt('return', this._sendApdu(apdu));
+
+              case 1:
+              case 'end':
+                return _context2.stop();
+            }
+          }
+        }, _callee2, this);
+      }));
+
+      function sendApdu(_x2) {
+        return _ref2.apply(this, arguments);
+      }
+
+      return sendApdu;
+    }()
+
+    /**
+     * APDU special response handling
+     */
+
+  }, {
+    key: '_sendApdu',
+    value: function () {
+      var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(apdu) {
+        var _ref4, result, response, waitCmd, _ref5, _result, _response, rApdu, ret;
+
+        return regeneratorRuntime.wrap(function _callee3$(_context3) {
+          while (1) {
+            switch (_context3.prev = _context3.next) {
+              case 0:
+                _context3.next = 2;
+                return this._transmit(apdu);
+
+              case 2:
+                _ref4 = _context3.sent;
+                result = _ref4.result;
+                response = _ref4.response;
+
+              case 5:
+                if (!(result === 0x9060)) {
+                  _context3.next = 16;
+                  break;
+                }
+
+                waitCmd = _buffer.Buffer.from('000c0000000', 'hex');
+                _context3.next = 9;
+                return this._transmit(waitCmd);
+
+              case 9:
+                _ref5 = _context3.sent;
+                _result = _ref5._result;
+                _response = _ref5._response;
+
+                result = _result;
+                response = _response;
+                _context3.next = 5;
+                break;
+
+              case 16:
+                if (!((result & 0xFF00) === 0x6100)) {
+                  _context3.next = 27;
+                  break;
+                }
+
+                console.debug('got 0x61XX, get remain data');
+                rApdu = _buffer.Buffer.from('00C0000000', 'hex');
+
+                rApdu[0x04] = result & 0xFF;
+                _context3.next = 22;
+                return this._transmit(rApdu);
+
+              case 22:
+                ret = _context3.sent;
+
+                response = _buffer.Buffer.concat([response, ret.response]);
+                result = ret.result;
+                _context3.next = 16;
+                break;
+
+              case 27:
+
+                CcidTransmitter._checkSw1Sw2(result);
+                return _context3.abrupt('return', response);
+
+              case 29:
+              case 'end':
+                return _context3.stop();
+            }
+          }
+        }, _callee3, this);
+      }));
+
+      function _sendApdu(_x3) {
+        return _ref3.apply(this, arguments);
+      }
+
+      return _sendApdu;
+    }()
+
+    /**
+     * CCID command pack & unpack
+     */
+
+  }, {
+    key: '_transmit',
+    value: function () {
+      var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(apdu) {
+        var packCcidCmd, sendPack, response, indexSw1Sw2, sw1sw2, responseData;
+        return regeneratorRuntime.wrap(function _callee4$(_context4) {
+          while (1) {
+            switch (_context4.prev = _context4.next) {
+              case 0:
+                if (typeof apdu === 'string') {
+                  apdu = _buffer.Buffer.from(apdu, 'hex');
+                }
+
+                packCcidCmd = function packCcidCmd(seqNum, apdu) {
+                  var cmdHead = _buffer.Buffer.from('6F000000000000000000', 'hex');
+                  cmdHead.writeUInt32LE(apdu.length, 0x01);
+                  cmdHead[6] = seqNum;
+                  return _buffer.Buffer.concat([cmdHead, apdu]);
+                };
+
+                this._seqNum = 0;
+                console.debug('transmit send apdu', apdu.toString('hex'));
+                sendPack = packCcidCmd(this._seqNum++, apdu);
+                _context4.next = 7;
+                return this._sendAndReceive(sendPack);
+
+              case 7:
+                response = _context4.sent;
+
+                if (!(!response || response.length < 2)) {
+                  _context4.next = 11;
+                  break;
+                }
+
+                console.warn('invalid response without sw1sw2');
+                throw _D2.default.error.deviceProtocol;
+
+              case 11:
+                indexSw1Sw2 = response.length - 2;
+                sw1sw2 = (response[indexSw1Sw2] << 8) + response[indexSw1Sw2 + 1];
+                responseData = response.slice(0, indexSw1Sw2);
+
+                console.debug('transmit got response', sw1sw2.toString(16), responseData.toString('hex'));
+                return _context4.abrupt('return', { result: sw1sw2, response: responseData });
+
+              case 16:
+              case 'end':
+                return _context4.stop();
+            }
+          }
+        }, _callee4, this);
+      }));
+
+      function _transmit(_x4) {
+        return _ref6.apply(this, arguments);
+      }
+
+      return _transmit;
+    }()
+  }, {
+    key: '_sendAndReceive',
+    value: function () {
+      var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(pack) {
+        var packRecvCcidCmd, response, received, recvLen, finish, respPack;
+        return regeneratorRuntime.wrap(function _callee5$(_context5) {
+          while (1) {
+            switch (_context5.prev = _context5.next) {
+              case 0:
+                packRecvCcidCmd = function packRecvCcidCmd(seqNum) {
+                  var levelParameter = 0x0010;
+                  var cmd = _buffer.Buffer.from('62000000000000000000', 'hex');
+                  cmd[0x06] = seqNum;
+                  cmd.writeUInt16LE(levelParameter, 0x08);
+                  return cmd;
+                };
+
+                _context5.next = 3;
+                return this._device.send(pack);
+
+              case 3:
+                response = _buffer.Buffer.alloc(0);
+
+              case 4:
+                if (false) {}
+
+                _context5.next = 7;
+                return this._device.receive();
+
+              case 7:
+                received = _context5.sent;
+
+              case 8:
+                if (!(received[0x07] === 0x80 && received[0x08] === 0x01)) {
+                  _context5.next = 14;
+                  break;
+                }
+
+                _context5.next = 11;
+                return this._device.receive();
+
+              case 11:
+                received = _context5.sent;
+                _context5.next = 8;
+                break;
+
+              case 14:
+                if (!(!received || received.length < 0x0A || received[0] !== 0x80 && pack[0] !== 0x63)) {
+                  _context5.next = 17;
+                  break;
+                }
+
+                console.warn('CCID receive package invalid', received && received.toString('hex'));
+                throw _D2.default.error.deviceProtocol;
+
+              case 17:
+                recvLen = received.readUInt32LE(0x01);
+
+                response = _buffer.Buffer.concat([response, received.slice(0x0A, 0x0A + recvLen)]);
+
+                finish = received[0x09] !== 0x01 && received[0x09] !== 0x03;
+
+                if (!finish) {
+                  _context5.next = 22;
+                  break;
+                }
+
+                return _context5.abrupt('break', 28);
+
+              case 22:
+                respPack = packRecvCcidCmd(this._seqNum++);
+                _context5.next = 25;
+                return this._device.send(respPack);
+
+              case 25:
+                received = _context5.sent;
+                _context5.next = 4;
+                break;
+
+              case 28:
+                return _context5.abrupt('return', response);
+
+              case 29:
+              case 'end':
+                return _context5.stop();
+            }
+          }
+        }, _callee5, this);
+      }));
+
+      function _sendAndReceive(_x5) {
+        return _ref7.apply(this, arguments);
+      }
+
+      return _sendAndReceive;
+    }()
+  }], [{
+    key: '_checkSw1Sw2',
+    value: function _checkSw1Sw2(sw1sw2) {
+      var errorCode = _D2.default.error.checkSw1Sw2(sw1sw2);
+      if (errorCode !== _D2.default.error.succeed) throw errorCode;
+    }
+  }]);
+
+  return CcidTransmitter;
+}();
+
+exports.default = CcidTransmitter;
+
+/***/ }),
+
+/***/ "./src/sdk/device/implements/transmit/HidTransmitter.js":
+/*!**************************************************************!*\
+  !*** ./src/sdk/device/implements/transmit/HidTransmitter.js ***!
+  \**************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _D = __webpack_require__(/*! ../../../D */ "./src/sdk/D.js");
+
+var _D2 = _interopRequireDefault(_D);
+
+var _MockDevice = __webpack_require__(/*! ./io/MockDevice */ "./src/sdk/device/implements/transmit/io/MockDevice.js");
+
+var _MockDevice2 = _interopRequireDefault(_MockDevice);
+
+var _jsencrypt = __webpack_require__(/*! ./jsencrypt */ "./src/sdk/device/implements/transmit/jsencrypt.js");
 
 var _jsencrypt2 = _interopRequireDefault(_jsencrypt);
 
@@ -53117,11 +60277,11 @@ var _cryptoJs = __webpack_require__(/*! crypto-js */ "./node_modules/crypto-js/i
 
 var _cryptoJs2 = _interopRequireDefault(_cryptoJs);
 
-var _ChromeHidDevice = __webpack_require__(/*! ./io/ChromeHidDevice */ "./src/sdk/device/transmit/io/ChromeHidDevice.js");
+var _buffer = __webpack_require__(/*! buffer */ "./node_modules/node-libs-browser/node_modules/buffer/index.js");
+
+var _ChromeHidDevice = __webpack_require__(/*! ./io/ChromeHidDevice */ "./src/sdk/device/implements/transmit/io/ChromeHidDevice.js");
 
 var _ChromeHidDevice2 = _interopRequireDefault(_ChromeHidDevice);
-
-var _buffer = __webpack_require__(/*! buffer */ "./node_modules/node-libs-browser/node_modules/buffer/index.js");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -53188,7 +60348,7 @@ var des112 = function des112(isEnc, data, key) {
 };
 
 /**
- * Hardware apdu protocol
+ * Esecubit USB HID protocol
  */
 
 var HidTransmitter = function () {
@@ -53411,6 +60571,11 @@ var HidTransmitter = function () {
 
       return _doHandShake;
     }()
+
+    /**
+     * APDU encrypt & decrypt
+     */
+
   }, {
     key: 'sendApdu',
     value: function () {
@@ -53446,7 +60611,7 @@ var HidTransmitter = function () {
 
                   var length = decResponse.length;
                   var result = (decResponse[length - 2] << 8) + decResponse[length - 1];
-                  _this2._checkSw1Sw2(result);
+                  HidTransmitter._checkSw1Sw2(result);
                   return decResponse.slice(0, -2);
                 };
 
@@ -53531,11 +60696,16 @@ var HidTransmitter = function () {
 
       return sendApdu;
     }()
+
+    /**
+     * APDU special response handling
+     */
+
   }, {
     key: '_sendApdu',
     value: function () {
       var _ref3 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee3(apdu) {
-        var _ref4, result, response, _ref5, _result, _response, rApdu, _ref6, _result2, _response2;
+        var _ref4, result, response, _ref5, _result, _response, rApdu, ret;
 
         return regeneratorRuntime.wrap(function _callee3$(_context3) {
           while (1) {
@@ -53551,7 +60721,7 @@ var HidTransmitter = function () {
 
               case 5:
                 if (!(result === 0x6AA6)) {
-                  _context3.next = 17;
+                  _context3.next = 16;
                   break;
                 }
 
@@ -53564,15 +60734,14 @@ var HidTransmitter = function () {
                 _result = _ref5._result;
                 _response = _ref5._response;
 
-                response = _buffer.Buffer.concat([response, _response]);
                 result = _result;
                 response = _response;
                 _context3.next = 5;
                 break;
 
-              case 17:
+              case 16:
                 if (!((result & 0xFF00) === 0x6100)) {
-                  _context3.next = 30;
+                  _context3.next = 27;
                   break;
                 }
 
@@ -53580,25 +60749,23 @@ var HidTransmitter = function () {
                 rApdu = _buffer.Buffer.from('00C0000000', 'hex');
 
                 rApdu[0x04] = result & 0xFF;
-                _context3.next = 23;
+                _context3.next = 22;
                 return this._transmit(rApdu);
 
-              case 23:
-                _ref6 = _context3.sent;
-                _result2 = _ref6._result;
-                _response2 = _ref6._response;
+              case 22:
+                ret = _context3.sent;
 
-                response = _buffer.Buffer.concat([response, _response2]);
-                result = _result2;
-                _context3.next = 17;
+                response = _buffer.Buffer.concat([response, ret.response]);
+                result = ret.result;
+                _context3.next = 16;
                 break;
 
-              case 30:
-                this._checkSw1Sw2(result);
+              case 27:
+                HidTransmitter._checkSw1Sw2(result);
 
                 return _context3.abrupt('return', response);
 
-              case 32:
+              case 29:
               case 'end':
                 return _context3.stop();
             }
@@ -53613,18 +60780,14 @@ var HidTransmitter = function () {
       return _sendApdu;
     }()
 
-    // noinspection JSMethodCanBeStatic
+    /**
+     * HID command pack & unpack
+     */
 
-  }, {
-    key: '_checkSw1Sw2',
-    value: function _checkSw1Sw2(sw1sw2) {
-      var errorCode = _D2.default.error.checkSw1Sw2(sw1sw2);
-      if (errorCode !== _D2.default.error.succeed) throw errorCode;
-    }
   }, {
     key: '_transmit',
     value: function () {
-      var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(apdu) {
+      var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee5(apdu) {
         var _this3 = this;
 
         var packHidCmd, unpackHidCmd, sendAndReceive, _packHidCmd, reportId, pack, received, response;
@@ -53723,7 +60886,7 @@ var HidTransmitter = function () {
                 };
 
                 sendAndReceive = function () {
-                  var _ref8 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(reportId, pack) {
+                  var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee4(reportId, pack) {
                     var _received, delayMills, _delayMills;
 
                     return regeneratorRuntime.wrap(function _callee4$(_context4) {
@@ -53812,7 +60975,7 @@ var HidTransmitter = function () {
                   }));
 
                   return function sendAndReceive(_x5, _x6) {
-                    return _ref8.apply(this, arguments);
+                    return _ref7.apply(this, arguments);
                   };
                 }();
 
@@ -53837,11 +61000,17 @@ var HidTransmitter = function () {
       }));
 
       function _transmit(_x4) {
-        return _ref7.apply(this, arguments);
+        return _ref6.apply(this, arguments);
       }
 
       return _transmit;
     }()
+  }], [{
+    key: '_checkSw1Sw2',
+    value: function _checkSw1Sw2(sw1sw2) {
+      var errorCode = _D2.default.error.checkSw1Sw2(sw1sw2);
+      if (errorCode !== _D2.default.error.succeed) throw errorCode;
+    }
   }]);
 
   return HidTransmitter;
@@ -53851,10 +61020,10 @@ exports.default = HidTransmitter;
 
 /***/ }),
 
-/***/ "./src/sdk/device/transmit/io/ChromeHidDevice.js":
-/*!*******************************************************!*\
-  !*** ./src/sdk/device/transmit/io/ChromeHidDevice.js ***!
-  \*******************************************************/
+/***/ "./src/sdk/device/implements/transmit/JsTransmitter.js":
+/*!*************************************************************!*\
+  !*** ./src/sdk/device/implements/transmit/JsTransmitter.js ***!
+  \*************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -53871,19 +61040,199 @@ var _D = __webpack_require__(/*! ../../../D */ "./src/sdk/D.js");
 
 var _D2 = _interopRequireDefault(_D);
 
-var _IEsDevice2 = __webpack_require__(/*! ./IEsDevice */ "./src/sdk/device/transmit/io/IEsDevice.js");
+var _Settings = __webpack_require__(/*! ../../../Settings */ "./src/sdk/Settings.js");
 
-var _IEsDevice3 = _interopRequireDefault(_IEsDevice2);
-
-var _buffer = __webpack_require__(/*! buffer */ "./node_modules/node-libs-browser/node_modules/buffer/index.js");
+var _Settings2 = _interopRequireDefault(_Settings);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+/**
+ * Transmitter for JsWallet only. Only enabled when D.test.jsWallet = true
+ */
+var JsTransmitter = function () {
+  function JsTransmitter() {
+    _classCallCheck(this, JsTransmitter);
+  }
 
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+  _createClass(JsTransmitter, [{
+    key: 'listenPlug',
+    value: function listenPlug(listener) {
+      if (_D2.default.test.jsWallet) {
+        console.info('JsTransmitter plug in, jsWallet enabled');
+        _D2.default.dispatch(function () {
+          return listener(_D2.default.error.succeed, _D2.default.status.plugIn);
+        });
+      }
+    }
+  }, {
+    key: 'getSeed',
+    value: function getSeed() {
+      return new _Settings2.default().getTestSeed();
+    }
+  }]);
+
+  return JsTransmitter;
+}();
+
+exports.default = JsTransmitter;
+
+/***/ }),
+
+/***/ "./src/sdk/device/implements/transmit/MockTransmitter.js":
+/*!***************************************************************!*\
+  !*** ./src/sdk/device/implements/transmit/MockTransmitter.js ***!
+  \***************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function(Buffer) {
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _D = __webpack_require__(/*! ../../../D */ "./src/sdk/D.js");
+
+var _D2 = _interopRequireDefault(_D);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var fileSize = 10 * 1024; // 0x2800
+
+/**
+ * Mock object of transmitter. Only enabled when D.test.mockTransmitter = true
+ */
+
+var MockTransmitter = function () {
+  function MockTransmitter() {
+    _classCallCheck(this, MockTransmitter);
+
+    this.currentFileId = 0;
+    this.file = {
+      pub: Buffer.alloc(fileSize),
+      pri: Buffer.alloc(fileSize)
+      // bitmap = 0x28, fat = 0x280, pub = 0x2200, pri = 0x2800, blockSize = 0x40
+      // pubBlockNum = 136, priBlockNum = 160
+    };var fatHead = Buffer.from('00000000000000000000000000000000' + '00000000000000000000000000000000' + '00000000000000000000000000000000' + '00000000000000000000288002002200' + '00002800004000000000000000000000' + '00000000000000000000000000000000' + '00000000000000000000000000000000' + '00000000000000000000000000000000' + '00000000000000000000000000000000' + '00000000000000AA5500000000000000', 'hex');
+    fatHead.copy(this.file.pub);
+  }
+
+  _createClass(MockTransmitter, [{
+    key: 'listenPlug',
+    value: function listenPlug(callback) {
+      if (_D2.default.test.mockTransmitter) {
+        _D2.default.dispatch(function () {
+          return callback(_D2.default.error.ok, _D2.default.status.plugIn);
+        });
+      }
+    }
+  }, {
+    key: 'sendApdu',
+    value: function sendApdu(apdu) {
+      var hexApdu = apdu.toString('hex').toUpperCase();
+      console.debug('mock apdu', hexApdu);
+
+      // fat command
+      // select fileId
+      if (hexApdu.startsWith('00A4000002')) {
+        var fileId = (apdu[0x05] << 8) + apdu[0x06];
+        if (fileId !== 0x1EA8 && fileId !== 0x1000) {
+          console.warn('mock select fileId invalid', hexApdu, fileId.toString(16));
+          throw _D2.default.error.deviceProtocol;
+        }
+        this.currentFileId = fileId;
+        return;
+      }
+
+      // read file
+      if (hexApdu.startsWith('80B0')) {
+        var offset = (apdu[0x02] << 8) + apdu[0x03];
+        var length = (apdu[0x05] << 8) + apdu[0x06];
+        if (offset + length > fileSize) {
+          console.warn('mock read file out of range', hexApdu);
+          throw _D2.default.error.deviceProtocol;
+        }
+
+        var data = void 0;
+        if (this.currentFileId === 0x1EA8) {
+          data = this.file.pub;
+        } else if (this.currentFileId === 0x1000) {
+          data = this.file.pri;
+        }
+        if (!data) {
+          console.warn('mock read file file not selected', hexApdu, this.currentFileId);
+          throw _D2.default.error.deviceProtocol;
+        }
+
+        return data.slice(offset, offset + length);
+      }
+
+      // write file
+      if (hexApdu.startsWith('80D6')) {
+        var _offset = (apdu[0x02] << 8) + apdu[0x03];
+        var _length = (apdu[0x05] << 8) + apdu[0x06];
+        if (_offset + _length > fileSize) {
+          console.warn('mock write file out of range', hexApdu);
+          throw _D2.default.error.deviceProtocol;
+        }
+
+        var _data = void 0;
+        if (this.currentFileId === 0x1EA8) {
+          _data = this.file.pub;
+        } else if (this.currentFileId === 0x1000) {
+          _data = this.file.pri;
+        }
+        if (!_data) {
+          console.warn('mock read file file not selected', hexApdu, this.currentFileId);
+          throw _D2.default.error.deviceProtocol;
+        }
+
+        apdu.slice(0x07, apdu.length).copy(_data, _offset);
+        return;
+      }
+
+      // global info (part of)
+      if (hexApdu.startsWith('803300000DBB0B')) {
+        return Buffer.from('000004000400', 'hex'); // max read / write size = 1k
+      }
+
+      console.warn('not supported mock apdu', apdu);
+      throw _D2.default.error.unknown;
+    }
+  }]);
+
+  return MockTransmitter;
+}();
+
+exports.default = MockTransmitter;
+
+MockTransmitter.fileSize = fileSize;
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../../../../../node_modules/node-libs-browser/node_modules/buffer/index.js */ "./node_modules/node-libs-browser/node_modules/buffer/index.js").Buffer))
+
+/***/ }),
+
+/***/ "./src/sdk/device/implements/transmit/io/ChromeHidDevice.js":
+/*!******************************************************************!*\
+  !*** ./src/sdk/device/implements/transmit/io/ChromeHidDevice.js ***!
+  \******************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 /** @namespace chrome */
 /** @namespace chrome.hid */
 /** @namespace chrome.hid.connect */
@@ -53894,21 +61243,31 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 /** @namespace chrome.hid.sendFeatureReport */
 /** @namespace chrome.hid.receiveFeatureReport */
 
-var ChromeHidDevice = function (_IEsDevice) {
-  _inherits(ChromeHidDevice, _IEsDevice);
+var _D = __webpack_require__(/*! ../../../../D */ "./src/sdk/D.js");
 
+var _D2 = _interopRequireDefault(_D);
+
+var _buffer = __webpack_require__(/*! buffer */ "./node_modules/node-libs-browser/node_modules/buffer/index.js");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var compatibleDevices = [{ vid: 0x1ea8, pid: 0xc036 }];
+
+var ChromeHidDevice = function () {
   function ChromeHidDevice() {
+    var _this = this;
+
     _classCallCheck(this, ChromeHidDevice);
 
-    var _this = _possibleConstructorReturn(this, (ChromeHidDevice.__proto__ || Object.getPrototypeOf(ChromeHidDevice)).call(this));
-
-    _this._deviceId = null;
-    _this._connectionId = null;
-    _this._listener = null;
+    this._deviceId = null;
+    this._connectionId = null;
+    this._listener = function () {};
 
     if (!chrome || !chrome.hid) {
       console.warn('chrome.hid not in chrome app env, exit');
-      return _possibleConstructorReturn(_this);
+      return;
     }
 
     var connect = function connect() {
@@ -53916,7 +61275,7 @@ var ChromeHidDevice = function (_IEsDevice) {
         if (chrome.runtime.lastError) {
           console.warn('chrome.hid.connect error: ' + chrome.runtime.lastError.message);
           _this._deviceId = null;
-          _this._listener && _D2.default.dispatch(function () {
+          _D2.default.dispatch(function () {
             return _this._listener(_D2.default.error.deviceConnectFailed, _D2.default.status.plugIn);
           });
           return;
@@ -53924,25 +61283,31 @@ var ChromeHidDevice = function (_IEsDevice) {
 
         _this._connectionId = connection.connectionId;
         console.log('Connected to the HID device!', _this._deviceId, _this._connectionId);
-        _this._listener && _D2.default.dispatch(function () {
+        _D2.default.dispatch(function () {
           return _this._listener(_D2.default.error.succeed, _D2.default.status.plugIn);
         });
       });
     };
 
     chrome.hid.onDeviceAdded.addListener(function (device) {
-      console.log('plug in vid=' + device.vendorId + ', pid=' + device.productId);
+      console.log('hid plug in vid=' + device.vendorId + ', pid=' + device.productId);
+      if (!compatibleDevices.find(function (d) {
+        return d.vid === device.vendorId && d.pid === device.productId;
+      })) {
+        console.log('hid not compatible device, ignore');
+        return;
+      }
       if (_this._deviceId) return;
       _this._deviceId = device.deviceId;
       connect();
     });
 
     chrome.hid.onDeviceRemoved.addListener(function (deviceId) {
-      console.log('plug out', deviceId);
+      console.log('hid plug out', deviceId);
       if (_this._deviceId !== deviceId) return;
       _this._deviceId = null;
       _this._connectionId = null;
-      _this._listener && _D2.default.dispatch(function () {
+      _D2.default.dispatch(function () {
         return _this._listener(_D2.default.error.succeed, _D2.default.status.plugOut);
       });
     });
@@ -53956,11 +61321,16 @@ var ChromeHidDevice = function (_IEsDevice) {
       if (_this._deviceId) return;
       if (foundDevices.length === 0) return;
       var device = foundDevices[0];
-      console.log('found device: vid=' + device.vendorId + ', pid=' + device.productId);
+      console.log('hid found device: vid=' + device.vendorId + ', pid=' + device.productId);
+      if (!compatibleDevices.find(function (d) {
+        return d.vid === device.vendorId && d.pid === device.productId;
+      })) {
+        console.log('hid not compatible device, ignore');
+        return;
+      }
       _this._deviceId = device.deviceId;
       connect(device);
     });
-    return _this;
   }
 
   _createClass(ChromeHidDevice, [{
@@ -54013,7 +61383,7 @@ var ChromeHidDevice = function (_IEsDevice) {
     value: function listenPlug(callback) {
       var _this4 = this;
 
-      this._listener = callback;
+      this._listener = callback || this._listener;
       if (this._deviceId !== null && this._connectionId !== null) {
         _D2.default.dispatch(function () {
           return _this4._listener(_D2.default.error.succeed, _D2.default.status.plugIn);
@@ -54023,29 +61393,39 @@ var ChromeHidDevice = function (_IEsDevice) {
   }]);
 
   return ChromeHidDevice;
-}(_IEsDevice3.default);
+}();
 
 exports.default = ChromeHidDevice;
 
 /***/ }),
 
-/***/ "./src/sdk/device/transmit/io/IEsDevice.js":
-/*!*************************************************!*\
-  !*** ./src/sdk/device/transmit/io/IEsDevice.js ***!
-  \*************************************************/
+/***/ "./src/sdk/device/implements/transmit/io/ChromeUsbDevice.js":
+/*!******************************************************************!*\
+  !*** ./src/sdk/device/implements/transmit/io/ChromeUsbDevice.js ***!
+  \******************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-
+/* WEBPACK VAR INJECTION */(function(Buffer) {
 
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+/** @namespace chrome */
+/** @namespace chrome.usb */
+/** @namespace chrome.usb.openDevice */
+/** @namespace chrome.usb.onDeviceAdded */
+/** @namespace chrome.usb.onDeviceRemoved */
+/** @namespace chrome.usb.getDevices */
+/** @namespace chrome.runtime.lastError */
+/** @namespace chrome.usb.bulkTransfer */
+/** @namespace chrome.usb.listInterfaces */
+/** @namespace chrome.usb.claimInterface */
 
-var _D = __webpack_require__(/*! ../../../D */ "./src/sdk/D.js");
+var _D = __webpack_require__(/*! ../../../../D */ "./src/sdk/D.js");
 
 var _D2 = _interopRequireDefault(_D);
 
@@ -54055,22 +61435,163 @@ function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, a
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var IEsDevice = function () {
-  function IEsDevice() {
-    _classCallCheck(this, IEsDevice);
+var compatibleDevices = [{ vid: 0x1ea8, pid: 0x800a }];
+
+var ChromeUsbDevice = function () {
+  function ChromeUsbDevice() {
+    var _this = this;
+
+    _classCallCheck(this, ChromeUsbDevice);
+
+    this._deviceId = null;
+    this._connectionHandle = null;
+    this._listener = function () {};
+
+    if (!chrome || !chrome.usb) {
+      console.warn('chrome.usb not in chrome app env, exit');
+      return;
+    }
+
+    var connect = function connect(device) {
+      chrome.usb.openDevice(device, function (connectionHandle) {
+        _this._connectionHandle = connectionHandle;
+        console.log('Connected to the USB device!', connectionHandle);
+
+        chrome.usb.listInterfaces(connectionHandle, function (descriptors) {
+          if (chrome.runtime.lastError) {
+            console.warn('chrome.usb.listInterfaces error: ' + chrome.runtime.lastError.message);
+            _D2.default.dispatch(function () {
+              return _this._listener(_D2.default.error.deviceConnectFailed, _D2.default.status.plugIn);
+            });
+            return;
+          }
+          console.log('USB device interface info: ', descriptors);
+          if (!descriptors || descriptors.length === 0) {
+            console.warn('no descriptors for device');
+            _D2.default.dispatch(function () {
+              return _this._listener(_D2.default.error.deviceConnectFailed, _D2.default.status.plugIn);
+            });
+            return;
+          }
+
+          var descriptor = descriptors[0];
+          _this._inEndPoint = descriptor.endpoints.find(function (ep) {
+            return ep.direction === 'in';
+          });
+          _this._outEndPoint = descriptor.endpoints.find(function (ep) {
+            return ep.direction === 'out';
+          });
+          chrome.usb.claimInterface(connectionHandle, descriptor.interfaceNumber, function () {
+            if (chrome.runtime.lastError) {
+              console.warn('chrome.usb.claimInterface error: ' + chrome.runtime.lastError.message);
+              _D2.default.dispatch(function () {
+                return _this._listener(_D2.default.error.deviceConnectFailed, _D2.default.status.plugIn);
+              });
+              return;
+            }
+            console.log('Claimed interface', descriptor);
+            _D2.default.dispatch(function () {
+              return _this._listener(_D2.default.error.succeed, _D2.default.status.plugIn);
+            });
+          });
+        });
+      });
+    };
+
+    chrome.usb.onDeviceAdded.addListener(function (device) {
+      console.log('usb plug in vid=' + device.vendorId + ', pid=' + device.productId);
+      if (!compatibleDevices.find(function (d) {
+        return d.vid === device.vendorId && d.pid === device.productId;
+      })) {
+        console.log('usb not compatible device, ignore');
+        return;
+      }
+      if (!_this._deviceId) {
+        _this._deviceId = device.device;
+        connect(device);
+      }
+    });
+
+    chrome.usb.onDeviceRemoved.addListener(function (device) {
+      console.log('usb plug out vid=' + device.vendorId + ', pid=' + device.productId);
+      if (device.device === _this._deviceId) {
+        _this._deviceId = null;
+        _this._connectionHandle = null;
+        _D2.default.dispatch(function () {
+          return _this._listener(_D2.default.error.succeed, _D2.default.status.plugOut);
+        });
+      }
+    });
+
+    chrome.usb.getDevices({}, function (foundDevices) {
+      if (chrome.runtime.lastError) {
+        console.warn('chrome.usb.getDevices error: ' + chrome.runtime.lastError.message);
+        return;
+      }
+
+      if (_this._deviceId) {
+        return;
+      }
+      if (foundDevices.length === 0) {
+        return;
+      }
+      var device = foundDevices[0];
+      console.log('usb found device: vid=' + device.vendorId + ', pid=' + device.productId);
+      if (!compatibleDevices.find(function (d) {
+        return d.vid === device.vendorId && d.pid === device.productId;
+      })) {
+        console.log('usb not compatible device, ignore');
+        return;
+      }
+      _this._deviceId = device.device;
+      connect(device);
+    });
   }
 
-  _createClass(IEsDevice, [{
-    key: 'listenPlug',
+  _createClass(ChromeUsbDevice, [{
+    key: 'send',
     value: function () {
-      var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(callback) {
+      var _ref = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee(data) {
+        var _this2 = this;
+
+        var transferInfo;
         return regeneratorRuntime.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                throw _D2.default.error.notImplemented;
+                if (!(this._deviceId === null || this._connectionHandle === null)) {
+                  _context.next = 2;
+                  break;
+                }
 
-              case 1:
+                throw _D2.default.error.noDevice;
+
+              case 2:
+                transferInfo = {
+                  direction: 'out',
+                  endpoint: this._outEndPoint.address,
+                  data: data
+                };
+
+                console.debug('send package', transferInfo.endpoint, data.toString('hex'));
+
+                return _context.abrupt('return', new Promise(function (resolve, reject) {
+                  chrome.usb.bulkTransfer(_this2._connectionHandle, transferInfo, function (info) {
+                    if (chrome.runtime.lastError) {
+                      console.warn('send error: ', chrome.runtime.lastError, info);
+                      reject(_D2.default.error.deviceComm);
+                      return;
+                    }
+                    if (info.resultCode !== 0) {
+                      console.warn('send apdu error ', info);
+                      reject(_D2.default.error.deviceComm);
+                      return;
+                    }
+                    resolve();
+                  });
+                }));
+
+              case 5:
               case 'end':
                 return _context.stop();
             }
@@ -54078,23 +61599,46 @@ var IEsDevice = function () {
         }, _callee, this);
       }));
 
-      function listenPlug(_x) {
+      function send(_x) {
         return _ref.apply(this, arguments);
       }
 
-      return listenPlug;
+      return send;
     }()
   }, {
-    key: 'sendAndReceive',
+    key: 'receive',
     value: function () {
-      var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2(apdu) {
+      var _ref2 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee2() {
+        var _this3 = this;
+
+        var transferInfo;
         return regeneratorRuntime.wrap(function _callee2$(_context2) {
           while (1) {
             switch (_context2.prev = _context2.next) {
               case 0:
-                throw _D2.default.error.notImplemented;
+                transferInfo = {
+                  direction: 'in',
+                  endpoint: this._inEndPoint.address,
+                  length: 0xFFFF
+                };
+                return _context2.abrupt('return', new Promise(function (resolve, reject) {
+                  chrome.usb.bulkTransfer(_this3._connectionHandle, transferInfo, function (info) {
+                    if (chrome.runtime.lastError) {
+                      console.warn('receive error: ' + chrome.runtime.lastError.message + ' resultCode: ' + info.resultCode);
+                      reject(_D2.default.error.deviceComm);
+                    }
+                    if (info.resultCode !== 0) {
+                      console.warn('receive apdu error ', info.resultCode);
+                      reject(_D2.default.error.deviceComm);
+                    }
 
-              case 1:
+                    var data = Buffer.from(info.data);
+                    console.debug('receive package', transferInfo.endpoint, data.toString('hex'));
+                    resolve(data);
+                  });
+                }));
+
+              case 2:
               case 'end':
                 return _context2.stop();
             }
@@ -54102,25 +61646,34 @@ var IEsDevice = function () {
         }, _callee2, this);
       }));
 
-      function sendAndReceive(_x2) {
+      function receive() {
         return _ref2.apply(this, arguments);
       }
 
-      return sendAndReceive;
+      return receive;
     }()
+  }, {
+    key: 'listenPlug',
+    value: function listenPlug(callback) {
+      this._listener = callback || this._listener;
+      if (this._deviceId !== null && this._connectionHandle !== null) {
+        callback(_D2.default.error.succeed, _D2.default.status.plugIn);
+      }
+    }
   }]);
 
-  return IEsDevice;
+  return ChromeUsbDevice;
 }();
 
-exports.default = IEsDevice;
+exports.default = ChromeUsbDevice;
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../../../../../../node_modules/node-libs-browser/node_modules/buffer/index.js */ "./node_modules/node-libs-browser/node_modules/buffer/index.js").Buffer))
 
 /***/ }),
 
-/***/ "./src/sdk/device/transmit/io/MockDevice.js":
-/*!**************************************************!*\
-  !*** ./src/sdk/device/transmit/io/MockDevice.js ***!
-  \**************************************************/
+/***/ "./src/sdk/device/implements/transmit/io/MockDevice.js":
+/*!*************************************************************!*\
+  !*** ./src/sdk/device/implements/transmit/io/MockDevice.js ***!
+  \*************************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -54133,13 +61686,9 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _D = __webpack_require__(/*! ../../../D */ "./src/sdk/D.js");
+var _D = __webpack_require__(/*! ../../../../D */ "./src/sdk/D.js");
 
 var _D2 = _interopRequireDefault(_D);
-
-var _IEsDevice2 = __webpack_require__(/*! ./IEsDevice */ "./src/sdk/device/transmit/io/IEsDevice.js");
-
-var _IEsDevice3 = _interopRequireDefault(_IEsDevice2);
 
 var _buffer = __webpack_require__(/*! buffer */ "./node_modules/node-libs-browser/node_modules/buffer/index.js");
 
@@ -54149,17 +61698,9 @@ function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, a
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var MockDevice = function (_IEsDevice) {
-  _inherits(MockDevice, _IEsDevice);
-
+var MockDevice = function () {
   function MockDevice() {
     _classCallCheck(this, MockDevice);
-
-    return _possibleConstructorReturn(this, (MockDevice.__proto__ || Object.getPrototypeOf(MockDevice)).apply(this, arguments));
   }
 
   _createClass(MockDevice, [{
@@ -54238,16 +61779,16 @@ var MockDevice = function (_IEsDevice) {
   }]);
 
   return MockDevice;
-}(_IEsDevice3.default);
+}();
 
 exports.default = MockDevice;
 
 /***/ }),
 
-/***/ "./src/sdk/device/transmit/jsencrypt.js":
-/*!**********************************************!*\
-  !*** ./src/sdk/device/transmit/jsencrypt.js ***!
-  \**********************************************/
+/***/ "./src/sdk/device/implements/transmit/jsencrypt.js":
+/*!*********************************************************!*\
+  !*** ./src/sdk/device/implements/transmit/jsencrypt.js ***!
+  \*********************************************************/
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -59527,7 +67068,7 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__(/*! /Users/wang/Documents/ctx/chrome-excelsecu-wallet/index.js */"./index.js");
+module.exports = __webpack_require__(/*! /Users/chenhao/Documents/ctx/EsecuBit-wallet-sdk/index.js */"./index.js");
 
 
 /***/ }),
