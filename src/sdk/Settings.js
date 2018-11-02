@@ -1,5 +1,5 @@
 import Provider from './Provider'
-import D from "esecubit-wallet-sdk/src/sdk/D";
+import D from './D'
 
 /**
  * Settings for Application.

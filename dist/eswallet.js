@@ -47814,6 +47814,8 @@ var EsWallet = function () {
 
     /**
      * Get supported coin types.
+     *
+     * @returns String array
      */
     value: function supportedCoinTypes() {
       return _D2.default.supportedCoinTypes();
@@ -47821,6 +47823,8 @@ var EsWallet = function () {
 
     /**
      * Get supported legal currency types.
+     *
+     * @returns String array
      */
 
   }, {
@@ -47828,6 +47832,13 @@ var EsWallet = function () {
     value: function suppertedLegals() {
       return _D2.default.suppertedLegals();
     }
+
+    /**
+     * Will init fields and listen device plugin.
+     *
+     * @returns {EsWallet|*}
+     */
+
   }]);
 
   function EsWallet() {
@@ -47999,7 +48010,7 @@ var EsWallet = function () {
   }
 
   /**
-   * use wallet in offline mode, do not have to connect the key and network
+   * Use wallet in offline mode, do not have to connect the key and network
    */
 
 
@@ -48042,6 +48053,14 @@ var EsWallet = function () {
 
       return enterOfflineMode;
     }()
+
+    /**
+     * Init device and data. Invoke inside when detect device plugin or called enterOfflineMode().
+     *
+     * @returns {Promise<{walletId: String}|*>}
+     * @private
+     */
+
   }, {
     key: '_init',
     value: function () {
@@ -48135,6 +48154,13 @@ var EsWallet = function () {
 
       return _init;
     }()
+
+    /**
+     * Synchronize data from device and network. Invoke inside when detect device plugin or called enterOfflineMode().
+     *
+     * @private
+     */
+
   }, {
     key: '_sync',
     value: function () {
@@ -48353,6 +48379,15 @@ var EsWallet = function () {
 
       return _sync;
     }()
+
+    /**
+     * Recover accounts for specific coinType. Invoke inside when detect device plugin or called enterOfflineMode()
+     * and found no accounts for this coinType.
+     *
+     * @param coinType
+     * @private
+     */
+
   }, {
     key: '_recover',
     value: function () {
@@ -48485,22 +48520,79 @@ var EsWallet = function () {
 
       return _recover;
     }()
-  }, {
-    key: '_release',
-    value: function _release() {
-      this._esAccounts = [];
-      return this._coinData.release();
-    }
 
     /**
-     * Clear all data. Used for unrecoverable error. Need resync after reset.
+     * Clear accounts and coinData status in memory. Invoke inside when detect device plugout.
+     *
+     * @private
+     */
+
+  }, {
+    key: '_release',
+    value: function () {
+      var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6() {
+        return regeneratorRuntime.wrap(function _callee6$(_context8) {
+          while (1) {
+            switch (_context8.prev = _context8.next) {
+              case 0:
+                this._esAccounts = [];
+                _context8.next = 3;
+                return this._coinData.release();
+
+              case 3:
+              case 'end':
+                return _context8.stop();
+            }
+          }
+        }, _callee6, this);
+      }));
+
+      function _release() {
+        return _ref6.apply(this, arguments);
+      }
+
+      return _release;
+    }()
+
+    /**
+     * Clear all data in database. Used for unrecoverable error. Need resync after reset.
+     *
+     * @private
      */
 
   }, {
     key: 'reset',
-    value: function reset() {
-      return this._coinData.clearData();
-    }
+    value: function () {
+      var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7() {
+        return regeneratorRuntime.wrap(function _callee7$(_context9) {
+          while (1) {
+            switch (_context9.prev = _context9.next) {
+              case 0:
+                _context9.next = 2;
+                return this._coinData.clearData();
+
+              case 2:
+              case 'end':
+                return _context9.stop();
+            }
+          }
+        }, _callee7, this);
+      }));
+
+      function reset() {
+        return _ref7.apply(this, arguments);
+      }
+
+      return reset;
+    }()
+
+    /**
+     * Listen wallet status.
+     *
+     * @param callback Function (errorCode, status) for listen wallet status.
+     * @see D.status
+     */
+
   }, {
     key: 'listenStatus',
     value: function listenStatus(callback) {
@@ -48550,7 +48642,9 @@ var EsWallet = function () {
     }
 
     /**
-     * callback when new transaction detect or old transaction status update
+     * Callback when new transaction detect or old transaction status update
+     *
+     * @param callback Function(errorCode, txInfo)
      */
 
   }, {
@@ -48560,23 +48654,23 @@ var EsWallet = function () {
     }
 
     /**
-     * get accounts in database matches the filter
+     * Get accounts in database that matches the filter.
      *
      * @param filter (optional)
      * {
      *   accountId: string
      * }
-     * @returns {Promise<*>}
+     * @returns {Promise<IAccount array>}
      */
 
   }, {
     key: 'getAccounts',
     value: function () {
-      var _ref6 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee6(filter) {
+      var _ref8 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8(filter) {
         var order;
-        return regeneratorRuntime.wrap(function _callee6$(_context8) {
+        return regeneratorRuntime.wrap(function _callee8$(_context10) {
           while (1) {
-            switch (_context8.prev = _context8.next) {
+            switch (_context10.prev = _context10.next) {
               case 0:
                 order = {};
 
@@ -48585,96 +48679,112 @@ var EsWallet = function () {
                 order[_D2.default.coin.test.btcTestNet3] = 100;
                 order[_D2.default.coin.test.ethRinkeby] = 101;
                 order[_D2.default.coin.test.ethRopsten] = 102;
-                return _context8.abrupt('return', this._esAccounts.sort(function (a, b) {
+                return _context10.abrupt('return', this._esAccounts.sort(function (a, b) {
                   return order[a.coinType] - order[b.coinType];
                 }));
 
               case 7:
               case 'end':
-                return _context8.stop();
+                return _context10.stop();
             }
           }
-        }, _callee6, this);
+        }, _callee8, this);
       }));
 
       function getAccounts(_x4) {
-        return _ref6.apply(this, arguments);
+        return _ref8.apply(this, arguments);
       }
 
       return getAccounts;
     }()
+
+    /**
+     * New an account for specific coinType. Throw exception if not in availableNewAccountCoinTypes() list.
+     *
+     * @param coinType
+     * @returns {Promise<IAccount>}
+     */
+
   }, {
     key: 'newAccount',
     value: function () {
-      var _ref7 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee7(coinType) {
+      var _ref9 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee9(coinType) {
         var account, esAccount;
-        return regeneratorRuntime.wrap(function _callee7$(_context9) {
+        return regeneratorRuntime.wrap(function _callee9$(_context11) {
           while (1) {
-            switch (_context9.prev = _context9.next) {
+            switch (_context11.prev = _context11.next) {
               case 0:
-                _context9.next = 2;
+                _context11.next = 2;
                 return this._coinData.newAccount(coinType);
 
               case 2:
-                account = _context9.sent;
+                account = _context11.sent;
                 esAccount = _D2.default.isBtc(coinType) ? new _BtcAccount2.default(account, this._device, this._coinData) : new _EthAccount2.default(account, this._device, this._coinData);
-                _context9.next = 6;
+                _context11.next = 6;
                 return esAccount.init();
 
               case 6:
-                _context9.next = 8;
+                _context11.next = 8;
                 return esAccount.sync();
 
               case 8:
                 this._esAccounts.push(esAccount);
-                return _context9.abrupt('return', esAccount);
+                return _context11.abrupt('return', esAccount);
 
               case 10:
               case 'end':
-                return _context9.stop();
+                return _context11.stop();
             }
           }
-        }, _callee7, this);
+        }, _callee9, this);
       }));
 
       function newAccount(_x5) {
-        return _ref7.apply(this, arguments);
+        return _ref9.apply(this, arguments);
       }
 
       return newAccount;
     }()
+
+    /**
+     * Returns coinTypes that match BIP44 account discovery limit to generate a new account
+     * which needs last account has at least one transactions.
+     *
+     * @returns {Promise<Array>}
+     */
+
   }, {
     key: 'availableNewAccountCoinTypes',
     value: function () {
-      var _ref8 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee8() {
+      var _ref10 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee10() {
         var availables, _iteratorNormalCompletion3, _didIteratorError3, _iteratorError3, _iterator3, _step3, coinType;
 
-        return regeneratorRuntime.wrap(function _callee8$(_context10) {
+        return regeneratorRuntime.wrap(function _callee10$(_context12) {
           while (1) {
-            switch (_context10.prev = _context10.next) {
+            switch (_context12.prev = _context12.next) {
               case 0:
                 availables = [];
                 _iteratorNormalCompletion3 = true;
                 _didIteratorError3 = false;
                 _iteratorError3 = undefined;
-                _context10.prev = 4;
+                _context12.prev = 4;
                 _iterator3 = _D2.default.supportedCoinTypes()[Symbol.iterator]();
 
               case 6:
                 if (_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done) {
-                  _context10.next = 16;
+                  _context12.next = 16;
                   break;
                 }
 
                 coinType = _step3.value;
-                _context10.next = 10;
+                _context12.next = 10;
                 return this._coinData._newAccountIndex(coinType);
 
               case 10:
-                _context10.t0 = _context10.sent;
+                _context12.t0 = _context12.sent;
 
-                if (!(_context10.t0 >= 0)) {
-                  _context10.next = 13;
+                if (!(_context12.t0 >= 0)) {
+                  _context12.next = 13;
                   break;
                 }
 
@@ -48682,65 +48792,79 @@ var EsWallet = function () {
 
               case 13:
                 _iteratorNormalCompletion3 = true;
-                _context10.next = 6;
+                _context12.next = 6;
                 break;
 
               case 16:
-                _context10.next = 22;
+                _context12.next = 22;
                 break;
 
               case 18:
-                _context10.prev = 18;
-                _context10.t1 = _context10['catch'](4);
+                _context12.prev = 18;
+                _context12.t1 = _context12['catch'](4);
                 _didIteratorError3 = true;
-                _iteratorError3 = _context10.t1;
+                _iteratorError3 = _context12.t1;
 
               case 22:
-                _context10.prev = 22;
-                _context10.prev = 23;
+                _context12.prev = 22;
+                _context12.prev = 23;
 
                 if (!_iteratorNormalCompletion3 && _iterator3.return) {
                   _iterator3.return();
                 }
 
               case 25:
-                _context10.prev = 25;
+                _context12.prev = 25;
 
                 if (!_didIteratorError3) {
-                  _context10.next = 28;
+                  _context12.next = 28;
                   break;
                 }
 
                 throw _iteratorError3;
 
               case 28:
-                return _context10.finish(25);
+                return _context12.finish(25);
 
               case 29:
-                return _context10.finish(22);
+                return _context12.finish(22);
 
               case 30:
-                return _context10.abrupt('return', availables);
+                return _context12.abrupt('return', availables);
 
               case 31:
               case 'end':
-                return _context10.stop();
+                return _context12.stop();
             }
           }
-        }, _callee8, this, [[4, 18, 22, 30], [23,, 25, 29]]);
+        }, _callee10, this, [[4, 18, 22, 30], [23,, 25, 29]]);
       }));
 
       function availableNewAccountCoinTypes() {
-        return _ref8.apply(this, arguments);
+        return _ref10.apply(this, arguments);
       }
 
       return availableNewAccountCoinTypes;
     }()
+
+    /**
+     * Returns wellet version info.
+     *
+     * @returns {Promise<Object>}
+     */
+
   }, {
     key: 'getWalletInfo',
     value: function getWalletInfo() {
       return this._device.getWalletInfo();
     }
+
+    /**
+     * Returns network providers info that using in this SDK. Thanks for their helps.
+     *
+     * @returns {Promise<Object>}
+     */
+
   }, {
     key: 'getProviders',
     value: function getProviders() {
@@ -48748,7 +48872,18 @@ var EsWallet = function () {
     }
 
     /**
-     * convert coin value
+     *
+     * Convert value between coin value and legal currency value. The data comes from the Internet
+     * and refresh every 30 mins (2018/11/2) in background.
+     * Throw error when fromUint and toUint are both legals or coins (2018/11/2).
+     *
+     * @param coinType
+     * @param value
+     * @param fromUnit unit defined in D.unit
+     * @param toUnit unit defined in D.unit
+     * @returns string Decimal string value
+     *
+     * @see D.unit
      */
 
   }, {
@@ -48756,11 +48891,25 @@ var EsWallet = function () {
     value: function convertValue(coinType, value, fromUnit, toUnit) {
       return this._coinData.convertValue(coinType, value, fromUnit, toUnit);
     }
+
+    /**
+     * Get the wallet seed for JavaScript wallet. No security guaranteed.
+     *
+     * @returns {Promise<String>}
+     */
+
   }, {
     key: 'getTestSeed',
     value: function getTestSeed() {
       return new _Settings2.default().getTestSeed();
     }
+
+    /**
+     * Set the wallet seed for JavaScript wallet. No security guaranteed.
+     *
+     * @param testSeed
+     */
+
   }, {
     key: 'setTestSeed',
     value: function setTestSeed(testSeed) {
@@ -48855,7 +49004,7 @@ var _Provider = __webpack_require__(/*! ./Provider */ "./src/sdk/Provider.js");
 
 var _Provider2 = _interopRequireDefault(_Provider);
 
-var _D = __webpack_require__(!(function webpackMissingModule() { var e = new Error("Cannot find module 'esecubit-wallet-sdk/src/sdk/D'"); e.code = 'MODULE_NOT_FOUND'; throw e; }()));
+var _D = __webpack_require__(/*! ./D */ "./src/sdk/D.js");
 
 var _D2 = _interopRequireDefault(_D);
 
@@ -50120,7 +50269,7 @@ var BtcAccount = function (_IAccount) {
                 }
 
                 _context9.next = 4;
-                return this._coinData.sendTx(this._toAccountInfo(), signedTx.hex);
+                return this._coinData.sendTx(this.coinType, signedTx.hex);
 
               case 4:
                 if (!signedTx.oldTxInfo) {
@@ -51046,7 +51195,7 @@ var EthAccount = function (_IAccount) {
                 }
 
                 _context7.next = 4;
-                return this._coinData.sendTx(this._toAccountInfo(), signedTx.hex);
+                return this._coinData.sendTx(this.coinType, signedTx.hex);
 
               case 4:
                 _context7.next = 6;
@@ -51233,6 +51382,14 @@ var IAccount = function () {
       });
       return info;
     }
+
+    /**
+     * Get account info from parameter.
+     *
+     * @param info Contains account, coinType, publicKeyIndex etc. more details see IndexedDB#account.
+     * @private
+     */
+
   }, {
     key: '_fromAccountInfo',
     value: function _fromAccountInfo(info) {
@@ -52298,7 +52455,7 @@ var CoinData = function () {
     }
 
     /**
-     * Get network API providers. Thanks for their helps.
+     * Get network API providers.
      */
 
   }, {
@@ -52780,13 +52937,13 @@ var CoinData = function () {
   }, {
     key: 'sendTx',
     value: function () {
-      var _ref20 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee16(account, rawTx) {
+      var _ref20 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee16(coinType, rawTx) {
         return regeneratorRuntime.wrap(function _callee16$(_context16) {
           while (1) {
             switch (_context16.prev = _context16.next) {
               case 0:
                 _context16.next = 2;
-                return this._network[account.coinType].sendTx(rawTx);
+                return this._network[coinType].sendTx(rawTx);
 
               case 2:
               case 'end':
@@ -52802,35 +52959,18 @@ var CoinData = function () {
 
       return sendTx;
     }()
+
+    /**
+     * Expose blockchain API to IAccount for specific API.
+     * @param coinType
+     * @returns ICoinNetwork
+     */
+
   }, {
-    key: 'getEosBlockInfo',
-    value: function () {
-      var _ref21 = _asyncToGenerator( /*#__PURE__*/regeneratorRuntime.mark(function _callee17(coinType) {
-        return regeneratorRuntime.wrap(function _callee17$(_context17) {
-          while (1) {
-            switch (_context17.prev = _context17.next) {
-              case 0:
-                // TODO complete
-                console.warn('implement CoinData.getEosBlockInfo()!');
-                // main
-                // return {ref_block_num: 56170, ref_block_prefix: 3374189397}
-                // jungle
-                return _context17.abrupt('return', { ref_block_num: 713, ref_block_prefix: 3472406222 });
-
-              case 2:
-              case 'end':
-                return _context17.stop();
-            }
-          }
-        }, _callee17, this);
-      }));
-
-      function getEosBlockInfo(_x26) {
-        return _ref21.apply(this, arguments);
-      }
-
-      return getEosBlockInfo;
-    }()
+    key: 'getProvider',
+    value: function getProvider(coinType) {
+      return this._network[coinType];
+    }
   }, {
     key: 'getSuggestedFee',
     value: function getSuggestedFee(coinType) {
