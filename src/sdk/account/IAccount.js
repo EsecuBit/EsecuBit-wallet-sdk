@@ -56,6 +56,12 @@ export default class IAccount {
     return info
   }
 
+  /**
+   * Get account info from parameter.
+   *
+   * @param info Contains account, coinType, publicKeyIndex etc. more details see IndexedDB#account.
+   * @private
+   */
   _fromAccountInfo (info) {
     Object.entries(info).forEach(([key, value]) => {
       if (key.startsWith('_')) return

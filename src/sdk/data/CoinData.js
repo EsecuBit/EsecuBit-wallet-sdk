@@ -130,7 +130,7 @@ export default class CoinData {
   }
 
   /**
-   * Get network API providers. Thanks for their helps.
+   * Get network API providers.
    */
   getProviders () {
     let providers = {}
@@ -308,17 +308,17 @@ export default class CoinData {
     return this._network[coinType].removeListener(callback)
   }
 
-  async sendTx (account, rawTx) {
-    await this._network[account.coinType].sendTx(rawTx)
+  async sendTx (coinType, rawTx) {
+    await this._network[coinType].sendTx(rawTx)
   }
 
-  async getEosBlockInfo (coinType) {
-    // TODO complete
-    console.warn('implement CoinData.getEosBlockInfo()!')
-    // main
-    // return {ref_block_num: 56170, ref_block_prefix: 3374189397}
-    // jungle
-    return {ref_block_num: 713, ref_block_prefix: 3472406222}
+  /**
+   * Expose blockchain API to IAccount for specific API.
+   * @param coinType
+   * @returns ICoinNetwork
+   */
+  getProvider (coinType) {
+    return this._network[coinType]
   }
 
   getSuggestedFee (coinType) {
