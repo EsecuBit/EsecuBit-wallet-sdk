@@ -78,40 +78,44 @@ export default class EosPeer extends ICoinNetwork {
   }
 
   async queryAddress (address, offset = 0) {
-    return this.queryActions(address, offset)
+    let actions = this.queryActions(address, offset)
+
+    let txs = []
+    for (let rAction of actions) {
+      let tx = this._wrapActionToTx(rAction)
+      let oldTx = txs.find(t => t.txId === tx.txId)
+      if (oldTx) {
+        oldTx.actions.push(...tx.actions)
+      } else {
+        txs.push(tx)
+        // cache the max account_action_seq to reduce query next time
+        // it's not a good way to give account the account_action_seq, but for now we don't have a better way
+        this._maxActionSeq[address] = Math.max(this._maxActionSeq[address], rAction.account_action_seq)
+      }
+    }
+    return txs
   }
 
   async queryActions (address, offset = 0) {
     const url = this._apiUrl + 'v1/history/get_actions'
     const defaultPageSize = 100
 
-    let txs = []
+    let actions = []
     let currentOffset = offset + 1
     this._maxActionSeq[address] = offset
     while (true) {
       const args = JSON.stringify({pos: currentOffset, offset: defaultPageSize, account_name: address})
       let response = await this.post(url, args)
-
-      for (let rAction of response.actions) {
-        let tx = this._wrapActionToTx(rAction)
-        let oldTx = txs.find(t => t.txId === tx.txId)
-        if (oldTx) {
-          oldTx.actions.push(...tx.actions)
-        } else {
-          txs.push(tx)
-          // cache the max account_action_seq to reduce query next time
-          // it's not a good way to give account the account_action_seq, but for now we don't have a better way
-          this._maxActionSeq[address] = Math.max(this._maxActionSeq[address], rAction.account_action_seq)
-        }
-      }
+      actions.push(...response.actions)
       currentOffset += response.actions.length
+
       // caution: some nodes didn't return enough actions sometimes, like http://api.hkeos.com:80.
       // You may get [0, 5) even you query [0, 100), I don't known whether it's a common issue yet.
       if (response.actions.length === 0 || response.actions.length < defaultPageSize) {
         break
       }
     }
-    return txs
+    return actions
   }
 
   async getMaxActionSeq (address) {

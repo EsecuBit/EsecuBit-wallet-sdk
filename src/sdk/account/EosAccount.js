@@ -26,22 +26,55 @@ const txType = {
 }
 
 export default class EosAccount extends IAccount {
+  constructor (info, device, coinData) {
+    super(info, device, coinData)
+    this._network = this._network.getNetwork(this.coinType)
+  }
+
+  async sync (firstSync = false, offlineMode = false) {
+    if (!this.label) {
+      console.log('EosAccount not registered, check owner publickeys')
+      // TODO
+    }
+
+    let newAccountInfo = await this._network.getAccountInfo(this.label, D.copy(this.tokens))
+    this._fromAccountInfo(newAccountInfo)
+    await this._coinData.updateAccount(this._toAccountInfo())
+
+    let txs = await this._network.queryAddress(this.label, this.queryOffset)
+    for (let tx of txs) {
+      await this._handleNewTx(tx)
+    }
+  }
+
   async _handleRemovedTx (removedTxId) {
-    throw D.error.notImplemented
+    let txInfo = this.txInfos.find(txInfo => txInfo.txId === removedTxId)
+    await this._coinData.removeTx(this._toAccountInfo(), this.addressInfos, txInfo)
   }
 
   async _handleNewTx (txInfo) {
-    throw D.error.notImplemented
+    await this._coinData.newTx(this._toAccountInfo(), this.addressInfos, txInfo)
   }
 
-  async getAddress (isStoring = false) {
+  /**
+   * Returns whether this EOS account is registered.
+   */
+  isRegistered () {
+    return this.permissions && this.permissions.length > 0
+  }
+
+  async getPermissions () {
+    // TODO return all permissions or {owner, active} from device(important) if not registered
+  }
+
+  async getAddress () {
     console.warn('eos don\'t support get address')
-    throw D.error.unknown
+    throw D.error.notImplemented
   }
 
   async rename () {
     console.warn('eos don\'t support change account name')
-    throw D.error.unknown
+    throw D.error.notImplemented
   }
 
   async prepareTx (details) {
@@ -54,6 +87,7 @@ export default class EosAccount extends IAccount {
       case txType.tokenTransfer:
         return this._prepareTransfer(details)
       default:
+        console.warn('unsupported transaction type', details.type)
         throw D.error.notImplemented
     }
   }
@@ -178,6 +212,7 @@ export default class EosAccount extends IAccount {
     if (details.refBlockPrefix) {
       prepareTx.refBlockPrefix = Number(details.refBlockPrefix)
     }
+    prepareTx.comment = details.comment || ''
 
     let makeTransferAction = (from, to, value, account, token, permission, comment) => {
       return {
@@ -213,7 +248,7 @@ export default class EosAccount extends IAccount {
    */
   async buildTx (prepareTx) {
     if (!prepareTx.refBlockNum || !prepareTx.refBlockPrefix) {
-      let blockInfo = await this._coinData.getEosBlockInfo()
+      let blockInfo = await this._network.getIrreversibleBlockInfo()
       prepareTx.refBlockNum = prepareTx.refBlockNum || blockInfo.ref_block_num
       prepareTx.refBlockPrefix = prepareTx.refBlockPrefix || blockInfo.ref_block_prefix
     }
@@ -250,12 +285,15 @@ export default class EosAccount extends IAccount {
     }
     console.log('presign tx', presignTx)
     let {txId, signedTx} = await this._device.signTransaction(this.coinType, presignTx)
-
-    // TODO complete
     let txInfo = {
-      txId: txId
+      txId: txId,
+      accountId: this.accountId,
+      coinType: this.coinType,
+      blockNumber: D.tx.confirmation.pending,
+      time: new Date().getTime(),
+      comment: prepareTx.comment,
+      actions: D.copy(prepareTx.actions)
     }
-    delete signedTx.keyPaths
 
     return {signedTx, txInfo}
   }

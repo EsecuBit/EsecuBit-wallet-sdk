@@ -179,7 +179,8 @@ export default class CoinData {
       index: accountIndex,
       balance: '0',
       externalPublicKeyIndex: 0,
-      changePublicKeyIndex: 0
+      changePublicKeyIndex: 0,
+      queryOffset: 0
     }
     console.log('newAccount', account)
     return account
@@ -219,8 +220,8 @@ export default class CoinData {
     await this._db.deleteAccount(account, addressInfos)
   }
 
-  async renameAccount (account) {
-    this._db.renameAccount(account)
+  async updateAccount (account) {
+    this._db.updateAccount(account)
   }
 
   async newAddressInfos (account, addressInfos) {
@@ -256,7 +257,7 @@ export default class CoinData {
     this._listeners.forEach(listener => D.dispatch(() => listener(D.error.succeed, D.copy(txInfo))))
   }
 
-  async removeTx (account, addressInfos, txInfo, updateUtxos, removeUtxos) {
+  async removeTx (account, addressInfos, txInfo, updateUtxos = [], removeUtxos = []) {
     this._uncomfirmedTxs = this._uncomfirmedTxs.filter(t => t.txId !== txInfo.txId)
 
     console.log('removeTx', account, addressInfos, txInfo, updateUtxos, removeUtxos)
@@ -317,7 +318,7 @@ export default class CoinData {
    * @param coinType
    * @returns ICoinNetwork
    */
-  getProvider (coinType) {
+  getNetwork (coinType) {
     return this._network[coinType]
   }
 

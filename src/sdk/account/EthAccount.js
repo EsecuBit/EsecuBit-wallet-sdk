@@ -281,7 +281,7 @@ export default class EthAccount extends IAccount {
         coinType: this.coinType,
         txId: signedTx.id,
         blockNumber: -1,
-        confirmations: -1,
+        confirmations: D.tx.confirmation.pending,
         time: new Date().getTime(),
         direction: D.tx.direction.out,
         showAddresses: [output.address],

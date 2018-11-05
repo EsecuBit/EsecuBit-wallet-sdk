@@ -177,18 +177,17 @@ const FcBuffer = {
 
   data: {
     appendByteBuffer (b, value, account, name) {
-      let type = Object.values(FcBuffer.data.types).find(type => type._name === name)
-      if (!type) {
+      let actionType = D.coin.eos.getActionType(account, name)
+      if (!actionType) {
         console.warn('unsupport data type', b, value, account, name)
         throw D.error.invalidParams
       }
 
       let content = new ByteBuffer(20, true, true)
-      Object.entries(type).forEach(([key, itemType]) => {
-        if (key.startsWith('_')) return
+      Object.entries(actionType.data).forEach(([key, itemType]) => {
         let item = value[key]
         if (item === undefined) {
-          console.warn('item not found in type', b, value, key, type)
+          console.warn('item not found in action type', b, value, key, type)
           throw D.error.invalidParams
         }
         FcBuffer[itemType].appendByteBuffer(content, item)
@@ -208,7 +207,15 @@ const FcBuffer = {
         quantity: 'asset',
         memo: 'string'
       },
+      EosIoTokenIssuer: {
+        _name: 'issuer',
+        from: 'name',
+        to: 'name',
+        quantity: 'asset',
+        memo: 'string'
+      },
       EosIoDelegatebw: {
+        _account: 'eosio.stake',
         _name: 'delegatebw',
         from: 'name',
         receiver: 'name',

@@ -30,7 +30,7 @@ export default class IDatabase {
     throw D.error.notImplemented
   }
 
-  async renameAccount (account) {
+  async updateAccount (account) {
     throw D.error.notImplemented
   }
 

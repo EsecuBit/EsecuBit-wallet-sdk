@@ -46,11 +46,17 @@ export default class IAccount {
     }
   }
 
+  /**
+   * Generate account info from this object.
+   *
+   * @protected
+   */
   _toAccountInfo () {
     let info = {}
     Object.entries(this).forEach(([key, value]) => {
       if (key.startsWith('_')) return
       if (typeof value === 'function') return
+      if (typeof value === 'object') value = D.copy(value)
       info[key] = value
     })
     return info
@@ -60,12 +66,13 @@ export default class IAccount {
    * Get account info from parameter.
    *
    * @param info Contains account, coinType, publicKeyIndex etc. more details see IndexedDB#account.
-   * @private
+   * @protected
    */
   _fromAccountInfo (info) {
     Object.entries(info).forEach(([key, value]) => {
       if (key.startsWith('_')) return
       if (typeof value === 'function') return
+      if (typeof value === 'object') value = D.copy(value)
       this[key] = value
     })
   }
@@ -106,11 +113,10 @@ export default class IAccount {
 
     if (firstSync) {
       let listenAddressInfos = await this._getActiveAddressInfos()
-      for (let addressInfo of listenAddressInfos) {
-        if (!this._listenedAddresses.includes(addressInfo.address)) {
-          this._listenedAddresses.push(addressInfo.address)
-          this._coinData.listenAddresses(this.coinType, [D.copy(addressInfo)], this._addressListener)
-        }
+      listenAddressInfos = listenAddressInfos.filter(a => this._listenedAddresses.includes(a.address))
+      if (listenAddressInfos.length !== 0) {
+        this._listenedAddresses.push(...listenAddressInfos)
+        this._coinData.listenAddresses(this.coinType, D.copy(listenAddressInfos), this._addressListener)
       }
 
       this.txInfos
@@ -138,7 +144,7 @@ export default class IAccount {
     newName = newName || this.label
     let oldAccountInfo = this._toAccountInfo()
     oldAccountInfo.label = newName
-    await this._coinData.renameAccount(oldAccountInfo)
+    await this._coinData.updateAccount(oldAccountInfo)
     this.label = newName
   }
 
@@ -166,9 +172,16 @@ export default class IAccount {
     return D.address.checkAddress(this.coinType, address)
   }
 
+  // noinspection JSValidateJSDoc, JSMethodCanBeStatic
+  /**
+   * Get active addressInfos for listening while block height changed.
+   * Default won't return any addressInfos, so no address will be listened
+   *
+   * @returns {Promise<Array>}
+   * @private
+   */
   async _getActiveAddressInfos () {
-    await this._checkAddressIndexAndGenerateNew()
-    return [this.addressInfos[this.externalPublicKeyIndex]]
+    return []
   }
 
   // noinspection JSMethodCanBeStatic

@@ -159,6 +159,52 @@ const D = {
             default:
               throw D.error.coinNotSupported
           }
+        },
+
+        defaultActionType: {type: 'other'},
+
+        actionTypes: [
+          {
+            type: 'tokenTransfer',
+            name: 'transfer',
+            data: {
+              from: 'name',
+              to: 'name',
+              quantity: 'asset',
+              memo: 'string'
+            }
+          },
+          {
+            type: 'tokenIssuer',
+            name: 'issuer',
+            data: {
+              from: 'name',
+              to: 'name',
+              quantity: 'asset',
+              memo: 'string'
+            }
+          },
+          {
+            type: 'stakeDelegatebw',
+            account: 'eosio.stake',
+            name: 'delegatebw',
+            data: {
+              from: 'name',
+              receiver: 'name',
+              stake_net_quantity: 'asset',
+              stake_cpu_quantity: 'asset',
+              transfer: 'uint8'
+            }
+          },
+          {
+            type: 'other'
+          }
+        ],
+
+        getActionType (account, name) {
+          let actionType = D.coin.eos.actionTypes.find(type =>
+            type.name === name && (!type.account || type.account === account))
+          return actionType || D.coin.eos.defaultActionType
         }
       }
     }
@@ -431,8 +477,8 @@ const D = {
     },
 
     /**
-     *   -2: dropped by btcNetwork peer from memeory pool
-     *   -1: not found in btcNetwork
+     *   -2: dropped by network peer from memeory pool
+     *   -1: not found in network
      *   0: found in miner's memory pool.
      *   other: confirmations just for showing the status.
      *          won't be updated after confirmations >= D.tx.matureConfirms.coinType
