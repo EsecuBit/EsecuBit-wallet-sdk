@@ -572,6 +572,9 @@ const D = {
       GWei: 'GWei',
       Wei: 'Wei'
     },
+    eos: {
+      EOS: 'EOS'
+    },
     legal: {
       USD: 'USD',
       EUR: 'EUR',

@@ -26,4 +26,4 @@
 // import './test/EsWallet.test'
 // import './test/account/BtcAccount.test'
 // import './test/account/EthAccount.test'
-// import './test/account/EosAccount.test'
+import './test/account/EosAccount.test'

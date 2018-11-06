@@ -8,12 +8,20 @@ UNITS[D.coin.main.btc] = D.unit.btc.BTC
 UNITS[D.coin.test.btcTestNet3] = D.unit.btc.BTC
 UNITS[D.coin.main.eth] = D.unit.eth.Ether
 UNITS[D.coin.test.ethRinkeby] = D.unit.eth.Ether
+UNITS[D.coin.main.eos] = D.unit.eos.EOS
+UNITS[D.coin.test.eosJungle] = D.unit.eos.EOS
+UNITS[D.coin.test.eosKylin] = D.unit.eos.EOS
+UNITS[D.coin.test.eosSys] = D.unit.eos.EOS
 
 const REQUEST_COINS = {}
 REQUEST_COINS[D.coin.main.btc] = 'BTC'
 REQUEST_COINS[D.coin.test.btcTestNet3] = 'BTC'
 REQUEST_COINS[D.coin.main.eth] = 'ETH'
 REQUEST_COINS[D.coin.test.ethRinkeby] = 'ETH'
+REQUEST_COINS[D.coin.main.eos] = 'EOS'
+REQUEST_COINS[D.coin.test.eosJungle] = 'EOS'
+REQUEST_COINS[D.coin.test.eosKylin] = 'EOS'
+REQUEST_COINS[D.coin.test.eosSys] = 'EOS'
 
 export default class ExchangeCryptoCompareCom {
   constructor (exchange) {
@@ -87,13 +95,13 @@ export default class ExchangeCryptoCompareCom {
     }
 
     /**
-     * response
-     *{
-     * "USD": float,
-     * "JPY": float,
-     * "EUR": float,
-     * "CNY": float,
-     *}
+     * response:
+     * {
+     *   "USD": float,
+     *   "JPY": float,
+     *   "EUR": float,
+     *   "CNY": float
+     * }
      */
     let response = await get(url)
     let exchange = D.copy(this.exchange)

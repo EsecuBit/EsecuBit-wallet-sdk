@@ -95,7 +95,7 @@ export default class ICoinNetwork {
     })
   }
 
-  post (url, args) {
+  post (url, args = '') {
     console.debug('post', url, args)
     return new Promise((resolve, reject) => {
       const xmlhttp = new XMLHttpRequest()

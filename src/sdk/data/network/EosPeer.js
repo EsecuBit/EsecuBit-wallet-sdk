@@ -78,7 +78,7 @@ export default class EosPeer extends ICoinNetwork {
   }
 
   async queryAddress (address, offset = 0) {
-    let actions = this.queryActions(address, offset)
+    let actions = await this.queryActions(address, offset)
 
     let txs = []
     for (let rAction of actions) {
@@ -191,6 +191,10 @@ export default class EosPeer extends ICoinNetwork {
   }
 
   async getAccountInfo (accountName, tokens) {
+    if (!accountName || !tokens) {
+      console.warn('EosPeer getAccountInfo invalid params', accountName, tokens)
+      throw D.error.invalidParams
+    }
     let url = this._apiUrl + 'v1/chain/get_account'
     let args = JSON.stringify({account_name: accountName})
     let ret = await this.post(url, args)
@@ -260,6 +264,7 @@ export default class EosPeer extends ICoinNetwork {
   async getAccountByPubKey (publicKey) {
     let args = JSON.stringify({public_key: publicKey})
     let url = this._apiUrl + 'v1/history/get_key_accounts'
-    return this.post(url, args)
+    let response = await this.post(url, args)
+    return response.account_names
   }
 }

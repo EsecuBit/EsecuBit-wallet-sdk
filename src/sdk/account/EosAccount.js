@@ -46,8 +46,8 @@ export default class EosAccount extends IAccount {
       console.log('EosAccount not registered, check owner publickey')
 
       // slip-0048 recovery
-      let accountName = null
-      for (let i = 0; i < maxIndexThreshold; i++) {
+      let i = 0
+      for (; i < maxIndexThreshold; i++) {
         let path = D.address.path.makeSlip48Path(this.coinType, 0, this.index, i)
         let ownerInfo = this.addressInfos.find(a => a.path === path)
         if (!ownerInfo) {
@@ -56,27 +56,35 @@ export default class EosAccount extends IAccount {
         }
         let accounts = await this._network.getAccountByPubKey(ownerInfo.publicKey)
         if (!accounts || accounts.length === 0) {
+          console.info('EosAccount specific path not registered', ownerInfo)
+        } else {
+          // choose the first account if this key matches multi accounts
+          // set the label as account name
+          this.label = accounts[0]
+          break
         }
-        console.info('EosAccount specific path not registered', ownerInfo)
         // slow down the request speed
         await D.wait(200)
       }
-      if (!accountName) {
+      if (i === maxIndexThreshold) {
         console.warn('this EosAccount has not been registered, exit')
         return
       }
-      // choose the first account if this key matches multi accounts
-      // set the label as account name
-      this.label = this.account[0]
     }
 
-    let newAccountInfo = await this._network.getAccountInfo(this.label, D.copy(this.tokens))
+    this.tokens = this.tokens || {'EOS': {code: 'eosio.token', symbol: 'EOS'}}
+    console.warn('1', this.label, D.copy(this.tokens))
+    let newAccountInfo = await this._network.getAccountInfo(this.label, this.tokens)
+    console.warn('2', newAccountInfo)
     await this._updatePermissions(newAccountInfo.permissions)
+    console.warn('3', newAccountInfo)
     delete newAccountInfo.permissions
     this._fromAccountInfo(newAccountInfo)
     await this._coinData.updateAccount(this._toAccountInfo())
+    console.warn('4', this._toAccountInfo())
 
     let txs = await this._network.queryAddress(this.label, this.queryOffset)
+    console.warn('5', txs)
     for (let tx of txs) {
       await this._handleNewTx(tx)
     }
@@ -86,19 +94,21 @@ export default class EosAccount extends IAccount {
     let updatedAddressInfos = []
     let needCheck = true
     while (needCheck) {
-      for (let permission of permissions) {
+      for (let permission of Object.values(permissions)) {
         for (let pKey of permission.pKeys) {
           let relativeInfo = this.addressInfos.find(a => pKey.publicKey === a.publicKey)
           if (!relativeInfo) {
             console.warn('publicKey not found in class', pKey)
             continue
           }
-          if (!relativeInfo.registered ||
+          if (!relativeInfo.address ||
+            !relativeInfo.registered ||
             relativeInfo.type !== permission.name ||
             relativeInfo.parent !== permission.parent ||
             relativeInfo.threshold !== permission.threshold ||
             relativeInfo.weight !== pKey.weight) {
             console.log('update permission info', relativeInfo, pKey)
+            relativeInfo.address = this.label
             relativeInfo.registered = true
             relativeInfo.type = permission.name
             relativeInfo.parent = permission.parent
@@ -120,7 +130,7 @@ export default class EosAccount extends IAccount {
         registered: a.registered,
         path: a.path,
         index: a.index,
-        pathIndexes: D.path.parseString(a.path)
+        pathIndexes: D.address.path.parseString(a.path)
       }
     })
     let maxRegisteredPermissionIndex = permissionPaths
@@ -141,7 +151,8 @@ export default class EosAccount extends IAccount {
       for (let j = startKeyIndex; j < startKeyIndex + maxIndexThreshold; j++) {
         let path = D.address.path.makeSlip48Path(this.coinType, pIndex, this.index, j)
         if (!filteredPermissionPaths.some(p => p.path === path)) {
-          console.debug('generate public key with path', path)
+          let publicKey = await this._device.getPublicKey(this.coinType, path)
+          console.debug('generate public key with path', path, publicKey)
           // generate a permissionInfo no matter it use or not for recovery
           newAddressInfos.push({
             address: '',
@@ -151,7 +162,7 @@ export default class EosAccount extends IAccount {
             type: '',
             index: j,
             registered: false,
-            publicKey: await this._device.getPublicKey(this.coinType, path),
+            publicKey: publicKey,
             parent: ''
           })
         }

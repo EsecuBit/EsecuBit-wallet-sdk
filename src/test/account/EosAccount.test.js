@@ -5,11 +5,12 @@ import EosAccount from '../../sdk/account/EosAccount'
 import CoinData from '../../sdk/data/CoinData'
 import D from '../../sdk/D'
 import JsTransmitter from '../../sdk/device/implements/transmit/JsTransmitter'
+import Settings from '../../sdk/Settings'
 
 chai.should()
 
 // describe('EosAccount sign only', function () {
-//   this.timeout(10 * 1000)
+//   this.timeout(60 * 1000)
 //   let account
 //   let jsWallet
 //   let coinData
@@ -106,12 +107,14 @@ chai.should()
 // })
 
 describe('EosAccount sync and sign', function () {
-  this.timeout(10 * 1000)
+  this.timeout(60 * 1000)
   let account
   let jsWallet
   let coinData
 
   before(async function () {
+    await new Settings().setTestSeed('dd416ff6a277596f8ef5cbbf92f870f2138dd67e18c673cd5fc2a3eca48b7da2')
+
     jsWallet = new JsWallet(new JsTransmitter())
     coinData = new CoinData()
     let walletInfo = await jsWallet.init()
