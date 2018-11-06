@@ -17,15 +17,24 @@ REQUEST_COINS[D.coin.test.ethRinkeby] = 'ETH'
 
 export default class ExchangeCryptoCompareCom {
   constructor (exchange) {
+    if (!exchange) {
+      console.warn('ExchangeCryptoCompareCom invalid parameters', exchange)
+      throw D.error.invalidParams
+    }
     this.provider = 'cryptocompare.com'
     switch (exchange.coinType) {
       case D.coin.main.btc:
       case D.coin.test.btcTestNet3:
       case D.coin.main.eth:
       case D.coin.test.ethRinkeby:
+      case D.coin.main.eos:
+      case D.coin.test.eosJungle:
+      case D.coin.test.eosSys:
+      case D.coin.test.eosKylin:
         this.coinType = exchange.coinType
         break
       default:
+        console.warn('ExchangeCryptoCompareCom don\'t support this coinType', exchange.coinType)
         throw D.error.coinNotSupported
     }
 

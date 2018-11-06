@@ -72,12 +72,12 @@ export default class S300Wallet {
       try {
         let addressBuffer = D.address.toBuffer(address)
         addressBuffer = Buffer.concat([Buffer.from('6F', 'hex'), addressBuffer])
-        address = D.address.toString(addressBuffer)
+        address = D.address.toString(coinType, addressBuffer)
       } catch (e) {
         // TODO remove, S300 bug: return address with constant length 34.
         let addressBuffer = D.address.toBuffer(address.slice(0, address.length - 1))
         addressBuffer = Buffer.concat([Buffer.from('6F', 'hex'), addressBuffer])
-        address = D.address.toString(addressBuffer)
+        address = D.address.toString(coinType, addressBuffer)
       }
     }
     return address
@@ -282,11 +282,7 @@ export default class S300Wallet {
     }
 
     let signEth = async (tx) => {
-      const chainIds = {}
-      chainIds[D.coin.main.eth] = 1
-      chainIds[D.coin.test.ethRinkeby] = 4
-      let chainId = chainIds[coinType]
-      if (!chainId) throw D.error.coinNotSupported
+      let chainId = D.coin.eth.getChainId(coinType)
 
       // rlp
       let unsignedTx = [tx.nonce, tx.gasPrice, tx.gasLimit, tx.output.address, tx.output.value, tx.data, chainId, 0, 0]
@@ -308,6 +304,7 @@ export default class S300Wallet {
     } else if (D.isEth(coinType)) {
       return signEth(tx)
     } else {
+      console.warn('S300Wallet don\'t support this coinType', coinType)
       throw D.error.coinNotSupported
     }
   }

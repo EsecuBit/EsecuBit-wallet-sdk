@@ -46,6 +46,10 @@ export default class IDatabase {
     throw D.error.notImplemented
   }
 
+  async updateAddressInfos (addressInfos) {
+    throw D.error.notImplemented
+  }
+
   async getAddressInfos (filter) {
     throw D.error.notImplemented
   }

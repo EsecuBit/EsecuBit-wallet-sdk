@@ -25,19 +25,54 @@ const txType = {
   tokenTransfer: 'tokenTransfer'
 }
 
+const maxIndexThreshold = 5
+
 export default class EosAccount extends IAccount {
   constructor (info, device, coinData) {
     super(info, device, coinData)
-    this._network = this._network.getNetwork(this.coinType)
+    this._network = this._coinData.getNetwork(this.coinType)
+    if (!this._network) {
+      console.warn('EosAccount CoinData not support this network', this.coinType)
+      throw D.error.invalidParams
+    }
   }
 
   async sync (firstSync = false, offlineMode = false) {
-    if (!this.label) {
-      console.log('EosAccount not registered, check owner publickeys')
-      // TODO
+    if (!offlineMode) {
+      await this._checkPermissionAndGenerateNew()
+    }
+
+    if (!this.isRegistered()) {
+      console.log('EosAccount not registered, check owner publickey')
+
+      // slip-0048 recovery
+      let accountName = null
+      for (let i = 0; i < maxIndexThreshold; i++) {
+        let path = D.address.path.makeSlip48Path(this.coinType, 0, this.index, i)
+        let ownerInfo = this.addressInfos.find(a => a.path === path)
+        if (!ownerInfo) {
+          console.warn('account have no permission info in storage, most likely it is in offlineMode, exit')
+          return
+        }
+        let accounts = await this._network.getAccountByPubKey(ownerInfo.publicKey)
+        if (!accounts || accounts.length === 0) {
+        }
+        console.info('EosAccount specific path not registered', ownerInfo)
+        // slow down the request speed
+        await D.wait(200)
+      }
+      if (!accountName) {
+        console.warn('this EosAccount has not been registered, exit')
+        return
+      }
+      // choose the first account if this key matches multi accounts
+      // set the label as account name
+      this.label = this.account[0]
     }
 
     let newAccountInfo = await this._network.getAccountInfo(this.label, D.copy(this.tokens))
+    await this._updatePermissions(newAccountInfo.permissions)
+    delete newAccountInfo.permissions
     this._fromAccountInfo(newAccountInfo)
     await this._coinData.updateAccount(this._toAccountInfo())
 
@@ -45,6 +80,87 @@ export default class EosAccount extends IAccount {
     for (let tx of txs) {
       await this._handleNewTx(tx)
     }
+  }
+
+  async _updatePermissions (permissions) {
+    let updatedAddressInfos = []
+    let needCheck = true
+    while (needCheck) {
+      for (let permission of permissions) {
+        for (let pKey of permission.pKeys) {
+          let relativeInfo = this.addressInfos.find(a => pKey.publicKey === a.publicKey)
+          if (!relativeInfo) {
+            console.warn('publicKey not found in class', pKey)
+            continue
+          }
+          if (!relativeInfo.registered ||
+            relativeInfo.type !== permission.name ||
+            relativeInfo.parent !== permission.parent ||
+            relativeInfo.threshold !== permission.threshold ||
+            relativeInfo.weight !== pKey.weight) {
+            console.log('update permission info', relativeInfo, pKey)
+            relativeInfo.registered = true
+            relativeInfo.type = permission.name
+            relativeInfo.parent = permission.parent
+            relativeInfo.threshold = permission.threshold
+            relativeInfo.weight = pKey.weight
+            updatedAddressInfos.push(relativeInfo)
+          }
+        }
+      }
+      needCheck = (await this._checkPermissionAndGenerateNew()).length > 0
+    }
+    await this._coinData.updateAddressInfos(updatedAddressInfos)
+  }
+
+  async _checkPermissionAndGenerateNew () {
+    // see slip-0048 recovery
+    let permissionPaths = this.addressInfos.map(a => {
+      return {
+        registered: a.registered,
+        path: a.path,
+        index: a.index,
+        pathIndexes: D.path.parseString(a.path)
+      }
+    })
+    let maxRegisteredPermissionIndex = permissionPaths
+      .filter(path => path.registered)
+      .reduce((max, path) => Math.max(max, path[2]), 0x80000000 - 1)
+    maxRegisteredPermissionIndex -= 0x80000000
+
+    let startPermissionIndex = maxRegisteredPermissionIndex + 1
+    let newAddressInfos = [] // permission info
+    for (let pIndex = startPermissionIndex; pIndex < startPermissionIndex + maxIndexThreshold; pIndex++) {
+      let subPath = D.address.path.makeSlip48Path(this.coinType, pIndex, this.index)
+      // path that has the same coinType(sure), permission, accountIndex(sure)
+      let filteredPermissionPaths = permissionPaths.filter(path =>
+        subPath === D.address.path.makeSlip48Path(path.pathIndexes[0], path.pathIndexes[1], path.pathIndexes[2]))
+      let maxKeyIndex = filteredPermissionPaths.reduce((max, path) => Math.max(max, path.index), -1)
+
+      let startKeyIndex = maxKeyIndex + 1
+      for (let j = startKeyIndex; j < startKeyIndex + maxIndexThreshold; j++) {
+        let path = D.address.path.makeSlip48Path(this.coinType, pIndex, this.index, j)
+        if (!filteredPermissionPaths.some(p => p.path === path)) {
+          console.debug('generate public key with path', path)
+          // generate a permissionInfo no matter it use or not for recovery
+          newAddressInfos.push({
+            address: '',
+            accountId: this.accountId,
+            coinType: this.coinType,
+            path: path,
+            type: '',
+            index: j,
+            registered: false,
+            publicKey: await this._device.getPublicKey(this.coinType, path),
+            parent: ''
+          })
+        }
+      }
+    }
+
+    await this._coinData.newAddressInfos(this._toAccountInfo(), newAddressInfos)
+    this.addressInfos.push(...newAddressInfos)
+    return newAddressInfos
   }
 
   async _handleRemovedTx (removedTxId) {
@@ -63,8 +179,40 @@ export default class EosAccount extends IAccount {
     return this.permissions && this.permissions.length > 0
   }
 
+  /**
+   * Return all permissions or {owner, active} from device(important) if not registered
+   * @returns {Promise<*>}
+   */
   async getPermissions () {
-    // TODO return all permissions or {owner, active} from device(important) if not registered
+    if (this.permissions) {
+      let permissions = D.copy(this.permissions)
+      permissions.registered = true
+      return permissions
+    }
+
+    return {
+      registered: false,
+      'owner': {
+        name: 'owner',
+        parent: '',
+        threshold: 1,
+        keys: [{
+          publicKey: this._device.getPublicKey(this.coinType, "m/48'/4'/0'/0'/0'"), // slip-0048
+          weight: 1,
+          path: "m/48'/4'/0'/0'/0'"
+        }]
+      },
+      'active': {
+        name: 'active',
+        parent: 'owner',
+        threshold: 1,
+        keys: [{
+          publicKey: this._device.getPublicKey(this.coinType, "m/48'/4'/1'/0'/0'"), // slip-0048
+          weight: 1,
+          path: "m/48'/4'/1'/0'/0'"
+        }]
+      }
+    }
   }
 
   async getAddress () {

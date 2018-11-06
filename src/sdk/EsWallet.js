@@ -209,6 +209,7 @@ export default class EsWallet {
       } else if (D.isEth(coinType)) {
         esAccount = new EthAccount(account, this._device, this._coinData)
       } else {
+        console.warn('EsWallet don\'t support this coinType', coinType)
         throw D.error.coinNotSupported
       }
       this._esAccounts.push(esAccount)

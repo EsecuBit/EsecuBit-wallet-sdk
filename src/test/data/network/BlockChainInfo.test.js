@@ -1,12 +1,12 @@
 
 import chai from 'chai'
 import D from '../../../sdk/D'
-import BlockchainInfo from '../../../sdk/data/network/BlockChainInfo'
+import BlockChainInfo from '../../../sdk/data/network/BlockChainInfo'
 
 chai.should()
 describe('Network BlockChainInfo Bitcoin', function () {
   this.timeout(3000)
-  const blockchainInfo = new BlockchainInfo(D.coin.test.btcTestNet3)
+  const blockchainInfo = new BlockChainInfo(D.coin.test.btcTestNet3)
 
   it('init btcNetwork', async () => {
     await blockchainInfo.init()

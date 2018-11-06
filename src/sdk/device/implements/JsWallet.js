@@ -23,6 +23,10 @@ export default class JsWallet {
    *                  other: regard as transmitter. Will call getSeed() in init()
    */
   constructor (initParam) {
+    if (!initParam) {
+      console.warn('JsWallet need initParam in constructor', initParam)
+      throw D.error.invalidParams
+    }
     if (typeof initParam === 'string') {
       this._seed = initParam
     } else if (initParam) {

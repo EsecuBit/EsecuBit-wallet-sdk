@@ -2,6 +2,7 @@
 import D from '../D'
 import BlockChainInfo from './network/BlockChainInfo'
 import FeeBitCoinEarn from './network/fee/FeeBitCoinEarn'
+import EosPeer from './network/EosPeer'
 import ExchangeCryptoCompareCom from './network/exchange/ExchangeCryptoCompareCom'
 import EthGasStationInfo from './network/fee/EthGasStationInfo'
 import EtherScanIo from './network/EtherScanIo'
@@ -23,6 +24,8 @@ export default class CoinData {
         obj[coinType] = new BlockChainInfo(coinType)
       } else if (D.isEth(coinType)) {
         obj[coinType] = new EtherScanIo(coinType)
+      } else if (D.isEos(coinType)) {
+        obj[coinType] = new EosPeer(coinType)
       }
       return obj
     }, {})
@@ -33,6 +36,11 @@ export default class CoinData {
   }
 
   async init (info) {
+    if (!info || !info.walletId) {
+      console.warn('CoinData needs info.walletId to init', info)
+      throw D.error.invalidParams
+    }
+
     console.log('walletInfo', info)
     try {
       // db
@@ -166,10 +174,11 @@ export default class CoinData {
 
   async _newAccount (coinType, accountIndex) {
     let makeId = () => {
-      let text = ''
-      const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-      for (let i = 0; i < 32; i++) text += possible.charAt(Math.floor(Math.random() * possible.length))
-      return text
+      let id = ''
+      const possible = '0123456789abcdef'
+      for (let i = 0; i < 8; i++) id += possible.charAt(Math.floor(Math.random() * possible.length))
+      // obviously it's no need for random part(id), but we keep it for unpredictable future
+      return coinType + '_' + accountIndex + '_' + id
     }
 
     let account = {
@@ -226,6 +235,10 @@ export default class CoinData {
 
   async newAddressInfos (account, addressInfos) {
     await this._db.newAddressInfos(account, addressInfos)
+  }
+
+  async updateAddressInfos (addressInfos) {
+    await this._db.updateAddressInfos(addressInfos)
   }
 
   getAddressInfos (filter) {
@@ -287,8 +300,11 @@ export default class CoinData {
     }
   }
 
-  clearData () {
-    return this._db.clearDatabase()
+  /**
+   * Clear all data in database.
+   */
+  async clearData () {
+    await this._db.clearDatabase()
   }
 
   checkAddresses (coinType, addressInfos) {

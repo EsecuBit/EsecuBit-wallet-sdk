@@ -267,12 +267,12 @@ export default class BtcAccount extends IAccount {
       console.log(this.accountId, 'generating', type, 'addressInfos, from', nextIndex, 'to', newNextIndex)
       let addressInfos = []
       for (let i = nextIndex; i < newNextIndex; i++) {
-        let address = await this._device.getAddress(this.coinType, D.makeBip44Path(this.coinType, this.index, type, i))
+        let address = await this._device.getAddress(this.coinType, D.address.path.makeBip44Path(this.coinType, this.index, type, i))
         addressInfos.push({
           address: address,
           accountId: this.accountId,
           coinType: this.coinType,
-          path: D.makeBip44Path(this.coinType, this.index, type, i),
+          path: D.address.path.makeBip44Path(this.coinType, this.index, type, i),
           type: type,
           index: i,
           txs: []
@@ -293,7 +293,7 @@ export default class BtcAccount extends IAccount {
 
   async getAddress (isStoring = false) {
     let address = await this._device.getAddress(this.coinType,
-      D.makeBip44Path(this.coinType, this.index, D.address.external, this.externalPublicKeyIndex),
+      D.address.path.makeBip44Path(this.coinType, this.index, D.address.external, this.externalPublicKeyIndex),
       true, isStoring)
 
     await this._checkAddressIndexAndGenerateNew()

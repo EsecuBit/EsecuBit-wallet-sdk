@@ -11,7 +11,7 @@ const mainTxUrl = 'https://blockchain.info/tx/'
 const testUrl = 'testnet.blockchain.info'
 const mainUrl = 'blockchain.info'
 
-export default class BlockchainInfo extends ICoinNetwork {
+export default class BlockChainInfo extends ICoinNetwork {
   constructor (coinType) {
     super(coinType)
     // noinspection JSUnusedGlobalSymbols
@@ -32,6 +32,7 @@ export default class BlockchainInfo extends ICoinNetwork {
         this.provider = testUrl
         break
       default:
+        console.warn('BlockChainInfo don\'t support this coinType', this.coinType)
         throw D.error.coinNotSupported
     }
     return super.init()
@@ -235,4 +236,4 @@ export default class BlockchainInfo extends ICoinNetwork {
     return tx
   }
 }
-BlockchainInfo.provider = 'blockchain.info'
+BlockChainInfo.provider = 'blockchain.info'

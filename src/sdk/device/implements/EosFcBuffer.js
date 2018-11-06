@@ -177,7 +177,7 @@ const FcBuffer = {
 
   data: {
     appendByteBuffer (b, value, account, name) {
-      let actionType = D.coin.eos.getActionType(account, name)
+      let actionType = D.coin.params.eos.getActionType(account, name)
       if (!actionType) {
         console.warn('unsupport data type', b, value, account, name)
         throw D.error.invalidParams

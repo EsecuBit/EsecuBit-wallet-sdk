@@ -5,6 +5,10 @@ let UPDATE_DURATION = 10 * 60 * 1000
 
 export default class FeeBitCoinEarn {
   constructor (fee) {
+    if (!fee) {
+      console.warn('FeeBitCoinEarn invalid parameters', fee)
+      throw D.error.invalidParams
+    }
     this.provider = 'bitcoinfees.earn.com'
     switch (fee.coinType) {
       case D.coin.main.btc:
@@ -12,6 +16,7 @@ export default class FeeBitCoinEarn {
         this.coinType = fee.coinType
         break
       default:
+        console.warn('FeeBitCoinEarn don\'t support this coinType', fee.coinType)
         throw D.error.coinNotSupported
     }
 

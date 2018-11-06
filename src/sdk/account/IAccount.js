@@ -3,6 +3,11 @@ import D from '../D'
 
 export default class IAccount {
   constructor (info, device, coinData) {
+    if (!info || !device || !coinData) {
+      console.warn('IAccount constructor needs valid object', info, device, coinData)
+      throw D.error.invalidParams
+    }
+
     this._fromAccountInfo(info)
     this._device = device
     this._coinData = coinData

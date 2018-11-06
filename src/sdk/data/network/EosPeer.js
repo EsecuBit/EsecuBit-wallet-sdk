@@ -256,4 +256,10 @@ export default class EosPeer extends ICoinNetwork {
     let response = await this.post(url, args)
     return response[0]
   }
+
+  async getAccountByPubKey (publicKey) {
+    let args = JSON.stringify({public_key: publicKey})
+    let url = this._apiUrl + 'v1/history/get_key_accounts'
+    return this.post(url, args)
+  }
 }
