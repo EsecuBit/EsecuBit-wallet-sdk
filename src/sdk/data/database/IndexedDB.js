@@ -111,6 +111,7 @@ export default class IndexedDB extends IDatabase {
          *   time: number,
          *   comment: string,
          *
+         *   fee: string, inputs.values - outputs.values,
          *   inputs: [{prevTxId, prevAddress, prevOutIndex, prevOutScript, index, value, isMine}, ...]
          *   outputs: [{address, index, value, isMine}, ...]
          *   direction: D.tx.direction.in / D.tx.direction.out,
@@ -126,7 +127,9 @@ export default class IndexedDB extends IDatabase {
          *   blockNumber: number,
          *   confirmations: number, // see D.tx.confirmation
          *   time: number,
+         *   comment: string,
          *
+         *   fee: string, gas * gasPrice,
          *   inputs: [{prevAddress, value, isMine}, ...]
          *   outputs: [{address, value, isMine}, ...]
          *   direction: D.tx.direction.in / D.tx.direction.out,
@@ -135,10 +138,8 @@ export default class IndexedDB extends IDatabase {
          *
          *   gas: string (decimal string Wei),
          *   gasPrice: string (decimal string Wei),
-         *   fee: gas * gasPrice,
          *   data: hex string,
-         *   nonce: number,
-         *   comment: string
+         *   nonce: number
          * }
          *
          * eos:
@@ -184,7 +185,7 @@ export default class IndexedDB extends IDatabase {
          *
          *   registered: bool,
          *   publicKey: string, // public key starts with "EOS"
-         *   parent: string // empty string if it's root permission
+         *   parent: string, // empty string if it's root permission
          *   threshold: number,
          *   weight: number,
          * }

@@ -163,7 +163,8 @@ export default class EosAccount extends IAccount {
             index: j,
             registered: false,
             publicKey: publicKey,
-            parent: ''
+            parent: '',
+            txs: [] // rfu
           })
         }
       }
