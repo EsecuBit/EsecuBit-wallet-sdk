@@ -58,12 +58,17 @@ export default class IAccount {
    */
   _toAccountInfo () {
     let info = {}
-    Object.entries(this).forEach(([key, value]) => {
-      if (key.startsWith('_')) return
-      if (typeof value === 'function') return
-      if (typeof value === 'object') value = D.copy(value)
-      info[key] = value
-    })
+    info.accountId = this.accountId
+    info.coinType = this.coinType
+    info.index = this.index
+    info.balance = this.balance
+    info.externalPublicKeyIndex = this.externalPublicKeyIndex
+    info.changePublicKeyIndex = this.changePublicKeyIndex
+
+    // EOS
+    if (this.queryOffset) info.queryOffset = this.queryOffset
+    if (this.tokens) info.tokens = D.copy(this.tokens)
+    if (this.resources) info.resources = D.copy(this.resources)
     return info
   }
 
@@ -74,12 +79,17 @@ export default class IAccount {
    * @protected
    */
   _fromAccountInfo (info) {
-    Object.entries(info).forEach(([key, value]) => {
-      if (key.startsWith('_')) return
-      if (typeof value === 'function') return
-      if (typeof value === 'object') value = D.copy(value)
-      this[key] = value
-    })
+    this.accountId = info.accountId
+    this.coinType = info.coinType
+    this.index = info.index
+    this.balance = info.balance
+    this.externalPublicKeyIndex = info.externalPublicKeyIndex
+    this.changePublicKeyIndex = info.changePublicKeyIndex
+
+    // EOS
+    if (info.queryOffset) this.queryOffset = info.queryOffset
+    if (info.tokens) this.tokens = D.copy(info.tokens)
+    if (info.resources) this.resources = D.copy(info.resources)
   }
 
   async init () {

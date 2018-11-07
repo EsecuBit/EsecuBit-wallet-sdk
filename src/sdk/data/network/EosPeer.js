@@ -96,16 +96,22 @@ export default class EosPeer extends ICoinNetwork {
     return txs
   }
 
-  async queryActions (address, offset = 0) {
+  async queryActions (accountName, offset = 0) {
     const url = this._apiUrl + 'v1/history/get_actions'
     const defaultPageSize = 100
 
     let actions = []
     let currentOffset = offset + 1
-    this._maxActionSeq[address] = offset
+    this._maxActionSeq[accountName] = offset
     while (true) {
-      const args = JSON.stringify({pos: currentOffset, offset: defaultPageSize, account_name: address})
+      const args = JSON.stringify({pos: currentOffset, offset: defaultPageSize, account_name: accountName})
       let response = await this.post(url, args)
+
+      // filter actions that don't care
+      response.actions = response.actions.filter(action =>
+        action.action_trace.act.authorization.actor === accountName ||
+        Object.values(action.action_trace.act.data).includes(accountName))
+
       actions.push(...response.actions)
       currentOffset += response.actions.length
 

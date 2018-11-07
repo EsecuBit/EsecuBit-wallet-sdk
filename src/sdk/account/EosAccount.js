@@ -75,8 +75,9 @@ export default class EosAccount extends IAccount {
     this.tokens = this.tokens || {'EOS': {code: 'eosio.token', symbol: 'EOS'}}
     let newAccountInfo = await this._network.getAccountInfo(this.label, this.tokens)
     await this._updatePermissions(newAccountInfo.permissions)
-    delete newAccountInfo.permissions
-    this._fromAccountInfo(newAccountInfo)
+    this.tokens = D.copy(newAccountInfo.tokens)
+    this.resources = D.copy(newAccountInfo.resources)
+
     await this._coinData.updateAccount(this._toAccountInfo())
 
     let txs = await this._network.queryAddress(this.label, this.queryOffset)
@@ -431,14 +432,15 @@ export default class EosAccount extends IAccount {
     presignTx.keyPaths = []
     for (let action of presignTx.actions) {
       for (let auth of action.authorization) {
-        let permission = this.permissions[auth.permission]
-        if (!permission) {
+        // not support multi-sig
+        let permissions = this.addressInfos.filter(a => a.type === auth.permission)
+        if (permissions.length === 0) {
           console.warn('key path of relative permission not found', action)
           throw D.error.permissionNotFound
         }
-        permission.forEach(p => {
-          if (!presignTx.keyPaths.includes(p.keyPath)) {
-            presignTx.keyPaths.push(p.keyPath)
+        permissions.forEach(p => {
+          if (!presignTx.keyPaths.includes(p.path)) {
+            presignTx.keyPaths.push(p.path)
           }
         })
       }
