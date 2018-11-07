@@ -600,7 +600,7 @@ const D = {
   },
 
   supportedCoinTypes () {
-    // TODO recover, S300 not support ETH yet
+    // TODO recover
     return D.test.coin
       ? [D.coin.test.eosJungle]
       : [D.coin.main.eos]

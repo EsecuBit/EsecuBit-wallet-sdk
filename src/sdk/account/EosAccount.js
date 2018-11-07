@@ -73,19 +73,18 @@ export default class EosAccount extends IAccount {
     }
 
     this.tokens = this.tokens || {'EOS': {code: 'eosio.token', symbol: 'EOS'}}
-    console.warn('1', this.label, D.copy(this.tokens))
     let newAccountInfo = await this._network.getAccountInfo(this.label, this.tokens)
-    console.warn('2', newAccountInfo)
     await this._updatePermissions(newAccountInfo.permissions)
-    console.warn('3', newAccountInfo)
     delete newAccountInfo.permissions
     this._fromAccountInfo(newAccountInfo)
     await this._coinData.updateAccount(this._toAccountInfo())
-    console.warn('4', this._toAccountInfo())
 
     let txs = await this._network.queryAddress(this.label, this.queryOffset)
-    console.warn('5', txs)
+    txs.filter(tx => !this.txInfos.some(t => t.txId === tx.txId))
     for (let tx of txs) {
+      tx.accountId = this.accountId
+      tx.coinType = this.coinType
+      tx.comment = ''
       await this._handleNewTx(tx)
     }
   }
@@ -176,11 +175,13 @@ export default class EosAccount extends IAccount {
 
   async _handleRemovedTx (removedTxId) {
     let txInfo = this.txInfos.find(txInfo => txInfo.txId === removedTxId)
-    await this._coinData.removeTx(this._toAccountInfo(), this.addressInfos, txInfo)
+    await this._coinData.removeTx(this._toAccountInfo(), [], txInfo)
+    this.txInfos = this.txInfos.filter(t => t !== txInfo)
   }
 
   async _handleNewTx (txInfo) {
-    await this._coinData.newTx(this._toAccountInfo(), this.addressInfos, txInfo)
+    await this._coinData.newTx(this._toAccountInfo(), [], txInfo)
+    this.txInfos.push(txInfo)
   }
 
   /**

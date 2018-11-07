@@ -261,7 +261,7 @@ export default class CoinData {
     return this._db.saveOrUpdateTxComment(txInfo)
   }
 
-  async newTx (account, addressInfos, txInfo, utxos) {
+  async newTx (account, addressInfos, txInfo, utxos = []) {
     this._setTxFlags(txInfo)
     this._uncomfirmedTxs.push(txInfo)
 

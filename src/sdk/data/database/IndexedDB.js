@@ -190,7 +190,7 @@ export default class IndexedDB extends IDatabase {
          * }
          */
         if (!db.objectStoreNames.contains('addressInfo')) {
-          let addressInfo = db.createObjectStore('addressInfo', {keyPath: ['address', 'path']})
+          let addressInfo = db.createObjectStore('addressInfo', {keyPath: ['accountId', 'path']})
           addressInfo.createIndex('accountId', 'accountId', {unique: false})
         }
 
@@ -630,7 +630,7 @@ export default class IndexedDB extends IDatabase {
     })
   }
 
-  newTx (account, addressInfos, txInfo, utxos = []) {
+  newTx (account, addressInfos, txInfo, utxos) {
     return new Promise((resolve, reject) => {
       let objectStores = ['account', 'addressInfo', 'txInfo', 'utxo']
       let transaction = this._db.transaction(objectStores, 'readwrite')
@@ -651,7 +651,7 @@ export default class IndexedDB extends IDatabase {
     })
   }
 
-  removeTx (account, addressInfos, txInfo, updateUtxos = [], removeUtxos = []) {
+  removeTx (account, addressInfos, txInfo, updateUtxos, removeUtxos) {
     return new Promise((resolve, reject) => {
       let objectStores = ['account', 'addressInfo', 'txInfo', 'utxo']
       let transaction = this._db.transaction(objectStores, 'readwrite')

@@ -107,13 +107,14 @@ chai.should()
 // })
 
 describe('EosAccount sync and sign', function () {
+  D.test.coin = false
   this.timeout(60 * 1000)
   let account
   let jsWallet
   let coinData
 
   before(async function () {
-    await new Settings().setTestSeed('dd416ff6a277596f8ef5cbbf92f870f2138dd67e18c673cd5fc2a3eca48b7da2')
+    await new Settings().setTestSeed('write your own seed')
 
     jsWallet = new JsWallet(new JsTransmitter())
     coinData = new CoinData()
@@ -123,8 +124,8 @@ describe('EosAccount sync and sign', function () {
 
     account = new EosAccount({
       label: 'atestaccount',
-      coinType: D.coin.test.eosJungle,
-      accountId: 'eos_jungle_0_23f876c8a',
+      coinType: D.coin.main.eos,
+      accountId: 'eos_main_0_23f876c8a',
       index: 0,
       balance: '0',
       externalPublicKeyIndex: 0,
@@ -147,8 +148,8 @@ describe('EosAccount sync and sign', function () {
   })
 
   after(async function () {
-    await coinData.clearData()
-    await coinData.release()
+    // await coinData.clearData()
+    // await coinData.release()
   })
 
   it('signTx', async function () {
