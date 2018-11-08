@@ -119,7 +119,7 @@ export default class S300Wallet {
    */
   async signTransaction (coinType, tx) {
     let sign = async (path, changePath, msg) => {
-      // 8048 0X00 00XXXX C0 u1PathNum pu1Path C1 u1ChangePathNum pu1ChangePath C2 xxxx pu1Msg
+      // 8048 state flag length C0 u1PathNum pu1Path C1 u1ChangePathNum pu1ChangePath C2 xxxx pu1Msg
       let dataLength =
         2 + path.length +
         (changePath ? (2 + changePath.length) : 2) +
@@ -142,9 +142,11 @@ export default class S300Wallet {
       data[index++] = msg.length
       msg.copy(data, index)
 
+      let compressChange = 0x08
       let response
       if (data.length <= 0xFF) {
         let apduHead = Buffer.from('8048030000', 'hex')
+        apduHead[3] |= compressChange
         apduHead[4] = data.length
         response = await this._sendApdu(Buffer.concat([apduHead, data]), true)
       } else {
@@ -153,6 +155,7 @@ export default class S300Wallet {
         while (true) {
           if (remainLen <= 0xFF) {
             let apduHead = Buffer.from('8048020000', 'hex')
+            apduHead[3] |= compressChange
             apduHead[4] = remainLen
             let offset = data.length - remainLen
             response = await this._sendApdu(Buffer.concat([apduHead, data.slice(offset, data.length)]), true)
@@ -164,6 +167,7 @@ export default class S300Wallet {
           } else {
             // middle package
             let apduHead = Buffer.from('80480000FF', 'hex')
+            apduHead[3] |= compressChange
             let offset = data.length - remainLen
             await this._sendApdu(Buffer.concat([apduHead, data.slice(offset, offset + 0xFF)]), true)
           }

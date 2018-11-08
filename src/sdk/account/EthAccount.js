@@ -27,10 +27,10 @@ export default class EthAccount extends IAccount {
   async _handleRemovedTx (removedTxId) {
     console.warn('eth removed txId', removedTxId)
     // async operation may lead to disorder. so we need a simple lock
-    while (this.busy) {
+    while (this._busy) {
       await D.wait(2)
     }
-    this.busy = true
+    this._busy = true
 
     let removedTxInfo = this.txInfos.find(txInfo => txInfo.txId === removedTxId)
     if (!removedTxInfo) {
@@ -56,16 +56,16 @@ export default class EthAccount extends IAccount {
     this.balance = newBalance.toString(10)
 
     await this._coinData.removeTx(this._toAccountInfo(), D.copy([this.addressInfos[0]]), D.copy(removedTxInfo))
-    this.busy = false
+    this._busy = false
   }
 
   async _handleNewTx (txInfo) {
     console.log('eth newTransaction', txInfo)
     // async operation may lead to disorder. so we need a simple lock
-    while (this.busy) {
+    while (this._busy) {
       await D.wait(2)
     }
-    this.busy = true
+    this._busy = true
 
     txInfo = D.copy(txInfo)
     txInfo.inputs.forEach(input => {
@@ -124,7 +124,7 @@ export default class EthAccount extends IAccount {
       this._coinData.listenTx(this.coinType, D.copy(txInfo), this._txListener)
     }
 
-    this.busy = false
+    this._busy = false
   }
 
   async getAddress (isStoring = false) {

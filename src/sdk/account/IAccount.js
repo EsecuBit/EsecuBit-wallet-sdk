@@ -46,13 +46,25 @@ export default class IAccount {
     }
   }
 
+  /**
+   * Generate account info from this object.
+   *
+   * @protected
+   */
   _toAccountInfo () {
     let info = {}
-    Object.entries(this).forEach(([key, value]) => {
-      if (key.startsWith('_')) return
-      if (typeof value === 'function') return
-      info[key] = value
-    })
+    info.label = this.label
+    info.accountId = this.accountId
+    info.coinType = this.coinType
+    info.index = this.index
+    info.balance = this.balance
+    info.externalPublicKeyIndex = this.externalPublicKeyIndex
+    info.changePublicKeyIndex = this.changePublicKeyIndex
+
+    // EOS
+    if (this.queryOffset) info.queryOffset = this.queryOffset
+    if (this.tokens) info.tokens = D.copy(this.tokens)
+    if (this.resources) info.resources = D.copy(this.resources)
     return info
   }
 
@@ -60,14 +72,21 @@ export default class IAccount {
    * Get account info from parameter.
    *
    * @param info Contains account, coinType, publicKeyIndex etc. more details see IndexedDB#account.
-   * @private
+   * @protected
    */
   _fromAccountInfo (info) {
-    Object.entries(info).forEach(([key, value]) => {
-      if (key.startsWith('_')) return
-      if (typeof value === 'function') return
-      this[key] = value
-    })
+    this.label = info.label
+    this.accountId = info.accountId
+    this.coinType = info.coinType
+    this.index = info.index
+    this.balance = info.balance
+    this.externalPublicKeyIndex = info.externalPublicKeyIndex
+    this.changePublicKeyIndex = info.changePublicKeyIndex
+
+    // EOS
+    if (info.queryOffset) this.queryOffset = info.queryOffset
+    if (info.tokens) this.tokens = D.copy(info.tokens)
+    if (info.resources) this.resources = D.copy(info.resources)
   }
 
   async init () {

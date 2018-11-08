@@ -7,64 +7,69 @@ export default class BtcAccount extends IAccount {
   async _handleRemovedTx (removedTxId) {
     console.warn('btc removed txId', removedTxId)
     // async operation may lead to disorder. so we need a simple lock
-    while (this.busy) {
+    while (this._busy) {
       await D.wait(2)
     }
-    this.busy = true
-
-    // update removed txInfo
-    let removedTxInfo = this.txInfos.find(txInfo => txInfo.txId === removedTxId)
-    if (!removedTxInfo) {
-      console.warn(this.accountId, 'removed txId not found', removedTxId)
-      return
-    }
-    console.log('btc removed txInfo', removedTxInfo)
-    removedTxInfo.confirmations = D.tx.confirmation.dropped
-
-    // update addressInfos
-    let addressInfos = this.addressInfos.filter(
-      addressInfo => addressInfo.txs.includes(removedTxId))
-    for (let addressInfo of addressInfos) {
-      let oldAddressInfo = this.addressInfos.find(a => a.address === addressInfo.address)
-      oldAddressInfo.txs = oldAddressInfo.txs.filter(txId => txId !== removedTxId)
-    }
-
-    // remove utxos come from this tx
-    let removeUtxos = this.utxos.filter(utxo => utxo.txId === removedTxId)
-    this.utxos = this.utxos.filter(utxo => !removeUtxos.some(u => u.txId === utxo.txId))
-
-    // revert utxos using by this tx
-    let updateUtxos = []
-    removedTxInfo.inputs.forEach(input => {
-      if (!input.isMine) return
-      let revertUtxo = this.utxos.find(utxo => (input.prevTxId === utxo.txId) && (input.prevOutIndex === utxo.index))
-      if (!revertUtxo) {
-        console.warn('revertUtxo not found', input)
+    this._busy = true
+    try {
+      // update removed txInfo
+      let removedTxInfo = this.txInfos.find(txInfo => txInfo.txId === removedTxId)
+      if (!removedTxInfo) {
+        console.warn(this.accountId, 'removed txId not found', removedTxId)
         return
       }
+      console.log('btc removed txInfo', removedTxInfo)
+      removedTxInfo.confirmations = D.tx.confirmation.dropped
 
-      // the spent utxo may be reused again before detected(e.g. resend tx), we need to check
-      let reusedTxInfo = this.txInfos.filter(txInfo =>
-        txInfo.confirmations !== D.tx.confirmation.dropped &&
-        txInfo.inputs.some(i =>
-          i.prevAddress === input.prevAddress &&
-          i.prevOutIndex === input.prevOutIndex))
-      if (reusedTxInfo) {
-        console.log('utxo has been reused', input, removedTxInfo)
-      } else {
-        revertUtxo.status = D.utxo.status.unspent
-        updateUtxos.push(revertUtxo)
+      // update addressInfos
+      let addressInfos = this.addressInfos.filter(
+        addressInfo => addressInfo.txs.includes(removedTxId))
+      for (let addressInfo of addressInfos) {
+        let oldAddressInfo = this.addressInfos.find(a => a.address === addressInfo.address)
+        oldAddressInfo.txs = oldAddressInfo.txs.filter(txId => txId !== removedTxId)
       }
-    })
 
-    this.balance = this.utxos
-      .filter(utxo => utxo.status === D.utxo.status.unspent || utxo.status === D.utxo.status.unspent_pending)
-      .reduce((sum, utxo) => sum + utxo.value, 0)
-      .toString()
+      // remove utxos come from this tx
+      let removeUtxos = this.utxos.filter(utxo => utxo.txId === removedTxId)
+      this.utxos = this.utxos.filter(utxo => !removeUtxos.some(u => u.txId === utxo.txId))
 
-    await this._coinData.removeTx(this._toAccountInfo(), D.copy(addressInfos),
-      D.copy(removedTxInfo), D.copy(updateUtxos), D.copy(removeUtxos))
-    this.busy = false
+      // revert utxos using by this tx
+      let updateUtxos = []
+      removedTxInfo.inputs.forEach(input => {
+        if (!input.isMine) return
+        let revertUtxo = this.utxos.find(utxo => (input.prevTxId === utxo.txId) && (input.prevOutIndex === utxo.index))
+        if (!revertUtxo) {
+          console.warn('revertUtxo not found', input)
+          return
+        }
+
+        // the spent utxo may be reused again before detected(e.g. resend tx), we need to check
+        let reusedTxInfo = this.txInfos.filter(txInfo =>
+          txInfo.confirmations !== D.tx.confirmation.dropped &&
+          txInfo.inputs.some(i =>
+            i.prevAddress === input.prevAddress &&
+            i.prevOutIndex === input.prevOutIndex))
+        if (reusedTxInfo) {
+          console.log('utxo has been reused', input, removedTxInfo)
+        } else {
+          revertUtxo.status = D.utxo.status.unspent
+          updateUtxos.push(revertUtxo)
+        }
+      })
+
+      this.balance = this.utxos
+        .filter(utxo => utxo.status === D.utxo.status.unspent || utxo.status === D.utxo.status.unspent_pending)
+        .reduce((sum, utxo) => sum + utxo.value, 0)
+        .toString()
+
+      await this._coinData.removeTx(this._toAccountInfo(), D.copy(addressInfos),
+        D.copy(removedTxInfo), D.copy(updateUtxos), D.copy(removeUtxos))
+    } catch (e) {
+      console.warn('_handleRemovedTx error', e)
+      throw e
+    } finally {
+      this._busy = false
+    }
   }
 
   /**
@@ -76,78 +81,83 @@ export default class BtcAccount extends IAccount {
 
     // async operation may lead to disorder. so we need a simple lock
     // eslint-disable-next-line
-    while (this.busy) {
+    while (this._busy) {
       await D.wait(2)
     }
-    this.busy = true
+    this._busy = true
 
-    // update txInfo and addressInfos
-    txInfo.inputs.forEach(input => {
-      input.isMine = this.addressInfos.some(a => a.address === input.prevAddress)
-    })
-    txInfo.outputs.forEach(output => {
-      output.isMine = this.addressInfos.some(a => a.address === output.address)
-    })
+    try {
+      // update txInfo and addressInfos
+      txInfo.inputs.forEach(input => {
+        input.isMine = this.addressInfos.some(a => a.address === input.prevAddress)
+      })
+      txInfo.outputs.forEach(output => {
+        output.isMine = this.addressInfos.some(a => a.address === output.address)
+      })
 
-    // calculate value
-    let value = 0
-    value -= txInfo.inputs.reduce((sum, input) => sum + (input.isMine ? input.value : 0), 0)
-    value += txInfo.outputs.reduce((sum, output) => sum + (output.isMine ? output.value : 0), 0)
-    txInfo.value = value.toString()
+      // calculate value
+      let value = 0
+      value -= txInfo.inputs.reduce((sum, input) => sum + (input.isMine ? input.value : 0), 0)
+      value += txInfo.outputs.reduce((sum, output) => sum + (output.isMine ? output.value : 0), 0)
+      txInfo.value = value.toString()
 
-    // calculate fee
-    let fee = 0
-    fee += txInfo.inputs.reduce((sum, input) => sum + input.value, 0)
-    fee -= txInfo.outputs.reduce((sum, output) => sum + output.value, 0)
-    txInfo.fee = fee.toString()
+      // calculate fee
+      let fee = 0
+      fee += txInfo.inputs.reduce((sum, input) => sum + input.value, 0)
+      fee -= txInfo.outputs.reduce((sum, output) => sum + output.value, 0)
+      txInfo.fee = fee.toString()
 
-    let input = txInfo.inputs.find(input => input.isMine)
-    txInfo.direction = input ? D.tx.direction.out : D.tx.direction.in
-    txInfo.showAddresses = txInfo.direction === D.tx.direction.in
-      ? txInfo.inputs.filter(input => !input.isMine).map(input => input.prevAddress)
-      : txInfo.outputs.filter(output => !output.isMine).map(output => output.address)
-    if (txInfo.showAddresses.length === 0) txInfo.showAddresses.push('self')
+      let input = txInfo.inputs.find(input => input.isMine)
+      txInfo.direction = input ? D.tx.direction.out : D.tx.direction.in
+      txInfo.showAddresses = txInfo.direction === D.tx.direction.in
+        ? txInfo.inputs.filter(input => !input.isMine).map(input => input.prevAddress)
+        : txInfo.outputs.filter(output => !output.isMine).map(output => output.address)
+      if (txInfo.showAddresses.length === 0) txInfo.showAddresses.push('self')
 
-    // find out utxos for address
-    let utxos = []
-    let unspentOutputs = txInfo.outputs.filter(output => output.isMine)
-    let unspentUtxos = unspentOutputs.map(output => {
-      let addressInfo = this.addressInfos.find(a => a.address === output.address)
-      return {
-        accountId: addressInfo.accountId,
-        coinType: addressInfo.coinType,
-        address: addressInfo.address,
-        path: addressInfo.path,
-        txId: txInfo.txId,
-        index: output.index,
-        script: output.script,
-        value: output.value,
-        status: txInfo.confirmations === D.tx.confirmation.inMemory ? D.utxo.status.unspent_pending : D.utxo.status.unspent
-      }
-    })
-    utxos.push(...unspentUtxos)
-
-    let spentInputs = txInfo.inputs.filter(input => input.isMine)
-    if (spentInputs.length > 0) {
-      let spentUtxos = spentInputs.map(input => {
-        let addressInfo = this.addressInfos.find(a => a.address === input.prevAddress)
+      // find out utxos for address
+      let utxos = []
+      let unspentOutputs = txInfo.outputs.filter(output => output.isMine)
+      let unspentUtxos = unspentOutputs.map(output => {
+        let addressInfo = this.addressInfos.find(a => a.address === output.address)
         return {
           accountId: addressInfo.accountId,
           coinType: addressInfo.coinType,
           address: addressInfo.address,
           path: addressInfo.path,
-          txId: input.prevTxId,
-          index: input.prevOutIndex,
-          script: input.prevOutScript,
-          value: input.value,
-          status: txInfo.confirmations === D.tx.confirmation.inMemory ? D.utxo.status.spent_pending : D.utxo.status.spent
+          txId: txInfo.txId,
+          index: output.index,
+          script: output.script,
+          value: output.value,
+          status: txInfo.confirmations === D.tx.confirmation.inMemory ? D.utxo.status.unspent_pending : D.utxo.status.unspent
         }
       })
-      utxos.push(...spentUtxos)
-    }
-    await this._handleNewTxInner(txInfo, utxos)
+      utxos.push(...unspentUtxos)
 
-    this.busy = false
+      let spentInputs = txInfo.inputs.filter(input => input.isMine)
+      if (spentInputs.length > 0) {
+        let spentUtxos = spentInputs.map(input => {
+          let addressInfo = this.addressInfos.find(a => a.address === input.prevAddress)
+          return {
+            accountId: addressInfo.accountId,
+            coinType: addressInfo.coinType,
+            address: addressInfo.address,
+            path: addressInfo.path,
+            txId: input.prevTxId,
+            index: input.prevOutIndex,
+            script: input.prevOutScript,
+            value: input.value,
+            status: txInfo.confirmations === D.tx.confirmation.inMemory ? D.utxo.status.spent_pending : D.utxo.status.spent
+          }
+        })
+        utxos.push(...spentUtxos)
+      }
+      await this._handleNewTxInner(txInfo, utxos)
+    } catch (e) {
+      console.warn('_handleNewTx error', e)
+      throw e
+    } finally {
+      this._busy = false
+    }
   }
 
   /**
@@ -157,93 +167,98 @@ export default class BtcAccount extends IAccount {
   async _handleNewTxInner (txInfo, utxos) {
     console.log('btc newTransaction, utxos', txInfo, utxos)
 
-    while (this.innerBusy) {
+    while (this._innerBusy) {
       await D.wait(2)
     }
-    this.innerBusy = true
+    this._innerBusy = true
 
-    // update account info
-    let index = this.txInfos.findIndex(t => t.txId === txInfo.txId)
-    if (index === -1) {
-      txInfo.comment = ''
-      this.txInfos.push(txInfo)
-    } else {
-      txInfo.comment = this.txInfos[index].comment
-      this.txInfos[index] = txInfo
+    try {
+      // update account info
+      let index = this.txInfos.findIndex(t => t.txId === txInfo.txId)
+      if (index === -1) {
+        txInfo.comment = ''
+        this.txInfos.push(txInfo)
+      } else {
+        txInfo.comment = this.txInfos[index].comment
+        this.txInfos[index] = txInfo
+      }
+
+      // update utxos
+      // unspent_pending can update to other state
+      // unspent can update to pending_spent and spent
+      // pending_spent can update to spent
+      utxos = utxos.filter(utxo => {
+        let oldUtxo = this.utxos.find(oldUtxo => oldUtxo.txId === utxo.txId && oldUtxo.index === utxo.index)
+        if (!oldUtxo) return true
+        if (oldUtxo.status === D.utxo.status.unspent_pending) return true
+        if (oldUtxo.status === D.utxo.status.unspent) return utxo.status === D.utxo.status.spent_pending || utxo.status === D.utxo.status.spent
+        if (oldUtxo.status === D.utxo.status.spent_pending) return utxo.status === D.utxo.status.spent
+        return false
+      })
+      this.utxos = this.utxos
+        .filter(oldUtxo => !utxos.some(utxo => oldUtxo.txId === utxo.txId && oldUtxo.index === utxo.index))
+        .concat(utxos)
+
+      // update balance
+      this.balance = this.utxos
+        .filter(utxo => utxo.status === D.utxo.status.unspent || utxo.status === D.utxo.status.unspent_pending)
+        .reduce((sum, utxo) => sum + utxo.value, 0)
+        .toString()
+
+      // update addressInfos
+      let relativeAddresses = []
+      let maxExternalIndex = this.externalPublicKeyIndex
+      let maxChangeIndex = this.changePublicKeyIndex
+      txInfo.inputs.filter(input => input.isMine).forEach(input => {
+        let addressInfo = this.addressInfos.find(a => a.address === input.prevAddress)
+        if (!relativeAddresses.some(a => a.address === addressInfo.address)) {
+          relativeAddresses.push(addressInfo)
+          if (!addressInfo.txs.includes(txInfo.txId)) {
+            addressInfo.txs.push(txInfo.txId)
+          }
+
+          if (addressInfo.type === D.address.external) {
+            maxExternalIndex = Math.max(maxExternalIndex, addressInfo.index)
+          } else {
+            maxChangeIndex = Math.max(maxChangeIndex, addressInfo.index)
+          }
+        }
+      })
+      txInfo.outputs.filter(input => input.isMine).forEach(output => {
+        let addressInfo = this.addressInfos.find(a => a.address === output.address)
+        if (!relativeAddresses.some(a => a.address === addressInfo.address)) {
+          relativeAddresses.push(addressInfo)
+          if (!addressInfo.txs.includes(txInfo.txId)) {
+            addressInfo.txs.push(txInfo.txId)
+          }
+
+          if (addressInfo.type === D.address.external) {
+            maxExternalIndex = Math.max(maxExternalIndex, addressInfo.index + 1)
+          } else {
+            maxChangeIndex = Math.max(maxChangeIndex, addressInfo.index + 1)
+          }
+        }
+      })
+
+      // update addressIndex
+      this.externalPublicKeyIndex = Math.max(maxExternalIndex, this.externalPublicKeyIndex)
+      this.changePublicKeyIndex = Math.max(maxChangeIndex, this.changePublicKeyIndex)
+
+      // listen unmatured tx
+      await this._coinData.newTx(this._toAccountInfo(), D.copy(relativeAddresses), D.copy(txInfo), D.copy(utxos))
+
+      if (txInfo.confirmations < D.tx.getMatureConfirms(this.coinType)) {
+        if (!this._listenedTxs.some(tx => tx === txInfo.txId)) {
+          this._listenedTxs.push(txInfo.txId)
+          this._coinData.listenTx(this.coinType, D.copy(txInfo), this._txListener)
+        }
+      }
+    } catch (e) {
+      console.warn('_handleNewTxInner error', e)
+      throw e
+    } finally {
+      this._innerBusy = false
     }
-
-    // update utxos
-    // unspent_pending can update to other state
-    // unspent can update to pending_spent and spent
-    // pending_spent can update to spent
-    utxos = utxos.filter(utxo => {
-      let oldUtxo = this.utxos.find(oldUtxo => oldUtxo.txId === utxo.txId && oldUtxo.index === utxo.index)
-      if (!oldUtxo) return true
-      if (oldUtxo.status === D.utxo.status.unspent_pending) return true
-      if (oldUtxo.status === D.utxo.status.unspent) return utxo.status === D.utxo.status.spent_pending || utxo.status === D.utxo.status.spent
-      if (oldUtxo.status === D.utxo.status.spent_pending) return utxo.status === D.utxo.status.spent
-      return false
-    })
-    this.utxos = this.utxos
-      .filter(oldUtxo => !utxos.some(utxo => oldUtxo.txId === utxo.txId && oldUtxo.index === utxo.index))
-      .concat(utxos)
-
-    // update balance
-    this.balance = this.utxos
-      .filter(utxo => utxo.status === D.utxo.status.unspent || utxo.status === D.utxo.status.unspent_pending)
-      .reduce((sum, utxo) => sum + utxo.value, 0)
-      .toString()
-
-    // update addressInfos
-    let relativeAddresses = []
-    let maxExternalIndex = this.externalPublicKeyIndex
-    let maxChangeIndex = this.changePublicKeyIndex
-    txInfo.inputs.filter(input => input.isMine).forEach(input => {
-      let addressInfo = this.addressInfos.find(a => a.address === input.prevAddress)
-      if (!relativeAddresses.some(a => a.address === addressInfo.address)) {
-        relativeAddresses.push(addressInfo)
-        if (!addressInfo.txs.includes(txInfo.txId)) {
-          addressInfo.txs.push(txInfo.txId)
-        }
-
-        if (addressInfo.type === D.address.external) {
-          maxExternalIndex = Math.max(maxExternalIndex, addressInfo.index)
-        } else {
-          maxChangeIndex = Math.max(maxChangeIndex, addressInfo.index)
-        }
-      }
-    })
-    txInfo.outputs.filter(input => input.isMine).forEach(output => {
-      let addressInfo = this.addressInfos.find(a => a.address === output.address)
-      if (!relativeAddresses.some(a => a.address === addressInfo.address)) {
-        relativeAddresses.push(addressInfo)
-        if (!addressInfo.txs.includes(txInfo.txId)) {
-          addressInfo.txs.push(txInfo.txId)
-        }
-
-        if (addressInfo.type === D.address.external) {
-          maxExternalIndex = Math.max(maxExternalIndex, addressInfo.index + 1)
-        } else {
-          maxChangeIndex = Math.max(maxChangeIndex, addressInfo.index + 1)
-        }
-      }
-    })
-
-    // update addressIndex
-    this.externalPublicKeyIndex = Math.max(maxExternalIndex, this.externalPublicKeyIndex)
-    this.changePublicKeyIndex = Math.max(maxChangeIndex, this.changePublicKeyIndex)
-
-    // listen unmatured tx
-    await this._coinData.newTx(this._toAccountInfo(), D.copy(relativeAddresses), D.copy(txInfo), D.copy(utxos))
-
-    if (txInfo.confirmations < D.tx.getMatureConfirms(this.coinType)) {
-      if (!this._listenedTxs.some(tx => tx === txInfo.txId)) {
-        this._listenedTxs.push(txInfo.txId)
-        this._coinData.listenTx(this.coinType, D.copy(txInfo), this._txListener)
-      }
-    }
-
-    this.innerBusy = false
   }
 
   /**
