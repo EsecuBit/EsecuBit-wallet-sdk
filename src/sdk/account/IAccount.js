@@ -58,6 +58,7 @@ export default class IAccount {
    */
   _toAccountInfo () {
     let info = {}
+    info.label = this.label
     info.accountId = this.accountId
     info.coinType = this.coinType
     info.index = this.index
@@ -79,6 +80,7 @@ export default class IAccount {
    * @protected
    */
   _fromAccountInfo (info) {
+    this.label = info.label
     this.accountId = info.accountId
     this.coinType = info.coinType
     this.index = info.index
