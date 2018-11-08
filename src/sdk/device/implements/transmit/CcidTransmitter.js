@@ -31,8 +31,23 @@ export default class CcidTransmitter {
    * APDU encrypt & decrypt
    */
   async sendApdu (apdu, isEnc = false) {
-    // currently S300 APDU encryption not supported
-    return this._sendApdu(apdu)
+    // a simple lock to guarantee apdu order
+    while (this.busy) {
+      await D.wait(10)
+    }
+    this.busy = true
+
+    try {
+      // currently S300 APDU encryption not supported
+      let response = await this._sendApdu(apdu)
+      // must await to make lock enabled
+      return response
+    } catch (e) {
+      console.warn('CcidTrasmitter sendApdu failed', e)
+      throw e
+    } finally {
+      this.busy = false
+    }
   }
 
   /**

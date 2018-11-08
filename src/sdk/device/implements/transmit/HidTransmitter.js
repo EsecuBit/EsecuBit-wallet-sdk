@@ -285,7 +285,7 @@ export default class HidTransmitter {
 
     // a simple lock to guarantee apdu order
     while (this.busy) {
-      await D.wait(5)
+      await D.wait(10)
     }
     this.busy = true
 
@@ -312,6 +312,7 @@ export default class HidTransmitter {
       console.log('got response', response.toString('hex'), 'isEnc', isEnc)
       return response
     } catch (e) {
+      console.warn('HidTransmitter sendApdu failed', e)
       throw e
     } finally {
       this.busy = false
