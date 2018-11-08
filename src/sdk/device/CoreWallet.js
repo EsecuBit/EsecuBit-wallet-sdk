@@ -76,7 +76,7 @@ export default class CoreWallet {
     return this._wallet.verifyPin()
   }
 
-  async getWalletInfo () {
+  getWalletInfo () {
     if (!this._wallet) {
       console.warn('init wallet first')
       throw D.error.deviceNotInit
@@ -84,12 +84,20 @@ export default class CoreWallet {
     return this._wallet.getWalletInfo()
   }
 
-  async getAddress (coinType, path, isShowing = false, isStoring = false) {
+  getAddress (coinType, path, isShowing = false, isStoring = false) {
     if (!this._wallet) {
       console.warn('init wallet first')
       throw D.error.deviceNotInit
     }
     return this._wallet.getAddress(coinType, path, isShowing, isStoring)
+  }
+
+  getPublicKey (coinType, keyPath) {
+    if (!this._wallet) {
+      console.warn('init wallet first')
+      throw D.error.deviceNotInit
+    }
+    return this._wallet.getPublicKey(coinType, keyPath)
   }
 
   async signTransaction (coinType, tx) {

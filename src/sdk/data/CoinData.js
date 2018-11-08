@@ -146,17 +146,17 @@ export default class CoinData {
       providers[coin] = {}
     })
     Object.values(this._network).forEach(network => {
-      if (network.provider) {
+      if (network && network.provider) {
         providers[network.coinType]['network'] = network.provider
       }
     })
     Object.values(this._networkFee).forEach(fee => {
-      if (fee.provider) {
+      if (fee && fee.provider) {
         providers[fee.coinType]['fee'] = fee.provider
       }
     })
     Object.values(this._exchange).forEach(exchange => {
-      if (exchange.provider) {
+      if (exchange && exchange.provider) {
         providers[exchange.coinType]['exchange'] = exchange.provider
       }
     })
