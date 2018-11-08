@@ -671,6 +671,11 @@ const D = {
       case D.coin.main.eth:
       case D.coin.test.ethRinkeby:
         return convertEth(value, fromType, toType)
+      case D.coin.main.eos:
+      case D.coin.test.eosJungle:
+      case D.coin.test.eosKylin:
+      case D.coin.test.eosSys:
+        return value
       default:
         console.warn('convertValue don\'t support this coinType', coinType)
         throw D.error.coinNotSupported
