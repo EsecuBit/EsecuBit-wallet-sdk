@@ -154,7 +154,8 @@ export default class S300Wallet {
           if (remainLen <= 0xFF) {
             let apduHead = Buffer.from('8048020000', 'hex')
             apduHead[4] = remainLen
-            response = await this._sendApdu(Buffer.concat([apduHead, data]), true)
+            let offset = data.length - remainLen
+            response = await this._sendApdu(Buffer.concat([apduHead, data.slice(offset, data.length)]), true)
             break
           } else if (remainLen === data.length) {
             // first package
@@ -164,7 +165,7 @@ export default class S300Wallet {
             // middle package
             let apduHead = Buffer.from('80480000FF', 'hex')
             let offset = data.length - remainLen
-            await this._sendApdu(Buffer.concat([apduHead, data.slice(offset, offset + 0xFF), true]))
+            await this._sendApdu(Buffer.concat([apduHead, data.slice(offset, offset + 0xFF)]), true)
           }
           remainLen -= 0xFF
         }
