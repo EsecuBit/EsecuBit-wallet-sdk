@@ -112,6 +112,15 @@ export default class EosPeer extends ICoinNetwork {
         action.action_trace.act.authorization.actor === accountName ||
         Object.values(action.action_trace.act.data).includes(accountName))
 
+      // filter actions that it's the same
+      response.actions = response.actions.reduce((actions, action) => {
+        if (!actions.some(a =>
+          a.action_trace.receipt.act_digest === action.action_trace.receipt.act_digest)) {
+          actions.push(action)
+        }
+        return actions
+      }, [])
+
       actions.push(...response.actions)
       currentOffset += response.actions.length
 
