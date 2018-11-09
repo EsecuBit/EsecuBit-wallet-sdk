@@ -317,12 +317,7 @@ export default class EthAccount extends IAccount {
   async sendTx (signedTx, test = false) {
     // broadcast transaction to network
     console.log('sendTx', signedTx)
-<<<<<<< HEAD:src/sdk/EthAccount.js
-    if (!test) await this._coinData.sendTx(this._toAccountInfo(), signedTx.hex)
-    this._handleNewTx(signedTx.addressInfo, signedTx.txInfo, [])
-=======
     if (!test) await this._coinData.sendTx(this.coinType, signedTx.hex)
     await this._handleNewTx(signedTx.txInfo)
->>>>>>> develop:src/sdk/account/EthAccount.js
   }
 }
