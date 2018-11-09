@@ -1,8 +1,7 @@
 
 import chai from 'chai'
-import D from '../sdk/D'
-import EsWallet from '../sdk/EsWallet'
-import IndexedDB from '../sdk/data/database/IndexedDB'
+import D from '../../sdk/D'
+import EsWallet from '../../sdk/EsWallet'
 
 chai.should()
 describe('BtcAccount', function () {

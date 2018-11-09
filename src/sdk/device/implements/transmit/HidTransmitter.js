@@ -1,10 +1,10 @@
 
-import D from '../../D'
+import D from '../../../D'
 import MockDevice from './io/MockDevice'
 import JSEncrypt from './jsencrypt'
 import CryptoJS from 'crypto-js'
 import {Buffer} from 'buffer'
-import Provider from '../../Provider'
+import ChromeHidDevice from './io/ChromeHidDevice'
 
 const factoryPubKeyPem = '-----BEGIN PUBLIC KEY-----' +
   'MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC3IaEDmGWrsHA5rKC8VB++Gkw/' +
@@ -71,12 +71,11 @@ let des112 = (isEnc, data, key) => {
 }
 
 /**
- * Hardware apdu protocol
+ * Esecubit USB HID protocol
  */
 export default class HidTransmitter {
   constructor () {
-    const Device = Provider.getDevice()
-    this._device = new Device()
+    this._device = D.test.mockDevice ? new MockDevice() : new ChromeHidDevice()
     this._commKey = {
       sKey: null,
       generated: false
@@ -253,6 +252,9 @@ export default class HidTransmitter {
     console.log('finish hand shake')
   }
 
+  /**
+   * APDU encrypt & decrypt
+   */
   async sendApdu (apdu, isEnc = false) {
     let makeEncApdu = (apdu) => {
       let encryptedApdu = des112(true, apdu, this._commKey.sKey)
@@ -277,13 +279,13 @@ export default class HidTransmitter {
 
       let length = decResponse.length
       let result = (decResponse[length - 2] << 8) + decResponse[length - 1]
-      this._checkSw1Sw2(result)
+      HidTransmitter._checkSw1Sw2(result)
       return decResponse.slice(0, -2)
     }
 
     // a simple lock to guarantee apdu order
     while (this.busy) {
-      await D.wait(5)
+      await D.wait(10)
     }
     this.busy = true
 
@@ -310,12 +312,16 @@ export default class HidTransmitter {
       console.log('got response', response.toString('hex'), 'isEnc', isEnc)
       return response
     } catch (e) {
+      console.warn('HidTransmitter sendApdu failed', e)
       throw e
     } finally {
       this.busy = false
     }
   }
 
+  /**
+   * APDU special response handling
+   */
   async _sendApdu (apdu) {
     let {result, response} = await this._transmit(apdu)
 
@@ -323,7 +329,6 @@ export default class HidTransmitter {
     while (result === 0x6AA6) {
       console.debug('got 0xE0616AA6, resend apdu')
       let {_result, _response} = await this._transmit(Buffer.from('00A6000008'), 'hex')
-      response = Buffer.concat([response, _response])
       result = _result
       response = _response
     }
@@ -333,21 +338,18 @@ export default class HidTransmitter {
       console.debug('got 0x61XX, get remain data')
       let rApdu = Buffer.from('00C0000000', 'hex')
       rApdu[0x04] = result & 0xFF
-      let {_result, _response} = await this._transmit(rApdu)
-      response = Buffer.concat([response, _response])
-      result = _result
+      let ret = await this._transmit(rApdu)
+      response = Buffer.concat([response, ret.response])
+      result = ret.result
     }
-    this._checkSw1Sw2(result)
+    HidTransmitter._checkSw1Sw2(result)
 
     return response
   }
 
-  // noinspection JSMethodCanBeStatic
-  _checkSw1Sw2 (sw1sw2) {
-    let errorCode = D.error.checkSw1Sw2(sw1sw2)
-    if (errorCode !== D.error.succeed) throw errorCode
-  }
-
+  /**
+   * HID command pack & unpack
+   */
   async _transmit (apdu) {
     if (typeof apdu === 'string') {
       apdu = Buffer.from(apdu, 'hex')
@@ -472,5 +474,10 @@ export default class HidTransmitter {
     let response = unpackHidCmd(received)
     console.debug('transmit got response', response.result.toString(16), response.response.toString('hex'))
     return response
+  }
+
+  static _checkSw1Sw2 (sw1sw2) {
+    let errorCode = D.error.checkSw1Sw2(sw1sw2)
+    if (errorCode !== D.error.succeed) throw errorCode
   }
 }

@@ -36,8 +36,7 @@ export default class CoinData {
     console.log('walletInfo', info)
     try {
       // db
-      const DB = Provider.getDB()
-      this._db = new DB(info.walletId)
+      this._db = new Provider.DB(info.walletId)
       await this._db.init()
 
       // network
@@ -130,19 +129,28 @@ export default class CoinData {
     this._listeners = this._listeners.filter(listener => listener !== callback)
   }
 
+  /**
+   * Get network API providers.
+   */
   getProviders () {
     let providers = {}
     D.supportedCoinTypes().forEach(coin => {
       providers[coin] = {}
     })
     Object.values(this._network).forEach(network => {
-      providers[network.coinType]['network'] = network.provider
+      if (network.provider) {
+        providers[network.coinType]['network'] = network.provider
+      }
     })
     Object.values(this._networkFee).forEach(fee => {
-      providers[fee.coinType]['fee'] = fee.provider
+      if (fee.provider) {
+        providers[fee.coinType]['fee'] = fee.provider
+      }
     })
     Object.values(this._exchange).forEach(exchange => {
-      providers[exchange.coinType]['exchange'] = exchange.provider
+      if (exchange.provider) {
+        providers[exchange.coinType]['exchange'] = exchange.provider
+      }
     })
     return providers
   }
@@ -300,8 +308,17 @@ export default class CoinData {
     return this._network[coinType].removeListener(callback)
   }
 
-  async sendTx (account, rawTx) {
-    await this._network[account.coinType].sendTx(rawTx)
+  async sendTx (coinType, rawTx) {
+    await this._network[coinType].sendTx(rawTx)
+  }
+
+  /**
+   * Expose blockchain API to IAccount for specific API.
+   * @param coinType
+   * @returns ICoinNetwork
+   */
+  getProvider (coinType) {
+    return this._network[coinType]
   }
 
   getSuggestedFee (coinType) {

@@ -99,11 +99,11 @@ export default class Fat {
       let block = await this._fatCache.readBlock(blockNum)
       let fileAttr = Fat._dataToFileAttr(block)
       if (fileAttr.fileName === fileName) {
-        console.log('findFile succeed', fileName, fileAttr)
+        console.debug('findFile succeed', fileName, fileAttr)
         return fileAttr
       }
     }
-    console.info('findFile failed', fileName)
+    console.debug('findFile failed', fileName)
     return null
   }
 
@@ -121,7 +121,7 @@ export default class Fat {
       blockNums.push(nextBlockNum)
       nextBlockNum = this._fatCache.nextBlockNum(nextBlockNum)
     }
-    console.info('_getFileOccupiedBlocks', fileAttr, blockNums)
+    console.debug('_getFileOccupiedBlocks', fileAttr, blockNums)
     return blockNums
   }
 
@@ -155,15 +155,15 @@ export default class Fat {
     let needBlockLen = Math.ceil((fileAttrSize + fileName.length + fileSize) / this._fatCache.blockSize)
     // let file size be the times of 2 * blockSize, to make fat less fragment
     needBlockLen += needBlockLen % 2
-    console.info('needBlockLen', needBlockLen, fileAttrSize + fileName.length, fileSize)
+    console.debug('needBlockLen', needBlockLen, fileAttrSize + fileName.length, fileSize)
     if (resize) {
       let oldBlocks = this._getFileOccupiedBlocks(oldFileAttr)
       let oldBlockLen = oldBlocks.length
       if (needBlockLen <= oldBlockLen) {
-        console.info('no need to enlarge fat file occupied space', oldFileAttr, oldBlockLen, needBlockLen)
+        console.debug('no need to enlarge fat file occupied space', oldFileAttr, oldBlockLen, needBlockLen)
         needBlockLen = 0
       } else {
-        console.info(`enlarge fat file occupied space from ${oldBlockLen} to ${needBlockLen}`, oldFileAttr)
+        console.debug(`enlarge fat file occupied space from ${oldBlockLen} to ${needBlockLen}`, oldFileAttr)
         needBlockLen -= oldBlockLen
       }
     }
@@ -219,7 +219,7 @@ export default class Fat {
     await this._fatCache.setUsedBlocks(willUsedBlocks, prevBlockNum)
 
     await this._fatCache.writeBlock(firstBlock, fileAttrData)
-    console.info(`${resize ? 'resizeFile' : 'createFile'} ${fileName} with blocks [${willUsedBlocks}]`)
+    console.debug(`${resize ? 'resizeFile' : 'createFile'} ${fileName} with blocks [${willUsedBlocks}]`)
 
     return fileAttr
   }
@@ -264,7 +264,7 @@ export default class Fat {
       throw D.error.fatInvalidFile
     }
 
-    console.info('processing blockNums', offset, length, fileAttr)
+    console.debug('processing blockNums', offset, length, fileAttr)
     return {startOffset, blockNums}
   }
 

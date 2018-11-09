@@ -1,4 +1,4 @@
-import D from './D'
+import D from '../D'
 
 /**
  * device has limit of apdu data length = 2k, support up to 45 inputs + 2 outputs
@@ -49,7 +49,7 @@ function selectCoinSet (utxos, presetUtxos, outputs, feeRate, sendAll) {
   }
 
   utxos = utxos.slice(0, maxInputSize)
-  outputs.forEach(output => output.value = 0)
+  outputs.forEach(output => { output.value = 0 })
   let proposalLimit = _coinSelectClassic(utxos, presetUtxos, outputs, feeRate, true)
   proposalLimit.deviceLimit = true
   return proposalLimit

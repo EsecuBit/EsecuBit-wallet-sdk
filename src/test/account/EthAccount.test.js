@@ -1,7 +1,7 @@
 
 import chai from 'chai'
-import D from '../sdk/D'
-import EsWallet from '../sdk/EsWallet'
+import D from '../../sdk/D'
+import EsWallet from '../../sdk/EsWallet'
 
 chai.should()
 describe('EthAccount', function () {

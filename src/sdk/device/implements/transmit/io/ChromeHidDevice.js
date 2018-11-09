@@ -9,16 +9,18 @@
 /** @namespace chrome.hid.sendFeatureReport */
 /** @namespace chrome.hid.receiveFeatureReport */
 
-import D from '../../../D'
-import IEsDevice from './IEsDevice'
+import D from '../../../../D'
 import {Buffer} from 'buffer'
 
-export default class ChromeHidDevice extends IEsDevice {
+const compatibleDevices = [
+  {vid: 0x1ea8, pid: 0xc036}
+]
+
+export default class ChromeHidDevice {
   constructor () {
-    super()
     this._deviceId = null
     this._connectionId = null
-    this._listener = null
+    this._listener = () => {}
 
     if (!chrome || !chrome.hid) {
       console.warn('chrome.hid not in chrome app env, exit')
@@ -30,29 +32,33 @@ export default class ChromeHidDevice extends IEsDevice {
         if (chrome.runtime.lastError) {
           console.warn('chrome.hid.connect error: ' + chrome.runtime.lastError.message)
           this._deviceId = null
-          this._listener && D.dispatch(() => this._listener(D.error.deviceConnectFailed, D.status.plugIn))
+          D.dispatch(() => this._listener(D.error.deviceConnectFailed, D.status.plugIn))
           return
         }
 
         this._connectionId = connection.connectionId
         console.log('Connected to the HID device!', this._deviceId, this._connectionId)
-        this._listener && D.dispatch(() => this._listener(D.error.succeed, D.status.plugIn))
+        D.dispatch(() => this._listener(D.error.succeed, D.status.plugIn))
       })
     }
 
     chrome.hid.onDeviceAdded.addListener(device => {
-      console.log('plug in vid=' + device.vendorId + ', pid=' + device.productId)
+      console.log('hid plug in vid=' + device.vendorId + ', pid=' + device.productId)
+      if (!compatibleDevices.find(d => d.vid === device.vendorId && d.pid === device.productId)) {
+        console.log('hid not compatible device, ignore')
+        return
+      }
       if (this._deviceId) return
       this._deviceId = device.deviceId
       connect()
     })
 
     chrome.hid.onDeviceRemoved.addListener(deviceId => {
-      console.log('plug out', deviceId)
+      console.log('hid plug out', deviceId)
       if (this._deviceId !== deviceId) return
       this._deviceId = null
       this._connectionId = null
-      this._listener && D.dispatch(() => this._listener(D.error.succeed, D.status.plugOut))
+      D.dispatch(() => this._listener(D.error.succeed, D.status.plugOut))
     })
 
     chrome.hid.getDevices({}, foundDevices => {
@@ -64,7 +70,11 @@ export default class ChromeHidDevice extends IEsDevice {
       if (this._deviceId) return
       if (foundDevices.length === 0) return
       let device = foundDevices[0]
-      console.log('found device: vid=' + device.vendorId + ', pid=' + device.productId)
+      console.log('hid found device: vid=' + device.vendorId + ', pid=' + device.productId)
+      if (!compatibleDevices.find(d => d.vid === device.vendorId && d.pid === device.productId)) {
+        console.log('hid not compatible device, ignore')
+        return
+      }
       this._deviceId = device.deviceId
       connect(device)
     })
@@ -110,7 +120,7 @@ export default class ChromeHidDevice extends IEsDevice {
   }
 
   listenPlug (callback) {
-    this._listener = callback
+    this._listener = callback || this._listener
     if (this._deviceId !== null && this._connectionId !== null) {
       D.dispatch(() => this._listener(D.error.succeed, D.status.plugIn))
     }

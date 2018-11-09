@@ -1,24 +1,29 @@
-import D from './D'
 import IndexedDB from './data/database/IndexedDB'
-import JSWallet from './device/JsWallet'
-import CoreWallet from './device/CoreWallet'
-import HidTransmitter from './device/transmit/HidTransmitter'
-import _MockTransmitter from './device/transmit/MockTransmitter'
-import ChromeHidDevice from './device/transmit/io/ChromeHidDevice'
-import _MockDevice from './device/transmit/io/MockDevice'
+
+import JSWallet from './device/implements/JsWallet'
+import NetBankWallet from './device/implements/NetBankWallet'
+import S300Wallet from './device/implements/S300Wallet'
+
+import JsTransmitter from './device/implements/transmit/JsTransmitter'
+import MockTransmitter from './device/implements/transmit/MockTransmitter'
+import HidTransmitter from './device/implements/transmit/HidTransmitter'
+import CcidTransmitter from './device/implements/transmit/CcidTransmitter'
 
 const Provider = {
-  getDB () { return this.DB },
-  getWallet () { return D.test.jsWallet ? this.SoftWallet : this.HardWallet },
-  getTransmitter () { return D.test.mockTransmitter ? this.MockTransmitter : this.HardTransmitter },
-  getDevice () { return D.test.mockDevice ? this.MockDevice : this.HardDevice },
+  Transmitters: [
+    JsTransmitter,
+    MockTransmitter,
+    CcidTransmitter,
+    HidTransmitter
+  ],
 
-  DB: IndexedDB,
-  SoftWallet: JSWallet,
-  HardWallet: CoreWallet,
-  MockTransmitter: _MockTransmitter,
-  HardTransmitter: HidTransmitter,
-  MockDevice: _MockDevice,
-  HardDevice: ChromeHidDevice
+  Wallets: [
+    JSWallet,
+    S300Wallet,
+    NetBankWallet
+  ],
+
+  DB: IndexedDB
 }
+
 export default Provider

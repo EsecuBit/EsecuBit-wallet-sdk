@@ -1,8 +1,8 @@
 
 import D from '../../../sdk/D'
 import chai from 'chai'
-import FatApi from '../../../sdk/device/fat/FatApi'
-import MockTransmitter from '../../../sdk/device/transmit/MockTransmitter'
+import FatApi from '../../../sdk/device/implements/fat/FatApi'
+import MockTransmitter from '../../../sdk/device/implements/transmit/MockTransmitter'
 
 chai.should()
 describe('FatApi', function () {

@@ -1,9 +1,8 @@
 
-import D from '../../../D'
-import IEsDevice from './IEsDevice'
+import D from '../../../../D'
 import {Buffer} from 'buffer'
 
-export default class MockDevice extends IEsDevice {
+export default class MockDevice {
   listenPlug (callback) {
     D.dispatch(() => callback(D.error.succeed, D.status.plugIn))
   }

@@ -1,4 +1,5 @@
 import Provider from './Provider'
+import D from './D'
 
 /**
  * Settings for Application.
@@ -12,23 +13,38 @@ export default class Settings {
   }
 
   async _init () {
-    const DB = Provider.getDB()
-    let db = new DB('default')
+    let db = new Provider.DB('default')
     await db.init()
     this._settingDb = db
   }
 
-  async getSetting (key) {
+  async getSetting (key, namespace = undefined) {
     if (!this._settingDb) {
       await this._init()
     }
-    return this._settingDb.getSettings(key)
+    if (namespace) key = key + '_' + namespace
+    let value = await this._settingDb.getSettings(key)
+    return (value && JSON.parse(value)) || undefined
   }
 
-  async setSetting (key, value) {
+  async setSetting (key, value, namespace = undefined) {
     if (!this._settingDb) {
       await this._init()
     }
-    await this._settingDb.saveOrUpdateSettings(key, value)
+    if (namespace) key = key + '_' + namespace
+    await this._settingDb.saveOrUpdateSettings(key, JSON.stringify(value))
+  }
+
+  async getTestSeed () {
+    let testSeed = await new Settings().getSetting('testSeed')
+    if (!testSeed) {
+      testSeed = D.test.generateSeed()
+      await this.setTestSeed(testSeed)
+    }
+    return testSeed
+  }
+
+  async setTestSeed (testSeed) {
+    await new Settings().setSetting('testSeed', testSeed)
   }
 }

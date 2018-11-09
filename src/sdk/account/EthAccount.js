@@ -1,116 +1,10 @@
 
-import D from './D'
+import D from '../D'
 import BigInteger from 'bigi'
+import IAccount from './IAccount'
 
-export default class EthAccount {
-  constructor (info, device, coinData) {
-    let assign = () => {
-      this.accountId = info.accountId
-      this.label = info.label
-      this.coinType = info.coinType
-      this.index = info.index
-      this.balance = info.balance
-      this.externalPublicKeyIndex = info.externalPublicKeyIndex
-      this.changePublicKeyIndex = info.changePublicKeyIndex
-    }
-    assign()
-    this._device = device
-    this._coinData = coinData
-    this._listenedTxs = []
-
-    this._txListener = async (error, txInfo, isLost = false) => {
-      if (error !== D.error.succeed) {
-        console.warn('EthAccount txListener', error)
-        return
-      }
-      console.log('newTransaction status', txInfo)
-
-      if (isLost) {
-        await this._handleRemovedTx(this.addressInfos[0], txInfo.txId)
-        return
-      }
-
-      let index = this.txInfos.findIndex(t => t.txId === txInfo.txId)
-      if (index === -1) {
-        console.warn('this should not happen, add it')
-        this.txInfos.push(txInfo)
-        index = this.txInfos.length - 1
-      } else {
-        // only update comfirmations, because txInfo may contains old gas(gasLimit, not gasUsed)
-        this.txInfos[index].confirmations = txInfo.confirmations
-      }
-      await this._handleNewTx(this.addressInfos[0], this.txInfos[index])
-    }
-
-    this._addressListener = async (error, addressInfo, txInfo, removedTxId) => {
-      if (error !== D.error.succeed) {
-        console.warn('EthAccount addressListener', error)
-        return
-      }
-      if (removedTxId) {
-        await this._handleRemovedTx(addressInfo, removedTxId)
-        return
-      }
-      await this._handleNewTx(addressInfo, txInfo)
-    }
-  }
-
-  async init () {
-    let accountId = this.accountId
-    this.addressInfos = await this._coinData.getAddressInfos({accountId})
-    this.txInfos = (await this._coinData.getTxInfos({accountId})).txInfos
-  }
-
-  async sync (firstSync = false, offlineMode = false) {
-    if (!offlineMode) await this._generateAddressIfNotExist()
-    // find out all the transactions
-    let blobs = await this._coinData.checkAddresses(this.coinType, this.addressInfos)
-    await Promise.all(blobs.map(blob => {
-      if (blob.removedTxId) {
-        return this._handleRemovedTx(blob.addressInfo, blob.removedTxId)
-      } else {
-        return this._handleNewTx(blob.addressInfo, blob.txInfo, blob.utxos)
-      }
-    }))
-
-    if (firstSync) {
-      this._coinData.listenAddresses(this.coinType, D.copy(this.addressInfos), this._addressListener)
-      this.txInfos
-        .filter(txInfo => txInfo.confirmations !== D.tx.confirmation.dropped)
-        .filter(txInfo => txInfo.confirmations < D.tx.getMatureConfirms(this.coinType))
-        .filter(txInfo => !this._listenedTxs.includes(txInfo.txId))
-        .forEach(txInfo => {
-          this._listenedTxs.push(txInfo.txId)
-          this._coinData.listenTx(this.coinType, D.copy(txInfo), this._txListener)
-        })
-    }
-  }
-
-  async delete () {
-    this._coinData.removeNetworkListener(this.coinType, this._txListener)
-    this._coinData.removeNetworkListener(this.coinType, this._addressListener)
-    await this._coinData.deleteAccount(this._toAccountInfo())
-  }
-
-  async rename (newName) {
-    newName = newName || this.label
-    let oldAccountInfo = this._toAccountInfo()
-    oldAccountInfo.label = newName
-    await this._coinData.renameAccount(oldAccountInfo)
-    this.label = newName
-  }
-
-  async updateTxComment (txInfo) {
-    let oldTxInfo = this.txInfos.find(t => (t.txId === txInfo.txId) && (t.accountId === txInfo.accountId))
-    if (!oldTxInfo) {
-      console.warn('this txInfo not in the list', txInfo)
-      throw D.error.unknown
-    }
-    await this._coinData.updateTxComment(txInfo)
-    oldTxInfo.comment = txInfo.comment
-  }
-
-  async _generateAddressIfNotExist () {
+export default class EthAccount extends IAccount {
+  async _checkAddressIndexAndGenerateNew () {
     if (this.addressInfos.length === 0) {
       let path = D.makeBip44Path(this.coinType, this.index, D.address.external, 0)
       let address = await this._device.getAddress(this.coinType, path)
@@ -125,16 +19,18 @@ export default class EthAccount {
       }
       this.addressInfos.push(addressInfo)
       this._coinData.newAddressInfos(this._toAccountInfo(), [addressInfo])
+      return [this.addressInfos]
     }
+    return []
   }
 
-  async _handleRemovedTx (addressInfo, removedTxId) {
+  async _handleRemovedTx (removedTxId) {
     console.warn('eth removed txId', removedTxId)
     // async operation may lead to disorder. so we need a simple lock
-    while (this.busy) {
+    while (this._busy) {
       await D.wait(2)
     }
-    this.busy = true
+    this._busy = true
 
     let removedTxInfo = this.txInfos.find(txInfo => txInfo.txId === removedTxId)
     if (!removedTxInfo) {
@@ -160,24 +56,18 @@ export default class EthAccount {
     this.balance = newBalance.toString(10)
 
     await this._coinData.removeTx(this._toAccountInfo(), D.copy([this.addressInfos[0]]), D.copy(removedTxInfo))
-    this.busy = false
+    this._busy = false
   }
 
-  /**
-   * handle when new transaction comes:
-   * 1. store/update new txInfo after filling "isMine" and "value" field
-   * 2. store utxo, addressInfo, txInfo
-   */
-  async _handleNewTx (addressInfo, txInfo) {
-    console.log('eth newTransaction', addressInfo, txInfo)
+  async _handleNewTx (txInfo) {
+    console.log('eth newTransaction', txInfo)
     // async operation may lead to disorder. so we need a simple lock
-    while (this.busy) {
+    while (this._busy) {
       await D.wait(2)
     }
-    this.busy = true
+    this._busy = true
 
     txInfo = D.copy(txInfo)
-    addressInfo = D.copy(addressInfo)
     txInfo.inputs.forEach(input => {
       input['isMine'] = this.addressInfos.some(a => a.address.toLowerCase() === input.prevAddress.toLowerCase())
     })
@@ -208,7 +98,9 @@ export default class EthAccount {
       txInfo.comment = this.txInfos[index].comment
       this.txInfos[index] = txInfo
     }
-    this.addressInfos.find(a => a.address === addressInfo.address).txs = D.copy(addressInfo.txs)
+    if (!this.addressInfos[0].txs.includes(txInfo.txId)) {
+      this.addressInfos[0].txs.push(txInfo.txId)
+    }
 
     // can't use BigInteger.ZERO here, addTo, subTo will modify the value of BigInteger.ZERO
     let newBalance = new BigInteger()
@@ -223,7 +115,7 @@ export default class EthAccount {
       })
     this.balance = newBalance.toString(10)
 
-    await this._coinData.newTx(this._toAccountInfo(), D.copy([addressInfo]), D.copy(txInfo), [])
+    await this._coinData.newTx(this._toAccountInfo(), D.copy([this.addressInfos[0]]), D.copy(txInfo), [])
 
     if (txInfo.confirmations !== D.tx.confirmation.dropped &&
       txInfo.confirmations < D.tx.getMatureConfirms(this.coinType) &&
@@ -232,28 +124,11 @@ export default class EthAccount {
       this._coinData.listenTx(this.coinType, D.copy(txInfo), this._txListener)
     }
 
-    this.busy = false
-  }
-
-  _toAccountInfo () {
-    return {
-      accountId: this.accountId,
-      label: this.label,
-      coinType: this.coinType,
-      index: this.index,
-      balance: this.balance,
-      externalPublicKeyIndex: this.externalPublicKeyIndex,
-      changePublicKeyIndex: this.changePublicKeyIndex
-    }
-  }
-
-  getTxInfos (startIndex, endIndex) {
-    let accountId = this.accountId
-    return this._coinData.getTxInfos({accountId, startIndex, endIndex})
+    this._busy = false
   }
 
   async getAddress (isStoring = false) {
-    await this._generateAddressIfNotExist()
+    await this._checkAddressIndexAndGenerateNew()
     let path = D.makeBip44Path(this.coinType, this.index, D.address.external, 0)
     let address = await this._device.getAddress(this.coinType, path, true, isStoring)
     address = D.address.toEthChecksumAddress(address)
@@ -261,41 +136,32 @@ export default class EthAccount {
     return {address: address, qrAddress: prefix + address}
   }
 
-  getSuggestedFee () {
-    return this._coinData.getSuggestedFee(this.coinType).fee
-  }
-
-  // noinspection JSMethodCanBeStatic
-  checkAddress (address) {
-    return D.address.checkEthAddress(address)
-  }
-
   /**
    *
    * @param details
    * {
    *   sendAll: bool,
-   *   oldTxId: string, // resend only
+   *   oldTxId: hex string, // resend only
    *   output: {
    *     address: hex string,
-   *     value: string (decimal string Wei)
+   *     value: decimal integer string integer (Wei)
    *   }
-   *   gasPrice: string (=gasPrice, decimal string Wei),
-   *   gasLimit: string (decimal string Wei),
-   *   data: hex string (optional),
+   *   gasPrice: decimal integer string (Wei),
+   *   gasLimit: decimal integer string (Wei),
+   *   data: （0x) hex string (optional),
    *   comment: string (optional)
    * }
    * @returns {Promise<{total: *, fee: number, gasPrice: string, gasLimit: string, nonce: number, input: *, output: *, data: string}>}
    * {
-   *   total: string (decimal string Wei)
-   *   fee: string (decimal string Wei)
-   *   gasPrice: string (decimal string Wei)
-   *   gasLimit: string (decimal string Wei)
-   *   nonce: string
+   *   total: decimal integer string (Wei)
+   *   fee: decimal integer string (Wei)
+   *   gasPrice: decimal integer string (Wei)
+   *   gasLimit: decimal integer string ( Wei)
+   *   nonce: decimal integer string
    *   intput: addressInfo
    *   output: {
    *     address: hex string,
-   *     value: string (decimal string Wei)
+   *     value: string (decimal integer string Wei)
    *   }
    *   data: hex string
    * }
@@ -451,7 +317,12 @@ export default class EthAccount {
   async sendTx (signedTx, test = false) {
     // broadcast transaction to network
     console.log('sendTx', signedTx)
+<<<<<<< HEAD:src/sdk/EthAccount.js
     if (!test) await this._coinData.sendTx(this._toAccountInfo(), signedTx.hex)
     this._handleNewTx(signedTx.addressInfo, signedTx.txInfo, [])
+=======
+    if (!test) await this._coinData.sendTx(this.coinType, signedTx.hex)
+    await this._handleNewTx(signedTx.txInfo)
+>>>>>>> develop:src/sdk/account/EthAccount.js
   }
 }

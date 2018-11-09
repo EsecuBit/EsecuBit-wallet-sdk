@@ -4,13 +4,12 @@ import D from '../../../sdk/D'
 import EtherScanIo from '../../../sdk/data/network/EtherScanIo'
 
 chai.should()
-describe('Network BlockChainInfo Bitcoin', function () {
+describe('Network EtherSacnIo Ethereum', function () {
   this.timeout(3000)
   const etherScanIo = new EtherScanIo(D.coin.test.ethRinkeby)
 
   it('init btcNetwork', async () => {
-    let response = await etherScanIo.init()
-    response.should.not.equal(undefined)
+    await etherScanIo.init()
   })
 
   it('query address', async () => {
