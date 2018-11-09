@@ -166,7 +166,7 @@ export default class EosPeer extends ICoinNetwork {
       txId: rTx.id,
       blockNumber: rTx.block_num,
       confirmations: this._blockHeight > rTx.block_num
-        ? D.tx.confirmation.excuted
+        ? D.tx.confirmation.executed
         : D.tx.confirmation.waiting, // see D.tx.confirmation
       time: EosPeer._getTimeStamp(rTx.block_time),
       actions: rTx.trx.trx.actions
@@ -178,7 +178,7 @@ export default class EosPeer extends ICoinNetwork {
       txId: rAction.action_trace.trx_id,
       blockNumber: rAction.block_num,
       confirmations: this._blockHeight > rAction.block_num
-        ? D.tx.confirmation.excuted
+        ? D.tx.confirmation.executed
         : D.tx.confirmation.waiting, // see D.tx.confirmation
       time: EosPeer._getTimeStamp(rAction.block_time),
       actions: [rAction.action_trace.act]

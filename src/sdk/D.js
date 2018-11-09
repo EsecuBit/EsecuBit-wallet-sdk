@@ -529,7 +529,7 @@ const D = {
       pending: -1,
       inMemory: 0,
       waiting: 0, // for eos
-      excuted: 1 // for eos
+      executed: 1 // for eos
     },
 
     getMatureConfirms (coinType) {
