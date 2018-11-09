@@ -19,11 +19,11 @@ export default class CoreWallet {
     for (let Transmitter of Provider.Transmitters) {
       let transmitter = new Transmitter()
       let plugInListener = (error, status) => {
-        if (!this._transmitter && status == D.status.plugOut) {
+        if (!this._transmitter && status === D.status.plugOut) {
           console.debug('other transmitter plug out, ignore', transmitter)
           return
         }
-        if (this._transmitter && status == D.status.plugIn) {
+        if (this._transmitter && status === D.status.plugIn) {
           console.debug('already a transmitter pluged in, ignore', transmitter)
           return
         }

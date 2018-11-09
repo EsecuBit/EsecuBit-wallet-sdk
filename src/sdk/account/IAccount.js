@@ -186,8 +186,7 @@ export default class IAccount {
   }
 
   async _getActiveAddressInfos () {
-    await this._checkAddressIndexAndGenerateNew()
-    return [this.addressInfos[this.externalPublicKeyIndex]]
+    return []
   }
 
   // noinspection JSMethodCanBeStatic
