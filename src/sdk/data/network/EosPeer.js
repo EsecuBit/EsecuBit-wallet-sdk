@@ -170,7 +170,7 @@ export default class EosPeer extends ICoinNetwork {
     let localDate = new Date(dateString)
     let localTime = localDate.getTime()
     let localOffset = localDate.getTimezoneOffset() * 60 * 1000
-    return Math.floor(new Date(localTime - localOffset).getTime() / 1000)
+    return new Date(localTime - localOffset).getTime()
   }
 
   async getIrreversibleBlockInfo () {
