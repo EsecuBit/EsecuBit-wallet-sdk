@@ -478,10 +478,10 @@ const D = {
         let indexes = D.address.path.parseString(path)
         let buffer = Buffer.allocUnsafe(indexes.length * 4)
         indexes.forEach((index, i) => {
-          buffer[4 * (i - 1)] = index >> 24
-          buffer[4 * (i - 1) + 1] = index >> 16
-          buffer[4 * (i - 1) + 2] = index >> 8
-          buffer[4 * (i - 1) + 3] = index
+          buffer[4 * i] = index >> 24
+          buffer[4 * i + 1] = index >> 16
+          buffer[4 * i + 2] = index >> 8
+          buffer[4 * i + 3] = index
         })
         return buffer
       },

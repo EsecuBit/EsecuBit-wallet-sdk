@@ -133,22 +133,30 @@ export default class EosAccount extends IAccount {
         pathIndexes: D.address.path.parseString(a.path)
       }
     })
-    let maxRegisteredPermissionIndex = permissionPaths
+    let maxRegPermissionIndex = permissionPaths
       .filter(path => path.registered)
-      .reduce((max, path) => Math.max(max, path[2]), 0x80000000 - 1)
-    maxRegisteredPermissionIndex -= 0x80000000
+      .reduce((max, path) => Math.max(max, path.pathIndexes[2]), 0x80000000 - 1)
+    maxRegPermissionIndex -= 0x80000000
 
-    let startPermissionIndex = maxRegisteredPermissionIndex + 1
+    let startPermissionIndex = maxRegPermissionIndex + 1
     let newAddressInfos = [] // permission info
-    for (let pIndex = startPermissionIndex; pIndex < startPermissionIndex + maxIndexThreshold; pIndex++) {
+    for (let pIndex = 0; pIndex < startPermissionIndex + maxIndexThreshold; pIndex++) {
       let subPath = D.address.path.makeSlip48Path(this.coinType, pIndex, this.index)
-      // path that has the same coinType(sure), permission, accountIndex(sure)
+      // filter paths that has the same coinType, permission, accountIndex
       let filteredPermissionPaths = permissionPaths.filter(path =>
-        subPath === D.address.path.makeSlip48Path(path.pathIndexes[0], path.pathIndexes[1], path.pathIndexes[2]))
+        subPath === D.address.path.makeSlip48Path(
+          path.pathIndexes[1] - 0x80000000,
+          path.pathIndexes[2] - 0x80000000,
+          path.pathIndexes[3] - 0x80000000))
+
       let maxKeyIndex = filteredPermissionPaths.reduce((max, path) => Math.max(max, path.index), -1)
+      let maxRegisteredKeyIndex = filteredPermissionPaths
+        .filter(path => path.registered)
+        .reduce((max, path) => Math.max(max, path.index), -1)
 
       let startKeyIndex = maxKeyIndex + 1
-      for (let j = startKeyIndex; j < startKeyIndex + maxIndexThreshold; j++) {
+      let startRegKeyIndex = maxRegisteredKeyIndex + 1
+      for (let j = startKeyIndex; j < startRegKeyIndex + maxIndexThreshold; j++) {
         let path = D.address.path.makeSlip48Path(this.coinType, pIndex, this.index, j)
         if (!filteredPermissionPaths.some(p => p.path === path)) {
           let publicKey = await this._device.getPublicKey(this.coinType, path)
@@ -190,7 +198,7 @@ export default class EosAccount extends IAccount {
    * Returns whether this EOS account is registered.
    */
   isRegistered () {
-    return this.permissions && this.permissions.length > 0
+    return this.permissions !== undefined && this.permissions.length > 0
   }
 
   /**
@@ -211,7 +219,7 @@ export default class EosAccount extends IAccount {
         parent: '',
         threshold: 1,
         keys: [{
-          publicKey: this._device.getPublicKey(this.coinType, "m/48'/4'/0'/0'/0'"), // slip-0048
+          publicKey: this._device.getPublicKey(this.coinType, "m/48'/4'/0'/0'/0'", true), // slip-0048
           weight: 1,
           path: "m/48'/4'/0'/0'/0'"
         }]
@@ -221,7 +229,7 @@ export default class EosAccount extends IAccount {
         parent: 'owner',
         threshold: 1,
         keys: [{
-          publicKey: this._device.getPublicKey(this.coinType, "m/48'/4'/1'/0'/0'"), // slip-0048
+          publicKey: this._device.getPublicKey(this.coinType, "m/48'/4'/1'/0'/0'", true), // slip-0048
           weight: 1,
           path: "m/48'/4'/1'/0'/0'"
         }]

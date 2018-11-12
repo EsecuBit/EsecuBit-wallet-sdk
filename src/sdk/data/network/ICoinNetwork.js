@@ -95,7 +95,7 @@ export default class ICoinNetwork {
     })
   }
 
-  post (url, args = '') {
+  post (url, args = '', type = 'application/x-www-form-urlencoded') {
     console.debug('post', url, args)
     return new Promise((resolve, reject) => {
       const xmlhttp = new XMLHttpRequest()
@@ -117,7 +117,7 @@ export default class ICoinNetwork {
         }
       }
       xmlhttp.open('POST', url, true)
-      xmlhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded')
+      xmlhttp.setRequestHeader('Content-type', type)
       xmlhttp.send(args)
     })
   }

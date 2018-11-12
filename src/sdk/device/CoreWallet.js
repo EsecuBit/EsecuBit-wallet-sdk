@@ -54,6 +54,7 @@ export default class CoreWallet {
       throw D.error.deviceNotInit
     }
 
+    let messages = []
     for (let Wallet of Provider.Wallets) {
       let wallet = new Wallet(this._transmitter)
       try {
@@ -61,10 +62,11 @@ export default class CoreWallet {
         this._wallet = wallet
         return walletInfo
       } catch (e) {
+        messages.push({wallet: wallet, error: e})
         // continue
       }
     }
-    console.warn('no suitable wallet found', this._transmitter, Provider.Wallets)
+    console.warn('no suitable wallet found, maybe wallet get error in init()', this._transmitter, messages)
     throw D.error.deviceProtocol
   }
 
