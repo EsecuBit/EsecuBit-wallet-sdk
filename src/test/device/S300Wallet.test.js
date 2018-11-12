@@ -5,6 +5,7 @@ import S300Wallet from '../../sdk/device/implements/S300Wallet'
 import ChromeUsbDevice from '../../sdk/device/implements/transmit/io/ChromeUsbDevice'
 import bitPony from 'bitpony'
 import chai from 'chai'
+import CcidTransmitter from '../../sdk/device/implements/transmit/CcidTransmitter'
 
 Provider.HardDevice = ChromeUsbDevice
 
@@ -13,25 +14,19 @@ describe('S300Wallet', function () {
   let s300Wallet
   this.timeout(600000)
 
-  before(async function () {
-    s300Wallet = new S300Wallet()
-  })
-
   it('listenPlug', function (done) {
-    s300Wallet.listenPlug((error, status) => {
+    let transmitter = new CcidTransmitter()
+    transmitter.listenPlug((error, status) => {
       error.should.equal(D.error.succeed)
       if (status === D.status.plugIn) {
+        s300Wallet = new S300Wallet(transmitter)
         done()
       }
     })
   })
 
   it('init', async function () {
-    await s300Wallet._transmitter.reset()
-  })
-
-  it('select by apdu', async () => {
-    await s300Wallet._sendApdu('00A4040006B00000000002', false)
+    await s300Wallet.init()
   })
 
   it('get address by apdu', async () => {
@@ -45,37 +40,37 @@ describe('S300Wallet', function () {
     D.address.checkBtcAddress(address)
   })
 
-  // it('sign by apdu', async () => {
-  //   let response = await s300Wallet._sendApdu((
-  //     '80480300ec' +
-  //     'c0 058000002c8000000080000000000000010000004c' +
-  //     'c1 058000002c80000000800000000000000100000047' +
-  //     'c2 00a5' +
-  //     '01000000' +
-  //     '02 1492e4929029fdcbeab72d37006033eb2de1347207d116c2b73c07180fe7da02 01000000 1976a9147ffc6a7703a711f970ba704e5c3dd1b45db7392388ac ffffffff' +
-  //     '   4e4884d6c5f6fcbc62b43dbeddbac32bf5b00b943ed619cffcfd0c5952536cc1 01000000 00 ffffffff' +
-  //     '02 00e1f50500000000 1976a9140db798fb2450a5225bd3ac8805df8104caf3deef88ac' +
-  //     '   2ab6310000000000 1976a914c66ca0d5afb30f1b44e94acbfa9c6f5d3f7c2efd88ac' +
-  //     '00000000' +
-  //     '01000000').replace(/ /g, ''), true)
-  //   console.log('sign by apdu', response.toString('hex'))
-  //   response.should.not.equal(undefined)
-  //
-  //   response = await s300Wallet._sendApdu((
-  //     '80480300ec' +
-  //     'c0 058000002c8000000080000000000000010000004c' +
-  //     'c1 058000002c80000000800000000000000100000047' +
-  //     'c2 00a5' +
-  //     '01000000' +
-  //     '02 1492e4929029fdcbeab72d37006033eb2de1347207d116c2b73c07180fe7da02 01000000 00 ffffffff' +
-  //     '   4e4884d6c5f6fcbc62b43dbeddbac32bf5b00b943ed619cffcfd0c5952536cc1 01000000 1976a9147ffc6a7703a711f970ba704e5c3dd1b45db7392388ac ffffffff' +
-  //     '02 00e1f50500000000 1976a9140db798fb2450a5225bd3ac8805df8104caf3deef88ac' +
-  //     '   2ab6310000000000 1976a914c66ca0d5afb30f1b44e94acbfa9c6f5d3f7c2efd88ac' +
-  //     '00000000' +
-  //     '01000000').replace(/ /g, ''), true)
-  //   console.log('sign by apdu', response.toString('hex'))
-  //   response.should.not.equal(undefined)
-  // })
+  it('sign by apdu', async () => {
+    let response = await s300Wallet._sendApdu((
+      '80480300ec' +
+      'c0 058000002c8000000080000000000000010000004c' +
+      'c1 058000002c80000000800000000000000100000047' +
+      'c2 00bd' +
+      '01000000' +
+      '02 1492e4929029fdcbeab72d37006033eb2de1347207d116c2b73c07180fe7da02 01000000 1976a9147ffc6a7703a711f970ba704e5c3dd1b45db7392388ac ffffffff' +
+      '   4e4884d6c5f6fcbc62b43dbeddbac32bf5b00b943ed619cffcfd0c5952536cc1 01000000 00 ffffffff' +
+      '02 00e1f50500000000 1976a9140db798fb2450a5225bd3ac8805df8104caf3deef88ac' +
+      '   2ab6310000000000 1976a914c66ca0d5afb30f1b44e94acbfa9c6f5d3f7c2efd88ac' +
+      '00000000' +
+      '01000000').replace(/ /g, ''), true)
+    console.log('sign by apdu', response.toString('hex'))
+    response.should.not.equal(undefined)
+
+    response = await s300Wallet._sendApdu((
+      '80480300ec' +
+      'c0 058000002c8000000080000000000000010000004c' +
+      'c1 058000002c80000000800000000000000100000047' +
+      'c2 00bd' +
+      '01000000' +
+      '02 1492e4929029fdcbeab72d37006033eb2de1347207d116c2b73c07180fe7da02 01000000 00 ffffffff' +
+      '   4e4884d6c5f6fcbc62b43dbeddbac32bf5b00b943ed619cffcfd0c5952536cc1 01000000 1976a9147ffc6a7703a711f970ba704e5c3dd1b45db7392388ac ffffffff' +
+      '02 00e1f50500000000 1976a9140db798fb2450a5225bd3ac8805df8104caf3deef88ac' +
+      '   2ab6310000000000 1976a914c66ca0d5afb30f1b44e94acbfa9c6f5d3f7c2efd88ac' +
+      '00000000' +
+      '01000000').replace(/ /g, ''), true)
+    console.log('sign by apdu', response.toString('hex'))
+    response.should.not.equal(undefined)
+  })
 
   it('sign bitcoin', async () => {
     let changeAddress = await s300Wallet.getAddress(D.coin.main.btc, "m/44'/0'/0'/1/0", false)
