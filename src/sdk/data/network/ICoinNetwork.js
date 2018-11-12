@@ -62,6 +62,11 @@ export default class ICoinNetwork {
     setTimeout(blockHeightRequest, 0)
   }
 
+  async sync () {
+    this._blockHeight = await this.getBlockHeight()
+    console.log('sync CoinNetwork', this.provider, this._blockHeight)
+  }
+
   // noinspection JSUnusedGlobalSymbols
   async release () {
     this._startQueue = false
@@ -364,4 +369,3 @@ export default class ICoinNetwork {
     throw D.error.notImplemented
   }
 }
-ICoinNetwork.provider = 'undefined'

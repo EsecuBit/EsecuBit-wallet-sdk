@@ -170,6 +170,7 @@ export default class EsWallet {
    * @private
    */
   async _sync () {
+    await this._coinData.sync()
     await Promise.all(this._esAccounts.map(esAccount => esAccount.sync(true, this.offlineMode)))
 
     let recoveryFinish = await this._settings.getSetting('recoveryFinish', this._info.walletId)

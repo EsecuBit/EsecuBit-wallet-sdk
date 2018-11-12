@@ -112,6 +112,10 @@ export default class CoinData {
     }
   }
 
+  async sync () {
+    await Promise.all(Object.values(this._network).map(network => network.sync()))
+  }
+
   async release () {
     this._listeners = []
     await Promise.all(Object.values(this._network).map(network => network.release()))

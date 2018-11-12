@@ -133,19 +133,11 @@ export default class EosPeer extends ICoinNetwork {
     return actions
   }
 
-  async getMaxActionSeq (address) {
+  getNextActionSeq (address) {
     if (this._maxActionSeq[address]) {
-      return this._maxActionSeq[address]
+      return this._maxActionSeq[address] + 1
     }
-
-    console.warn('getMaxActionSeq before queryActions, it\'s not effective')
-    await this.queryActions(address)
-
-    if (!this._maxActionSeq[address]) {
-      console.warn('unable to cache max account_action_seq, something went wrong..')
-      throw D.error.unknown
-    }
-    return this._maxActionSeq[address]
+    return 0
   }
 
   async queryTx (txId) {
@@ -189,7 +181,7 @@ export default class EosPeer extends ICoinNetwork {
     let localDate = new Date(dateString)
     let localTime = localDate.getTime()
     let localOffset = localDate.getTimezoneOffset() * 60 * 1000
-    return Math.floor(new Date(localTime - localOffset).getTime() / 1000)
+    return new Date(localTime - localOffset).getTime()
   }
 
   async getIrreversibleBlockInfo () {
