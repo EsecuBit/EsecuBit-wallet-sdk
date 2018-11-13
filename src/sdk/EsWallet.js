@@ -174,6 +174,7 @@ export default class EsWallet {
     await Promise.all(this._esAccounts.map(esAccount => esAccount.sync(true, this.offlineMode)))
 
     let recoveryFinish = await this._settings.getSetting('recoveryFinish', this._info.walletId)
+    recoveryFinish = recoveryFinish || false
     if (!recoveryFinish || this._esAccounts.length === 0) {
       if (this.offlineMode) throw D.error.offlineModeNotAllowed
       console.log('start recovery', recoveryFinish, this._esAccounts.length)

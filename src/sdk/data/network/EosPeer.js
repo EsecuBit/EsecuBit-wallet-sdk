@@ -188,7 +188,7 @@ export default class EosPeer extends ICoinNetwork {
     let response = await this.getBlockInfo()
     let refBlockNum = response.last_irreversible_block_num & 0xffff
     let refBlockPrefixHex = response.last_irreversible_block_id.slice(16, 24)
-    let refBlockPrefix = Buffer.from(refBlockPrefixHex, 'hex').readUInt32BE(0)
+    let refBlockPrefix = Buffer.from(refBlockPrefixHex, 'hex').readUInt32LE(0)
     return {
       lastIrreversibleBlockNum: response.last_irreversible_block_num,
       lastIrreversibleBlockId: response.last_irreversible_block_id,

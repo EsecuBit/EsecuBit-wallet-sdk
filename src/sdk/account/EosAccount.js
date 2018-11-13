@@ -420,8 +420,8 @@ export default class EosAccount extends IAccount {
   async buildTx (prepareTx) {
     if (!prepareTx.refBlockNum || !prepareTx.refBlockPrefix) {
       let blockInfo = await this._network.getIrreversibleBlockInfo()
-      prepareTx.refBlockNum = prepareTx.refBlockNum || blockInfo.ref_block_num
-      prepareTx.refBlockPrefix = prepareTx.refBlockPrefix || blockInfo.ref_block_prefix
+      prepareTx.refBlockNum = prepareTx.refBlockNum || blockInfo.refBlockNum
+      prepareTx.refBlockPrefix = prepareTx.refBlockPrefix || blockInfo.refBlockPrefix
     }
 
     let expiration = prepareTx.expirationAfter
