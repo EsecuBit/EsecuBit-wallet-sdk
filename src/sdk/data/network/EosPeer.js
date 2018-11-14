@@ -207,7 +207,7 @@ export default class EosPeer extends ICoinNetwork {
     let ret = await this.post(url, args)
 
     let accountInfo = {
-      balance: ret.core_liquid_balance,
+      balance: ret.core_liquid_balance.split(' ')[0],
       resources: {
         ram: {
           used: ret.ram_usage,
@@ -254,6 +254,7 @@ export default class EosPeer extends ICoinNetwork {
     let responses = await Promise.all(Object.values(tokens).map(token =>
       this._getTokenBalance(token.code, token.symbol, accountName)))
     responses.forEach(ret => {
+      if (!ret) return
       let symbol = ret.split(' ')[1]
       accountInfo.tokens[symbol].value = ret.split(' ')[0]
     })

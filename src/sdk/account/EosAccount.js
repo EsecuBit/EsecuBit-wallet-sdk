@@ -74,9 +74,11 @@ export default class EosAccount extends IAccount {
 
     this.tokens = this.tokens || {'EOS': {code: 'eosio.token', symbol: 'EOS'}}
     let newAccountInfo = await this._network.getAccountInfo(this.label, this.tokens)
+    console.info('EosAccount getAccountInfo', newAccountInfo)
     await this._updatePermissions(newAccountInfo.permissions)
     this.tokens = D.copy(newAccountInfo.tokens)
     this.resources = D.copy(newAccountInfo.resources)
+    this.balance = newAccountInfo.balance
 
     await this._coinData.updateAccount(this._toAccountInfo())
 
@@ -199,7 +201,7 @@ export default class EosAccount extends IAccount {
    * Returns whether this EOS account is registered.
    */
   isRegistered () {
-    return this.permissions !== undefined && this.permissions.length > 0
+    return this.addressInfos.some(a => a.registered)
   }
 
   /**
