@@ -133,7 +133,7 @@ export default class S300Wallet {
    */
   async signTransaction (coinType, tx) {
     let sign = async (path, changePath, msg) => {
-      // 8048 0X00 00XXXX C0 u1PathNum pu1Path C1 u1ChangePathNum pu1ChangePath C2 xxxx pu1Msg
+      // 8048 0X00 XX C0 u1PathNum pu1Path C1 u1ChangePathNum pu1ChangePath C2 xxxx pu1Msg
       let dataLength =
         2 + path.length +
         (changePath ? (2 + changePath.length) : 2) +

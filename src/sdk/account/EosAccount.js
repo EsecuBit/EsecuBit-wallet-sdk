@@ -222,7 +222,7 @@ export default class EosAccount extends IAccount {
         parent: '',
         threshold: 1,
         keys: [{
-          publicKey: this._device.getPublicKey(this.coinType, "m/48'/4'/0'/0'/0'", true), // slip-0048
+          publicKey: await this._device.getPublicKey(this.coinType, "m/48'/4'/0'/0'/0'", true), // slip-0048
           weight: 1,
           path: "m/48'/4'/0'/0'/0'"
         }]
@@ -232,7 +232,7 @@ export default class EosAccount extends IAccount {
         parent: 'owner',
         threshold: 1,
         keys: [{
-          publicKey: this._device.getPublicKey(this.coinType, "m/48'/4'/1'/0'/0'", true), // slip-0048
+          publicKey: await this._device.getPublicKey(this.coinType, "m/48'/4'/1'/0'/0'", true), // slip-0048
           weight: 1,
           path: "m/48'/4'/1'/0'/0'"
         }]
