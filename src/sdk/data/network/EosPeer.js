@@ -40,7 +40,7 @@ export default class EosPeer extends ICoinNetwork {
   }
 
   async post (url, args) {
-    let response = await super.post(url, args, 'application/json')
+    let response = await super.post(url, args)
     if (response.code) {
       console.warn('EosPeer post error', response)
       switch (response.error.code) {
