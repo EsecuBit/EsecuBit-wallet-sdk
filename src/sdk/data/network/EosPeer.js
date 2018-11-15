@@ -4,17 +4,17 @@ import D from '../../D'
 // jungle
 const jungle = {
   httpEndpoint: 'https://api.jungle.alohaeos.com:443/',
-  provider: 'api.jungle.alohaeos.com'
+  provider: 'api.jungle.alohaeos.com',
+  txUrl: 'https://eospark.com/MainNet/tx/'
 }
 
 // TODO configurable
 const main = {
   // httpEndpoint: 'http://api.hkeos.com:80/',
   httpEndpoint: 'https://eos.greymass.com/',
-  provider: 'eos.greymass.com'
+  provider: 'eos.greymass.com',
+  txUrl: 'https://eospark.com/Jungle/tx/'
 }
-
-const eosParkTxUrl = 'https://eospark.com/MainNet/tx/'
 
 export default class EosPeer extends ICoinNetwork {
   async init () {
@@ -24,16 +24,17 @@ export default class EosPeer extends ICoinNetwork {
       case D.coin.main.eos:
         this.provider = main.provider
         this._apiUrl = main.httpEndpoint
+        this._txUrl = main.txUrl
         break
       case D.coin.test.eosJungle:
         this.provider = jungle.provider
         this._apiUrl = jungle.httpEndpoint
+        this._txUrl = jungle.txUrl
         break
       default:
         console.warn('EosPeer don\'t support this coinType yet', this.coinType)
         throw D.error.coinNotSupported
     }
-    this._txUrl = eosParkTxUrl
     if (!this._apiUrl) throw D.error.coinNotSupported
     return super.init()
   }
