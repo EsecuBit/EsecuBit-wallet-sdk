@@ -3,8 +3,8 @@ import D from '../../D'
 
 // jungle
 const jungle = {
-  httpEndpoint: 'http://dev.cryptolions.io:38888/',
-  provider: 'dev.cryptolions.io'
+  httpEndpoint: 'https://api.jungle.alohaeos.com:443/',
+  provider: 'api.jungle.alohaeos.com'
 }
 
 // TODO configurable
@@ -101,7 +101,7 @@ export default class EosPeer extends ICoinNetwork {
     const defaultPageSize = 100
 
     let actions = []
-    let currentOffset = offset + 1
+    let currentOffset = offset
     this._maxActionSeq[accountName] = offset
     while (true) {
       const args = JSON.stringify({pos: currentOffset, offset: defaultPageSize, account_name: accountName})

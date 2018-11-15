@@ -140,10 +140,10 @@ export default class ICoinNetwork {
       blockHeightRequestPeriod = 60
       txIncludedRequestPeriod = 30
     } else if (D.isEth(this.coinType)) {
-      blockHeightRequestPeriod = 20
+      blockHeightRequestPeriod = 60
       txIncludedRequestPeriod = 5
     } else if (D.isEos(this.coinType)) {
-      blockHeightRequestPeriod = 20
+      blockHeightRequestPeriod = 60
       txIncludedRequestPeriod = 5
     } else {
       console.warn('getRequestPeroid no match coin period')
