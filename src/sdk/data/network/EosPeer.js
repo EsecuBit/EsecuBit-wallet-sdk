@@ -207,8 +207,9 @@ export default class EosPeer extends ICoinNetwork {
     let args = JSON.stringify({account_name: accountName})
     let ret = await this.post(url, args)
 
+    let balance = (ret.core_liquid_balance && ret.core_liquid_balance.split(' ')[0]) || '0.0000'
     let accountInfo = {
-      balance: ret.core_liquid_balance.split(' ')[0],
+      balance: balance,
       resources: {
         ram: {
           used: ret.ram_usage,
