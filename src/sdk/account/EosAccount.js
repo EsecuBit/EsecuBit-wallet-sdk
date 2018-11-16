@@ -25,23 +25,229 @@ const txType = {
   tokenTransfer: 'tokenTransfer'
 }
 
+const maxIndexThreshold = 5
+
 export default class EosAccount extends IAccount {
+  constructor (info, device, coinData) {
+    super(info, device, coinData)
+    this._network = this._coinData.getNetwork(this.coinType)
+    if (!this._network) {
+      console.warn('EosAccount CoinData not support this network', this.coinType)
+      throw D.error.invalidParams
+    }
+  }
+
+  async sync (firstSync = false, offlineMode = false) {
+    if (!offlineMode) {
+      await this._checkPermissionAndGenerateNew()
+    }
+
+    if (!this.isRegistered()) {
+      console.log('EosAccount not registered, check owner publickey')
+
+      // slip-0048 recovery
+      let i = 0
+      for (; i < maxIndexThreshold; i++) {
+        let path = D.address.path.makeSlip48Path(this.coinType, 0, this.index, i)
+        let ownerInfo = this.addressInfos.find(a => a.path === path)
+        if (!ownerInfo) {
+          console.warn('account have no permission info in storage, most likely it is in offlineMode, exit')
+          return
+        }
+        let accounts = await this._network.getAccountByPubKey(ownerInfo.publicKey)
+        if (!accounts || accounts.length === 0) {
+          console.info('EosAccount specific path not registered', ownerInfo)
+        } else {
+          // choose the first account if this key matches multi accounts
+          // set the label as account name
+          this.label = accounts[0]
+          break
+        }
+        // slow down the request speed
+        await D.wait(200)
+      }
+      if (i === maxIndexThreshold) {
+        console.warn('this EosAccount has not been registered, exit')
+        return
+      }
+    }
+
+    this.tokens = this.tokens || {'EOS': {code: 'eosio.token', symbol: 'EOS'}}
+    let newAccountInfo = await this._network.getAccountInfo(this.label, this.tokens)
+    console.info('EosAccount getAccountInfo', newAccountInfo)
+    await this._updatePermissions(newAccountInfo.permissions)
+    this.tokens = D.copy(newAccountInfo.tokens)
+    this.resources = D.copy(newAccountInfo.resources)
+    this.balance = newAccountInfo.balance
+
+    await this._coinData.updateAccount(this._toAccountInfo())
+
+    let txs = await this._network.queryAddress(this.label, this.queryOffset)
+    this.queryOffset = this._network.getNextActionSeq(this.label)
+    txs.filter(tx => !this.txInfos.some(t => t.txId === tx.txId))
+    for (let tx of txs) {
+      tx.accountId = this.accountId
+      tx.coinType = this.coinType
+      tx.comment = ''
+      await this._handleNewTx(tx)
+    }
+  }
+
+  async _updatePermissions (permissions) {
+    let updatedAddressInfos = []
+    let needCheck = true
+    while (needCheck) {
+      for (let permission of Object.values(permissions)) {
+        for (let pKey of permission.pKeys) {
+          let relativeInfo = this.addressInfos.find(a => pKey.publicKey === a.publicKey)
+          if (!relativeInfo) {
+            console.warn('publicKey not found in class', pKey)
+            continue
+          }
+          if (!relativeInfo.address ||
+            !relativeInfo.registered ||
+            relativeInfo.type !== permission.name ||
+            relativeInfo.parent !== permission.parent ||
+            relativeInfo.threshold !== permission.threshold ||
+            relativeInfo.weight !== pKey.weight) {
+            console.log('update permission info', relativeInfo, pKey)
+            relativeInfo.address = this.label
+            relativeInfo.registered = true
+            relativeInfo.type = permission.name
+            relativeInfo.parent = permission.parent
+            relativeInfo.threshold = permission.threshold
+            relativeInfo.weight = pKey.weight
+            updatedAddressInfos.push(relativeInfo)
+          }
+        }
+      }
+      needCheck = (await this._checkPermissionAndGenerateNew()).length > 0
+    }
+    await this._coinData.updateAddressInfos(updatedAddressInfos)
+  }
+
+  async _checkPermissionAndGenerateNew () {
+    // see slip-0048 recovery
+    let permissionPaths = this.addressInfos.map(a => {
+      return {
+        registered: a.registered,
+        path: a.path,
+        index: a.index,
+        pathIndexes: D.address.path.parseString(a.path)
+      }
+    })
+    let maxRegPermissionIndex = permissionPaths
+      .filter(path => path.registered)
+      .reduce((max, path) => Math.max(max, path.pathIndexes[2]), 0x80000000 - 1)
+    maxRegPermissionIndex -= 0x80000000
+
+    let startPermissionIndex = maxRegPermissionIndex + 1
+    let newAddressInfos = [] // permission info
+    for (let pIndex = 0; pIndex < startPermissionIndex + maxIndexThreshold; pIndex++) {
+      let subPath = D.address.path.makeSlip48Path(this.coinType, pIndex, this.index)
+      // filter paths that has the same coinType, permission, accountIndex
+      let filteredPermissionPaths = permissionPaths.filter(path =>
+        subPath === D.address.path.makeSlip48Path(
+          path.pathIndexes[1] - 0x80000000,
+          path.pathIndexes[2] - 0x80000000,
+          path.pathIndexes[3] - 0x80000000))
+
+      let maxKeyIndex = filteredPermissionPaths.reduce((max, path) => Math.max(max, path.index), -1)
+      let maxRegisteredKeyIndex = filteredPermissionPaths
+        .filter(path => path.registered)
+        .reduce((max, path) => Math.max(max, path.index), -1)
+
+      let startKeyIndex = maxKeyIndex + 1
+      let startRegKeyIndex = maxRegisteredKeyIndex + 1
+      for (let j = startKeyIndex; j < startRegKeyIndex + maxIndexThreshold; j++) {
+        let path = D.address.path.makeSlip48Path(this.coinType, pIndex, this.index, j)
+        if (!filteredPermissionPaths.some(p => p.path === path)) {
+          let publicKey = await this._device.getPublicKey(this.coinType, path)
+          console.debug('generate public key with path', path, publicKey)
+          // generate a permissionInfo no matter it use or not for recovery
+          newAddressInfos.push({
+            address: '',
+            accountId: this.accountId,
+            coinType: this.coinType,
+            path: path,
+            type: '',
+            index: j,
+            registered: false,
+            publicKey: publicKey,
+            parent: '',
+            txs: [] // rfu
+          })
+        }
+      }
+    }
+
+    await this._coinData.newAddressInfos(this._toAccountInfo(), newAddressInfos)
+    this.addressInfos.push(...newAddressInfos)
+    return newAddressInfos
+  }
+
   async _handleRemovedTx (removedTxId) {
-    throw D.error.notImplemented
+    let txInfo = this.txInfos.find(txInfo => txInfo.txId === removedTxId)
+    await this._coinData.removeTx(this._toAccountInfo(), [], txInfo)
+    this.txInfos = this.txInfos.filter(t => t !== txInfo)
   }
 
   async _handleNewTx (txInfo) {
-    throw D.error.notImplemented
+    await this._coinData.newTx(this._toAccountInfo(), [], txInfo)
+    this.txInfos.push(txInfo)
   }
 
-  async getAddress (isStoring = false) {
+  /**
+   * Returns whether this EOS account is registered.
+   */
+  isRegistered () {
+    return this.addressInfos.some(a => a.registered)
+  }
+
+  /**
+   * Return all permissions or {owner, active} from device(important) if not registered
+   * @returns {Promise<*>}
+   */
+  async getPermissions () {
+    if (this.permissions) {
+      let permissions = D.copy(this.permissions)
+      permissions.registered = true
+      return permissions
+    }
+
+    return {
+      registered: false,
+      'owner': {
+        name: 'owner',
+        parent: '',
+        threshold: 1,
+        keys: [{
+          publicKey: await this._device.getPublicKey(this.coinType, "m/48'/4'/0'/0'/0'", true), // slip-0048
+          weight: 1,
+          path: "m/48'/4'/0'/0'/0'"
+        }]
+      },
+      'active': {
+        name: 'active',
+        parent: 'owner',
+        threshold: 1,
+        keys: [{
+          publicKey: await this._device.getPublicKey(this.coinType, "m/48'/4'/1'/0'/0'", true), // slip-0048
+          weight: 1,
+          path: "m/48'/4'/1'/0'/0'"
+        }]
+      }
+    }
+  }
+
+  async getAddress () {
     console.warn('eos don\'t support get address')
-    throw D.error.unknown
+    throw D.error.notImplemented
   }
 
   async rename () {
     console.warn('eos don\'t support change account name')
-    throw D.error.unknown
+    throw D.error.notImplemented
   }
 
   async prepareTx (details) {
@@ -54,6 +260,7 @@ export default class EosAccount extends IAccount {
       case txType.tokenTransfer:
         return this._prepareTransfer(details)
       default:
+        console.warn('unsupported transaction type', details.type)
         throw D.error.notImplemented
     }
   }
@@ -178,6 +385,7 @@ export default class EosAccount extends IAccount {
     if (details.refBlockPrefix) {
       prepareTx.refBlockPrefix = Number(details.refBlockPrefix)
     }
+    prepareTx.comment = details.comment || ''
 
     let makeTransferAction = (from, to, value, account, token, permission, comment) => {
       return {
@@ -213,9 +421,9 @@ export default class EosAccount extends IAccount {
    */
   async buildTx (prepareTx) {
     if (!prepareTx.refBlockNum || !prepareTx.refBlockPrefix) {
-      let blockInfo = await this._coinData.getEosBlockInfo()
-      prepareTx.refBlockNum = prepareTx.refBlockNum || blockInfo.ref_block_num
-      prepareTx.refBlockPrefix = prepareTx.refBlockPrefix || blockInfo.ref_block_prefix
+      let blockInfo = await this._network.getIrreversibleBlockInfo()
+      prepareTx.refBlockNum = prepareTx.refBlockNum || blockInfo.refBlockNum
+      prepareTx.refBlockPrefix = prepareTx.refBlockPrefix || blockInfo.refBlockPrefix
     }
 
     let expiration = prepareTx.expirationAfter
@@ -236,26 +444,31 @@ export default class EosAccount extends IAccount {
     presignTx.keyPaths = []
     for (let action of presignTx.actions) {
       for (let auth of action.authorization) {
-        let permission = this.permissions[auth.permission]
-        if (!permission) {
+        // not support multi-sig
+        let permissions = this.addressInfos.filter(a => a.type === auth.permission)
+        if (permissions.length === 0) {
           console.warn('key path of relative permission not found', action)
           throw D.error.permissionNotFound
         }
-        permission.forEach(p => {
-          if (!presignTx.keyPaths.includes(p.keyPath)) {
-            presignTx.keyPaths.push(p.keyPath)
+        permissions.forEach(p => {
+          if (!presignTx.keyPaths.includes(p.path)) {
+            presignTx.keyPaths.push(p.path)
           }
         })
       }
     }
     console.log('presign tx', presignTx)
     let {txId, signedTx} = await this._device.signTransaction(this.coinType, presignTx)
-
-    // TODO complete
     let txInfo = {
-      txId: txId
+      txId: txId,
+      accountId: this.accountId,
+      coinType: this.coinType,
+      blockNumber: D.tx.confirmation.pending,
+      time: new Date().getTime(),
+      confirmations: D.tx.confirmation.waiting,
+      comment: prepareTx.comment,
+      actions: D.copy(prepareTx.actions)
     }
-    delete signedTx.keyPaths
 
     return {signedTx, txInfo}
   }

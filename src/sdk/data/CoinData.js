@@ -2,6 +2,7 @@
 import D from '../D'
 import BlockChainInfo from './network/BlockChainInfo'
 import FeeBitCoinEarn from './network/fee/FeeBitCoinEarn'
+import EosPeer from './network/EosPeer'
 import ExchangeCryptoCompareCom from './network/exchange/ExchangeCryptoCompareCom'
 import EthGasStationInfo from './network/fee/EthGasStationInfo'
 import EtherScanIo from './network/EtherScanIo'
@@ -23,6 +24,8 @@ export default class CoinData {
         obj[coinType] = new BlockChainInfo(coinType)
       } else if (D.isEth(coinType)) {
         obj[coinType] = new EtherScanIo(coinType)
+      } else if (D.isEos(coinType)) {
+        obj[coinType] = new EosPeer(coinType)
       }
       return obj
     }, {})
@@ -33,6 +36,11 @@ export default class CoinData {
   }
 
   async init (info) {
+    if (!info || !info.walletId) {
+      console.warn('CoinData needs info.walletId to init', info)
+      throw D.error.invalidParams
+    }
+
     console.log('walletInfo', info)
     try {
       // db
@@ -104,6 +112,10 @@ export default class CoinData {
     }
   }
 
+  async sync () {
+    await Promise.all(Object.values(this._network).map(network => network.sync()))
+  }
+
   async release () {
     this._listeners = []
     await Promise.all(Object.values(this._network).map(network => network.release()))
@@ -138,17 +150,17 @@ export default class CoinData {
       providers[coin] = {}
     })
     Object.values(this._network).forEach(network => {
-      if (network.provider) {
+      if (network && network.provider) {
         providers[network.coinType]['network'] = network.provider
       }
     })
     Object.values(this._networkFee).forEach(fee => {
-      if (fee.provider) {
+      if (fee && fee.provider) {
         providers[fee.coinType]['fee'] = fee.provider
       }
     })
     Object.values(this._exchange).forEach(exchange => {
-      if (exchange.provider) {
+      if (exchange && exchange.provider) {
         providers[exchange.coinType]['exchange'] = exchange.provider
       }
     })
@@ -166,10 +178,11 @@ export default class CoinData {
 
   async _newAccount (coinType, accountIndex) {
     let makeId = () => {
-      let text = ''
-      const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-      for (let i = 0; i < 32; i++) text += possible.charAt(Math.floor(Math.random() * possible.length))
-      return text
+      let id = ''
+      const possible = '0123456789abcdef'
+      for (let i = 0; i < 8; i++) id += possible.charAt(Math.floor(Math.random() * possible.length))
+      // obviously it's no need for random part(id), but we keep it for unpredictable future
+      return coinType + '_' + accountIndex + '_' + id
     }
 
     let account = {
@@ -179,7 +192,8 @@ export default class CoinData {
       index: accountIndex,
       balance: '0',
       externalPublicKeyIndex: 0,
-      changePublicKeyIndex: 0
+      changePublicKeyIndex: 0,
+      queryOffset: 0
     }
     console.log('newAccount', account)
     return account
@@ -219,12 +233,16 @@ export default class CoinData {
     await this._db.deleteAccount(account, addressInfos)
   }
 
-  async renameAccount (account) {
-    this._db.renameAccount(account)
+  async updateAccount (account) {
+    this._db.updateAccount(account)
   }
 
   async newAddressInfos (account, addressInfos) {
     await this._db.newAddressInfos(account, addressInfos)
+  }
+
+  async updateAddressInfos (addressInfos) {
+    await this._db.updateAddressInfos(addressInfos)
   }
 
   getAddressInfos (filter) {
@@ -247,7 +265,7 @@ export default class CoinData {
     return this._db.saveOrUpdateTxComment(txInfo)
   }
 
-  async newTx (account, addressInfos, txInfo, utxos) {
+  async newTx (account, addressInfos, txInfo, utxos = []) {
     this._setTxFlags(txInfo)
     this._uncomfirmedTxs.push(txInfo)
 
@@ -256,7 +274,7 @@ export default class CoinData {
     this._listeners.forEach(listener => D.dispatch(() => listener(D.error.succeed, D.copy(txInfo))))
   }
 
-  async removeTx (account, addressInfos, txInfo, updateUtxos, removeUtxos) {
+  async removeTx (account, addressInfos, txInfo, updateUtxos = [], removeUtxos = []) {
     this._uncomfirmedTxs = this._uncomfirmedTxs.filter(t => t.txId !== txInfo.txId)
 
     console.log('removeTx', account, addressInfos, txInfo, updateUtxos, removeUtxos)
@@ -286,8 +304,11 @@ export default class CoinData {
     }
   }
 
-  clearData () {
-    return this._db.clearDatabase()
+  /**
+   * Clear all data in database.
+   */
+  async clearData () {
+    await this._db.clearDatabase()
   }
 
   checkAddresses (coinType, addressInfos) {
@@ -317,7 +338,7 @@ export default class CoinData {
    * @param coinType
    * @returns ICoinNetwork
    */
-  getProvider (coinType) {
+  getNetwork (coinType) {
     return this._network[coinType]
   }
 

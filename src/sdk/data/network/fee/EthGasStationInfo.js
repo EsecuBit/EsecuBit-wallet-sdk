@@ -5,6 +5,10 @@ let UPDATE_DURATION = 10 * 60 * 1000
 
 export default class EthGasStationInfo {
   constructor (fee) {
+    if (!fee) {
+      console.warn('EthGasStationInfo invalid parameters', fee)
+      throw D.error.invalidParams
+    }
     this.provider = 'ethgasstation.info'
     switch (fee.coinType) {
       case D.coin.main.eth:
@@ -12,6 +16,7 @@ export default class EthGasStationInfo {
         this.coinType = fee.coinType
         break
       default:
+        console.warn('EthGasStationInfo don\'t support this coinType', fee.coinType)
         throw D.error.coinNotSupported
     }
 

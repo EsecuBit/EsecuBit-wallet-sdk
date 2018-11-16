@@ -6,7 +6,7 @@ import IAccount from './IAccount'
 export default class EthAccount extends IAccount {
   async _checkAddressIndexAndGenerateNew () {
     if (this.addressInfos.length === 0) {
-      let path = D.makeBip44Path(this.coinType, this.index, D.address.external, 0)
+      let path = D.address.path.makeBip44Path(this.coinType, this.index, D.address.external, 0)
       let address = await this._device.getAddress(this.coinType, path)
       let addressInfo = {
         address: address,
@@ -129,7 +129,7 @@ export default class EthAccount extends IAccount {
 
   async getAddress (isStoring = false) {
     await this._checkAddressIndexAndGenerateNew()
-    let path = D.makeBip44Path(this.coinType, this.index, D.address.external, 0)
+    let path = D.address.path.makeBip44Path(this.coinType, this.index, D.address.external, 0)
     let address = await this._device.getAddress(this.coinType, path, true, isStoring)
     address = D.address.toEthChecksumAddress(address)
     let prefix = ''
@@ -281,7 +281,7 @@ export default class EthAccount extends IAccount {
         coinType: this.coinType,
         txId: signedTx.id,
         blockNumber: -1,
-        confirmations: -1,
+        confirmations: D.tx.confirmation.pending,
         time: new Date().getTime(),
         direction: D.tx.direction.out,
         showAddresses: [output.address],

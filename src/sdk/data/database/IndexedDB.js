@@ -2,7 +2,7 @@
 import IDatabase from './IDatabase'
 import D from '../../D'
 
-const DB_VERSION = 7
+const DB_VERSION = 8
 export default class IndexedDB extends IDatabase {
   constructor (walletId) {
     super()
@@ -49,10 +49,10 @@ export default class IndexedDB extends IDatabase {
          *   index: number,
          *   balance: string, // (decimal string)
          *   externalPublicKeyIndex: int, // current external address index
-         *   changePublicKeyIndex: int // current change address index
+         *   changePublicKeyIndex: int, // current change address index
          *
          *   // eos
-         *   actionSeq: number,
+         *   queryOffset: int // save query offset to reduce actions query
          *   tokens: {
          *     EOS: {
          *       code: eosio.token,
@@ -91,29 +91,6 @@ export default class IndexedDB extends IDatabase {
          *       isProxy: bool
          *     }
          *   }
-         *   permissions: {
-         *     owner: {
-         *       name: 'owner',
-         *       parent: string,
-         *       threshold: number,
-         *       keys: [{
-         *         publicKey: string,
-         *         weight: number,
-         *         path: string
-         *       }, ...]
-         *     },
-         *     active: {
-         *       name: 'active',
-         *       parent: string,
-         *       threshold: number,
-         *       pKeys: [{
-         *         publicKey: string,
-         *         weight: number,
-         *         path: string
-         *       }, ...]
-         *     },
-         *     ...
-         *   }
          * }
          */
         if (!db.objectStoreNames.contains('account')) {
@@ -123,7 +100,7 @@ export default class IndexedDB extends IDatabase {
 
         /**
          * txInfo:
-         * btc：
+         * btc:
          * {
          *   accountId: string,
          *   coinType: string,
@@ -132,15 +109,17 @@ export default class IndexedDB extends IDatabase {
          *   blockNumber: int,
          *   confirmations: int, // see D.tx.confirmation
          *   time: number,
-         *   direction: D.tx.direction.in / D.tx.direction.out,
+         *   comment: string,
+         *
+         *   fee: string, inputs.values - outputs.values,
          *   inputs: [{prevTxId, prevAddress, prevOutIndex, prevOutScript, index, value, isMine}, ...]
          *   outputs: [{address, index, value, isMine}, ...]
+         *   direction: D.tx.direction.in / D.tx.direction.out,
          *   showAddresses: [address] // addresses shown in the tx list, senders if you are receiver, recivers if not
          *   value: string (decimal string satoshi) // value that shows the account balance changes, calculated by inputs and outputs
-         *   comment: string
          * }
          *
-         * eth：
+         * eth:
          * {
          *   accountId: string,
          *   coinType: string,
@@ -148,18 +127,19 @@ export default class IndexedDB extends IDatabase {
          *   blockNumber: number,
          *   confirmations: number, // see D.tx.confirmation
          *   time: number,
-         *   direction: D.tx.direction.in / D.tx.direction.out,
+         *   comment: string,
+         *
+         *   fee: string, gas * gasPrice,
          *   inputs: [{prevAddress, value, isMine}, ...]
          *   outputs: [{address, value, isMine}, ...]
+         *   direction: D.tx.direction.in / D.tx.direction.out,
          *   showAddresses: [address] // addresses shown in the tx list, senders if you are receiver, and receivers if not
          *   value: string (decimal string Wei), // value that shows the account balance changes, calculated by inputs and outputs
          *
          *   gas: string (decimal string Wei),
          *   gasPrice: string (decimal string Wei),
-         *   fee: gas * gasPrice,
          *   data: hex string,
-         *   nonce: number,
-         *   comment: string
+         *   nonce: number
          * }
          *
          * eos:
@@ -170,18 +150,9 @@ export default class IndexedDB extends IDatabase {
          *   blockNumber: number,
          *   confirmations: number, // see D.tx.confirmation
          *   time: number,
-         *   // direction: D.tx.direction.in / D.tx.direction.out
-         *   // inputs: [{prevAddress, value, isMine}, ...]
-         *   // outputs: [{address, value, isMine}, ...]
-         *   // showAddresses: [address, ...]
-         *   // value: decimal integer string,
          *   comment: string, // comment in local
          *
-         *   actions: [{account, name, authorization, data}...],
-         *   showData: {
-         *     type: string,
-         *     ...
-         *   }
+         *   actions: [{account, name, authorization, data}...]
          * }
          */
         if (!db.objectStoreNames.contains('txInfo')) {
@@ -199,12 +170,28 @@ export default class IndexedDB extends IDatabase {
          *   coinType: string,
          *   path: string,
          *   type: D.address.external / D.address.change,
-         *   index: int,
+         *   index: number,
          *   txs: txId (string) array
+         * }
+         *
+         * for EOS is permission info:
+         * {
+         *   address: string, // account name
+         *   accountId: string,
+         *   coinType: string,
+         *   path: string,
+         *   type: string, // EOS permission
+         *   index: number,
+         *
+         *   registered: bool,
+         *   publicKey: string, // public key starts with "EOS"
+         *   parent: string, // empty string if it's root permission
+         *   threshold: number,
+         *   weight: number,
          * }
          */
         if (!db.objectStoreNames.contains('addressInfo')) {
-          let addressInfo = db.createObjectStore('addressInfo', {keyPath: 'address'})
+          let addressInfo = db.createObjectStore('addressInfo', {keyPath: ['accountId', 'path']})
           addressInfo.createIndex('accountId', 'accountId', {unique: false})
         }
 
@@ -290,27 +277,20 @@ export default class IndexedDB extends IDatabase {
 
   clearDatabase () {
     return new Promise((resolve, reject) => {
-      let transaction = this._db.transaction(['account', 'txInfo', 'addressInfo', 'utxo'], 'readwrite')
-      let error = (ev) => {
+      let transaction = this._db.transaction(
+        ['account', 'txInfo', 'addressInfo', 'utxo', 'fee', 'exchange', 'settings'], 'readwrite')
+      transaction.objectStore('account').clear()
+      transaction.objectStore('txInfo').clear()
+      transaction.objectStore('addressInfo').clear()
+      transaction.objectStore('utxo').clear()
+      transaction.objectStore('fee').clear()
+      transaction.objectStore('exchange').clear()
+      transaction.objectStore('settings').clear()
+
+      transaction.oncomplete = resolve
+      transaction.onerror = ev => {
         console.warn('clearDatabase', ev)
         reject(D.error.databaseExecFailed)
-      }
-      let request = transaction.objectStore('account').clear()
-      request.onerror = error
-      request.onsuccess = () => {
-        let request = transaction.objectStore('txInfo').clear()
-        request.onerror = error
-        request.onsuccess = () => {
-          let request = transaction.objectStore('addressInfo').clear()
-          request.onerror = error
-          request.onsuccess = () => {
-            let request = transaction.objectStore('utxo').clear()
-            request.onerror = error
-            request.onsuccess = () => {
-              resolve()
-            }
-          }
-        }
       }
     })
   }
@@ -424,7 +404,7 @@ export default class IndexedDB extends IDatabase {
     })
   }
 
-  renameAccount (account) {
+  updateAccount (account) {
     return new Promise((resolve, reject) => {
       if (this._db === null) {
         reject(D.error.databaseOpenFailed)
@@ -433,23 +413,14 @@ export default class IndexedDB extends IDatabase {
 
       let request = this._db.transaction(['account'], 'readwrite')
         .objectStore('account')
-        .get(account.accountId)
+        .put(account)
 
       let error = e => {
-        console.warn('renameAccount', e)
+        console.warn('updateAccount', e)
         reject(D.error.databaseExecFailed)
       }
 
-      request.onsuccess = e => {
-        let oldAccount = e.target.result
-        oldAccount.label = account.label
-
-        let request = this._db.transaction(['account'], 'readwrite')
-          .objectStore('account')
-          .put(oldAccount)
-        request.onsuccess = e => resolve(e.target.result)
-        request.onerror = error
-      }
+      request.onsuccess = resolve
       request.onerror = error
     })
   }
@@ -466,7 +437,7 @@ export default class IndexedDB extends IDatabase {
         .get([txInfo.txId, txInfo.accountId])
 
       let error = e => {
-        console.warn('renameAccount', e)
+        console.warn('saveOrUpdateTxComment', e)
         reject(D.error.databaseExecFailed)
       }
 
@@ -563,6 +534,31 @@ export default class IndexedDB extends IDatabase {
     })
   }
 
+  updateAddressInfos (addressInfos) {
+    return new Promise((resolve, reject) => {
+      if (this._db === null) {
+        reject(D.error.databaseOpenFailed)
+        return
+      }
+
+      let addressInfosRequest = () => {
+        return Promise.all(addressInfos.map(addressInfo => new Promise((resolve, reject) => {
+          let request = this._db.transaction(['addressInfo'], 'readwrite')
+            .objectStore('addressInfo')
+            .put(addressInfo)
+
+          request.onsuccess = resolve
+          request.onerror = reject
+        })))
+      }
+
+      addressInfosRequest().then(resolve).catch(e => {
+        console.warn('updateAddressInfos', e)
+        reject(D.error.databaseExecFailed)
+      })
+    })
+  }
+
   getAddressInfos (filter = {}) {
     return new Promise((resolve, reject) => {
       if (this._db === null) {
@@ -635,7 +631,7 @@ export default class IndexedDB extends IDatabase {
     })
   }
 
-  newTx (account, addressInfos, txInfo, utxos = []) {
+  newTx (account, addressInfos, txInfo, utxos) {
     return new Promise((resolve, reject) => {
       let objectStores = ['account', 'addressInfo', 'txInfo', 'utxo']
       let transaction = this._db.transaction(objectStores, 'readwrite')
@@ -649,14 +645,14 @@ export default class IndexedDB extends IDatabase {
       }
 
       transaction.oncomplete = resolve
-      transaction.onerror = () => ev => {
+      transaction.onerror = ev => {
         console.warn('newTx', ev)
         reject(D.error.databaseExecFailed)
       }
     })
   }
 
-  removeTx (account, addressInfos, txInfo, updateUtxos = [], removeUtxos = []) {
+  removeTx (account, addressInfos, txInfo, updateUtxos, removeUtxos) {
     return new Promise((resolve, reject) => {
       let objectStores = ['account', 'addressInfo', 'txInfo', 'utxo']
       let transaction = this._db.transaction(objectStores, 'readwrite')
@@ -674,11 +670,11 @@ export default class IndexedDB extends IDatabase {
       }
 
       transaction.oncomplete = resolve
-      transaction.onerror = () => ev => {
+      transaction.onerror = ev => {
         console.warn('removeTx onerror', ev)
         reject(D.error.databaseExecFailed)
       }
-      transaction.onabort = () => ev => {
+      transaction.onabort = ev => {
         console.warn('removeTx onabort', ev)
         reject(D.error.databaseExecFailed)
       }

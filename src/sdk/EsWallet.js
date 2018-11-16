@@ -3,6 +3,7 @@ import D from './D'
 import CoinData from './data/CoinData'
 import BtcAccount from './account/BtcAccount'
 import EthAccount from './account/EthAccount'
+import EosAccount from './account/EosAccount'
 import Settings from './Settings'
 import CoreWallet from './device/CoreWallet'
 
@@ -143,9 +144,19 @@ export default class EsWallet {
     accounts.forEach(account => {
       let exists = this._esAccounts.some(esAccount => esAccount.accountId === account.accountId)
       if (exists) return
-      let esAccount = D.isEth(account.coinType)
-        ? new EthAccount(account, this._device, this._coinData)
-        : new BtcAccount(account, this._device, this._coinData)
+
+      let coinType = account.coinType
+      let esAccount
+      if (D.isBtc(coinType)) {
+        esAccount = new BtcAccount(account, this._device, this._coinData)
+      } else if (D.isEth(coinType)) {
+        esAccount = new EthAccount(account, this._device, this._coinData)
+      } else if (D.isEos(coinType)) {
+        esAccount = new EosAccount(account, this._device, this._coinData)
+      } else {
+        console.warn('EsWallet don\'t support this coinType', coinType)
+        throw D.error.coinNotSupported
+      }
       this._esAccounts.push(esAccount)
     })
     await Promise.all(this._esAccounts.map(esAccount => esAccount.init()))
@@ -159,9 +170,11 @@ export default class EsWallet {
    * @private
    */
   async _sync () {
+    await this._coinData.sync()
     await Promise.all(this._esAccounts.map(esAccount => esAccount.sync(true, this.offlineMode)))
 
     let recoveryFinish = await this._settings.getSetting('recoveryFinish', this._info.walletId)
+    recoveryFinish = recoveryFinish || false
     if (!recoveryFinish || this._esAccounts.length === 0) {
       if (this.offlineMode) throw D.error.offlineModeNotAllowed
       console.log('start recovery', recoveryFinish, this._esAccounts.length)
@@ -208,7 +221,10 @@ export default class EsWallet {
         esAccount = new BtcAccount(account, this._device, this._coinData)
       } else if (D.isEth(coinType)) {
         esAccount = new EthAccount(account, this._device, this._coinData)
+      } else if (D.isEos(coinType)) {
+        esAccount = new EosAccount(account, this._device, this._coinData)
       } else {
+        console.warn('EsWallet don\'t support this coinType', coinType)
         throw D.error.coinNotSupported
       }
       this._esAccounts.push(esAccount)
@@ -317,9 +333,17 @@ export default class EsWallet {
    */
   async newAccount (coinType) {
     let account = await this._coinData.newAccount(coinType)
-    let esAccount = D.isBtc(coinType)
-      ? new BtcAccount(account, this._device, this._coinData)
-      : new EthAccount(account, this._device, this._coinData)
+    let esAccount
+    if (D.isBtc(coinType)) {
+      esAccount = new BtcAccount(account, this._device, this._coinData)
+    } else if (D.isEth(coinType)) {
+      esAccount = new EthAccount(account, this._device, this._coinData)
+    } else if (D.isEos(coinType)) {
+      esAccount = new EosAccount(account, this._device, this._coinData)
+    } else {
+      console.warn('EsWallet don\'t support this coinType', coinType)
+      throw D.error.coinNotSupported
+    }
     await esAccount.init()
     await esAccount.sync()
     this._esAccounts.push(esAccount)

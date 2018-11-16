@@ -98,9 +98,9 @@ const D = {
 
   coin: {
     main: {
-      btc: 'btc',
-      eth: 'eth',
-      eos: 'eos'
+      btc: 'btc_main',
+      eth: 'eth_main',
+      eos: 'eos_main'
     },
     test: {
       btcTestNet3: 'btc_testnet3',
@@ -133,6 +133,7 @@ const D = {
             case D.coin.test.ethRinkeby:
               return 4
             default:
+              console.warn('eth don\'t support this coinType for chainId', coinType)
               throw D.error.coinNotSupported
           }
         }
@@ -157,8 +158,55 @@ const D = {
             case D.coin.test.eosSys:
               return D.coin.params.eos.chainId.sys
             default:
+              console.warn('eos don\'t support this coinType for chainId', coinType)
               throw D.error.coinNotSupported
           }
+        },
+
+        defaultActionType: {type: 'other'},
+
+        actionTypes: [
+          {
+            type: 'tokenTransfer',
+            name: 'transfer',
+            data: {
+              from: 'name',
+              to: 'name',
+              quantity: 'asset',
+              memo: 'string'
+            }
+          },
+          {
+            type: 'tokenIssuer',
+            name: 'issuer',
+            data: {
+              from: 'name',
+              to: 'name',
+              quantity: 'asset',
+              memo: 'string'
+            }
+          },
+          {
+            type: 'stakeDelegatebw',
+            account: 'eosio.stake',
+            name: 'delegatebw',
+            data: {
+              from: 'name',
+              receiver: 'name',
+              stake_net_quantity: 'asset',
+              stake_cpu_quantity: 'asset',
+              transfer: 'uint8'
+            }
+          },
+          {
+            type: 'other'
+          }
+        ],
+
+        getActionType (account, name) {
+          let actionType = D.coin.params.eos.actionTypes.find(type =>
+            type.name === name && (!type.account || type.account === account))
+          return actionType || D.coin.params.eos.defaultActionType
         }
       }
     }
@@ -181,6 +229,7 @@ const D = {
       } else if (D.isEos(coinType)) {
         return D.address.checkEosAddress(address)
       } else {
+        console.warn('checkAddress don\'t this coinType', coinType, address)
         throw D.error.coinNotSupported
       }
     },
@@ -381,40 +430,78 @@ const D = {
       }
     },
 
-    toString (address) {
-      if (address.length === 20) {
+    toString (coinType, address) {
+      if (D.isEth(coinType) && address.length === 20) {
         // eth
         return D.address.toEthChecksumAddress(address)
-      } else if (address.length === 21) {
+      } else if (D.isBtc(coinType) && address.length === 21) {
         // bitcoin
         return base58check.encode(Buffer.from(address))
       } else {
+        console.warn('address toString don\'t support this coinType and address', coinType, address)
         throw D.error.coinNotSupported
       }
     },
 
     path: {
+      parseString (path) {
+        if (typeof path !== 'string') {
+          console.warn('D.address.path.parseString invalid path', path)
+          throw D.error.invalidParams
+        }
+
+        let parts = path.split('/')
+        if (parts[0] === 'm') parts = parts.slice(1)
+
+        let values = []
+        for (let part of parts) {
+          let value = 0
+          if (part[part.length - 1] === "'") {
+            part = part.slice(0, part.length - 1)
+            value += 0x80000000
+          }
+          let num = Number(part)
+          if (Number.isNaN(num)) {
+            console.warn('D.address.path.parseString invalid index', part, path)
+            throw D.error.invalidParams
+          }
+          value += num
+          values.push(value)
+        }
+        return values
+      },
+
       /**
        * convert string type path to Buffer
        */
       toBuffer (path) {
-        let level = path.split('/').length
-        if (path[0] === 'm') level--
-        let buffer = Buffer.allocUnsafe(level * 4)
-        path.split('/').forEach((index, i) => {
-          if (i === 0 && index === 'm') return
-          let indexInt = 0
-          if (index[index.length - 1] === "'") {
-            indexInt += 0x80000000
-            index = index.slice(0, -1)
-          }
-          indexInt += parseInt(index)
-          buffer[4 * (i - 1)] = indexInt >> 24
-          buffer[4 * (i - 1) + 1] = indexInt >> 16
-          buffer[4 * (i - 1) + 2] = indexInt >> 8
-          buffer[4 * (i - 1) + 3] = indexInt
+        let indexes = D.address.path.parseString(path)
+        let buffer = Buffer.allocUnsafe(indexes.length * 4)
+        indexes.forEach((index, i) => {
+          buffer[4 * i] = index >> 24
+          buffer[4 * i + 1] = index >> 16
+          buffer[4 * i + 2] = index >> 8
+          buffer[4 * i + 3] = index
         })
         return buffer
+      },
+
+      makeBip44Path (coinType, accountIndex, type, addressIndex = undefined) {
+        coinType = typeof coinType === 'number' ? coinType : D.getCoinIndex(coinType)
+        return "m/44'/" +
+          coinType + "'/" +
+          accountIndex + "'/" +
+          (type === D.address.external ? 0 : 1) +
+          (addressIndex === undefined ? '' : ('/' + addressIndex))
+      },
+
+      makeSlip48Path (coinType, permissionIndex, accountIndex, keyIndex = undefined) {
+        coinType = typeof coinType === 'number' ? coinType : D.getCoinIndex(coinType)
+        return "m/48'/" +
+          coinType + "'/" +
+          permissionIndex + "'/" +
+          accountIndex + "'" +
+          (keyIndex === undefined ? '' : ('/' + keyIndex + "'"))
       }
     }
   },
@@ -431,8 +518,8 @@ const D = {
     },
 
     /**
-     *   -2: dropped by btcNetwork peer from memeory pool
-     *   -1: not found in btcNetwork
+     *   -2: dropped by network peer from memeory pool
+     *   -1: not found in network
      *   0: found in miner's memory pool.
      *   other: confirmations just for showing the status.
      *          won't be updated after confirmations >= D.tx.matureConfirms.coinType
@@ -442,7 +529,7 @@ const D = {
       pending: -1,
       inMemory: 0,
       waiting: 0, // for eos
-      excuted: 1 // for eos
+      executed: 1 // for eos
     },
 
     getMatureConfirms (coinType) {
@@ -451,6 +538,7 @@ const D = {
       } else if (D.isEth(coinType)) {
         return D.tx.matureConfirms.eth
       } else {
+        console.warn('getMatureConfirms don\'t supoort this coinType', coinType)
         throw D.error.coinNotSupported
       }
     }
@@ -484,6 +572,9 @@ const D = {
       GWei: 'GWei',
       Wei: 'Wei'
     },
+    eos: {
+      EOS: 'EOS'
+    },
     legal: {
       USD: 'USD',
       EUR: 'EUR',
@@ -493,15 +584,15 @@ const D = {
   },
 
   isBtc (coinType) {
-    return coinType.includes('btc')
+    return coinType.startsWith('btc')
   },
 
   isEth (coinType) {
-    return coinType.includes('eth')
+    return coinType.startsWith('eth')
   },
 
   isEos (coinType) {
-    return coinType.includes('eos')
+    return coinType.startsWith('eos')
   },
 
   suppertedLegals () {
@@ -509,10 +600,10 @@ const D = {
   },
 
   supportedCoinTypes () {
-    // TODO recover, S300 not support ETH yet
+    // TODO recover
     return D.test.coin
-      ? [D.coin.test.btcTestNet3]
-      : [D.coin.main.btc]
+      ? [D.coin.test.eosJungle]
+      : [D.coin.main.eos]
   },
 
   recoverCoinTypes () {
@@ -580,7 +671,13 @@ const D = {
       case D.coin.main.eth:
       case D.coin.test.ethRinkeby:
         return convertEth(value, fromType, toType)
+      case D.coin.main.eos:
+      case D.coin.test.eosJungle:
+      case D.coin.test.eosKylin:
+      case D.coin.test.eosSys:
+        return value
       default:
+        console.warn('convertValue don\'t support this coinType', coinType)
         throw D.error.coinNotSupported
     }
   },
@@ -606,23 +703,23 @@ const D = {
 
   getCoinIndex (coinType) {
     switch (coinType) {
+      // bip-0044
       case D.coin.main.btc:
       case D.coin.test.btcTestNet3:
         return 0
       case D.coin.main.eth:
       case D.coin.test.ethRinkeby:
         return 60
+      // slip-0048
+      case D.coin.main.eos:
+      case D.coin.test.eosJungle:
+      case D.coin.test.eosKylin:
+      case D.coin.test.eosSys:
+        return 4
       default:
+        console.warn('getCoinIndex don\'t support this coinType', coinType)
         throw D.error.coinNotSupported
     }
-  },
-
-  makeBip44Path (coinType, accountIndex, type, addressIndex) {
-    return "m/44'/" +
-      D.getCoinIndex(coinType) + "'/" +
-      accountIndex + "'/" +
-      (type === D.address.external ? 0 : 1) +
-      (addressIndex === undefined ? '' : ('/' + addressIndex))
   },
 
   /**
@@ -652,8 +749,8 @@ const D = {
   },
 
   test: {
-    coin: false,
-    jsWallet: false,
+    coin: true,
+    jsWallet: true,
     mockTransmitter: false,
     mockDevice: false,
 

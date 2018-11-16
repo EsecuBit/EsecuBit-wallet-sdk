@@ -4,6 +4,8 @@ import rlp from 'rlp'
 import BigInteger from 'bigi'
 import bitPony from 'bitpony'
 import {Buffer} from 'buffer'
+import createHash from 'create-hash'
+import base58 from 'bs58'
 
 // rewrite _containKeys to make empty value available, so we can use it to build presign tx
 // noinspection JSPotentiallyInvalidConstructorUsage
@@ -48,6 +50,25 @@ export default class S300Wallet {
     return 'get version not supported yet'
   }
 
+  async getPublicKey (coinType, path, isShowing = false) {
+    // see getAddress
+    let flag = isShowing ? 0x02 : 0x00
+
+    let apduHead = Buffer.from('804600001505', 'hex')
+    let pathBuffer = D.address.path.toBuffer(path)
+    let apdu = Buffer.concat([apduHead, pathBuffer])
+    apdu[3] = flag
+    let publicKey = await this._sendApdu(apdu, false)
+
+    if (D.isEos(coinType)) {
+      let checksum = createHash('ripemd160').update(publicKey).digest().slice(0, 4)
+      publicKey = 'EOS' + base58.encode(Buffer.concat([publicKey, checksum]))
+    } else {
+      publicKey.toString('hex')
+    }
+    return publicKey
+  }
+
   async getAddress (coinType, path, isShowing = false, isStoring = false) {
     // bit 0: 0 not save on key / 1 save on key
     // bit 1: 0 not show on key / 1 show on key
@@ -69,16 +90,9 @@ export default class S300Wallet {
     let address = String.fromCharCode.apply(null, new Uint8Array(response))
     // device only return mainnet address
     if (coinType === D.coin.test.btcTestNet3) {
-      try {
-        let addressBuffer = D.address.toBuffer(address)
-        addressBuffer = Buffer.concat([Buffer.from('6F', 'hex'), addressBuffer])
-        address = D.address.toString(addressBuffer)
-      } catch (e) {
-        // TODO remove, S300 bug: return address with constant length 34.
-        let addressBuffer = D.address.toBuffer(address.slice(0, address.length - 1))
-        addressBuffer = Buffer.concat([Buffer.from('6F', 'hex'), addressBuffer])
-        address = D.address.toString(addressBuffer)
-      }
+      let addressBuffer = D.address.toBuffer(address)
+      addressBuffer = Buffer.concat([Buffer.from('6F', 'hex'), addressBuffer])
+      address = D.address.toString(coinType, addressBuffer)
     }
     return address
   }
@@ -287,11 +301,7 @@ export default class S300Wallet {
     }
 
     let signEth = async (tx) => {
-      const chainIds = {}
-      chainIds[D.coin.main.eth] = 1
-      chainIds[D.coin.test.ethRinkeby] = 4
-      let chainId = chainIds[coinType]
-      if (!chainId) throw D.error.coinNotSupported
+      let chainId = D.coin.eth.getChainId(coinType)
 
       // rlp
       let unsignedTx = [tx.nonce, tx.gasPrice, tx.gasLimit, tx.output.address, tx.output.value, tx.data, chainId, 0, 0]
@@ -313,6 +323,7 @@ export default class S300Wallet {
     } else if (D.isEth(coinType)) {
       return signEth(tx)
     } else {
+      console.warn('S300Wallet don\'t support this coinType', coinType)
       throw D.error.coinNotSupported
     }
   }

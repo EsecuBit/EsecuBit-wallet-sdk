@@ -3,6 +3,11 @@ import D from '../D'
 
 export default class IAccount {
   constructor (info, device, coinData) {
+    if (!info || !device || !coinData) {
+      console.warn('IAccount constructor needs valid object', info, device, coinData)
+      throw D.error.invalidParams
+    }
+
     this._fromAccountInfo(info)
     this._device = device
     this._coinData = coinData
@@ -125,11 +130,10 @@ export default class IAccount {
 
     if (firstSync) {
       let listenAddressInfos = await this._getActiveAddressInfos()
-      for (let addressInfo of listenAddressInfos) {
-        if (!this._listenedAddresses.includes(addressInfo.address)) {
-          this._listenedAddresses.push(addressInfo.address)
-          this._coinData.listenAddresses(this.coinType, [D.copy(addressInfo)], this._addressListener)
-        }
+      listenAddressInfos = listenAddressInfos.filter(a => this._listenedAddresses.includes(a.address))
+      if (listenAddressInfos.length !== 0) {
+        this._listenedAddresses.push(...listenAddressInfos)
+        this._coinData.listenAddresses(this.coinType, D.copy(listenAddressInfos), this._addressListener)
       }
 
       this.txInfos
@@ -157,7 +161,7 @@ export default class IAccount {
     newName = newName || this.label
     let oldAccountInfo = this._toAccountInfo()
     oldAccountInfo.label = newName
-    await this._coinData.renameAccount(oldAccountInfo)
+    await this._coinData.updateAccount(oldAccountInfo)
     this.label = newName
   }
 
@@ -185,6 +189,14 @@ export default class IAccount {
     return D.address.checkAddress(this.coinType, address)
   }
 
+  // noinspection JSValidateJSDoc, JSMethodCanBeStatic
+  /**
+   * Get active addressInfos for listening while block height changed.
+   * Default won't return any addressInfos, so no address will be listened
+   *
+   * @returns {Promise<Array>}
+   * @private
+   */
   async _getActiveAddressInfos () {
     return []
   }

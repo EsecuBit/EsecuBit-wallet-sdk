@@ -54,6 +54,7 @@ export default class CoreWallet {
       throw D.error.deviceNotInit
     }
 
+    let messages = []
     for (let Wallet of Provider.Wallets) {
       let wallet = new Wallet(this._transmitter)
       try {
@@ -61,10 +62,11 @@ export default class CoreWallet {
         this._wallet = wallet
         return walletInfo
       } catch (e) {
+        messages.push({wallet: wallet, error: e})
         // continue
       }
     }
-    console.warn('no suitable wallet found', this._transmitter, Provider.Wallets)
+    console.warn('no suitable wallet found, maybe wallet get error in init()', this._transmitter, messages)
     throw D.error.deviceProtocol
   }
 
@@ -76,7 +78,7 @@ export default class CoreWallet {
     return this._wallet.verifyPin()
   }
 
-  async getWalletInfo () {
+  getWalletInfo () {
     if (!this._wallet) {
       console.warn('init wallet first')
       throw D.error.deviceNotInit
@@ -84,12 +86,20 @@ export default class CoreWallet {
     return this._wallet.getWalletInfo()
   }
 
-  async getAddress (coinType, path, isShowing = false, isStoring = false) {
+  getAddress (coinType, path, isShowing = false, isStoring = false) {
     if (!this._wallet) {
       console.warn('init wallet first')
       throw D.error.deviceNotInit
     }
     return this._wallet.getAddress(coinType, path, isShowing, isStoring)
+  }
+
+  getPublicKey (coinType, keyPath) {
+    if (!this._wallet) {
+      console.warn('init wallet first')
+      throw D.error.deviceNotInit
+    }
+    return this._wallet.getPublicKey(coinType, keyPath)
   }
 
   async signTransaction (coinType, tx) {
