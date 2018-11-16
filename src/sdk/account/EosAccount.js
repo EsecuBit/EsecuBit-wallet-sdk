@@ -465,6 +465,7 @@ export default class EosAccount extends IAccount {
       coinType: this.coinType,
       blockNumber: D.tx.confirmation.pending,
       time: new Date().getTime(),
+      confirmations: D.tx.confirmation.waiting,
       comment: prepareTx.comment,
       actions: D.copy(prepareTx.actions)
     }
