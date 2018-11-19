@@ -285,7 +285,33 @@ const D = {
     },
 
     checkEosAddress () {
-      throw D.error.notImplemented
+      // check whether account name is valid, copy from eos.js
+      const charmap = '.12345abcdefghijklmnopqrstuvwxyz'
+      const charidx = function charidx (ch) {
+        const idx = charmap.indexOf(ch)
+        if (idx === -1) throw new TypeError('Invalid character: \'' + ch + '\'')
+        return idx
+      }
+      if (typeof name !== 'string') {
+        console.warn('checkEosAddress name parameter is a required string')
+        throw D.error.invalidAddress
+      }
+      if (name.length > 12) {
+        console.warn('checkEosAddress A name can be up to 12 characters long')
+        throw D.error.invalidAddress
+      }
+
+      for (let i = 0; i <= 12; i++) {
+        // process all 64 bits (even if name is short)
+        let c = i < name.length ? charidx(name[i]) : 0
+        let bitlen = i < 12 ? 5 : 4
+        let bits = Number(c).toString(2)
+        if (bits.length > bitlen) {
+          console.warn('checkEosAddress Invalid name ' + name)
+          throw D.error.invalidAddress
+        }
+        bits = '0'.repeat(bitlen - bits.length) + bits
+      }
     },
 
     checkBtcAddress (address) {
