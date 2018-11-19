@@ -187,42 +187,29 @@ const FcBuffer = {
       Object.entries(actionType.data).forEach(([key, itemType]) => {
         let item = value[key]
         if (item === undefined) {
-          console.warn('item not found in action type', b, value, key, type)
+          console.warn('item not found in action type', b, value, key, itemType)
           throw D.error.invalidParams
         }
-        FcBuffer[itemType].appendByteBuffer(content, item)
+
+        if (itemType.endsWith('[]')) {
+          // handle vector
+          if (!Array.isArray(item)) {
+            console.warn('item not an array when itemType is vector', b, value, key, itemType)
+            throw D.error.invalidParams
+          }
+          let subItemType = itemType.split(0, itemType.length - 2)
+          item.forEach(i => {
+            FcBuffer[subItemType].appendByteBuffer(content, i)
+          })
+        } else {
+          FcBuffer[itemType].appendByteBuffer(content, item)
+        }
       })
 
       b.writeVarint32(content.offset)
       content = content.copy(0, content.offset)
       // noinspection JSUnresolvedFunction
       content.copyTo(b)
-    },
-
-    types: {
-      EosIoTokenTransfer: {
-        _name: 'transfer',
-        from: 'name',
-        to: 'name',
-        quantity: 'asset',
-        memo: 'string'
-      },
-      EosIoTokenIssuer: {
-        _name: 'issuer',
-        from: 'name',
-        to: 'name',
-        quantity: 'asset',
-        memo: 'string'
-      },
-      EosIoDelegatebw: {
-        _account: 'eosio.stake',
-        _name: 'delegatebw',
-        from: 'name',
-        receiver: 'name',
-        stake_net_quantity: 'asset',
-        stake_cpu_quantity: 'asset',
-        transfer: 'uint8'
-      }
     }
   },
 

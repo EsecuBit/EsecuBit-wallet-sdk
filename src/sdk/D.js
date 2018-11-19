@@ -165,8 +165,8 @@ const D = {
 
         defaultActionType: {type: 'other'},
 
-        actionTypes: [
-          {
+        actionTypes: {
+          transfer: {
             type: 'tokenTransfer',
             name: 'transfer',
             data: {
@@ -176,7 +176,7 @@ const D = {
               memo: 'string'
             }
           },
-          {
+          issuer: {
             type: 'tokenIssuer',
             name: 'issuer',
             data: {
@@ -186,8 +186,8 @@ const D = {
               memo: 'string'
             }
           },
-          {
-            type: 'stakeDelegatebw',
+          delegate: {
+            type: 'eosioDelegatebw',
             account: 'eosio.stake',
             name: 'delegatebw',
             data: {
@@ -198,10 +198,60 @@ const D = {
               transfer: 'uint8'
             }
           },
-          {
+          undelegate: {
+            type: 'eosioUndelegatebw',
+            account: 'eosio.stake',
+            name: 'undelegatebw',
+            data: {
+              from: 'name',
+              receiver: 'name',
+              unstake_net_quantity: 'asset',
+              unstake_cpu_quantity: 'asset'
+            }
+          },
+          buyram: {
+            type: 'eosioBuyRam',
+            account: 'eosio',
+            name: 'buyram',
+            data: {
+              payer: 'name',
+              receiver: 'name',
+              quant: 'asset'
+            }
+          },
+          buyrambytes: {
+            type: 'eosioBuyRamBytes',
+            account: 'eosio',
+            name: 'buyrambytes',
+            data: {
+              payer: 'name',
+              receiver: 'name',
+              bytes: 'uint32'
+            }
+          },
+          sellram: {
+            type: 'eosioBuyRam',
+            account: 'eosio',
+            name: 'buyram',
+            data: {
+              account: 'name',
+              bytes: 'uint64'
+            }
+          },
+          vote: {
+            type: 'eosioVoteProducer',
+            account: 'eosio',
+            name: 'voteproducer',
+            data: {
+              voter: 'name',
+              proxy: 'name',
+              producer: 'name[]'
+            }
+          },
+          other: {
             type: 'other'
           }
-        ],
+        },
 
         getActionType (account, name) {
           let actionType = D.coin.params.eos.actionTypes.find(type =>
