@@ -144,9 +144,9 @@ export default class EosAccount extends IAccount {
       // filter paths that has the same coinType, permission, accountIndex
       let filteredPermissionPaths = permissionPaths.filter(path =>
         subPath === D.address.path.makeSlip48Path(
-          path.pathIndexes[1] - 0x80000000,
-          path.pathIndexes[2] - 0x80000000,
-          path.pathIndexes[3] - 0x80000000))
+        path.pathIndexes[1] - 0x80000000,
+        path.pathIndexes[2] - 0x80000000,
+        path.pathIndexes[3] - 0x80000000))
 
       let maxKeyIndex = filteredPermissionPaths.reduce((max, path) => Math.max(max, path.index), -1)
       let maxRegisteredKeyIndex = filteredPermissionPaths
@@ -281,21 +281,21 @@ export default class EosAccount extends IAccount {
     }
 
     let handler = {}
-    handler[D.coin.eos.actionTypes.transfer.type] = this.prepareTransfer
-    handler[D.coin.eos.actionTypes.issuer.type] = this.prepareIssuer
-    handler[D.coin.eos.actionTypes.delegate.type] = this.prepareDelegate
-    handler[D.coin.eos.actionTypes.undelegate.type] = this.prepareDelegate
-    handler[D.coin.eos.actionTypes.buyram.type] = this.prepareBuyRam
-    handler[D.coin.eos.actionTypes.buyrambytes.type] = this.prepareBuyRam
-    handler[D.coin.eos.actionTypes.sellram.type] = this.prepareBuyRam
-    handler[D.coin.eos.actionTypes.other.type] = this.prepareOther
+    handler[D.coin.params.eos.actionTypes.transfer.type] = this.prepareTransfer
+    handler[D.coin.params.eos.actionTypes.issuer.type] = this.prepareIssuer
+    handler[D.coin.params.eos.actionTypes.delegate.type] = this.prepareDelegate
+    handler[D.coin.params.eos.actionTypes.undelegate.type] = this.prepareDelegate
+    handler[D.coin.params.eos.actionTypes.buyram.type] = this.prepareBuyRam
+    handler[D.coin.params.eos.actionTypes.buyrambytes.type] = this.prepareBuyRam
+    handler[D.coin.params.eos.actionTypes.sellram.type] = this.prepareBuyRam
+    handler[D.coin.params.eos.actionTypes.other.type] = this.prepareOther
 
     let method = handler[details.type]
     if (!method) {
       console.warn('unsupported transaction type', details.type)
       throw D.error.notImplemented
     }
-    method(details)
+    return method(details)
   }
 
   /**
@@ -350,7 +350,7 @@ export default class EosAccount extends IAccount {
       details.outputs[0] = this.balance
     }
 
-    let actionType = D.coin.eos.actionTypes.transfer
+    let actionType = D.coin.params.eos.actionTypes.transfer
     let prepareTx = EosAccount._prepareCommon(details)
     prepareTx.actions = details.outputs.map(output => {
       let action = this._makeBasicAction(details.account, actionType.name)
@@ -360,9 +360,11 @@ export default class EosAccount extends IAccount {
         quantity: output.value + ' ' + details.token,
         memo: details.comment || ''
       }
+      console.log(action, 'action')
       return action
     })
 
+    console.log('prepareTransfer', prepareTx)
     return prepareTx
   }
 
@@ -392,7 +394,7 @@ export default class EosAccount extends IAccount {
     let receiver = details.receiver || this.label
     let transfer = details.transfer || false
 
-    let actionType = details.delegate ? D.coin.eos.actionTypes.delegate : D.coin.eos.actionTypes.undelegate
+    let actionType = details.delegate ? D.coin.params.eos.actionTypes.delegate : D.coin.params.eos.actionTypes.undelegate
     let action = this._makeBasicAction(actionType.account, actionType.name)
     if (details.delegate) {
       action.data = {
@@ -412,6 +414,7 @@ export default class EosAccount extends IAccount {
     }
     prepareTx.actions = [action]
 
+    console.log('prepareDelegate', prepareTx)
     return prepareTx
   }
 
@@ -437,7 +440,7 @@ export default class EosAccount extends IAccount {
         console.warn('no ram quantity provided', details)
         throw D.error.invalidParams
       }
-      let actionType = D.coin.eos.actionTypes.sellram
+      let actionType = D.coin.params.eos.actionTypes.sellram
       let action = this._makeBasicAction(actionType.account, actionType.name)
       action.data = {
         payer: this.label,
@@ -446,7 +449,7 @@ export default class EosAccount extends IAccount {
       prepareTx.actions = [action]
     } else {
       if (details.quant) {
-        let actionType = D.coin.eos.actionTypes.buyram
+        let actionType = D.coin.params.eos.actionTypes.buyram
         let action = this._makeBasicAction(actionType.account, actionType.name)
         action.data = {
           payer: this.label,
@@ -455,7 +458,7 @@ export default class EosAccount extends IAccount {
         }
         prepareTx.actions = [action]
       } else if (details.ramBytes) {
-        let actionType = D.coin.eos.actionTypes.buyrambytes
+        let actionType = D.coin.params.eos.actionTypes.buyrambytes
         let action = this._makeBasicAction(actionType.account, actionType.name)
         action.data = {
           payer: this.label,
@@ -468,6 +471,8 @@ export default class EosAccount extends IAccount {
         throw D.error.invalidParams
       }
     }
+
+    console.log('prepareBuyRam', prepareTx)
     return prepareTx
   }
 
@@ -486,7 +491,7 @@ export default class EosAccount extends IAccount {
     let proxy = details.proxy || ''
 
     let prepareTx = EosAccount._prepareCommon(details)
-    let actionType = D.coin.eos.actionTypes.vote
+    let actionType = D.coin.params.eos.actionTypes.vote
     let action = this._makeBasicAction(actionType.account, actionType.name)
     action.data = {
       voter: this.label,
@@ -494,6 +499,8 @@ export default class EosAccount extends IAccount {
       producers: producers
     }
     prepareTx.actions = [action]
+
+    console.log('prepareVote', prepareTx)
     return prepareTx
   }
 
@@ -513,7 +520,7 @@ export default class EosAccount extends IAccount {
     throw D.error.notImplemented
   }
 
-  static async _prepareCommon (details) {
+  static _prepareCommon (details) {
     const defaultExpirationAfter = 10 * 60 // seconds
 
     let prepareTx = {}
@@ -541,9 +548,10 @@ export default class EosAccount extends IAccount {
       prepareTx.refBlockPrefix = Number(details.refBlockPrefix)
     }
     prepareTx.comment = details.comment || ''
+    return prepareTx
   }
 
-  static async _formatTokenValue (tokenPrecision, value) {
+  static _formatTokenValue (tokenPrecision, value) {
     if (typeof value !== 'string') {
       value = new BigDecimal(value).toPlainString()
     }
@@ -562,7 +570,7 @@ export default class EosAccount extends IAccount {
     return value
   }
 
-  async _makeBasicAction (account, name) {
+  _makeBasicAction (account, name) {
     // TODO later, configurable permission
     return {
       account: account,
@@ -618,6 +626,7 @@ export default class EosAccount extends IAccount {
         })
       }
     }
+
     console.log('presign tx', presignTx)
     let {txId, signedTx} = await this._device.signTransaction(this.coinType, presignTx)
     let txInfo = {

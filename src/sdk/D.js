@@ -254,7 +254,7 @@ const D = {
         },
 
         getActionType (account, name) {
-          let actionType = D.coin.params.eos.actionTypes.find(type =>
+          let actionType = Object.values(D.coin.params.eos.actionTypes).find(type =>
             type.name === name && (!type.account || type.account === account))
           return actionType || D.coin.params.eos.defaultActionType
         }
