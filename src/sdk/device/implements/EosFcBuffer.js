@@ -228,7 +228,7 @@ const FcBuffer = {
       let symbolMatch = str.match(/(^| |,)([A-Z]+)(@|$)/)
       let symbol = symbolMatch ? symbolMatch[2] : null
 
-      if (precision === undefined || symbol === undefined || amount === undefined) {
+      if (precision === null || symbol === null || amount === null) {
         console.warn('parse asset failed', str, precision, symbol, amount)
         throw D.error.invalidParams
       }

@@ -245,7 +245,7 @@ const D = {
             data: {
               voter: 'name',
               proxy: 'name',
-              producer: 'name[]'
+              producers: 'name[]'
             }
           },
           other: {

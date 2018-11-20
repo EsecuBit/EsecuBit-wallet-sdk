@@ -314,6 +314,11 @@ export default class EosAccount extends IAccount {
    * @returns {Promise<{}>} see prepareTx
    */
   async prepareTransfer (details) {
+    if (!details.token) {
+      console.warn('prepareTransfer missing parameter token')
+      throw D.error.invalidParams
+    }
+
     let token = tokenList[details.token]
     details.account = details.account || token.account
     if (!details.account || typeof details.account !== 'string' || details.account.length > 12) {
@@ -339,7 +344,7 @@ export default class EosAccount extends IAccount {
         console.warn('prepareTransfer invalid output', output)
         throw D.error.invalidParams
       }
-      output.value = EosAccount._formatTokenValue(tokenPrecision, output.value)
+      output.value = EosAccount._makeAsset(tokenPrecision, token.name, output.value)
     }
 
     if (details.sendAll) {
@@ -357,7 +362,7 @@ export default class EosAccount extends IAccount {
       action.data = {
         from: this.label,
         to: output.account,
-        quantity: output.value + ' ' + details.token,
+        quantity: output.value,
         memo: details.comment || ''
       }
       console.log(action, 'action')
@@ -389,8 +394,8 @@ export default class EosAccount extends IAccount {
   async prepareDelegate (details) {
     let token = tokenList.EOS
     let prepareTx = EosAccount._prepareCommon(details)
-    let network = EosAccount._formatTokenValue(token.precision, details.network || 0)
-    let cpu = EosAccount._formatTokenValue(token.precision, details.cpu || 0)
+    let network = EosAccount._makeAsset(token.precision, token.name, details.network || 0)
+    let cpu = EosAccount._makeAsset(token.precision, token.name, details.cpu || 0)
     let receiver = details.receiver || this.label
     let transfer = details.transfer || false
 
@@ -454,7 +459,7 @@ export default class EosAccount extends IAccount {
         action.data = {
           payer: this.label,
           receiver: receiver,
-          quant: EosAccount._formatTokenValue(tokenList.EOS.precision, details.quant)
+          quant: EosAccount._makeAsset(tokenList.EOS.precision, tokenList.EOS.name, details.quant)
         }
         prepareTx.actions = [action]
       } else if (details.ramBytes) {
@@ -551,7 +556,7 @@ export default class EosAccount extends IAccount {
     return prepareTx
   }
 
-  static _formatTokenValue (tokenPrecision, value) {
+  static _makeAsset (tokenPrecision, token, value) {
     if (typeof value !== 'string') {
       value = new BigDecimal(value).toPlainString()
     }
@@ -567,7 +572,7 @@ export default class EosAccount extends IAccount {
       if (parts[1] === undefined) value += '.'
       value += '0'.repeat(tokenPrecision - precision)
     }
-    return value
+    return value + ' ' + token
   }
 
   _makeBasicAction (account, name) {
