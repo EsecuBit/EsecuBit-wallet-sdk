@@ -445,6 +445,10 @@ export default class EosAccount extends IAccount {
         console.warn('no ram quantity provided', details)
         throw D.error.invalidParams
       }
+      if (details.ramBytes <= 2) {
+        // got "must purchase a positive amount" when ramBytes = 0, 1 or 2
+        throw D.error.networkValueTooSmall
+      }
       let actionType = D.coin.params.eos.actionTypes.sellram
       let action = this._makeBasicAction(actionType.account, actionType.name)
       action.data = {
@@ -463,6 +467,10 @@ export default class EosAccount extends IAccount {
         }
         prepareTx.actions = [action]
       } else if (details.ramBytes) {
+        if (details.ramBytes <= 2) {
+          // got "must purchase a positive amount" when ramBytes = 0, 1 or 2
+          throw D.error.networkValueTooSmall
+        }
         let actionType = D.coin.params.eos.actionTypes.buyrambytes
         let action = this._makeBasicAction(actionType.account, actionType.name)
         action.data = {

@@ -197,7 +197,9 @@ const FcBuffer = {
             console.warn('item not an array when itemType is vector', b, value, key, itemType)
             throw D.error.invalidParams
           }
-          let subItemType = itemType.split(0, itemType.length - 2)
+          let subItemType = itemType.slice(0, itemType.length - 2)
+
+          content.writeVarint32(item.length)
           item.forEach(i => {
             FcBuffer[subItemType].appendByteBuffer(content, i)
           })
