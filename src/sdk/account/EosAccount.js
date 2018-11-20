@@ -144,9 +144,9 @@ export default class EosAccount extends IAccount {
       // filter paths that has the same coinType, permission, accountIndex
       let filteredPermissionPaths = permissionPaths.filter(path =>
         subPath === D.address.path.makeSlip48Path(
-        path.pathIndexes[1] - 0x80000000,
-        path.pathIndexes[2] - 0x80000000,
-        path.pathIndexes[3] - 0x80000000))
+          path.pathIndexes[1] - 0x80000000,
+          path.pathIndexes[2] - 0x80000000,
+          path.pathIndexes[3] - 0x80000000))
 
       let maxKeyIndex = filteredPermissionPaths.reduce((max, path) => Math.max(max, path.index), -1)
       let maxRegisteredKeyIndex = filteredPermissionPaths
@@ -357,15 +357,17 @@ export default class EosAccount extends IAccount {
 
     let actionType = D.coin.params.eos.actionTypes.transfer
     let prepareTx = EosAccount._prepareCommon(details)
+
+    // in react-native map(), this = global
+    let that = this
     prepareTx.actions = details.outputs.map(output => {
-      let action = this._makeBasicAction(details.account, actionType.name)
+      let action = that._makeBasicAction(details.account, actionType.name)
       action.data = {
         from: this.label,
         to: output.account,
         quantity: output.value,
         memo: details.comment || ''
       }
-      console.log(action, 'action')
       return action
     })
 
@@ -431,7 +433,7 @@ export default class EosAccount extends IAccount {
    *   buy: bool, // buy or sell
    *   quant: decimal string, / number, // buy ram for how much EOS
    *   ramBytes: decimal string / number // buy how much ram bytes, ignore if quant exists
-   *   receiver: string (optional), // buy for myself if not exists
+   *   receiver: string (optional), // buy for myself if not exists, ignore if sell
    *   transfer: boolean (optional) // ignore when undelegate = true
    * }
    * @returns {Promise<{}>} see prepareTx
@@ -452,7 +454,7 @@ export default class EosAccount extends IAccount {
       let actionType = D.coin.params.eos.actionTypes.sellram
       let action = this._makeBasicAction(actionType.account, actionType.name)
       action.data = {
-        payer: this.label,
+        account: this.label,
         bytes: details.ramBytes
       }
       prepareTx.actions = [action]

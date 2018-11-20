@@ -44,6 +44,12 @@ const FcBuffer = {
     }
   },
 
+  uint64: {
+    appendByteBuffer (b, value) {
+      b.writeUint64(value)
+    }
+  },
+
   varuint32: {
     appendByteBuffer (b, value) {
       b.writeVarint32(value)

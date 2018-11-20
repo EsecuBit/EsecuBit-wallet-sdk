@@ -230,9 +230,9 @@ const D = {
             }
           },
           sellram: {
-            type: 'eosioBuyRam',
+            type: 'eosioSellRam',
             account: 'eosio',
-            name: 'buyram',
+            name: 'sellram',
             data: {
               account: 'name',
               bytes: 'uint64'
