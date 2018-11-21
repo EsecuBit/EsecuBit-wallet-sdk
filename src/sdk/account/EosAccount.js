@@ -358,10 +358,8 @@ export default class EosAccount extends IAccount {
     let actionType = D.coin.params.eos.actionTypes.transfer
     let prepareTx = EosAccount._prepareCommon(details)
 
-    // in react-native map(), this = global
-    let that = this
     prepareTx.actions = details.outputs.map(output => {
-      let action = that._makeBasicAction(details.account, actionType.name)
+      let action = EosAccount._makeBasicAction(details.account, actionType.name, this.label)
       action.data = {
         from: this.label,
         to: output.account,
@@ -402,7 +400,7 @@ export default class EosAccount extends IAccount {
     let transfer = details.transfer || false
 
     let actionType = details.delegate ? D.coin.params.eos.actionTypes.delegate : D.coin.params.eos.actionTypes.undelegate
-    let action = this._makeBasicAction(actionType.account, actionType.name)
+    let action = EosAccount._makeBasicAction(actionType.account, actionType.name, this.label)
     if (details.delegate) {
       action.data = {
         from: this.label,
@@ -452,7 +450,7 @@ export default class EosAccount extends IAccount {
         throw D.error.networkValueTooSmall
       }
       let actionType = D.coin.params.eos.actionTypes.sellram
-      let action = this._makeBasicAction(actionType.account, actionType.name)
+      let action = EosAccount._makeBasicAction(actionType.account, actionType.name, this.label)
       action.data = {
         account: this.label,
         bytes: details.ramBytes
@@ -461,7 +459,7 @@ export default class EosAccount extends IAccount {
     } else {
       if (details.quant) {
         let actionType = D.coin.params.eos.actionTypes.buyram
-        let action = this._makeBasicAction(actionType.account, actionType.name)
+        let action = EosAccount._makeBasicAction(actionType.account, actionType.name, this.label)
         action.data = {
           payer: this.label,
           receiver: receiver,
@@ -474,7 +472,7 @@ export default class EosAccount extends IAccount {
           throw D.error.networkValueTooSmall
         }
         let actionType = D.coin.params.eos.actionTypes.buyrambytes
-        let action = this._makeBasicAction(actionType.account, actionType.name)
+        let action = EosAccount._makeBasicAction(actionType.account, actionType.name, this.label)
         action.data = {
           payer: this.label,
           receiver: receiver,
@@ -507,7 +505,7 @@ export default class EosAccount extends IAccount {
 
     let prepareTx = EosAccount._prepareCommon(details)
     let actionType = D.coin.params.eos.actionTypes.vote
-    let action = this._makeBasicAction(actionType.account, actionType.name)
+    let action = EosAccount._makeBasicAction(actionType.account, actionType.name, this.label)
     action.data = {
       voter: this.label,
       proxy: proxy,
@@ -585,13 +583,13 @@ export default class EosAccount extends IAccount {
     return value + ' ' + token
   }
 
-  _makeBasicAction (account, name) {
+  _makeBasicAction (account, name, actor) {
     // TODO later, configurable permission
     return {
       account: account,
       name: name,
       authorization: [{
-        actor: this.label,
+        actor: actor,
         permission: 'active'
       }]
     }
