@@ -284,7 +284,7 @@ const D = {
       }
     },
 
-    checkEosAddress () {
+    checkEosAddress (name) {
       // check whether account name is valid, copy from eos.js
       const charmap = '.12345abcdefghijklmnopqrstuvwxyz'
       const charidx = function charidx (ch) {

@@ -5,7 +5,7 @@ import D from '../../D'
 const jungle = {
   httpEndpoint: 'https://api.jungle.alohaeos.com:443/',
   provider: 'api.jungle.alohaeos.com',
-  txUrl: 'https://eospark.com/MainNet/tx/'
+  txUrl: 'https://eospark.com/Jungle/tx/'
 }
 
 // TODO configurable
@@ -13,7 +13,7 @@ const main = {
   // httpEndpoint: 'http://api.hkeos.com:80/',
   httpEndpoint: 'https://eos.greymass.com/',
   provider: 'eos.greymass.com',
-  txUrl: 'https://eospark.com/Jungle/tx/'
+  txUrl: 'https://eospark.com/Main/tx/'
 }
 
 export default class EosPeer extends ICoinNetwork {
@@ -113,10 +113,28 @@ export default class EosPeer extends ICoinNetwork {
         action.action_trace.act.authorization.actor === accountName ||
         Object.values(action.action_trace.act.data).includes(accountName))
 
-      // filter actions that it's the same
+      // // filter actions that it's the same
+      // response.actions = response.actions.reduce((actions, action) => {
+      //   if (!actions.some(a =>
+      //     a.action_trace.receipt.act_digest === action.action_trace.receipt.act_digest)) {
+      //     actions.push(action)
+      //   }
+      //   return actions
+      // }, [])
+
+      // filter actions that is inline actions
+      let inlineActions = []
+      response.actions.forEach(action => {
+        action.action_trace.inline_traces.forEach(inline => {
+          if (!inlineActions.some(a =>
+            a.receipt.global_sequence === inline.receipt.global_sequence)) {
+            inlineActions.push(inline)
+          }
+        })
+      })
       response.actions = response.actions.reduce((actions, action) => {
-        if (!actions.some(a =>
-          a.action_trace.receipt.act_digest === action.action_trace.receipt.act_digest)) {
+        if (!inlineActions.some(a =>
+          a.receipt.global_sequence === action.action_trace.receipt.global_sequence)) {
           actions.push(action)
         }
         return actions
