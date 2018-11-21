@@ -407,16 +407,16 @@ export default class EosAccount extends IAccount {
       action.data = {
         from: this.label,
         receiver: receiver,
-        stake_net_quantity: network + ' ' + token,
-        stake_cpu_quantity: cpu + ' ' + token,
+        stake_net_quantity: network,
+        stake_cpu_quantity: cpu,
         transfer: transfer ? 0 : 1
       }
     } else {
       action.data = {
         from: this.label,
         receiver: receiver,
-        unstake_net_quantity: network + ' ' + token,
-        unstake_cpu_quantity: cpu + ' ' + token
+        unstake_net_quantity: network,
+        unstake_cpu_quantity: cpu
       }
     }
     prepareTx.actions = [action]
