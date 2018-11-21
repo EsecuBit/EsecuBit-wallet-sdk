@@ -132,7 +132,12 @@ export default class EsWallet {
     } else {
       let lastWalletId = await this._settings.getSetting('lastWalletId')
       if (!lastWalletId) {
-        // noinspection ExceptionCaughtLocallyJS
+        console.warn('offlineMode no device connected before')
+        throw D.error.offlineModeNotAllowed
+      }
+      let recoveryFinish = await this._settings.getSetting('recoveryFinish', lastWalletId)
+      if (!recoveryFinish) {
+        console.warn('offlineMode last device not recovery finished', lastWalletId)
         throw D.error.offlineModeNotAllowed
       }
       info = {walletId: lastWalletId}
