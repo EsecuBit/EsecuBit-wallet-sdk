@@ -162,7 +162,7 @@ export default class NetBankWallet {
       return {v, r, s, pubKey}
     }
 
-    let signBtc = async (tx) => {
+    let signBtc = async (coinType, tx) => {
       let makeBasicScript = (tx) => {
         return {
           version: 1,
@@ -175,7 +175,7 @@ export default class NetBankWallet {
             }
           }),
           outputs: tx.outputs.map(output => {
-            let scriptPubKey = D.address.makeOutputScript(output.address)
+            let scriptPubKey = D.address.makeOutputScript(coinType, output.address)
             return {
               amount: output.value,
               scriptPubKey: scriptPubKey
@@ -254,7 +254,7 @@ export default class NetBankWallet {
     }
 
     let signEth = async (tx) => {
-      let chainId = D.coin.eth.getChainId(coinType)
+      let chainId = D.coin.params.eth.getChainId(coinType)
 
       // rlp
       let unsignedTx = [tx.nonce, tx.gasPrice, tx.gasLimit, tx.output.address, tx.output.value, tx.data, chainId, 0, 0]
@@ -273,7 +273,7 @@ export default class NetBankWallet {
 
     await this.verifyPin()
     if (D.isBtc(coinType)) {
-      return signBtc(tx)
+      return signBtc(coinType, tx)
     } else if (D.isEth(coinType)) {
       return signEth(tx)
     } else {

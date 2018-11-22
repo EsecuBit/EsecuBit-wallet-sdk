@@ -273,7 +273,7 @@ const D = {
 
     checkAddress (coinType, address) {
       if (D.isBtc(coinType)) {
-        return D.address.checkBtcAddress(address)
+        return D.address.checkBtcAddress(coinType, address)
       } else if (D.isEth(coinType)) {
         return D.address.checkEthAddress(address)
       } else if (D.isEos(coinType)) {
@@ -314,7 +314,7 @@ const D = {
       }
     },
 
-    checkBtcAddress (address) {
+    checkBtcAddress (coinType, address) {
       let buffer
 
       // normal address, base58 encoded
@@ -323,20 +323,30 @@ const D = {
       } catch (e) {
         console.debug('address', address, 'is not base58 encoded')
       }
+
+      let assertNet = (coinType, netType) => {
+        let isTest = Object.values(D.coin.test).includes(coinType)
+        let assertTest = netType === 'test'
+        if (isTest !== assertTest) {
+          console.warn('btc network type unmatched', coinType, address)
+          throw D.error.invalidAddress
+        }
+      }
+
       if (buffer.length === 21) {
         let network = buffer.readUInt8(0)
         switch (network) {
           case 0: // main net P2PKH
-            if (D.test.coin) throw D.error.invalidAddress
+            assertNet(coinType, 'main')
             return D.address.p2pkh
           case 0x05: // main net P2SH
-            if (D.test.coin) throw D.error.invalidAddress
+            assertNet(coinType, 'main')
             return D.address.p2sh
           case 0x6f: // test net P2PKH
-            if (!D.test.coin) throw D.error.invalidAddress
+            assertNet(coinType, 'test')
             return D.address.p2pkh
           case 0xc4: // test net P2SH
-            if (!D.test.coin) throw D.error.invalidAddress
+            assertNet(coinType, 'test')
             return D.address.p2sh
           default:
             throw D.error.invalidAddress
@@ -393,8 +403,8 @@ const D = {
       throw D.error.invalidAddress
     },
 
-    makeOutputScript (address) {
-      let type = D.address.checkBtcAddress(address)
+    makeOutputScript (coinType, address) {
+      let type = D.address.checkBtcAddress(coinType, address)
       let scriptPubKey
       switch (type) {
         case D.address.p2pk:
@@ -487,7 +497,10 @@ const D = {
             console.warn(e)
             throw D.error.invalidAddress
           }
-          if (buffer.length !== 21) throw D.error.invalidAddress
+          if (buffer.length !== 21) {
+            console.warn('btc p2pkh/p2sh address lenght unmatched', buffer.length)
+            throw D.error.invalidAddress
+          }
           return buffer.slice(1)
         }
         // p2pk address
@@ -498,7 +511,10 @@ const D = {
             console.warn(e)
             throw D.error.invalidAddress
           }
-          if (buffer.length !== 78) throw D.error.invalidAddress
+          if (buffer.length !== 78) {
+            console.warn('btc p2pk address lenght unmatched', buffer.length)
+            throw D.error.invalidAddress
+          }
           return buffer.slice(45)
         }
         console.warn('no matching prefix for bitcoin address')

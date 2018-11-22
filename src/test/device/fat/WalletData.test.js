@@ -1,5 +1,5 @@
 import chai from 'chai'
-import MockTransmitter from '../../../sdk/device/implements/transmit/MockTransmitter'
+import MockTransmitter from '../../../sdk/device/implements/transmitter/MockTransmitter'
 import WalletData from '../../../sdk/device/implements/fat/WalletData'
 import D from '../../../sdk/D'
 

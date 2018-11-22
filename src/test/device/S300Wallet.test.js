@@ -2,10 +2,10 @@
 import D from '../../sdk/D'
 import Provider from '../../sdk/Provider'
 import S300Wallet from '../../sdk/device/implements/S300Wallet'
-import ChromeUsbDevice from '../../sdk/device/implements/transmit/io/ChromeUsbDevice'
+import ChromeUsbDevice from '../../sdk/device/implements/transmitter/io/ChromeUsbDevice'
 import bitPony from 'bitpony'
 import chai from 'chai'
-import CcidTransmitter from '../../sdk/device/implements/transmit/CcidTransmitter'
+import S300Transmitter from '../../sdk/device/implements/transmitter/S300Transmitter'
 
 Provider.HardDevice = ChromeUsbDevice
 
@@ -14,8 +14,8 @@ describe('S300Wallet', function () {
   let s300Wallet
   this.timeout(600000)
 
-  it('listenPlug', function (done) {
-    let transmitter = new CcidTransmitter()
+  before(function (done) {
+    let transmitter = new S300Transmitter()
     transmitter.listenPlug((error, status) => {
       error.should.equal(D.error.succeed)
       if (status === D.status.plugIn) {
@@ -32,12 +32,12 @@ describe('S300Wallet', function () {
   it('get address by apdu', async () => {
     let address = await s300Wallet._sendApdu('8046000709028000002c80000000', true)
     address = String.fromCharCode.apply(null, new Uint8Array(address))
-    D.address.checkBtcAddress(address)
+    D.address.checkBtcAddress(D.coin.main.btc, address)
   })
 
   it('get address', async () => {
     let address = await s300Wallet.getAddress(D.coin.main.btc, "m/44'/0'/0'/1/0", false)
-    D.address.checkBtcAddress(address)
+    D.address.checkBtcAddress(D.coin.main.btc, address)
   })
 
   it('sign by apdu', async () => {

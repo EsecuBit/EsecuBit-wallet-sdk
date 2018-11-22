@@ -6,7 +6,7 @@ import ChromeUsbDevice from './io/ChromeUsbDevice'
 /**
  * Esecubit USB CCID protocol
  */
-export default class CcidTransmitter {
+export default class S300Transmitter {
   constructor () {
     this._device = D.test.mockDevice ? new MockDevice() : new ChromeUsbDevice()
     this._seqNum = 0
@@ -72,7 +72,7 @@ export default class CcidTransmitter {
       result = ret.result
     }
 
-    CcidTransmitter._checkSw1Sw2(result)
+    S300Transmitter._checkSw1Sw2(result)
     return response
   }
 
@@ -92,7 +92,7 @@ export default class CcidTransmitter {
     }
 
     this._seqNum = 0
-    console.debug('transmit send apdu', apdu.toString('hex'))
+    console.debug('transmitter send apdu', apdu.toString('hex'))
     let sendPack = packCcidCmd(this._seqNum++, apdu)
     let response = await this._sendAndReceive(sendPack)
     if (!response || response.length < 2) {
@@ -103,7 +103,7 @@ export default class CcidTransmitter {
     let indexSw1Sw2 = response.length - 2
     let sw1sw2 = (response[indexSw1Sw2] << 8) + response[indexSw1Sw2 + 1]
     let responseData = response.slice(0, indexSw1Sw2)
-    console.debug('transmit got response', sw1sw2.toString(16), responseData.toString('hex'))
+    console.debug('transmitter got response', sw1sw2.toString(16), responseData.toString('hex'))
     return {result: sw1sw2, response: responseData}
   }
 

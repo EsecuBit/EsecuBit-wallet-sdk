@@ -3,7 +3,6 @@ import CryptoJS from 'crypto-js'
 import D from '../../../D'
 import JSEncrypt from './jsencrypt'
 import MockDevice from './io/MockDevice'
-import HidTransmitter from "./HidTransmitter";
 
 const factoryPubKeyPem = '-----BEGIN PUBLIC KEY-----' +
   'MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC3IaEDmGWrsHA5rKC8VB++Gkw/' +
@@ -71,17 +70,18 @@ let des112 = (isEnc, data, key) => {
 
 export default class HandShake {
   constructor () {
-    this._commKey = {
-      sKey: null,
-      generated: false
-    }
+    this._sKey = null
+    this._sKeyCount = null
+    this.isFinished = false
   }
 
   /**
    * handshake using rsa and 3DES112
    */
   generateHandshakeApdu () {
-    if (this._commKey.generated) return
+    this.isFinished = false
+    this._sKey = null
+    this._sKeyCount = null
 
     let generateRsa1024KeyPair = () => {
       let keyPair = new JSEncrypt()
@@ -121,8 +121,6 @@ export default class HandShake {
   }
 
   parseHandShakeResponse (response, tempKeyPair, apdu) {
-    if (this._commKey.generated) return
-
     let modLen = 0x80 // RSA1024
     let parseHandShakeResponse = (hostKey, response, apdu) => {
       let removePadding = (data) => {
@@ -230,26 +228,26 @@ export default class HandShake {
     }
 
     let {sKey, sKeyCount} = parseHandShakeResponse(tempKeyPair, response, apdu)
-    this._commKey.sKey = sKey
-    this._commKey.sKeyCount = sKeyCount
-    this._commKey.generated = true
+    this._sKey = sKey
+    this._sKeyCount = sKeyCount
+    this.isFinished = true
     console.log('finish hand shake')
   }
 
   encApdu (apdu) {
-    if (!this._commKey.generated) {
+    if (!this.isFinished) {
       console.warn('HandShake not handshake yet')
       throw D.error.handShake
     }
 
-    let encryptedApdu = des112(true, apdu, this._commKey.sKey)
+    let encryptedApdu = des112(true, apdu, this._sKey)
 
     // 8033 534D Lc    00 00 00 PaddingNum(1) SKeyCount(4) EncApdu
     let padNum = encryptedApdu.length - apdu.length
-    let apduDataLen = 4 + this._commKey.sKeyCount.length + encryptedApdu.length
+    let apduDataLen = 4 + this._sKeyCount.length + encryptedApdu.length
     let apduData = Buffer.allocUnsafe(apduDataLen)
     apduData[0x03] = padNum & 0xFF
-    this._commKey.sKeyCount.copy(apduData, 0x04)
+    this._sKeyCount.copy(apduData, 0x04)
     encryptedApdu.copy(apduData, 0x08)
 
     let encApduHead = Buffer.from('8033534D000000', 'hex')
@@ -260,16 +258,18 @@ export default class HandShake {
   }
 
   decResponse (response) {
-    if (!this._commKey.generated) {
+    if (!this.isFinished) {
       console.warn('HandShake not handshake yet')
       throw D.error.handShake
     }
 
-    let decResponse = des112(false, response, this._commKey.sKey)
+    let decResponse = des112(false, response, this._sKey)
 
     let length = decResponse.length
     let result = (decResponse[length - 2] << 8) + decResponse[length - 1]
-    HidTransmitter._checkSw1Sw2(result)
-    return decResponse.slice(0, -2)
+    return {
+      result: result,
+      response: decResponse.slice(0, -2)
+    }
   }
 }

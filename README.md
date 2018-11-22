@@ -77,7 +77,7 @@ import {D} from 'esecubit-wallet-sdk'
 
 // configure it before call EsWallet
 D.test.jsWallet = true // use javascript wallet, default false (hardware wallet)
-D.test.testCoin = true // use testnet, dafault false (mainnet)
+D.test.coin = true // use testnet, dafault false (mainnet)
 ```
 
 2. Connect Device and Finish Initialization

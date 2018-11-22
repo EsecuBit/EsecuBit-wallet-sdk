@@ -209,7 +209,7 @@ export default class S300Wallet {
       return {v, r, s, pubKey}
     }
 
-    let signBtc = async (tx) => {
+    let signBtc = async (coinType, tx) => {
       let makeBasicScript = (tx) => {
         return {
           version: 1,
@@ -222,7 +222,7 @@ export default class S300Wallet {
             }
           }),
           outputs: tx.outputs.map(output => {
-            let scriptPubKey = D.address.makeOutputScript(output.address)
+            let scriptPubKey = D.address.makeOutputScript(coinType, output.address)
             return {
               amount: output.value,
               scriptPubKey: scriptPubKey

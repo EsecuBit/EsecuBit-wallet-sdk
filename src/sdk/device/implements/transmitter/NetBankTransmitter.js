@@ -8,7 +8,7 @@ import HandShake from './HandShake'
 /**
  * Esecubit USB HID protocol
  */
-export default class HidTransmitter {
+export default class NetBankTransmitter {
   constructor () {
     this._device = D.test.mockDevice ? new MockDevice() : new ChromeHidDevice()
     this._handShake = new HandShake()
@@ -53,7 +53,9 @@ export default class HidTransmitter {
       let response = await this._sendApdu(apdu)
       if (isEnc) {
         console.debug('got enc response', response.toString('hex'), 'isEnc', isEnc)
-        response = this._handShake.decResponse(response)
+        let decResponse = this._handShake.decResponse(response)
+        NetBankTransmitter._checkSw1Sw2(decResponse.result)
+        response = decResponse.response
       }
       console.log('got response', response.toString('hex'), 'isEnc', isEnc)
       return response
@@ -63,9 +65,10 @@ export default class HidTransmitter {
   }
 
   async _doHandShake () {
-    let {apdu, tempKeyPair} = this._handShake.generateHandshakeApdu()
+    if (this._handShake.isFinished) return
+    let {tempKeyPair, apdu} = this._handShake.generateHandshakeApdu()
     let response = await this._sendApdu(apdu)
-    this._handShake.parseHandShakeResponse(response, apdu, tempKeyPair)
+    this._handShake.parseHandShakeResponse(response, tempKeyPair, apdu)
   }
 
   /**
@@ -91,7 +94,7 @@ export default class HidTransmitter {
       response = Buffer.concat([response, ret.response])
       result = ret.result
     }
-    HidTransmitter._checkSw1Sw2(result)
+    NetBankTransmitter._checkSw1Sw2(result)
 
     return response
   }
@@ -217,11 +220,11 @@ export default class HidTransmitter {
       }
     }
 
-    console.debug('transmit send apdu', apdu.toString('hex'))
+    console.debug('transmitter send apdu', apdu.toString('hex'))
     let {reportId, pack} = packHidCmd(apdu)
     let received = await sendAndReceive(reportId, pack)
     let response = unpackHidCmd(received)
-    console.debug('transmit got response', response.result.toString(16), response.response.toString('hex'))
+    console.debug('transmitter got response', response.result.toString(16), response.response.toString('hex'))
     return response
   }
 

@@ -483,7 +483,7 @@ export default class BtcAccount extends IAccount {
           address: output.address,
           isMine: output.address === (changeAddressInfo && changeAddressInfo.address),
           index: index,
-          script: D.address.makeOutputScript(output.address),
+          script: D.address.makeOutputScript(this.coinType, output.address),
           value: output.value
         }
       }),
