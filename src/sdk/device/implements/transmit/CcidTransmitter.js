@@ -39,12 +39,10 @@ export default class CcidTransmitter {
 
     try {
       // currently S300 APDU encryption not supported
+      // must use await to make lock effective
+      // noinspection UnnecessaryLocalVariableJS
       let response = await this._sendApdu(apdu)
-      // must await to make lock enabled
       return response
-    } catch (e) {
-      console.warn('CcidTrasmitter sendApdu failed', e)
-      throw e
     } finally {
       this.busy = false
     }
