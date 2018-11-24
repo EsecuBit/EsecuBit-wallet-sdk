@@ -423,7 +423,7 @@ const D = {
           scriptPubKey = '0020' + D.address.toBuffer(address).toString('hex')
           break
         default:
-          console.warn('makeBasicScript: unsupported address type')
+          console.warn('makeOutputScript: unsupported address type')
           throw D.error.invalidAddress
       }
       return scriptPubKey

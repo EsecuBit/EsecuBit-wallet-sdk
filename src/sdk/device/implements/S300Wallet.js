@@ -319,7 +319,7 @@ export default class S300Wallet {
     }
 
     if (D.isBtc(coinType)) {
-      return signBtc(tx)
+      return signBtc(coinType, tx)
     } else if (D.isEth(coinType)) {
       return signEth(tx)
     } else {

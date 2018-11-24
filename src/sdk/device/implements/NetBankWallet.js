@@ -4,7 +4,7 @@ import rlp from 'rlp'
 import BigInteger from 'bigi'
 import bitPony from 'bitpony'
 import {Buffer} from 'buffer'
-import HandShake from "./protocol/HandShake";
+import HandShake from './protocol/HandShake'
 
 // rewrite _containKeys to make empty value available, so we can use it to build presign tx
 // noinspection JSPotentiallyInvalidConstructorUsage
@@ -328,7 +328,7 @@ export default class NetBankWallet {
   async _doHandShake () {
     if (this._handShake.isFinished) return
     let {tempKeyPair, apdu} = this._handShake.generateHandshakeApdu()
-    let response = await this._sendApdu(apdu)
+    let response = await this._transmit(apdu)
     this._handShake.parseHandShakeResponse(response, tempKeyPair, apdu)
   }
 

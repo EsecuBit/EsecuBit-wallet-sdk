@@ -16,7 +16,7 @@ describe('NetBankWallet', function () {
       error.should.equal(D.error.succeed)
       if (status === D.status.plugIn) {
         netBankWallet = new NetBankWallet(transmitter)
-        done()
+        netBankWallet.init().then(() => done())
       }
     })
   })

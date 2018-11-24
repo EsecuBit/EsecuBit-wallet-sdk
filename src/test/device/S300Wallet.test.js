@@ -20,7 +20,7 @@ describe('S300Wallet', function () {
       error.should.equal(D.error.succeed)
       if (status === D.status.plugIn) {
         s300Wallet = new S300Wallet(transmitter)
-        done()
+        s300Wallet.init().then(() => done())
       }
     })
   })
