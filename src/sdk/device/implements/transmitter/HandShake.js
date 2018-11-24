@@ -1,8 +1,8 @@
 import {Buffer} from 'buffer'
-import CryptoJS from 'crypto-js'
 import D from '../../../D'
 import JSEncrypt from './jsencrypt'
 import MockDevice from './io/MockDevice'
+import {sha1, des112} from './Crypto'
 
 const factoryPubKeyPem = '-----BEGIN PUBLIC KEY-----' +
   'MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC3IaEDmGWrsHA5rKC8VB++Gkw/' +
@@ -10,63 +10,6 @@ const factoryPubKeyPem = '-----BEGIN PUBLIC KEY-----' +
   'xfAEmESfpB7hL7O+IUDz2v+/QHXs34wE3zQ7uFNH05xrdznf1a2Buy4Jrc3BeVmo' +
   'nnYX4pewrrbfoITl4QIDAQAB' +
   '-----END PUBLIC KEY-----'
-
-let sha1 = (data) => {
-  if (typeof data === 'string') {
-    data = Buffer.from(data, 'hex')
-  }
-  let input = CryptoJS.lib.WordArray.create(data)
-  let plaintext = CryptoJS.SHA1(input)
-  return Buffer.from(plaintext.toString(), 'hex')
-}
-
-let des112 = (isEnc, data, key) => {
-  let customPadding = (data) => {
-    let padNum = 8 - data.length % 8
-    if (padNum === 8) return data
-
-    let padding = Buffer.alloc(padNum)
-    padding[0] = 0x80
-    return Buffer.concat([data, padding])
-  }
-
-  let removeCustomPadding = (data) => {
-    if (typeof data === 'string') {
-      data = Buffer.from(data, 'hex')
-    }
-    let padNum = data[0]
-    return data.slice(1, data.length - padNum)
-  }
-
-  if (typeof data === 'string') {
-    data = Buffer.from(data, 'hex')
-  }
-  if (typeof key === 'string') {
-    key = Buffer.from(key, 'hex')
-  }
-
-  if (isEnc) {
-    data = customPadding(data)
-  }
-  let des168Key = Buffer.concat([key, key.slice(0, 8)]) // des112 => des 168
-  let input = CryptoJS.lib.WordArray.create(data)
-  let pass = CryptoJS.lib.WordArray.create(des168Key)
-  if (isEnc) {
-    let encData = CryptoJS.TripleDES.encrypt(input, pass, {
-      mode: CryptoJS.mode.ECB,
-      padding: CryptoJS.pad.NoPadding
-    })
-    return Buffer.from(encData.ciphertext.toString(CryptoJS.enc.Hex), 'hex')
-  } else {
-    let plaintext = CryptoJS.TripleDES.decrypt({ciphertext: input}, pass,
-      {
-        mode: CryptoJS.mode.ECB,
-        padding: CryptoJS.pad.NoPadding
-      })
-    plaintext = plaintext.toString(CryptoJS.enc.Hex)
-    return removeCustomPadding(plaintext)
-  }
-}
 
 export default class HandShake {
   constructor () {

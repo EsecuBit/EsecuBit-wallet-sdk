@@ -47,13 +47,10 @@ Digital Currency Exchange:
 
 ## Import SDK
 
-1. Add dependency in package.json -> dependencies
-```javascript
-dependencies {
-  "esecubit-wallet-sdk": "git+https://github.com/EsecuBit/EsecuBit-wallet-sdk.git"
-  // or:
-  // "esecubit-wallet-sdk": "git+ssh://github.com/EsecuBit/EsecuBit-wallet-sdk.git"
-}
+```shell
+npm install esecuBit-wallet-sdk // release version, may missing some new features
+// or
+npm install git+ssh://github.com/EsecuBit/EsecuBit-wallet-sdk.git // newest version on GitHub
 
 // if you are runing on a low version of Chrome (<= 54), you may need to use the compiled version
 // add it in the webpack.config:
@@ -62,11 +59,6 @@ resolve: {
     "esecubit-wallet-sdk": "esecubit-wallet-sdk/dist/eswallet"
   }
 }
-```
-
-2. Install
-```shell
-npm install
 ```
 
 ## Usage

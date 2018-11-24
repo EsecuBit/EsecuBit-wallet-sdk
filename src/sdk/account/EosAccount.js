@@ -583,7 +583,7 @@ export default class EosAccount extends IAccount {
     return value + ' ' + token
   }
 
-  _makeBasicAction (account, name, actor) {
+  static _makeBasicAction (account, name, actor) {
     // TODO later, configurable permission
     return {
       account: account,
