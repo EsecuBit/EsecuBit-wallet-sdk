@@ -2,6 +2,10 @@
 import D from '../../../../D'
 import {Buffer} from 'buffer'
 
+/**
+ * Mock object of device. Only enabled when D.test.mockDevice = true
+ * @deprecated
+ */
 export default class MockDevice {
   listenPlug (callback) {
     D.dispatch(() => callback(D.error.succeed, D.status.plugIn))

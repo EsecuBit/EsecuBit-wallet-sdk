@@ -6,15 +6,15 @@ import S300Wallet from './device/implements/S300Wallet'
 
 import JsTransmitter from './device/implements/transmitter/JsTransmitter'
 import MockTransmitter from './device/implements/transmitter/MockTransmitter'
-import NetBankTransmitter from './device/implements/transmitter/NetBankTransmitter'
-import S300Transmitter from './device/implements/transmitter/S300Transmitter'
+import HidTransmitter from './device/implements/transmitter/HidTransmitter'
+import CcidTransmitter from './device/implements/transmitter/CcidTransmitter'
 
 const Provider = {
   Transmitters: [
     JsTransmitter,
     MockTransmitter,
-    S300Transmitter,
-    NetBankTransmitter
+    CcidTransmitter,
+    HidTransmitter
   ],
 
   Wallets: [

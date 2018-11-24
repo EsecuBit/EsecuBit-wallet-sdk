@@ -3,7 +3,7 @@ import D from '../../sdk/D'
 import NetBankWallet from '../../sdk/device/implements/NetBankWallet'
 import chai from 'chai'
 import bitPony from 'bitpony'
-import NetBankTransmitter from '../../sdk/device/implements/transmitter/NetBankTransmitter'
+import HidTransmitter from '../../sdk/device/implements/transmitter/HidTransmitter'
 
 chai.should()
 describe('NetBankWallet', function () {
@@ -11,7 +11,7 @@ describe('NetBankWallet', function () {
   this.timeout(100000)
 
   before(function (done) {
-    let transmitter = new NetBankTransmitter()
+    let transmitter = new HidTransmitter()
     transmitter.listenPlug((error, status) => {
       error.should.equal(D.error.succeed)
       if (status === D.status.plugIn) {

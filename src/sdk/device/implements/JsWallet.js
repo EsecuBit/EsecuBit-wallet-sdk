@@ -6,7 +6,7 @@ import BigInteger from 'bigi'
 import createHmac from 'create-hmac'
 import rlp from 'rlp'
 import D from '../../D'
-import FcBuffer from './EosFcBuffer'
+import FcBuffer from './protocol/EosFcBuffer'
 import createHash from 'create-hash'
 import base58 from 'bs58'
 

@@ -6,7 +6,7 @@ import ChromeUsbDevice from './io/ChromeUsbDevice'
 /**
  * Esecubit USB CCID protocol
  */
-export default class S300Transmitter {
+export default class CcidTransmitter {
   constructor () {
     this._device = D.test.mockDevice ? new MockDevice() : new ChromeUsbDevice()
     this._seqNum = 0
@@ -28,58 +28,9 @@ export default class S300Transmitter {
   }
 
   /**
-   * APDU encrypt & decrypt
-   */
-  async sendApdu (apdu, isEnc = false) {
-    // a simple lock to guarantee apdu order
-    while (this.busy) {
-      await D.wait(10)
-    }
-    this.busy = true
-
-    try {
-      // currently S300 APDU encryption not supported
-      // must use await to make lock effective
-      // noinspection UnnecessaryLocalVariableJS
-      let response = await this._sendApdu(apdu)
-      return response
-    } finally {
-      this.busy = false
-    }
-  }
-
-  /**
-   * APDU special response handling
-   */
-  async _sendApdu (apdu) {
-    let {result, response} = await this._transmit(apdu)
-
-    // 9060 means busy, send 00c0000000 immediately to get response
-    while (result === 0x9060) {
-      let waitCmd = Buffer.from('000c0000000', 'hex')
-      let {_result, _response} = await this._transmit(waitCmd)
-      result = _result
-      response = _response
-    }
-
-    // 61XX means there are still XX bytes to get
-    while ((result & 0xFF00) === 0x6100) {
-      console.debug('got 0x61XX, get remain data')
-      let rApdu = Buffer.from('00C0000000', 'hex')
-      rApdu[0x04] = result & 0xFF
-      let ret = await this._transmit(rApdu)
-      response = Buffer.concat([response, ret.response])
-      result = ret.result
-    }
-
-    S300Transmitter._checkSw1Sw2(result)
-    return response
-  }
-
-  /**
    * CCID command pack & unpack
    */
-  async _transmit (apdu) {
+  async transmit (apdu) {
     if (typeof apdu === 'string') {
       apdu = Buffer.from(apdu, 'hex')
     }
@@ -141,10 +92,5 @@ export default class S300Transmitter {
       received = await this._device.send(respPack)
     }
     return response
-  }
-
-  static _checkSw1Sw2 (sw1sw2) {
-    let errorCode = D.error.checkSw1Sw2(sw1sw2)
-    if (errorCode !== D.error.succeed) throw errorCode
   }
 }

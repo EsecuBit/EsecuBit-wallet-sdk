@@ -1,6 +1,6 @@
 import {sm2} from 'sm.js'
 import D from '../../../D'
-import {des112} from './Crypto'
+import {des112} from '../transmitter/Crypto'
 
 const factoryPubKey = '284F6A1A1479FADB063452ED3060CD98A34583BB448954990C239EEC414A41C5A076705E52BC4F6297F667938F99D05C3994834E6639E6DF775F45B2310F50F6'
 

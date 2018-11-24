@@ -1,6 +1,6 @@
 import ByteBuffer from 'bytebuffer'
 import {Buffer} from 'buffer'
-import D from '../../D'
+import D from '../../../D'
 
 const FcBuffer = {
   serializeTx (tx) {

@@ -1,10 +1,10 @@
 
 import D from '../../D'
-import Provider from '../../Provider'
 import rlp from 'rlp'
 import BigInteger from 'bigi'
 import bitPony from 'bitpony'
 import {Buffer} from 'buffer'
+import HandShake from "./protocol/HandShake";
 
 // rewrite _containKeys to make empty value available, so we can use it to build presign tx
 // noinspection JSPotentiallyInvalidConstructorUsage
@@ -23,14 +23,11 @@ export default class NetBankWallet {
   }
 
   async init () {
+    this._handShake = new HandShake()
     let walletId = D.test.coin ? '01' : '00'
     walletId += D.test.jsWallet ? '01' : '00'
     walletId += D.address.toBuffer(await this.getAddress(D.coin.main.btc, "m/44'/0'/0'/0/0")).toString('hex')
     return {walletId: walletId}
-  }
-
-  listenPlug (callback) {
-    this._transmitter.listenPlug(callback)
   }
 
   async getWalletInfo () {
@@ -288,7 +285,83 @@ export default class NetBankWallet {
     return this._sendApdu(apdu)
   }
 
-  _sendApdu (apdu, isEnc = false) {
-    return this._transmitter.sendApdu(apdu, this._allEnc || isEnc)
+  /**
+   * APDU encrypt & decrypt
+   */
+  async _sendApdu (apdu, isEnc = false) {
+    isEnc = this._allEnc || isEnc
+    // a simple lock to guarantee apdu order
+    while (this._busy) {
+      await D.wait(10)
+    }
+    this._busy = true
+
+    try {
+      if (typeof apdu === 'string') {
+        apdu = Buffer.from(apdu, 'hex')
+      }
+      console.log('send apdu', apdu.toString('hex'), 'isEnc', isEnc)
+      if (isEnc) {
+        // 1. some other program may try to send command to device
+        // 2. in some limit situation, device is not stable yet
+        // try up to 3 times
+        await this._doHandShake()
+          .catch(() => this._doHandShake())
+          .catch(() => this._doHandShake())
+        apdu = this._handShake.encApdu(apdu)
+        console.debug('send enc apdu', apdu.toString('hex'))
+      }
+      let response = await this._transmit(apdu)
+      if (isEnc) {
+        console.debug('got enc response', response.toString('hex'), 'isEnc', isEnc)
+        let decResponse = this._handShake.decResponse(response)
+        NetBankWallet._checkSw1Sw2(decResponse.result)
+        response = decResponse.response
+      }
+      console.log('got response', response.toString('hex'), 'isEnc', isEnc)
+      return response
+    } finally {
+      this._busy = false
+    }
+  }
+
+  async _doHandShake () {
+    if (this._handShake.isFinished) return
+    let {tempKeyPair, apdu} = this._handShake.generateHandshakeApdu()
+    let response = await this._sendApdu(apdu)
+    this._handShake.parseHandShakeResponse(response, tempKeyPair, apdu)
+  }
+
+  /**
+   * APDU special response handling
+   */
+  async _transmit (apdu) {
+    let {result, response} = await this._transmitter.transmit(apdu)
+
+    // 6AA6 means busy, send 00A6000008 immediately to get response
+    while (result === 0x6AA6) {
+      console.debug('got 0xE0616AA6, resend apdu')
+      let {_result, _response} = await this._transmitter.transmit(Buffer.from('00A6000008'), 'hex')
+      result = _result
+      response = _response
+    }
+
+    // 61XX means there are still XX bytes to get
+    while ((result & 0xFF00) === 0x6100) {
+      console.debug('got 0x61XX, get remain data')
+      let rApdu = Buffer.from('00C0000000', 'hex')
+      rApdu[0x04] = result & 0xFF
+      let ret = await this._transmitter.transmit(rApdu)
+      response = Buffer.concat([response, ret.response])
+      result = ret.result
+    }
+    NetBankWallet._checkSw1Sw2(result)
+
+    return response
+  }
+
+  static _checkSw1Sw2 (sw1sw2) {
+    let errorCode = D.error.checkSw1Sw2(sw1sw2)
+    if (errorCode !== D.error.succeed) throw errorCode
   }
 }

@@ -484,7 +484,7 @@ const D = {
             buffer = bech32.fromWords(decodedBech32.words.slice(1))
             return buffer
           } catch (e) {
-            console.debug('address', address, 'is not bech32 encoded')
+            console.debug('address not bech32 encoded', address)
             throw D.error.invalidAddress
           }
         }
@@ -498,7 +498,7 @@ const D = {
             throw D.error.invalidAddress
           }
           if (buffer.length !== 21) {
-            console.warn('btc p2pkh/p2sh address lenght unmatched', buffer.length)
+            console.warn('btc p2pkh/p2sh address length unmatched', address, buffer.length)
             throw D.error.invalidAddress
           }
           return buffer.slice(1)
@@ -512,12 +512,12 @@ const D = {
             throw D.error.invalidAddress
           }
           if (buffer.length !== 78) {
-            console.warn('btc p2pk address lenght unmatched', buffer.length)
+            console.warn('btc p2pk address lenght unmatched', address, buffer.length)
             throw D.error.invalidAddress
           }
           return buffer.slice(45)
         }
-        console.warn('no matching prefix for bitcoin address')
+        console.warn('no matching prefix for bitcoin address', address)
         throw D.error.invalidAddress
       }
     },

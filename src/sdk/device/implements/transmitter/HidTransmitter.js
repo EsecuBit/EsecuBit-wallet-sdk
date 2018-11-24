@@ -3,20 +3,15 @@ import D from '../../../D'
 import MockDevice from './io/MockDevice'
 import {Buffer} from 'buffer'
 import ChromeHidDevice from './io/ChromeHidDevice'
-import HandShake from './HandShake'
 
 /**
  * Esecubit USB HID protocol
  */
-export default class NetBankTransmitter {
+export default class HidTransmitter {
   constructor () {
     this._device = D.test.mockDevice ? new MockDevice() : new ChromeHidDevice()
-    this._handShake = new HandShake()
     this._plugListener = () => {}
     this._device.listenPlug((error, status) => {
-      if (status === D.status.plugOut) {
-        this._handShake = new HandShake()
-      }
       D.dispatch(() => this._plugListener(error, status))
     })
   }
@@ -26,83 +21,9 @@ export default class NetBankTransmitter {
   }
 
   /**
-   * APDU encrypt & decrypt
-   */
-  async sendApdu (apdu, isEnc = false) {
-    // a simple lock to guarantee apdu order
-    while (this.busy) {
-      await D.wait(10)
-    }
-    this.busy = true
-
-    try {
-      if (typeof apdu === 'string') {
-        apdu = Buffer.from(apdu, 'hex')
-      }
-      console.log('send apdu', apdu.toString('hex'), 'isEnc', isEnc)
-      if (isEnc) {
-        // 1. some other program may try to send command to device
-        // 2. in some limit situation, device is not stable yet
-        // try up to 3 times
-        await this._doHandShake()
-          .catch(() => this._doHandShake())
-          .catch(() => this._doHandShake())
-        apdu = this._handShake.encApdu(apdu)
-        console.debug('send enc apdu', apdu.toString('hex'))
-      }
-      let response = await this._sendApdu(apdu)
-      if (isEnc) {
-        console.debug('got enc response', response.toString('hex'), 'isEnc', isEnc)
-        let decResponse = this._handShake.decResponse(response)
-        NetBankTransmitter._checkSw1Sw2(decResponse.result)
-        response = decResponse.response
-      }
-      console.log('got response', response.toString('hex'), 'isEnc', isEnc)
-      return response
-    } finally {
-      this.busy = false
-    }
-  }
-
-  async _doHandShake () {
-    if (this._handShake.isFinished) return
-    let {tempKeyPair, apdu} = this._handShake.generateHandshakeApdu()
-    let response = await this._sendApdu(apdu)
-    this._handShake.parseHandShakeResponse(response, tempKeyPair, apdu)
-  }
-
-  /**
-   * APDU special response handling
-   */
-  async _sendApdu (apdu) {
-    let {result, response} = await this._transmit(apdu)
-
-    // 6AA6 means busy, send 00A6000008 immediately to get response
-    while (result === 0x6AA6) {
-      console.debug('got 0xE0616AA6, resend apdu')
-      let {_result, _response} = await this._transmit(Buffer.from('00A6000008'), 'hex')
-      result = _result
-      response = _response
-    }
-
-    // 61XX means there are still XX bytes to get
-    while ((result & 0xFF00) === 0x6100) {
-      console.debug('got 0x61XX, get remain data')
-      let rApdu = Buffer.from('00C0000000', 'hex')
-      rApdu[0x04] = result & 0xFF
-      let ret = await this._transmit(rApdu)
-      response = Buffer.concat([response, ret.response])
-      result = ret.result
-    }
-    NetBankTransmitter._checkSw1Sw2(result)
-
-    return response
-  }
-
-  /**
    * HID command pack & unpack
    */
-  async _transmit (apdu) {
+  async transmit (apdu) {
     if (typeof apdu === 'string') {
       apdu = Buffer.from(apdu, 'hex')
     }
@@ -226,10 +147,5 @@ export default class NetBankTransmitter {
     let response = unpackHidCmd(received)
     console.debug('transmitter got response', response.result.toString(16), response.response.toString('hex'))
     return response
-  }
-
-  static _checkSw1Sw2 (sw1sw2) {
-    let errorCode = D.error.checkSw1Sw2(sw1sw2)
-    if (errorCode !== D.error.succeed) throw errorCode
   }
 }

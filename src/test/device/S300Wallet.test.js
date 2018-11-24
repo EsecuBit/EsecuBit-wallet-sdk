@@ -5,7 +5,7 @@ import S300Wallet from '../../sdk/device/implements/S300Wallet'
 import ChromeUsbDevice from '../../sdk/device/implements/transmitter/io/ChromeUsbDevice'
 import bitPony from 'bitpony'
 import chai from 'chai'
-import S300Transmitter from '../../sdk/device/implements/transmitter/S300Transmitter'
+import CcidTransmitter from '../../sdk/device/implements/transmitter/CcidTransmitter'
 
 Provider.HardDevice = ChromeUsbDevice
 
@@ -15,7 +15,7 @@ describe('S300Wallet', function () {
   this.timeout(600000)
 
   before(function (done) {
-    let transmitter = new S300Transmitter()
+    let transmitter = new CcidTransmitter()
     transmitter.listenPlug((error, status) => {
       error.should.equal(D.error.succeed)
       if (status === D.status.plugIn) {
