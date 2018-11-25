@@ -127,7 +127,10 @@ export default class EsWallet {
 
     let info
     if (!this.offlineMode) {
-      info = await this._device.init()
+      info = await this._device.init((authCode) => {
+        // TODO finish UI
+        console.log('show auth code', authCode)
+      })
       await this._settings.setSetting('lastWalletId', info.walletId)
     } else {
       let lastWalletId = await this._settings.getSetting('lastWalletId')

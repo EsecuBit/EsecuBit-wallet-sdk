@@ -24,6 +24,7 @@ export default class S300Wallet {
   }
 
   async init () {
+    console.log('S300Wallet init')
     await this._transmitter.reset()
     await this._select()
 
@@ -34,7 +35,7 @@ export default class S300Wallet {
   }
 
   async _select () {
-    await this._sendApdu('00A4040006B00000000002', false)
+    await this.sendApdu('00A4040006B00000000002', false)
   }
 
   async getWalletInfo () {
@@ -58,7 +59,7 @@ export default class S300Wallet {
     let pathBuffer = D.address.path.toBuffer(path)
     let apdu = Buffer.concat([apduHead, pathBuffer])
     apdu[3] = flag
-    let publicKey = await this._sendApdu(apdu, false)
+    let publicKey = await this.sendApdu(apdu, false)
 
     if (D.isEos(coinType)) {
       let checksum = createHash('ripemd160').update(publicKey).digest().slice(0, 4)
@@ -86,7 +87,7 @@ export default class S300Wallet {
     let apdu = Buffer.concat([apduHead, pathBuffer])
     apdu[3] = flag
 
-    let response = await this._sendApdu(apdu, false)
+    let response = await this.sendApdu(apdu, false)
     let address = String.fromCharCode.apply(null, new Uint8Array(response))
     // device only return mainnet address
     if (coinType === D.coin.test.btcTestNet3) {
@@ -162,7 +163,7 @@ export default class S300Wallet {
         let apduHead = Buffer.from('8048030000', 'hex')
         apduHead[3] |= compressChange
         apduHead[4] = data.length
-        response = await this._sendApdu(Buffer.concat([apduHead, data]), true)
+        response = await this.sendApdu(Buffer.concat([apduHead, data]), true)
       } else {
         let remainLen = data.length
         // devide tx to sign due to wallet command length limit
@@ -172,18 +173,18 @@ export default class S300Wallet {
             apduHead[3] |= compressChange
             apduHead[4] = remainLen
             let offset = data.length - remainLen
-            response = await this._sendApdu(Buffer.concat([apduHead, data.slice(offset, data.length)]), true)
+            response = await this.sendApdu(Buffer.concat([apduHead, data.slice(offset, data.length)]), true)
             break
           } else if (remainLen === data.length) {
             // first package
             let apduHead = Buffer.from('80480100FF', 'hex')
-            await this._sendApdu(Buffer.concat([apduHead, data.slice(0, 0xFF)]), true)
+            await this.sendApdu(Buffer.concat([apduHead, data.slice(0, 0xFF)]), true)
           } else {
             // middle package
             let apduHead = Buffer.from('80480000FF', 'hex')
             apduHead[3] |= compressChange
             let offset = data.length - remainLen
-            await this._sendApdu(Buffer.concat([apduHead, data.slice(offset, offset + 0xFF)]), true)
+            await this.sendApdu(Buffer.concat([apduHead, data.slice(offset, offset + 0xFF)]), true)
           }
           remainLen -= 0xFF
         }
@@ -331,7 +332,7 @@ export default class S300Wallet {
   /**
    * Apdu encrypt and decrypt
    */
-  async _sendApdu (apdu, isEnc = false) {
+  async sendApdu (apdu, isEnc = false) {
     // a simple lock to guarantee apdu order
     while (this._busy) {
       await D.wait(10)

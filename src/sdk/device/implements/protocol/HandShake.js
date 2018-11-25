@@ -1,8 +1,8 @@
 import {Buffer} from 'buffer'
 import D from '../../../D'
-import JSEncrypt from '../transmitter/jsencrypt'
+import JSEncrypt from './jsencrypt'
 import MockDevice from '../transmitter/io/MockDevice'
-import {sha1, des112} from '../transmitter/Crypto'
+import {sha1, des112} from './Crypto'
 
 const factoryPubKeyPem = '-----BEGIN PUBLIC KEY-----' +
   'MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC3IaEDmGWrsHA5rKC8VB++Gkw/' +

@@ -1,8 +1,8 @@
 import {sm2} from 'sm.js'
 import D from '../../../D'
-import {des112} from '../transmitter/Crypto'
+import {des112} from './Crypto'
 
-const factoryPubKey = '284F6A1A1479FADB063452ED3060CD98A34583BB448954990C239EEC414A41C5A076705E52BC4F6297F667938F99D05C3994834E6639E6DF775F45B2310F50F6'
+const factoryPubKey = '04284F6A1A1479FADB063452ED3060CD98A34583BB448954990C239EEC414A41C5A076705E52BC4F6297F667938F99D05C3994834E6639E6DF775F45B2310F50F6'
 
 let des112DeriveKey = (rootKey, deriveData) => {
   let sKey = Buffer.allocUnsafe(0x10)
@@ -11,26 +11,26 @@ let des112DeriveKey = (rootKey, deriveData) => {
   for (let i = 0x08; i < 0x10; i++) {
     sKey[i] = ~sKey[i] & 0xff
   }
-  return des112(true, rootKey, sKey)
+  return des112(true, sKey, rootKey)
 }
 
 /**
  * Bluetooth self authentication after connected
  */
 export default class Authenticate {
-  constructor (hostName, transmitter, featureData = null) {
-    if (!transmitter || !hostName) {
-      console.warn('Authenticate invalid parameters', hostName, transmitter)
+  constructor (hostName, sender, featureData = null) {
+    if (!sender || !hostName) {
+      console.warn('Authenticate invalid parameters', hostName, sender)
     }
     this._hostName = this._makeHostName(hostName)
     this._featureData = featureData
-    this._transmitter = transmitter
+    this._sender = sender
 
     console.info('authenticate hostName', this._hostName.toString('hex'))
   }
 
   _makeHostName (hostName) {
-    let hostNameBytes = new TextDecoder('utf8').decode(hostName)
+    let hostNameBytes = D.strToUtf8(hostName)
     if (hostNameBytes <= 0x20) {
       return hostNameBytes
     }
@@ -44,26 +44,25 @@ export default class Authenticate {
   }
 
   async prepareAuth () {
-    debugger
-
     let isFirstTime = this._featureData === null
     let random
     if (isFirstTime) {
-      let tempKey = new sm2.SM2KeyPair(null, D.getRandomHex(64))
+      let tempKey = sm2.genKeyPair()
+      console.log('tempKey', tempKey.toString())
       let pubKey = Buffer.from(tempKey.pubToString().slice(2, 130), 'hex')
       let apdu = Buffer.from('8033000043B44101', 'hex')
       apdu = Buffer.concat([apdu, pubKey])
-      let authData = await this._transmitter.sendApdu(apdu, false)
-      console.log('authData first time', authData)
+      let authData = await this._sender.sendApdu(apdu, false)
+      console.log('authData first time', authData.toString('hex'))
 
       authData = this._parseAuthData(tempKey, apdu, authData)
       random = authData.random
       this._featureData = authData.feature
-      console.log('parsed authData first time', authData)
+      console.log('parsed authData first time', random.toString('hex'), this._featureData.toString('hex'))
     } else {
       let apdu = Buffer.from('8033000004B4020010', 'hex')
-      let authData = await this._transmitter.sendApdu(apdu, false)
-      console.log('authData direct connect', authData)
+      let authData = await this._sender.sendApdu(apdu, false)
+      console.log('authData direct connect', authData.toString('hex'))
 
       if (authData.length < 0x11) {
         console.warn('direct connect authData invalid', authData.toString('hex'))
@@ -72,13 +71,15 @@ export default class Authenticate {
       random = authData.slice(0x01, 0x11)
     }
 
-    let authApdu = Buffer.allocUnsafe(0x33)
+    let authApdu = Buffer.allocUnsafe(0x34)
     Buffer.from('803300002FB52D', 'hex').copy(authApdu)
     authApdu[0x07] = isFirstTime ? 0x01 : 0x00
 
+    // feature = sKey(0x10) sessionId(0x04) pairRandom(0x04)
     let feature = this._featureData
     feature.slice(0x10, 0x14).copy(authApdu, 0x08)
-    let sKey = des112DeriveKey(feature(0x00, 0x10), random.slice(0, 0x08))
+    let sKey = des112DeriveKey(feature.slice(0, 0x10), random.slice(0x08, 0x10))
+    console.log('derive des key', feature.slice(0, 0x10).toString('hex'), random.slice(0x08, 0x10), sKey.toString('hex'))
     let encData = des112(true, random.slice(0, 0x08), sKey)
     encData.copy(authApdu, 0x08 + 0x04)
     this._hostName.copy(authApdu, 0x08 + 0x04 + 0x08)
@@ -88,38 +89,41 @@ export default class Authenticate {
   }
 
   _parseAuthData (tempKey, apdu, authData) {
-    // authData: 0100000000 cert(132=0x84) encFeature(116=) signature(64)
-    if (authData.length < 4 + 132 + 136 + 64) {
+    // authData: 0100000000 cert(132=0x84) encFeature(136=0x88) signature(64=0x40)
+    if (authData.length < 0x04 + 0x84 + 0x88 + 0x40) {
       console.warn('authData invalid length', authData.toString('hex'), this._isFirstTime)
       throw D.error.handShake
     }
     let keyIndex = authData[0]
     let version = authData[1]
-    if (keyIndex !== 0 || version !== 0) {
+    if (keyIndex !== 1 || version !== 0) {
       console.warn('wrong auth data index or version', keyIndex, version)
     }
 
-    let cert = authData.slice(4, 136)
-    let encFeature = authData.slice(136, 272)
-    let signature = authData.slice(272, 336)
+    let cert = authData.slice(0x04, 0x88)
+    let encFeature = authData.slice(0x88, 0x110)
+    let signature = authData.slice(0x110, 0x150)
 
     // verify cert and get cert public key
     let factoryKey = new sm2.SM2KeyPair(factoryPubKey)
-    if (!factoryKey.verify(cert.slice(0, 0x44), cert.slice(0x44, 0x64), cert.slice(0x64, 0x84))) {
-      console.warn('authenticate cert verify failed')
+    if (!factoryKey.verifyRaw(Array.prototype.slice.call(cert.slice(0, 0x44), 0),
+      cert.slice(0x44, 0x64).toString('hex'), cert.slice(0x64, 0x84).toString('hex'))) {
+      console.warn('authenticate cert verify failed', cert.toString('hex'))
       throw D.error.handShake
     }
     let certKey = new sm2.SM2KeyPair('04' + cert.slice(0x04, 0x44).toString('hex'))
 
     // verify device signature
-    let devSignMsg = apdu.slice(5, apdu.length) // apdu data
-    if (!certKey.verify(devSignMsg, signature.slice(0x00, 0x20), signature.slice(0x20, 0x40))) {
+    let apduData = apdu.slice(0x05, apdu.length)
+    let resData = authData.slice(0, authData.length - 0x40)
+    let devSignMsg = Array.prototype.slice.call(Buffer.concat([apduData, resData]))
+    if (!certKey.verifyRaw(devSignMsg, signature.slice(0, 0x20).toString('hex'), signature.slice(0x20, 0x40).toString('hex'))) {
       console.warn('authenticate signature verify failed')
       throw D.error.handShake
     }
 
-    // TODO decrypt feature, C1C3C2
     let plainData = tempKey.decrypt(encFeature)
+    plainData = Buffer.from(plainData)
     if (!plainData) {
       console.warn('authenticate decrypt feature failed')
       throw D.error.handShake
@@ -130,7 +134,6 @@ export default class Authenticate {
     }
     return {
       random: plainData.slice(0, 0x10),
-      // sKey(0x10) sessionId(0x04) pairRandom(0x04)
       feature: plainData.slice(0x10, 0x28)
     }
   }
@@ -141,7 +144,7 @@ export default class Authenticate {
       throw D.error.handShake
     }
     try {
-      await this._transmitter.sendApdu(this._authApdu, false)
+      await this._sender.sendApdu(this._authApdu, false)
     } finally {
       this._authApdu = null
     }

@@ -1,6 +1,6 @@
 import Fat from './Fat'
 import FatApi from './FatApi'
-import D from '../../D'
+import D from '../../../D'
 
 /**
  * WalletData store data in files. Currently we have two types of files:
@@ -112,7 +112,7 @@ const parseTLV = (data) => {
     if (type.includes('complex')) {
       actualValue = parseTLV(value)
     } else if (type.includes('string')) {
-      actualValue = new TextDecoder('utf8').decode(value)
+      actualValue = D.strToUtf8(value)
     } else if (type.includes('number')) {
       actualValue = value.readIntBE(0, value.length)
     } else if (type.includes('data')) {

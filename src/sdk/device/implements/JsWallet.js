@@ -36,6 +36,7 @@ export default class JsWallet {
   }
 
   async init () {
+    console.log('JsWallet init')
     this._seed = this._seed || await this._transmitter.getSeed()
     this._root = bitcoin.HDNode.fromSeedHex(this._seed)
 

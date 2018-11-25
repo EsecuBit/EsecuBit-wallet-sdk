@@ -5,6 +5,8 @@ import BigInteger from 'bigi'
 import bitPony from 'bitpony'
 import {Buffer} from 'buffer'
 import HandShake from './protocol/HandShake'
+import Authenticate from './protocol/Authenticate'
+import Settings from '../../Settings'
 
 // rewrite _containKeys to make empty value available, so we can use it to build presign tx
 // noinspection JSPotentiallyInvalidConstructorUsage
@@ -19,15 +21,45 @@ bitPony.prototype._containKeys = function (keys) {
 export default class NetBankWallet {
   constructor (transmitter) {
     this._transmitter = transmitter
-    this._allEnc = true
+    this._allEnc = false
   }
 
-  async init () {
+  async init (authCallback) {
+    console.log('NetBankWallet init')
     this._handShake = new HandShake()
+
+    // TODO get mobile name
+    let oldFeature = await new Settings().getSetting('netBankFeature')
+    console.log('NetBankWallet old feature', oldFeature)
+    oldFeature = oldFeature && Buffer.from(oldFeature, 'hex')
+    let authenticate = new Authenticate('Esecubit', this, oldFeature)
+    let newFeature = await authenticate.prepareAuth()
+    let featureHex = newFeature.toString('hex')
+
+    if (!oldFeature) {
+      if (!authCallback) {
+        console.warn('NetBankWallet auth missing authCallback')
+        throw D.error.invalidParams
+      }
+      let pairCode = String.fromCharCode.apply(null,
+        newFeature.slice(newFeature.length - 4))
+      authCallback(pairCode)
+    }
+    console.log('NetBankWallet do authenticate')
+    await authenticate.auth()
+    console.log('NetBankWallet authenticate succeed')
+
+    this._allEnc = true
     let walletId = D.test.coin ? '01' : '00'
     walletId += D.test.jsWallet ? '01' : '00'
     walletId += D.address.toBuffer(await this.getAddress(D.coin.main.btc, "m/44'/0'/0'/0/0")).toString('hex')
-    return {walletId: walletId}
+
+    if (!oldFeature) {
+      await new Settings().setSetting('netBankFeature', featureHex, walletId)
+      console.log('NetBankWallet new feature', newFeature)
+    }
+
+    return {walletId}
   }
 
   async getWalletInfo () {
@@ -40,11 +72,11 @@ export default class NetBankWallet {
 
   // noinspection JSMethodCanBeStatic
   async _getCosVersion () {
-    return (await this._sendApdu('803300000ABD080000000000000000')).toString('hex')
+    return (await this.sendApdu('803300000ABD080000000000000000')).toString('hex')
   }
 
   async verifyPin () {
-    return this._sendApdu('8082008100')
+    return this.sendApdu('8082008100')
   }
 
   async getAddress (coinType, path, isShowing = false, isStoring = false) {
@@ -64,7 +96,7 @@ export default class NetBankWallet {
     let pathBuffer = D.address.path.toBuffer(path)
     pathBuffer.copy(apdu, 0x06)
 
-    let response = await this._sendApdu(apdu)
+    let response = await this.sendApdu(apdu)
     let address = String.fromCharCode.apply(null, response)
     // device only return mainnet address
     if (coinType === D.coin.test.btcTestNet3) {
@@ -138,7 +170,7 @@ export default class NetBankWallet {
       apdu[index++] = msg.length
       msg.copy(apdu, index)
 
-      let response = await this._sendApdu(apdu, true)
+      let response = await this.sendApdu(apdu, true)
       let r = response.slice(0, 32)
       let s = response.slice(32, 64)
       let pubKey = response.slice(64, 128)
@@ -282,13 +314,13 @@ export default class NetBankWallet {
   async getRandom (length) {
     if (length > 255) throw D.error.notImplemented
     let apdu = '00840000' + (length >> 8) + (length % 0xFF)
-    return this._sendApdu(apdu)
+    return this.sendApdu(apdu)
   }
 
   /**
    * APDU encrypt & decrypt
    */
-  async _sendApdu (apdu, isEnc = false) {
+  async sendApdu (apdu, isEnc = false) {
     isEnc = this._allEnc || isEnc
     // a simple lock to guarantee apdu order
     while (this._busy) {

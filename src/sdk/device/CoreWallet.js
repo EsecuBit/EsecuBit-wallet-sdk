@@ -48,7 +48,7 @@ export default class CoreWallet {
     }
   }
 
-  async init () {
+  async init (authCallback) {
     if (!this._transmitter) {
       console.warn('device not connected')
       throw D.error.deviceNotInit
@@ -58,7 +58,7 @@ export default class CoreWallet {
     for (let Wallet of Provider.Wallets) {
       let wallet = new Wallet(this._transmitter)
       try {
-        let walletInfo = await wallet.init()
+        let walletInfo = await wallet.init(authCallback)
         this._wallet = wallet
         return walletInfo
       } catch (e) {

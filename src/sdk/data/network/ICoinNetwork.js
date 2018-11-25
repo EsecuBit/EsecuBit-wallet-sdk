@@ -79,6 +79,7 @@ export default class ICoinNetwork {
       let xmlhttp = new XMLHttpRequest()
       xmlhttp.onreadystatechange = () => {
         if (xmlhttp.readyState === 4) {
+          console.debug('get response', xmlhttp.responseText)
           if (xmlhttp.status === 200 || xmlhttp.status === 202) {
             try {
               resolve(JSON.parse(xmlhttp.responseText))
@@ -106,6 +107,7 @@ export default class ICoinNetwork {
       const xmlhttp = new XMLHttpRequest()
       xmlhttp.onreadystatechange = () => {
         if (xmlhttp.readyState === 4) {
+          console.debug('post response', xmlhttp.responseText)
           if (xmlhttp.status === 200 || xmlhttp.status === 202) {
             try {
               resolve(JSON.parse(xmlhttp.responseText))
