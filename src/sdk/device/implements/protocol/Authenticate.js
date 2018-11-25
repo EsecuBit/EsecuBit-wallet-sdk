@@ -79,7 +79,6 @@ export default class Authenticate {
     let feature = this._featureData
     feature.slice(0x10, 0x14).copy(authApdu, 0x08)
     let sKey = des112DeriveKey(feature.slice(0, 0x10), random.slice(0x08, 0x10))
-    console.log('derive des key', feature.slice(0, 0x10).toString('hex'), random.slice(0x08, 0x10), sKey.toString('hex'))
     let encData = des112(true, random.slice(0, 0x08), sKey)
     encData.copy(authApdu, 0x08 + 0x04)
     this._hostName.copy(authApdu, 0x08 + 0x04 + 0x08)
