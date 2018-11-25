@@ -12,10 +12,8 @@ const factoryPubKeyPem = '-----BEGIN PUBLIC KEY-----' +
   '-----END PUBLIC KEY-----'
 
 export default class HandShake {
-  constructor () {
-    this._sKey = null
-    this._sKeyCount = null
-    this.isFinished = false
+  constructor (encKey) {
+    this._encKey = encKey && encKey.slice(0, 0x10)
   }
 
   /**
@@ -171,6 +169,10 @@ export default class HandShake {
     }
 
     let {sKey, sKeyCount} = parseHandShakeResponse(tempKeyPair, response, apdu)
+    if (this._encKey) {
+      sKey = des112(false, sKey, this._encKey)
+    }
+
     this._sKey = sKey
     this._sKeyCount = sKeyCount
     this.isFinished = true
@@ -183,7 +185,7 @@ export default class HandShake {
       throw D.error.handShake
     }
 
-    let encryptedApdu = des112(true, apdu, this._sKey)
+    let encryptedApdu = des112(true, apdu, this._sKey, true)
 
     // 8033 534D Lc    00 00 00 PaddingNum(1) SKeyCount(4) EncApdu
     let padNum = encryptedApdu.length - apdu.length
@@ -206,7 +208,7 @@ export default class HandShake {
       throw D.error.handShake
     }
 
-    let decResponse = des112(false, response, this._sKey)
+    let decResponse = des112(false, response, this._sKey, true)
 
     let length = decResponse.length
     let result = (decResponse[length - 2] << 8) + decResponse[length - 1]

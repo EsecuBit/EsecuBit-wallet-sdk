@@ -10,7 +10,7 @@ let sha1 = (data) => {
   return Buffer.from(plaintext.toString(), 'hex')
 }
 
-let des112 = (isEnc, data, key) => {
+let des112 = (isEnc, data, key, padding = false) => {
   let customPadding = (data) => {
     let padNum = 8 - data.length % 8
     if (padNum === 8) return data
@@ -35,7 +35,7 @@ let des112 = (isEnc, data, key) => {
     key = Buffer.from(key, 'hex')
   }
 
-  if (isEnc) {
+  if (isEnc && padding) {
     data = customPadding(data)
   }
   let des168Key = Buffer.concat([key, key.slice(0, 8)]) // des112 => des 168
@@ -54,7 +54,11 @@ let des112 = (isEnc, data, key) => {
         padding: CryptoJS.pad.NoPadding
       })
     plaintext = plaintext.toString(CryptoJS.enc.Hex)
-    return removeCustomPadding(plaintext)
+    if (padding) {
+      return removeCustomPadding(plaintext)
+    } else {
+      return Buffer.from(plaintext, 'hex')
+    }
   }
 }
 

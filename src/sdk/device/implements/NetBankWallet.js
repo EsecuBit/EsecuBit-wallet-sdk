@@ -26,21 +26,20 @@ export default class NetBankWallet {
 
   async init (authCallback) {
     console.log('NetBankWallet init')
-    this._handShake = new HandShake()
+    if (!authCallback) {
+      console.warn('NetBankWallet auth missing authCallback')
+      throw D.error.invalidParams
+    }
 
+    let deivceName = this._transmitter.getName()
+    let oldFeature = await new Settings().getSetting('netBankFeature', deivceName)
+    console.log('NetBankWallet old feature', oldFeature)
+    oldFeature = oldFeature && Buffer.from(oldFeature, 'hex')
+    let authenticate = new Authenticate('Esecubit', this, oldFeature)
     let newFeature
     try {
-      let oldFeature = await new Settings().getSetting('netBankFeature')
-      console.log('NetBankWallet old feature', oldFeature)
-      oldFeature = oldFeature && Buffer.from(oldFeature, 'hex')
-      let authenticate = new Authenticate('Esecubit Wallet', this, oldFeature)
       newFeature = await authenticate.prepareAuth()
-
       if (!oldFeature) {
-        if (!authCallback) {
-          console.warn('NetBankWallet auth missing authCallback')
-          throw D.error.invalidParams
-        }
         let pairCode = String.fromCharCode.apply(null,
           newFeature.slice(newFeature.length - 4))
         authCallback(pairCode)
@@ -48,6 +47,11 @@ export default class NetBankWallet {
       console.log('NetBankWallet do authenticate')
       await authenticate.auth()
       console.log('NetBankWallet authenticate succeed')
+      if (!oldFeature) {
+        let featureHex = newFeature.toString('hex')
+        await new Settings().setSetting('netBankFeature', featureHex, deivceName)
+        console.log('NetBankWallet new feature', featureHex)
+      }
     } catch (e) {
       if (e === D.error.deviceApduDataInvalid) {
         console.info('authenticate not support, ignore')
@@ -57,15 +61,11 @@ export default class NetBankWallet {
       }
     }
 
+    this._handShake = new HandShake(oldFeature || newFeature)
     this._allEnc = true
     let walletId = D.test.coin ? '01' : '00'
     walletId += D.test.jsWallet ? '01' : '00'
     walletId += D.address.toBuffer(await this.getAddress(D.coin.main.btc, "m/44'/0'/0'/0/0")).toString('hex')
-
-    if (newFeature) {
-      await new Settings().setSetting('netBankFeature', newFeature.toString('hex'), walletId)
-      console.log('NetBankWallet new feature', newFeature)
-    }
 
     return {walletId}
   }
