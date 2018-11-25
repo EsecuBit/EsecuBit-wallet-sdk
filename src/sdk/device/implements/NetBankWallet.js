@@ -31,7 +31,7 @@ export default class NetBankWallet {
       throw D.error.invalidParams
     }
 
-    let deivceName = this._transmitter.getName()
+    let deivceName = this._transmitter.getName && this._transmitter.getName()
     let oldFeature = await new Settings().getSetting('netBankFeature', deivceName)
     console.log('NetBankWallet old feature', oldFeature)
     oldFeature = oldFeature && Buffer.from(oldFeature, 'hex')
