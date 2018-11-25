@@ -30,7 +30,7 @@ describe('S300Wallet', function () {
   })
 
   it('get address by apdu', async () => {
-    let address = await s300Wallet._sendApdu('8046000709028000002c80000000', true)
+    let address = await s300Wallet.sendApdu('8046000709028000002c80000000', true)
     address = String.fromCharCode.apply(null, new Uint8Array(address))
     D.address.checkBtcAddress(D.coin.main.btc, address)
   })
@@ -41,7 +41,7 @@ describe('S300Wallet', function () {
   })
 
   it('sign by apdu', async () => {
-    let response = await s300Wallet._sendApdu((
+    let response = await s300Wallet.sendApdu((
       '80480300ec' +
       'c0 058000002c8000000080000000000000010000004c' +
       'c1 058000002c80000000800000000000000100000047' +
@@ -56,7 +56,7 @@ describe('S300Wallet', function () {
     console.log('sign by apdu', response.toString('hex'))
     response.should.not.equal(undefined)
 
-    response = await s300Wallet._sendApdu((
+    response = await s300Wallet.sendApdu((
       '80480300ec' +
       'c0 058000002c8000000080000000000000010000004c' +
       'c1 058000002c80000000800000000000000100000047' +

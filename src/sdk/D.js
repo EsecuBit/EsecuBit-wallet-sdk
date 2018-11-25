@@ -34,6 +34,7 @@ const D = {
     operationTimeout: 110,
     deviceNotInit: 111,
     devicePressKeyTooEarly: 112,
+    deviceApduDataInvalid: 113,
 
     fatUnavailable: 121,
     fatOutOfRange: 122,
@@ -87,6 +88,7 @@ const D = {
 
       console.warn('sw1sw2 error', sw1sw2 && sw1sw2.toString(16))
       sw1sw2 = sw1sw2 & 0xFFFF
+      if (sw1sw2 === 0x6A80) return D.error.deviceApduDataInvalid
       if (sw1sw2 === 0x6A81) return D.error.deviceNotInit
       if (sw1sw2 === 0x6FF8) return D.error.userCancel
       if (sw1sw2 === 0x6FF9) return D.error.operationTimeout

@@ -22,14 +22,12 @@ export default class Authenticate {
     if (!sender || !hostName) {
       console.warn('Authenticate invalid parameters', hostName, sender)
     }
-    this._hostName = this._makeHostName(hostName)
+    this._hostName = Authenticate._makeHostName(hostName)
     this._featureData = featureData
     this._sender = sender
-
-    console.info('authenticate hostName', this._hostName.toString('hex'))
   }
 
-  _makeHostName (hostName) {
+  static _makeHostName (hostName) {
     let hostNameBytes = D.strToUtf8(hostName)
     if (hostNameBytes <= 0x20) {
       return hostNameBytes
@@ -44,6 +42,8 @@ export default class Authenticate {
   }
 
   async prepareAuth () {
+    console.info('authenticate hostName', this._hostName.toString('hex'))
+
     let isFirstTime = this._featureData === null
     let random
     if (isFirstTime) {
@@ -85,7 +85,7 @@ export default class Authenticate {
     this._hostName.copy(authApdu, 0x08 + 0x04 + 0x08)
     this._authApdu = authApdu
 
-    return feature
+    return isFirstTime ? feature : null
   }
 
   _parseAuthData (tempKey, apdu, authData) {
