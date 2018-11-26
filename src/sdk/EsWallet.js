@@ -45,7 +45,7 @@ export default class EsWallet {
     this._esAccounts = []
     this._coinData = new CoinData()
     this._status = D.status.plugOut
-    this._callback = null
+    this._callback = () => {}
 
     this._device = new CoreWallet()
     this._device.listenPlug(async (error, plugStatus) => {
@@ -59,50 +59,52 @@ export default class EsWallet {
       // handle error
       this._status = plugStatus
       if (error !== D.error.succeed) {
-        this._callback && D.dispatch(() => this._callback(error, this._status))
+        D.dispatch(() => this._callback(error, this._status))
         return
       }
 
-      // send plug status
-      this._callback && D.dispatch(() => this._callback(D.error.succeed, this._status))
-      if (this._status === D.status.plugIn) {
-        this.offlineMode = false
+      D.dispatch(async () => {
+        // send plug status
+        D.dispatch(() => this._callback(D.error.succeed, this._status))
+        if (this._status === D.status.plugIn) {
+          this.offlineMode = false
 
-        // initializing
-        this._status = D.status.initializing
-        this._callback && D.dispatch(() => this._callback(D.error.succeed, this._status))
-        try {
-          let newInfo = await this._init()
-          if (this._info.walletId !== newInfo.walletId) {
-            this._callback && D.dispatch(() => this._callback(D.error.succeed, D.status.deviceChange))
+          // initializing
+          this._status = D.status.initializing
+          D.dispatch(() => this._callback(D.error.succeed, this._status))
+          try {
+            let newInfo = await this._init()
+            if (this._info.walletId !== newInfo.walletId) {
+              D.dispatch(() => this._callback(D.error.succeed, D.status.deviceChange))
+            }
+            this._info = newInfo
+          } catch (e) {
+            console.warn(e)
+            D.dispatch(() => this._callback(e, this._status))
+            return
           }
-          this._info = newInfo
-        } catch (e) {
-          console.warn(e)
-          this._callback && D.dispatch(() => this._callback(e, this._status))
-          return
-        }
-        if (this._status === D.status.plugOut) return
+          if (this._status === D.status.plugOut) return
 
-        // syncing
-        this._status = D.status.syncing
-        this._callback && D.dispatch(() => this._callback(D.error.succeed, this._status))
-        try {
-          await this._sync()
-        } catch (e) {
-          console.warn(e)
-          this._callback && D.dispatch(() => this._callback(e, this._status))
-          return
-        }
-        if (this._status === D.status.plugOut) return
+          // syncing
+          this._status = D.status.syncing
+          D.dispatch(() => this._callback(D.error.succeed, this._status))
+          try {
+            await this._sync()
+          } catch (e) {
+            console.warn(e)
+            D.dispatch(() => this._callback(e, this._status))
+            return
+          }
+          if (this._status === D.status.plugOut) return
 
-        // syncFinish
-        this._status = D.status.syncFinish
-        this._callback && D.dispatch(() => this._callback(D.error.succeed, this._status))
-      } else if (this._status === D.status.plugOut) {
-        this.offlineMode = true
-        this._release()
-      }
+          // syncFinish
+          this._status = D.status.syncFinish
+          D.dispatch(() => this._callback(D.error.succeed, this._status))
+        } else if (this._status === D.status.plugOut) {
+          this.offlineMode = true
+          await this._release()
+        }
+      })
     })
   }
 
@@ -128,8 +130,9 @@ export default class EsWallet {
     let info
     if (!this.offlineMode) {
       info = await this._device.init((authCode) => {
-        // TODO finish UI
         console.log('show auth code', authCode)
+        this._status = D.status.authenticate
+        D.dispatch(() => this._callback(D.error.succeed, this._status, authCode))
       })
       await this._settings.setSetting('lastWalletId', info.walletId)
     } else {
@@ -280,7 +283,7 @@ export default class EsWallet {
    * @see D.status
    */
   listenStatus (callback) {
-    this._callback = callback
+    this._callback = callback || this._callback
     switch (this._status) {
       case D.status.plugIn:
         D.dispatch(() => callback(D.error.succeed, D.status.plugIn))

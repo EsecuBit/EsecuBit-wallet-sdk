@@ -14,6 +14,7 @@ const D = {
     plugIn: 1,
     initializing: 2,
     deviceChange: 3,
+    authenticate: 4,
     syncing: 5,
     syncFinish: 10,
     plugOut: 99
@@ -694,10 +695,9 @@ const D = {
   },
 
   supportedCoinTypes () {
-    // TODO recover
     return D.test.coin
-      ? [D.coin.test.btcTestNet3]
-      : [D.coin.main.btc]
+      ? [D.coin.test.btcTestNet3, D.coin.test.ethRinkeby]
+      : [D.coin.main.btc, D.coin.main.eth]
   },
 
   recoverCoinTypes () {
