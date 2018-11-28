@@ -42,11 +42,13 @@ export default class NetBankWallet {
       if (!oldFeature) {
         let pairCode = String.fromCharCode.apply(null,
           newFeature.slice(newFeature.length - 4))
-        authCallback(pairCode)
+        D.dispatch(() => authCallback(D.status.auth, pairCode))
       }
       console.log('NetBankWallet do authenticate')
       await authenticate.auth()
       console.log('NetBankWallet authenticate succeed')
+      D.dispatch(() => authCallback(D.status.authFinish))
+
       if (!oldFeature) {
         let featureHex = newFeature.toString('hex')
         await new Settings().setSetting('netBankFeature', featureHex, deivceName)

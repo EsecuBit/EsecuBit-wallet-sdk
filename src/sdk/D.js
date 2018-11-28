@@ -14,8 +14,9 @@ const D = {
     plugIn: 1,
     initializing: 2,
     deviceChange: 3,
-    authenticate: 4,
-    syncing: 5,
+    auth: 4,
+    authFinish: 5,
+    syncing: 9,
     syncFinish: 10,
     plugOut: 99
   },

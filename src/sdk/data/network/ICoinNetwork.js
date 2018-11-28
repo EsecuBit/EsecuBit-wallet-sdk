@@ -262,7 +262,6 @@ export default class ICoinNetwork {
       let newTxs = response.txs.filter(tx => !addressInfo.txs.some(txId => txId === tx.txId))
       newTxs.forEach(tx => addressInfo.txs.push(tx.txId))
       let newTxBlobs = await Promise.all(newTxs.map(async tx => {
-        // TODO later queryTx request speed for no details
         if (!tx.hasDetails) {
           console.debug('tx is not completed, get it in queue', tx)
           const getDetailsTask = (txId) => {
