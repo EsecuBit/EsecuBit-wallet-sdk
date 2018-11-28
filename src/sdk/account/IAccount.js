@@ -97,7 +97,7 @@ export default class IAccount {
   async init () {
     let accountId = this.accountId
     this.addressInfos = await this._coinData.getAddressInfos({accountId})
-    this.txInfos = (await this._coinData.getTxInfos({accountId})).txInfos
+    this.txInfos = await this._coinData.getTxInfos({accountId})
     // for BTC-liked account
     this.utxos = await this._coinData.getUtxos({accountId})
   }
@@ -176,8 +176,11 @@ export default class IAccount {
   }
 
   getTxInfos (startIndex, endIndex) {
-    let accountId = this.accountId
-    return this._coinData.getTxInfos({accountId, startIndex, endIndex})
+    let txInfos = this.txInfos.sort((a, b) => b.time - a.time)
+    let total = this.txInfos.length
+    txInfos = D.copy(txInfos.slice(startIndex, endIndex))
+    txInfos.forEach(tx => this._coinData.setTxFlags(tx))
+    return {total, txInfos}
   }
 
   getSuggestedFee () {

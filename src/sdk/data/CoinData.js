@@ -75,13 +75,13 @@ export default class CoinData {
 
       // check the tx whether it is over time uncomfirmed
       this._uncomfirmedTxs = null
-      this._unConfirmedCheck = async (firstInit = false) => {
+      this._unconfirmedCheck = async (firstInit = false) => {
         if (!firstInit && !this.initialized) return
         if (!this._uncomfirmedTxs) {
           this._uncomfirmedTxs = []
-          let {txInfos} = await this._db.getTxInfos()
+          let txInfos = await this._db.getTxInfos()
           for (let txInfo of txInfos) {
-            this._setTxFlags(txInfo)
+            this.setTxFlags(txInfo)
             if (txInfo.canResend && !txInfo.shouldResend) {
               this._uncomfirmedTxs.push(txInfo)
             }
@@ -89,16 +89,16 @@ export default class CoinData {
         }
 
         for (let txInfo of this._uncomfirmedTxs) {
-          this._setTxFlags(txInfo)
+          this.setTxFlags(txInfo)
           if (txInfo.canResend && txInfo.shouldResend) {
             this._listeners.forEach(listener => D.dispatch(() => listener(D.error.succeed, D.copy(txInfo))))
             this._uncomfirmedTxs = this._uncomfirmedTxs.filter(t => t.txId !== txInfo.txId)
           }
         }
 
-        setTimeout(this._unConfirmedCheck, checkShouldResendTime)
+        setTimeout(this._unconfirmedCheck, checkShouldResendTime)
       }
-      await this._unConfirmedCheck(true)
+      await this._unconfirmedCheck(true)
 
       console.log('coin data init finish', info)
       this.initialized = true
@@ -213,23 +213,19 @@ export default class CoinData {
       accounts[0])
     if (!lastAccount) return 0
 
-    let {total} = await this._db.getTxInfos({
-      accountId: lastAccount.accountId,
-      startIndex: 0,
-      endIndex: 1
-    })
-    if (total === 0) return -1
+    let txInfos = await this._db.getTxInfos({accountId: lastAccount.accountId})
+    if (txInfos.length === 0) return -1
     return lastAccount.index + 1
   }
 
   async deleteAccount (account) {
-    let {total} = await this._db.getTxInfos({accountId: account.accountId})
-    let addressInfos = await this._db.getAddressInfos({accountId: account.accountId})
-    if (total !== 0) {
+    let txInfos = await this._db.getTxInfos({accountId: account.accountId})
+    if (txInfos.length !== 0) {
       console.warn('attemp to delete a non-empty account', account)
       throw D.error.accountHasTransactions
     }
     console.log('delete account', account)
+    let addressInfos = await this._db.getAddressInfos({accountId: account.accountId})
     await this._db.deleteAccount(account, addressInfos)
   }
 
@@ -250,11 +246,7 @@ export default class CoinData {
   }
 
   async getTxInfos (filter) {
-    let {total, txInfos} = await this._db.getTxInfos(filter)
-    txInfos.forEach(txInfo => {
-      this._setTxFlags(txInfo)
-    })
-    return {total, txInfos}
+    return this._db.getTxInfos(filter)
   }
 
   getUtxos (filter) {
@@ -266,12 +258,12 @@ export default class CoinData {
   }
 
   async newTx (account, addressInfos, txInfo, utxos = []) {
-    this._setTxFlags(txInfo)
+    this.setTxFlags(txInfo)
     this._uncomfirmedTxs.push(txInfo)
 
     console.log('newTx', account, addressInfos, txInfo, utxos)
     await this._db.newTx(account, addressInfos, txInfo, utxos)
-    this._listeners.forEach(listener => D.dispatch(() => listener(D.error.succeed, D.copy(txInfo))))
+    this._listeners.forEach(listener => D.dispatch(() => listener(D.error.succeed, txInfo)))
   }
 
   async removeTx (account, addressInfos, txInfo, updateUtxos = [], removeUtxos = []) {
@@ -286,9 +278,9 @@ export default class CoinData {
    * txFlags:
    * link: link of tx details in network provider's website
    * canResend: this tx can be resent
-   * shoudResend: this tx should be resent
+   * shouldResend: this tx should be resent
    */
-  _setTxFlags (txInfo) {
+  setTxFlags (txInfo) {
     if (txInfo.direction === D.tx.direction.out) {
       txInfo.canResend = txInfo.confirmations === 0
       if (txInfo.canResend) {

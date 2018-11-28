@@ -474,22 +474,15 @@ export default class IndexedDB extends IDatabase {
           .openCursor()
       }
 
-      let total = 0
-      let startIndex = filter.startIndex || 0
-      let endIndex = filter.endIndex || Number.MAX_SAFE_INTEGER
-
-      let result = []
+      let txInfos = []
       request.onsuccess = (e) => {
         let cursor = e.target.result
         if (!cursor) {
-          let txInfos = result
-          total = txInfos.length
-          txInfos.sort((a, b) => b.time - a.time)
-          txInfos = txInfos.slice(startIndex, endIndex)
+          let total = txInfos.length
           resolve({total, txInfos})
           return
         }
-        result.push(cursor.value)
+        txInfos.push(cursor.value)
         cursor.continue()
       }
       request.onerror = (e) => {
