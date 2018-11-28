@@ -337,7 +337,7 @@ const D = {
         }
       }
 
-      if (buffer.length === 21) {
+      if (buffer && buffer.length === 21) {
         let network = buffer.readUInt8(0)
         switch (network) {
           case 0: // main net P2PKH
@@ -358,7 +358,7 @@ const D = {
       }
 
       // publickey
-      if (buffer.length === 78) {
+      if (buffer && buffer.length === 78) {
         let versionBytes = buffer.readUInt32BE(0)
         switch (versionBytes) {
           case 0x0488B21E: // main net
