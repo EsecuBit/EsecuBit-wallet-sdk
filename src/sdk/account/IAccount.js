@@ -175,7 +175,7 @@ export default class IAccount {
     oldTxInfo.comment = txInfo.comment
   }
 
-  getTxInfos (startIndex, endIndex) {
+  async getTxInfos (startIndex, endIndex) {
     let txInfos = this.txInfos.sort((a, b) => b.time - a.time)
     let total = this.txInfos.length
     txInfos = D.copy(txInfos.slice(startIndex, endIndex))
