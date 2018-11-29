@@ -478,8 +478,7 @@ export default class IndexedDB extends IDatabase {
       request.onsuccess = (e) => {
         let cursor = e.target.result
         if (!cursor) {
-          let total = txInfos.length
-          resolve({total, txInfos})
+          resolve(txInfos)
           return
         }
         txInfos.push(cursor.value)
