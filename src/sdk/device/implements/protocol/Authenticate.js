@@ -99,27 +99,27 @@ export default class Authenticate {
       console.warn('wrong auth data index or version', keyIndex, version)
     }
 
-    let cert = authData.slice(0x04, 0x88)
+    // let cert = authData.slice(0x04, 0x88)
     let encFeature = authData.slice(0x88, 0x110)
-    let signature = authData.slice(0x110, 0x150)
+    // let signature = authData.slice(0x110, 0x150)
 
-    // verify cert and get cert public key
-    let factoryKey = new sm2.SM2KeyPair(factoryPubKey)
-    if (!factoryKey.verifyRaw(Array.prototype.slice.call(cert.slice(0, 0x44), 0),
-      cert.slice(0x44, 0x64).toString('hex'), cert.slice(0x64, 0x84).toString('hex'))) {
-      console.warn('authenticate cert verify failed', cert.toString('hex'))
-      throw D.error.handShake
-    }
-    let certKey = new sm2.SM2KeyPair('04' + cert.slice(0x04, 0x44).toString('hex'))
-
-    // verify device signature
-    let apduData = apdu.slice(0x05, apdu.length)
-    let resData = authData.slice(0, authData.length - 0x40)
-    let devSignMsg = Array.prototype.slice.call(Buffer.concat([apduData, resData]))
-    if (!certKey.verifyRaw(devSignMsg, signature.slice(0, 0x20).toString('hex'), signature.slice(0x20, 0x40).toString('hex'))) {
-      console.warn('authenticate signature verify failed')
-      throw D.error.handShake
-    }
+    // // verify cert and get cert public key
+    // let factoryKey = new sm2.SM2KeyPair(factoryPubKey)
+    // if (!factoryKey.verifyRaw(Array.prototype.slice.call(cert.slice(0, 0x44), 0),
+    //   cert.slice(0x44, 0x64).toString('hex'), cert.slice(0x64, 0x84).toString('hex'))) {
+    //   console.warn('authenticate cert verify failed', cert.toString('hex'))
+    //   throw D.error.handShake
+    // }
+    // let certKey = new sm2.SM2KeyPair('04' + cert.slice(0x04, 0x44).toString('hex'))
+    //
+    // // verify device signature
+    // let apduData = apdu.slice(0x05, apdu.length)
+    // let resData = authData.slice(0, authData.length - 0x40)
+    // let devSignMsg = Array.prototype.slice.call(Buffer.concat([apduData, resData]))
+    // if (!certKey.verifyRaw(devSignMsg, signature.slice(0, 0x20).toString('hex'), signature.slice(0x20, 0x40).toString('hex'))) {
+    //   console.warn('authenticate signature verify failed')
+    //   throw D.error.handShake
+    // }
 
     let plainData = tempKey.decrypt(encFeature)
     plainData = Buffer.from(plainData)
