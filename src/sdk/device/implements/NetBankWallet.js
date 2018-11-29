@@ -369,9 +369,9 @@ export default class NetBankWallet {
 
   async _doHandShake () {
     if (this._handShake.isFinished) return
-    let {tempKeyPair, apdu} = this._handShake.generateHandshakeApdu()
+    let {tempKeyPair, apdu} = await this._handShake.generateHandshakeApdu()
     let response = await this._transmit(apdu)
-    this._handShake.parseHandShakeResponse(response, tempKeyPair, apdu)
+    await this._handShake.parseHandShakeResponse(response, tempKeyPair, apdu)
   }
 
   /**

@@ -19,7 +19,7 @@ export default class HandShake {
   /**
    * handshake using rsa and 3DES112
    */
-  generateHandshakeApdu () {
+  async generateHandshakeApdu () {
     this.isFinished = false
     this._sKey = null
     this._sKeyCount = null
@@ -61,7 +61,7 @@ export default class HandShake {
     return genHandShakeApdu()
   }
 
-  parseHandShakeResponse (response, tempKeyPair, apdu) {
+  async parseHandShakeResponse (response, tempKeyPair, apdu) {
     let modLen = 0x80 // RSA1024
     let parseHandShakeResponse = (hostKey, response, apdu) => {
       let removePadding = (data) => {
