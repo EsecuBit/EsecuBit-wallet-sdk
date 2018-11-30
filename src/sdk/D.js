@@ -37,6 +37,7 @@ const D = {
     deviceNotInit: 111,
     devicePressKeyTooEarly: 112,
     deviceApduDataInvalid: 113,
+    deviceNotConnected: 114,
 
     fatUnavailable: 121,
     fatOutOfRange: 122,

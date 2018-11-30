@@ -51,7 +51,7 @@ export default class CoreWallet {
   async init (authCallback) {
     if (!this._transmitter) {
       console.warn('device not connected')
-      throw D.error.deviceNotInit
+      throw D.error.deviceNotConnected
     }
 
     let messages = []
@@ -73,7 +73,7 @@ export default class CoreWallet {
   async verifyPin () {
     if (!this._wallet) {
       console.warn('init wallet first')
-      throw D.error.deviceNotInit
+      throw D.error.deviceNotConnected
     }
     return this._wallet.verifyPin()
   }
@@ -81,7 +81,7 @@ export default class CoreWallet {
   getWalletInfo () {
     if (!this._wallet) {
       console.warn('init wallet first')
-      throw D.error.deviceNotInit
+      throw D.error.deviceNotConnected
     }
     return this._wallet.getWalletInfo()
   }
@@ -89,7 +89,7 @@ export default class CoreWallet {
   getAddress (coinType, path, isShowing = false, isStoring = false) {
     if (!this._wallet) {
       console.warn('init wallet first')
-      throw D.error.deviceNotInit
+      throw D.error.deviceNotConnected
     }
     return this._wallet.getAddress(coinType, path, isShowing, isStoring)
   }
@@ -97,7 +97,7 @@ export default class CoreWallet {
   getPublicKey (coinType, keyPath) {
     if (!this._wallet) {
       console.warn('init wallet first')
-      throw D.error.deviceNotInit
+      throw D.error.deviceNotConnected
     }
     return this._wallet.getPublicKey(coinType, keyPath)
   }
@@ -105,7 +105,7 @@ export default class CoreWallet {
   async signTransaction (coinType, tx) {
     if (!this._wallet) {
       console.warn('init wallet first')
-      throw D.error.deviceNotInit
+      throw D.error.deviceNotConnected
     }
     return this._wallet.signTransaction(coinType, tx)
   }
@@ -113,7 +113,7 @@ export default class CoreWallet {
   _sendApdu (apdu, isEnc = false) {
     if (!this._wallet) {
       console.warn('init wallet first')
-      throw D.error.deviceNotInit
+      throw D.error.deviceNotConnected
     }
     return this._wallet._sendApdu(apdu, isEnc)
   }
