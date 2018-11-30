@@ -10,15 +10,11 @@ export default class EthGasStationInfo {
       throw D.error.invalidParams
     }
     this.provider = 'ethgasstation.info'
-    switch (fee.coinType) {
-      case D.coin.main.eth:
-      case D.coin.test.ethRinkeby:
-        this.coinType = fee.coinType
-        break
-      default:
-        console.warn('EthGasStationInfo don\'t support this coinType', fee.coinType)
-        throw D.error.coinNotSupported
+    if (!D.isEth(fee.coinType)) {
+      console.warn('EthGasStationInfo don\'t support this coinType', fee.coinType)
+      throw D.error.coinNotSupported
     }
+    this.coinType = fee.coinType
 
     if (!fee.fee) {
       fee.fee = {}

@@ -10,15 +10,11 @@ export default class FeeBitCoinEarn {
       throw D.error.invalidParams
     }
     this.provider = 'bitcoinfees.earn.com'
-    switch (fee.coinType) {
-      case D.coin.main.btc:
-      case D.coin.test.btcTestNet3:
-        this.coinType = fee.coinType
-        break
-      default:
-        console.warn('FeeBitCoinEarn don\'t support this coinType', fee.coinType)
-        throw D.error.coinNotSupported
+    if (!D.isBtc(fee.coinType)) {
+      console.warn('FeeBitCoinEarn don\'t support this coinType', fee.coinType)
+      throw D.error.coinNotSupported
     }
+    this.coinType = fee.coinType
 
     if (!fee.fee) {
       fee.fee = {}
