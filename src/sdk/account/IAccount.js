@@ -117,7 +117,9 @@ export default class IAccount {
         if (blob.removedTxId) {
           let removedTxInfo = this.txInfos.find(txInfo => txInfo.txId === blob.removedTxId)
           // let the txListener handle the overTime pending tx
-          if (removedTxInfo && removedTxInfo.confirmations !== D.tx.confirmation.pending) {
+          if (removedTxInfo &&
+            removedTxInfo.confirmations !== D.tx.confirmation.pending &&
+            removedTxInfo.confirmations !== D.tx.confirmation.inMemory) {
             await this._handleRemovedTx(blob.removedTxId)
             hasNewTxs = true
           }
