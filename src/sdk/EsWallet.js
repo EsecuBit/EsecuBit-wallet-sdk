@@ -130,7 +130,7 @@ export default class EsWallet {
     let info
     if (!this.offlineMode) {
       info = await this._device.init((status, authCode) => {
-        this._status = D.status.auth
+        this._status = status
         if (status === D.status.auth) {
           console.log('show auth code', authCode)
         } else {
