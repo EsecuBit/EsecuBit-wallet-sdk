@@ -193,31 +193,34 @@ export default class EsWallet {
     if (!recoveryFinish || this._esAccounts.length === 0) {
       if (this.offlineMode) throw D.error.offlineModeNotAllowed
       console.log('start recovery', recoveryFinish, this._esAccounts.length)
-      try {
-        // make sure no empty account before recover
-        // if last recovery is stopped unexcepted, we will have part of accounts
-        for (let esAccount of this._esAccounts) {
-          if ((await esAccount.getTxInfos()).total === 0) {
-            console.warn(esAccount.accountId, 'has no txInfo before recovery, delete it')
-            this._esAccounts = this._esAccounts.filter(a => a !== esAccount)
-            await esAccount.delete()
-          }
-        }
 
-        // Here we can't use Promise.all() in recover, because data may be invalid when one
-        // of account occur errors, while other type of account is still running recover.
-        // In this case, deleting all account may failed because account which is still running
-        // may writing account data into database later. We don't have mechanism to make them stop.
-        for (let coinType of D.recoverCoinTypes()) {
-          await this._recover(coinType)
+      // make sure no empty account before recover
+      // if last recovery is stopped unexcepted, we will have part of accounts
+      for (let esAccount of this._esAccounts) {
+        if ((await esAccount.getTxInfos()).total === 0) {
+          console.warn(esAccount.accountId, 'has no txInfo before recovery, delete it')
+          this._esAccounts = this._esAccounts.filter(a => a !== esAccount)
+          await esAccount.delete()
         }
-        await this._settings.setSetting('recoveryFinish', true, this._info.walletId)
-      } catch (e) {
-        console.warn('recover error', e)
+      }
+
+      // In case when one of accounts occur error, while other accounts
+      // is still running recover.
+      // In this case, wait for all accounts stop before throw an error.
+      let error = null
+      await Promise.all(D.recoverCoinTypes().map(coinType =>
+        this._recover(coinType).catch(e => {
+          console.warn('recover error occured', e)
+          error = e
+        })))
+
+      if (error) {
+        console.warn('recover error', error)
         console.warn('recover account failed, recoveryFinish = false, wait for recover next time', this._esAccounts)
         this._esAccounts = []
-        throw e
+        throw error
       }
+      await this._settings.setSetting('recoveryFinish', true, this._info.walletId)
     }
   }
 
