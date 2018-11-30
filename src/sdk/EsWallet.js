@@ -270,7 +270,6 @@ export default class EsWallet {
    * @private
    */
   async _release () {
-    this._esAccounts = []
     await this._coinData.release()
   }
 
