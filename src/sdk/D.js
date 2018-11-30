@@ -760,21 +760,15 @@ const D = {
       }
       return '0'
     }
-    switch (coinType) {
-      case D.coin.main.btc:
-      case D.coin.test.btcTestNet3:
-        return convertBtc(value, fromType, toType)
-      case D.coin.main.eth:
-      case D.coin.test.ethRinkeby:
-        return convertEth(value, fromType, toType)
-      case D.coin.main.eos:
-      case D.coin.test.eosJungle:
-      case D.coin.test.eosKylin:
-      case D.coin.test.eosSys:
-        return value
-      default:
-        console.warn('convertValue don\'t support this coinType', coinType)
-        throw D.error.coinNotSupported
+    if (D.isBtc(coinType)) {
+      return convertBtc(value, fromType, toType)
+    } else if (D.isEth(coinType)) {
+      return convertEth(value, fromType, toType)
+    } else if (D.isEos(coinType)) {
+      return value
+    } else {
+      console.warn('convertValue don\'t support this coinType', coinType)
+      throw D.error.coinNotSupported
     }
   },
 
@@ -798,23 +792,18 @@ const D = {
   },
 
   getCoinIndex (coinType) {
-    switch (coinType) {
+    if (D.isBtc(coinType)) {
       // bip-0044
-      case D.coin.main.btc:
-      case D.coin.test.btcTestNet3:
-        return 0
-      case D.coin.main.eth:
-      case D.coin.test.ethRinkeby:
-        return 60
+      return 0
+    } else if (D.isEth(coinType)) {
+      // bip-0044
+      return 60
+    } else if (D.isEos(coinType)) {
       // slip-0048
-      case D.coin.main.eos:
-      case D.coin.test.eosJungle:
-      case D.coin.test.eosKylin:
-      case D.coin.test.eosSys:
-        return 4
-      default:
-        console.warn('getCoinIndex don\'t support this coinType', coinType)
-        throw D.error.coinNotSupported
+      return 4
+    } else {
+      console.warn('getCoinIndex don\'t support this coinType', coinType)
+      throw D.error.coinNotSupported
     }
   },
 

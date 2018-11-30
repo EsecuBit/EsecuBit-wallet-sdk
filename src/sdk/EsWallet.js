@@ -335,11 +335,14 @@ export default class EsWallet {
    */
   async getAccounts (filter) {
     const order = {}
-    order[D.coin.main.btc] = 0
-    order[D.coin.main.eth] = 1
-    order[D.coin.test.btcTestNet3] = 100
-    order[D.coin.test.ethRinkeby] = 101
-    order[D.coin.test.ethRopsten] = 102
+
+    let index = 0
+    for (let coinType of D.coin.main) {
+      order[coinType] = index++
+    }
+    for (let coinType of D.coin.test) {
+      order[coinType] = index++
+    }
     return this._esAccounts.sort((a, b) => order[a.coinType] - order[b.coinType])
   }
 

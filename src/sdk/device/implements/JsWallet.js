@@ -113,17 +113,13 @@ export default class JsWallet {
     }
 
     let address
-    switch (coinType) {
-      case D.coin.main.btc:
-      case D.coin.test.btcTestNet3:
-        address = await btcAddress(addressPath)
-        break
-      case D.coin.main.eth:
-      case D.coin.test.ethRinkeby:
-        address = await ethAddress(addressPath)
-        break
-      default:
-        throw D.error.coinNotSupported
+    if (D.isBtc(coinType)) {
+      address = await btcAddress(addressPath)
+    } else if (D.isEth(coinType)) {
+      address = await ethAddress(addressPath)
+    } else {
+      console.warn('getAddress not supported coinType', coinType, addressPath)
+      throw D.error.coinNotSupported
     }
     console.debug('path, address', addressPath, address)
     return address
