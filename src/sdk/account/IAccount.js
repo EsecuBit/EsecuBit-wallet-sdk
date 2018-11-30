@@ -111,20 +111,24 @@ export default class IAccount {
     while (checkAddressInfos.length > 0) {
       // find out all the transactions
       let blobs = await this._coinData.checkAddresses(this.coinType, checkAddressInfos)
-      let responses = await Promise.all(blobs.map(blob => {
+
+      let hasNewTxs = false
+      for (let blob of blobs) {
         if (blob.removedTxId) {
           let removedTxInfo = this.txInfos.find(txInfo => txInfo.txId === blob.removedTxId)
           // let the txListener handle the overTime pending tx
           if (removedTxInfo && removedTxInfo.confirmations !== D.tx.confirmation.pending) {
-            return this._handleRemovedTx(blob.removedTxId)
+            await this._handleRemovedTx(blob.removedTxId)
+            hasNewTxs = true
           }
         } else {
-          return this._handleNewTx(blob.txInfo)
+          await this._handleNewTx(blob.txInfo)
+          hasNewTxs = true
         }
-      }))
+      }
 
       if (offlineMode) break
-      if (responses.length === 0) break
+      if (hasNewTxs) break
       checkAddressInfos = D.copy(await this._checkAddressIndexAndGenerateNew(true))
     }
 
