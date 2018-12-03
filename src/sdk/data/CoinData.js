@@ -53,7 +53,7 @@ export default class CoinData {
       // fee
       await Promise.all(Object.keys(this._networkFee).map(async coinType => {
         if (this._networkFee[coinType]) {
-          this._exchange[coinType].updateFee()
+          this._networkFee[coinType].updateFee()
           return this._networkFee[coinType]
         }
         let fee = await this._db.getFee(coinType)
