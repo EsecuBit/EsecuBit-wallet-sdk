@@ -52,7 +52,10 @@ export default class CoinData {
 
       // fee
       await Promise.all(Object.keys(this._networkFee).map(async coinType => {
-        if (this._networkFee[coinType]) return this._networkFee[coinType]
+        if (this._networkFee[coinType]) {
+          this._exchange[coinType].updateFee()
+          return this._networkFee[coinType]
+        }
         let fee = await this._db.getFee(coinType)
         fee = fee || {coinType}
         if (D.isBtc(coinType)) {
@@ -66,7 +69,10 @@ export default class CoinData {
 
       // exchange
       await Promise.all(Object.keys(this._exchange).map(async coinType => {
-        if (this._exchange[coinType]) return this._exchange[coinType]
+        if (this._exchange[coinType]) {
+          this._exchange[coinType].updateExchange()
+          return this._exchange[coinType]
+        }
         let exchange = await this._db.getExchange(coinType)
         exchange = exchange || {coinType}
         this._exchange[coinType] = new ExchangeCryptoCompareCom(exchange)

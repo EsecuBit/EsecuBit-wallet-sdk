@@ -336,10 +336,10 @@ export default class EsWallet {
     const order = {}
 
     let index = 0
-    for (let coinType of D.coin.main) {
+    for (let coinType of Object.values(D.coin.main)) {
       order[coinType] = index++
     }
-    for (let coinType of D.coin.test) {
+    for (let coinType of Object.values(D.coin.test)) {
       order[coinType] = index++
     }
     return this._esAccounts.sort((a, b) => order[a.coinType] - order[b.coinType])
