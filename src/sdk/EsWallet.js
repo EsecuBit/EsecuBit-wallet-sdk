@@ -198,12 +198,13 @@ export default class EsWallet {
     } else {
       for (let coinType of D.recoverCoinTypes()) {
         recoverCoinTypes = []
-        let lastAccountHasTxs = this._esAccounts
+        let lastAccount = this._esAccounts
           .filter(account => account.coinType === coinType)
           .reduce((lastAccount, account) =>
             lastAccount.index > account.index ? lastAccount : account, {txInfos: [], index: -1})
-          .some(account => account.txInfos.length > 0)
-        lastAccountHasTxs && recoverCoinTypes.push(coinType)
+        if (lastAccount.txInfos.length > 0) {
+          recoverCoinTypes.push(coinType)
+        }
       }
     }
 
@@ -243,7 +244,7 @@ export default class EsWallet {
         .filter(account => account.coinType === coinType)
         .reduce((lastAccount, account) =>
           lastAccount.index > account.index ? lastAccount : account, {txInfos: [], index: -1})
-      if (lastAccount.txInfos.length > 0) {
+      if (lastAccount.txInfos.length === 0) {
         account = lastAccount
       } else {
         account = await this._coinData.newAccount(coinType)
