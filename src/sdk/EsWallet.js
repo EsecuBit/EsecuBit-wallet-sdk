@@ -209,6 +209,10 @@ export default class EsWallet {
     }
 
     if (recoverCoinTypes.length > 0) {
+      if (this.offlineMode) {
+        console.warn('wallet needs discover new accounts but it\'s in offlineMode, wait for next time')
+        return
+      }
       console.log('start recovery', recoveryFinish, recoverCoinTypes, this._esAccounts.length)
 
       // In case when one of accounts occur error, while other accounts
