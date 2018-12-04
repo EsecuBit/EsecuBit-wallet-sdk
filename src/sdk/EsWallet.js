@@ -190,19 +190,25 @@ export default class EsWallet {
 
     let recoveryFinish = await this._settings.getSetting('recoveryFinish', this._info.walletId)
     recoveryFinish = recoveryFinish || false
+
+    let recoverCoinTypes
     if (!recoveryFinish || this._esAccounts.length === 0) {
       if (this.offlineMode) throw D.error.offlineModeNotAllowed
-      console.log('start recovery', recoveryFinish, this._esAccounts.length)
-
-      // make sure no empty account before recover
-      // if last recovery is stopped unexcepted, we will have part of accounts
-      for (let esAccount of this._esAccounts) {
-        if ((await esAccount.getTxInfos()).total === 0) {
-          console.warn(esAccount.accountId, 'has no txInfo before recovery, delete it')
-          this._esAccounts = this._esAccounts.filter(a => a !== esAccount)
-          await esAccount.delete()
-        }
+      recoverCoinTypes = D.recoverCoinTypes()
+    } else {
+      for (let coinType of D.recoverCoinTypes()) {
+        recoverCoinTypes = []
+        let lastAccountHasTxs = this._esAccounts
+          .filter(account => account.coinType === coinType)
+          .reduce((lastAccount, account) =>
+            lastAccount.index > account.index ? lastAccount : account, {txInfos: [], index: -1})
+          .some(account => account.txInfos.length > 0)
+        lastAccountHasTxs && recoverCoinTypes.push(coinType)
       }
+    }
+
+    if (recoverCoinTypes.length > 0) {
+      console.log('start recovery', recoveryFinish, recoverCoinTypes, this._esAccounts.length)
 
       // In case when one of accounts occur error, while other accounts
       // is still running recover.
@@ -225,15 +231,24 @@ export default class EsWallet {
   }
 
   /**
-   * Recover accounts for specific coinType. Invoke inside when detect device plugin or called enterOfflineMode()
-   * and found no accounts for this coinType.
+   * Recover accounts for specific coinType.
    *
    * @param coinType
    * @private
    */
   async _recover (coinType) {
     while (true) {
-      let account = await this._coinData.newAccount(coinType)
+      let account
+      let lastAccount = this._esAccounts
+        .filter(account => account.coinType === coinType)
+        .reduce((lastAccount, account) =>
+          lastAccount.index > account.index ? lastAccount : account, {txInfos: [], index: -1})
+      if (lastAccount.txInfos.length > 0) {
+        account = lastAccount
+      } else {
+        account = await this._coinData.newAccount(coinType)
+      }
+
       let esAccount
       if (D.isBtc(coinType)) {
         esAccount = new BtcAccount(account, this._device, this._coinData)
@@ -245,22 +260,16 @@ export default class EsWallet {
         console.warn('EsWallet don\'t support this coinType', coinType)
         throw D.error.coinNotSupported
       }
-      this._esAccounts.push(esAccount)
 
       await esAccount.init()
       await esAccount.sync(true)
 
       // new account has no transactions, recover finish
       if ((await esAccount.getTxInfos()).total === 0) {
-        if (esAccount.index !== 0) {
-          console.log(esAccount.accountId, 'has no txInfo, will not recover, delete it')
-          this._esAccounts = this._esAccounts.filter(a => a !== esAccount)
-          await esAccount.delete()
-        } else {
-          console.log(esAccount.accountId, 'has no txInfo, but it is the first account, keep it')
-        }
+        console.log(esAccount.accountId, 'has no txInfo, stop')
         break
       }
+      this._esAccounts.push(esAccount)
     }
   }
 
@@ -330,7 +339,7 @@ export default class EsWallet {
    * {
    *   accountId: string
    * }
-   * @returns {Promise<IAccount array>}
+   * @returns {Promise<IAccount[]>}
    */
   async getAccounts (filter) {
     const order = {}
@@ -342,7 +351,9 @@ export default class EsWallet {
     for (let coinType of Object.values(D.coin.test)) {
       order[coinType] = index++
     }
-    return this._esAccounts.sort((a, b) => order[a.coinType] - order[b.coinType])
+    return this._esAccounts
+      .filter(account => account.index === 0 || account.txInfos.length > 0)
+      .sort((a, b) => order[a.coinType] - order[b.coinType])
   }
 
   /**
