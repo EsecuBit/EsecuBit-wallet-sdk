@@ -63,8 +63,9 @@ export default class ICoinNetwork {
   }
 
   async sync () {
+    console.log('sync CoinNetwork', this.provider)
     this._blockHeight = await this.getBlockHeight()
-    console.log('sync CoinNetwork', this.provider, this._blockHeight)
+    console.log('sync CoinNetwork finish', this.provider, this._blockHeight)
   }
 
   // noinspection JSUnusedGlobalSymbols
