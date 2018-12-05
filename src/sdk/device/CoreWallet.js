@@ -43,7 +43,7 @@ export default class CoreWallet {
         }
         D.dispatch(() => this._externlistener(error, status))
       }
-      console.debug('listenPlug', transmitter)
+      console.debug('listenPlug', transmitter.constructor.name)
       transmitter.listenPlug(plugInListener)
     }
   }
@@ -62,7 +62,7 @@ export default class CoreWallet {
         this._wallet = wallet
         return walletInfo
       } catch (e) {
-        messages.push({wallet: wallet, error: e})
+        messages.push({wallet: wallet.constructor.name, error: e})
         // continue
       }
     }

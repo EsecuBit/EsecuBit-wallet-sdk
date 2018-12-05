@@ -66,6 +66,10 @@ export default class Crypto {
     }
   }
 
+  static getNFromPublicKey(publicKey) {
+    return Buffer.from(publicKey.slice(publicKey.length - 256 - 10, publicKey.length - 10), 'hex')
+  }
+
   static async generateRsaKeyPair (bits = 1024) {
     if (bits !== 1024) {
       console.warn('generateRsaKeyPair not support not 1024 bits yet')

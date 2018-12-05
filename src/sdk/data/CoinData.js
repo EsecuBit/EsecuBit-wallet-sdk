@@ -267,7 +267,8 @@ export default class CoinData {
     this.setTxFlags(txInfo)
     this._uncomfirmedTxs.push(txInfo)
 
-    console.log('newTx', account, addressInfos, txInfo, utxos)
+    console.log('newTx', account.accountId, addressInfos.map(a => a.address),
+      txInfo.txId, utxos.map(u => JSON.stringify(u)))
     await this._db.newTx(account, addressInfos, txInfo, utxos)
     this._listeners.forEach(listener => D.dispatch(() => listener(D.error.succeed, txInfo)))
   }
@@ -275,7 +276,8 @@ export default class CoinData {
   async removeTx (account, addressInfos, txInfo, updateUtxos = [], removeUtxos = []) {
     this._uncomfirmedTxs = this._uncomfirmedTxs.filter(t => t.txId !== txInfo.txId)
 
-    console.log('removeTx', account, addressInfos, txInfo, updateUtxos, removeUtxos)
+    console.log('removeTx', account.accountId, addressInfos.map(a => a.address), txInfo.txId,
+      updateUtxos.map(u => JSON.stringify(u)), removeUtxos.map(u => JSON.stringify(u)))
     await this._db.removeTx(account, addressInfos, txInfo, updateUtxos, removeUtxos)
     this._listeners.forEach(listener => D.dispatch(() => listener(D.error.succeed, D.copy(txInfo))))
   }

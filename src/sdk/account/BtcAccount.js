@@ -165,7 +165,7 @@ export default class BtcAccount extends IAccount {
    * update account, store utxo, addressInfo, txInfo
    */
   async _handleNewTxInner (txInfo, utxos) {
-    console.log('btc newTransaction, utxos', txInfo, utxos)
+    console.log('btc newTransaction, utxos', txInfo.txId, utxos.map(u => JSON.stringify(u)))
 
     while (this._innerBusy) {
       await D.wait(2)

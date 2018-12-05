@@ -1,8 +1,9 @@
 import {sm2} from 'sm.js'
 import D from '../../../D'
-import {des112} from './Crypto'
+import Provider from '../../../Provider'
 
 const factoryPubKey = '04284F6A1A1479FADB063452ED3060CD98A34583BB448954990C239EEC414A41C5A076705E52BC4F6297F667938F99D05C3994834E6639E6DF775F45B2310F50F6'
+// const Crypto = Provider.Crypto
 
 let des112DeriveKey = (rootKey, deriveData) => {
   let sKey = Buffer.allocUnsafe(0x10)
@@ -11,7 +12,7 @@ let des112DeriveKey = (rootKey, deriveData) => {
   for (let i = 0x08; i < 0x10; i++) {
     sKey[i] = ~sKey[i] & 0xff
   }
-  return des112(true, sKey, rootKey)
+  return Provider.Crypto.des112(true, sKey, rootKey)
 }
 
 /**
@@ -78,8 +79,8 @@ export default class Authenticate {
     // feature = sKey(0x10) sessionId(0x04) pairRandom(0x04)
     let feature = this._featureData
     feature.slice(0x10, 0x14).copy(authApdu, 0x08)
-    let sKey = des112DeriveKey(feature.slice(0, 0x10), random.slice(0x08, 0x10))
-    let encData = des112(true, random.slice(0, 0x08), sKey)
+    let sKey = await des112DeriveKey(feature.slice(0, 0x10), random.slice(0x08, 0x10))
+    let encData = await Provider.Crypto.des112(true, random.slice(0, 0x08), sKey)
     encData.copy(authApdu, 0x08 + 0x04)
     this._hostName.copy(authApdu, 0x08 + 0x04 + 0x08)
     this._authApdu = authApdu
