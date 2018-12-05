@@ -8,6 +8,7 @@ import JsTransmitter from './device/implements/transmitter/JsTransmitter'
 import MockTransmitter from './device/implements/transmitter/MockTransmitter'
 import HidTransmitter from './device/implements/transmitter/HidTransmitter'
 import CcidTransmitter from './device/implements/transmitter/CcidTransmitter'
+import Crypto from './device/implements/protocol/Crypto'
 
 const Provider = {
   Transmitters: [
@@ -23,7 +24,9 @@ const Provider = {
     NetBankWallet
   ],
 
-  DB: IndexedDB
+  DB: IndexedDB,
+
+  Crypto: Crypto
 }
 
 export default Provider

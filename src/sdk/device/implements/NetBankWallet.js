@@ -28,7 +28,7 @@ export default class NetBankWallet {
     console.log('NetBankWallet init')
     if (!authCallback) {
       console.warn('NetBankWallet auth missing authCallback')
-      throw D.error.invalidParams
+      authCallback = () => {}
     }
 
     let deivceName = this._transmitter.getName && this._transmitter.getName()
@@ -350,13 +350,13 @@ export default class NetBankWallet {
         await this._doHandShake()
           .catch(() => this._doHandShake())
           .catch(() => this._doHandShake())
-        apdu = this._handShake.encApdu(apdu)
+        apdu = await this._handShake.encApdu(apdu)
         console.debug('send enc apdu', apdu.toString('hex'))
       }
       let response = await this._transmit(apdu)
       if (isEnc) {
         console.debug('got enc response', response.toString('hex'), 'isEnc', isEnc)
-        let decResponse = this._handShake.decResponse(response)
+        let decResponse = await this._handShake.decResponse(response)
         NetBankWallet._checkSw1Sw2(decResponse.result)
         response = decResponse.response
       }

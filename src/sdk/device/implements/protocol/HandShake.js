@@ -1,15 +1,9 @@
 import {Buffer} from 'buffer'
 import D from '../../../D'
-import JSEncrypt from './jsencrypt'
 import MockDevice from '../transmitter/io/MockDevice'
-import {sha1, des112} from './Crypto'
+import Crypto from './Crypto'
 
-const factoryPubKeyPem = '-----BEGIN PUBLIC KEY-----' +
-  'MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQC3IaEDmGWrsHA5rKC8VB++Gkw/' +
-  '9wdhn2j8zR9Zysw50jEKW6Hos54XnlUul7MFhUwCduNWr+Bu1v2aGWn+mz68mIml' +
-  'xfAEmESfpB7hL7O+IUDz2v+/QHXs34wE3zQ7uFNH05xrdznf1a2Buy4Jrc3BeVmo' +
-  'nnYX4pewrrbfoITl4QIDAQAB' +
-  '-----END PUBLIC KEY-----'
+const factoryPubKey = '30819f300d06092a864886f70d010101050003818d0030818902818100b721a1039865abb07039aca0bc541fbe1a4c3ff707619f68fccd1f59cacc39d2310a5ba1e8b39e179e552e97b305854c0276e356afe06ed6fd9a1969fe9b3ebc9889a5c5f00498449fa41ee12fb3be2140f3daffbf4075ecdf8c04df343bb85347d39c6b7739dfd5ad81bb2e09adcdc17959a89e7617e297b0aeb6dfa084e5e10203010001'
 
 export default class HandShake {
   constructor (encKey) {
@@ -24,153 +18,20 @@ export default class HandShake {
     this._sKey = null
     this._sKeyCount = null
 
-    let generateRsa1024KeyPair = () => {
-      let keyPair = new JSEncrypt()
-      if (D.test.mockDevice) {
-        let testKeyPair = MockDevice.getTestTempRsaKeyPair()
-        keyPair.setPrivateKey(testKeyPair.privKey)
-        return keyPair
-      }
-
-      while (true) {
-        // if keyPair don't have keys, generate random keypair immediately
-        keyPair.getKey()
-        // n.MSB must be 1
-        let n = keyPair.key.n.toString(16)
-        if (n.length !== 256 || n[0] < '8') {
-          console.debug('n MSB == 0, regenerate')
-          keyPair.key = undefined
-          continue
-        }
-        break
-      }
-      return keyPair
-    }
-
-    let genHandShakeApdu = () => {
-      let tempKeyPair = generateRsa1024KeyPair()
-      let apdu = Buffer.allocUnsafe(0x8B)
-      Buffer.from('80334B4E00008402000000', 'hex').copy(apdu)
-      let n = Buffer.from(tempKeyPair.key.n.toString(16), 'hex')
-      n = Buffer.concat([Buffer.alloc(128 - n.length), n])
-      n.copy(apdu, 0x0B)
-      return {tempKeyPair, apdu}
-    }
-
     console.log('start hand shake')
-    return genHandShakeApdu()
+    let tempKeyPair = await Crypto.generateRsaKeyPair()
+    let apdu = Buffer.allocUnsafe(0x8B)
+    Buffer.from('80334B4E00008402000000', 'hex').copy(apdu)
+    let n = Buffer.from(tempKeyPair.privateKey.slice(22, 278), 'hex')
+    n = Buffer.concat([Buffer.alloc(128 - n.length), n])
+    n.copy(apdu, 0x0B)
+    return {tempKeyPair, apdu}
   }
 
   async parseHandShakeResponse (response, tempKeyPair, apdu) {
-    let modLen = 0x80 // RSA1024
-    let parseHandShakeResponse = (hostKey, response, apdu) => {
-      let removePadding = (data) => {
-        let pos = 0
-        if (data[pos++] !== 0x00) {
-          console.warn('decrypted device cert invalid padding, dataView[0] != 0x00', data.toString('hex'))
-          throw D.error.handShake
-        }
-        let type = data[pos++]
-        while (data[pos]) {
-          if (type === 0x01 && data[pos] !== 0xFF) {
-            console.warn('decrypted device cert invalid padding, type === 0x01 but dataView[0] != 0xFF', data.toString('hex'))
-          }
-          pos++
-        }
-        if (data[pos++] !== 0x00) {
-          console.warn('decrypted device cert invalid padding dataView[last_padding] != 0x00', data.toString('hex'))
-          throw D.error.handShake
-        }
-        return data.slice(pos)
-      }
-
-      let buildPemPublicKeyHex = (publicKey) => {
-        let firstBit = publicKey[0] & 0x80
-        let prefix = firstBit
-          ? '30819f300d06092a864886f70d010101050003818d0030818902818100'
-          : '30819e300d06092a864886f70d010101050003818c00308188028180'
-        prefix = Buffer.from(prefix, 'hex')
-        return Buffer.concat([prefix, publicKey, Buffer.from('0203010001', 'hex')])
-      }
-
-      if (response.length - modLen < 0) {
-        console.warn('handshake apdu response length invalid, length: ', response.length)
-        throw D.error.handShake
-      }
-      let recvNoSign = Buffer.allocUnsafe(response.length - modLen)
-      response.copy(recvNoSign, 0, 0, response.length - modLen)
-      let factoryKey = new JSEncrypt()
-      factoryKey.setPublicKey(factoryPubKeyPem)
-
-      let devCert = response.slice(0, modLen)
-      let encSKey = response.slice(modLen, modLen * 2)
-      let devSign = response.slice(modLen * 2, modLen * 3)
-
-      // verify device cert by ca public key(factoryKey)
-      let decDevCert = factoryKey.encrypt(devCert.toString('hex'))
-      if (!decDevCert) {
-        console.warn('decrypted device cert encrypt failed')
-        throw D.error.handShake
-      }
-      decDevCert = Buffer.from(decDevCert, 'hex')
-      let orgDevCert = removePadding(decDevCert)
-
-      const oidSha1 = Buffer.from('3021300906052b0e03021a05000414', 'hex')
-      if (orgDevCert.slice(0, 15).toString('hex') !== oidSha1.toString('hex')) {
-        console.warn('decrypted device cert oid != sha1 ', orgDevCert.toString('hex'))
-        throw D.error.handShake
-      }
-
-      let tempLen = modLen - 0x2E
-      let devPubHash = orgDevCert.slice(15, 35)
-      let devPubKey = orgDevCert.slice(35, 35 + tempLen)
-
-      // decrypt sKey by temp rsa key pair(hostKey)
-      let decSKey = hostKey.decrypt(encSKey.toString('hex'))
-      if (!decSKey) {
-        console.warn('decrypted enc skey failed', encSKey.toString('hex'))
-        throw D.error.handShake
-      }
-      decSKey = Buffer.from(decSKey, 'hex')
-      let orgSKey = removePadding(decSKey)
-
-      devPubKey = Buffer.concat([devPubKey, orgSKey.slice(0, 46)])
-
-      let devPubSha1 = sha1(devPubKey)
-      if (devPubSha1.toString('hex') !== devPubHash.toString('hex')) {
-        console.warn('sha1(devPubKey) != debPubHash', devPubKey.toString('hex'), devPubHash.toString('hex'))
-        throw D.error.handShake
-      }
-
-      let sKeyCount = orgSKey.slice(46, 50)
-      let sKey = orgSKey.slice(50, 66)
-
-      // verify device sign by device public key(devPubKey)
-      devPubKey = buildPemPublicKeyHex(devPubKey)
-      let devPubKeyObj = new JSEncrypt()
-      devPubKeyObj.setPublicKey(devPubKey.toString('hex'))
-      let orgDevSign = devPubKeyObj.encrypt(devSign.toString('hex'))
-      if (!orgDevSign) {
-        console.warn('device signature encrypt failed')
-        throw D.error.handShake
-      }
-      orgDevSign = Buffer.from(orgDevSign, 'hex')
-      orgDevSign = removePadding(orgDevSign)
-
-      let hashOrgValue = Buffer.concat([apdu.slice(7), devCert, encSKey])
-      let hashResult = sha1(hashOrgValue)
-
-      let toSign = Buffer.concat([oidSha1, hashResult])
-      if (toSign.toString('hex') !== orgDevSign.toString('hex')) {
-        console.warn('sign data not match')
-        throw D.error.handShake
-      }
-      return {sKey, sKeyCount}
-    }
-
-    let {sKey, sKeyCount} = parseHandShakeResponse(tempKeyPair, response, apdu)
+    let {sKey, sKeyCount} = await this._parseHandShakeResponse(tempKeyPair, response, apdu)
     if (this._encKey) {
-      sKey = des112(false, sKey, this._encKey)
+      sKey = await Crypto.des112(false, sKey, this._encKey)
     }
 
     this._sKey = sKey
@@ -179,13 +40,118 @@ export default class HandShake {
     console.log('finish hand shake')
   }
 
-  encApdu (apdu) {
+  async _parseHandShakeResponse (hostKey, response, apdu) {
+    let modLen = 0x80 // RSA1024
+    let removePadding = (data) => {
+      let pos = 0
+      if (data[pos++] !== 0x00) {
+        console.warn('decrypted device cert invalid padding, dataView[0] != 0x00', data.toString('hex'))
+        throw D.error.handShake
+      }
+      let type = data[pos++]
+      while (data[pos]) {
+        if (type === 0x01 && data[pos] !== 0xFF) {
+          console.warn('decrypted device cert invalid padding, type === 0x01 but dataView[0] != 0xFF', data.toString('hex'))
+          throw D.error.handShake
+        }
+        pos++
+      }
+      if (data[pos++] !== 0x00) {
+        console.warn('decrypted device cert invalid padding dataView[last_padding] != 0x00', data.toString('hex'))
+        throw D.error.handShake
+      }
+      return data.slice(pos)
+    }
+
+    let buildPemPublicKeyHex = (publicKey) => {
+      let firstBit = publicKey[0] & 0x80
+      let prefix = firstBit
+        ? '30819f300d06092a864886f70d010101050003818d0030818902818100'
+        : '30819e300d06092a864886f70d010101050003818c00308188028180'
+      return prefix + publicKey.toString('hex') + '0203010001'
+    }
+
+    if (response.length - modLen < 0) {
+      console.warn('handshake apdu response length invalid, length: ', response.length)
+      throw D.error.handShake
+    }
+    let recvNoSign = Buffer.allocUnsafe(response.length - modLen)
+    response.copy(recvNoSign, 0, 0, response.length - modLen)
+
+    let devCert = response.slice(0, modLen)
+    let encSKey = response.slice(modLen, modLen * 2)
+    let devSign = response.slice(modLen * 2, modLen * 3)
+    console.debug('devCert', devCert.toString('hex'))
+    console.debug('encSKey', encSKey.toString('hex'))
+    console.debug('devSign', devSign.toString('hex'))
+
+    // verify device cert by ca public key(factoryKey)
+    let decDevCert = await Crypto.rsaEncrypt(factoryPubKey, devCert)
+    if (!decDevCert) {
+      console.warn('decrypted device cert encrypt failed')
+      throw D.error.handShake
+    }
+    console.debug('decDevCert', decDevCert.toString('hex'))
+    let orgDevCert = removePadding(decDevCert)
+
+    const oidSha1 = Buffer.from('3021300906052b0e03021a05000414', 'hex')
+    if (orgDevCert.slice(0, 15).toString('hex') !== oidSha1.toString('hex')) {
+      console.warn('decrypted device cert oid != sha1 ', orgDevCert.toString('hex'))
+      throw D.error.handShake
+    }
+
+    let tempLen = modLen - 0x2E
+    let devPubHash = orgDevCert.slice(15, 35)
+    let devPubKey = orgDevCert.slice(35, 35 + tempLen)
+
+    // decrypt sKey by temp rsa key pair(hostKey)
+    let decSKey = await Crypto.rsaDecrypt(hostKey.privateKey, encSKey)
+    if (!decSKey) {
+      console.warn('decrypted enc skey failed', encSKey.toString('hex'))
+      throw D.error.handShake
+    }
+    console.debug('decSKey', decSKey.toString('hex'))
+    let orgSKey = removePadding(decSKey)
+
+    devPubKey = Buffer.concat([devPubKey, orgSKey.slice(0, 46)])
+
+    let devPubSha1 = await Crypto.sha1(devPubKey)
+    if (devPubSha1.toString('hex') !== devPubHash.toString('hex')) {
+      console.warn('sha1(devPubKey) != debPubHash', devPubKey.toString('hex'), devPubHash.toString('hex'))
+      throw D.error.handShake
+    }
+
+    let sKeyCount = orgSKey.slice(46, 50)
+    let sKey = orgSKey.slice(50, 66)
+
+    // verify device sign by device public key(devPubKey)
+    devPubKey = buildPemPublicKeyHex(devPubKey)
+    let orgDevSign = await Crypto.rsaEncrypt(devPubKey, devSign)
+    if (!orgDevSign) {
+      console.warn('device signature encrypt failed')
+      throw D.error.handShake
+    }
+    console.debug('orgDevSign', orgDevSign.toString('hex'))
+    orgDevSign = removePadding(orgDevSign)
+
+    let hashOrgValue = Buffer.concat([apdu.slice(7), devCert, encSKey])
+    let hashResult = await Crypto.sha1(hashOrgValue)
+
+    let toSign = Buffer.concat([oidSha1, hashResult])
+    if (toSign.toString('hex') !== orgDevSign.toString('hex')) {
+      console.warn('sign data not match')
+      throw D.error.handShake
+    }
+    return {sKey, sKeyCount}
+  }
+
+  async encApdu (apdu) {
     if (!this.isFinished) {
       console.warn('HandShake not handshake yet')
       throw D.error.handShake
     }
 
-    let encryptedApdu = des112(true, apdu, this._sKey, true)
+    let encryptedApdu = await Crypto.des112(true, apdu, this._sKey, true)
 
     // 8033 534D Lc    00 00 00 PaddingNum(1) SKeyCount(4) EncApdu
     let padNum = encryptedApdu.length - apdu.length
@@ -202,13 +168,13 @@ export default class HandShake {
     return Buffer.concat([encApduHead, apduData])
   }
 
-  decResponse (response) {
+  async decResponse (response) {
     if (!this.isFinished) {
       console.warn('HandShake not handshake yet')
       throw D.error.handShake
     }
 
-    let decResponse = des112(false, response, this._sKey, true)
+    let decResponse = await Crypto.des112(false, response, this._sKey, true)
 
     let length = decResponse.length
     let result = (decResponse[length - 2] << 8) + decResponse[length - 1]
