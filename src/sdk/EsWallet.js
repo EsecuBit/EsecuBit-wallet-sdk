@@ -248,7 +248,7 @@ export default class EsWallet {
         .filter(account => account.coinType === coinType)
         .reduce((lastAccount, account) =>
           lastAccount.index > account.index ? lastAccount : account, {txInfos: [], index: -1})
-      if (lastAccount.txInfos.length === 0) {
+      if (lastAccount.index >= 0 && lastAccount.txInfos.length === 0) {
         account = lastAccount
       } else {
         account = await this._coinData.newAccount(coinType)
