@@ -175,7 +175,6 @@ export default class EsWallet {
       this._esAccounts.push(esAccount)
     })
     await Promise.all(this._esAccounts.map(esAccount => esAccount.init()))
-
     return info
   }
 
@@ -233,12 +232,10 @@ export default class EsWallet {
       }
       await this._settings.setSetting('recoveryFinish', true, this._info.walletId)
     }
-    
+
     for (let esAccount of this._esAccounts) {
       if (esAccount.status === D.account.status.hideByNoTxs &&
         esAccount.txInfos.length !== 0) {
-          console.log('sdsdsds f***');
-          
         esAccount.status = D.account.status.show
         await this._coinData.updateAccount(esAccount._toAccountInfo())
       }
@@ -253,32 +250,29 @@ export default class EsWallet {
    */
   async _recover (coinType) {
     while (true) {
-      let account
+      let esAccount
       let lastAccount = this._getLastAccount(coinType)
       if (lastAccount && lastAccount.txInfos.length === 0) {
-        account = lastAccount
+        esAccount = lastAccount
       } else {
-        account = await this._coinData.newAccount(coinType)
+        let account = await this._coinData.newAccount(coinType)
+        if (D.isBtc(coinType)) {
+          esAccount = new BtcAccount(account, this._device, this._coinData)
+        } else if (D.isEth(coinType)) {
+          esAccount = new EthAccount(account, this._device, this._coinData)
+        } else if (D.isEos(coinType)) {
+          esAccount = new EosAccount(account, this._device, this._coinData)
+        } else {
+          console.warn('EsWallet don\'t support this coinType', coinType)
+          throw D.error.coinNotSupported
+        }
+        await esAccount.init()
+        this._esAccounts.push(esAccount)
       }
 
-      let esAccount
-      if (D.isBtc(coinType)) {
-        esAccount = new BtcAccount(account, this._device, this._coinData)
-      } else if (D.isEth(coinType)) {
-        esAccount = new EthAccount(account, this._device, this._coinData)
-      } else if (D.isEos(coinType)) {
-        esAccount = new EosAccount(account, this._device, this._coinData)
-      } else {
-        console.warn('EsWallet don\'t support this coinType', coinType)
-        throw D.error.coinNotSupported
-      }
-
-      await esAccount.init()
       await esAccount.sync(true)
-      this._esAccounts.push(esAccount)
-
       // new account has no transactions, recover finish
-      if ((await esAccount.getTxInfos()).total === 0) {
+      if (esAccount.txInfos.length === 0) {
         console.log(esAccount.accountId, 'has no txInfo, stop')
         break
       }
