@@ -187,13 +187,6 @@ export default class EsWallet {
   async _sync () {
     await this._coinData.sync()
     await Promise.all(this._esAccounts.map(esAccount => esAccount.sync(true, this.offlineMode)))
-    for (let esAccount of this._esAccounts) {
-      if (esAccount.status === D.account.status.hideByNoTxs &&
-        esAccount.txInfos.length !== 0) {
-        esAccount.status = D.account.status.show
-        await this._coinData.updateAccount(esAccount._toAccountInfo())
-      }
-    }
 
     let recoveryFinish = await this._settings.getSetting('recoveryFinish', this._info.walletId)
     recoveryFinish = recoveryFinish || false
@@ -240,6 +233,16 @@ export default class EsWallet {
       }
       await this._settings.setSetting('recoveryFinish', true, this._info.walletId)
     }
+    
+    for (let esAccount of this._esAccounts) {
+      if (esAccount.status === D.account.status.hideByNoTxs &&
+        esAccount.txInfos.length !== 0) {
+          console.log('sdsdsds f***');
+          
+        esAccount.status = D.account.status.show
+        await this._coinData.updateAccount(esAccount._toAccountInfo())
+      }
+    }
   }
 
   /**
@@ -272,13 +275,13 @@ export default class EsWallet {
 
       await esAccount.init()
       await esAccount.sync(true)
+      this._esAccounts.push(esAccount)
 
       // new account has no transactions, recover finish
       if ((await esAccount.getTxInfos()).total === 0) {
         console.log(esAccount.accountId, 'has no txInfo, stop')
         break
       }
-      this._esAccounts.push(esAccount)
     }
   }
 
@@ -361,6 +364,7 @@ export default class EsWallet {
     for (let coinType of Object.values(D.coin.test)) {
       order[coinType] = index++
     }
+
     return this._esAccounts
       .filter(account => account.status === D.account.status.show)
       .sort((a, b) => order[a.coinType] - order[b.coinType])

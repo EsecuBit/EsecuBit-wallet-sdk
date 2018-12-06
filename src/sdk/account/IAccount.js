@@ -60,6 +60,7 @@ export default class IAccount {
     let info = {}
     info.label = this.label
     info.accountId = this.accountId
+    info.status = this.status
     info.coinType = this.coinType
     info.index = this.index
     info.balance = this.balance
@@ -82,6 +83,7 @@ export default class IAccount {
   _fromAccountInfo (info) {
     this.label = info.label
     this.accountId = info.accountId
+    this.status = info.status
     this.coinType = info.coinType
     this.index = info.index
     this.balance = info.balance
