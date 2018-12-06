@@ -47,6 +47,7 @@ export default class IndexedDB extends IDatabase {
          *   label: string,
          *   coinType: string,
          *   index: number,
+         *   status: strign // D.account.status.*
          *   balance: string, // (decimal string)
          *   externalPublicKeyIndex: int, // current external address index
          *   changePublicKeyIndex: int, // current change address index

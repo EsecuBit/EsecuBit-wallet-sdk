@@ -1,6 +1,5 @@
 import {Buffer} from 'buffer'
 import D from '../../../D'
-import MockDevice from '../transmitter/io/MockDevice'
 import Provider from '../../../Provider'
 
 const factoryPubKey = '30819f300d06092a864886f70d010101050003818d0030818902818100b721a1039865abb07039aca0bc541fbe1a4c3ff707619f68fccd1f59cacc39d2310a5ba1e8b39e179e552e97b305854c0276e356afe06ed6fd9a1969fe9b3ebc9889a5c5f00498449fa41ee12fb3be2140f3daffbf4075ecdf8c04df343bb85347d39c6b7739dfd5ad81bb2e09adcdc17959a89e7617e297b0aeb6dfa084e5e10203010001'

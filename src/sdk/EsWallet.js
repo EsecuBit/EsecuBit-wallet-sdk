@@ -187,6 +187,13 @@ export default class EsWallet {
   async _sync () {
     await this._coinData.sync()
     await Promise.all(this._esAccounts.map(esAccount => esAccount.sync(true, this.offlineMode)))
+    for (let esAccount of this._esAccounts) {
+      if (esAccount.status === D.account.status.hideByNoTxs &&
+        esAccount.txInfos.length !== 0) {
+        esAccount.status = D.account.status.show
+        await this._coinData.updateAccount(esAccount._toAccountInfo())
+      }
+    }
 
     let recoveryFinish = await this._settings.getSetting('recoveryFinish', this._info.walletId)
     recoveryFinish = recoveryFinish || false
@@ -196,13 +203,13 @@ export default class EsWallet {
       if (this.offlineMode) throw D.error.offlineModeNotAllowed
       recoverCoinTypes = D.recoverCoinTypes()
     } else {
+      // if every accounts of a coinType has txs, checkout the next account in case next account
+      // is generated and make transaction on other device
+      // TODO LATER we are going to get these informations from device data(WalletData.js)
       for (let coinType of D.recoverCoinTypes()) {
         recoverCoinTypes = []
-        let lastAccount = this._esAccounts
-          .filter(account => account.coinType === coinType)
-          .reduce((lastAccount, account) =>
-            lastAccount.index > account.index ? lastAccount : account, {txInfos: [], index: -1})
-        if (lastAccount.txInfos.length > 0) {
+        let lastAccount = this._getLastAccount(coinType)
+        if (!lastAccount || lastAccount.txInfos.length > 0) {
           recoverCoinTypes.push(coinType)
         }
       }
@@ -244,11 +251,8 @@ export default class EsWallet {
   async _recover (coinType) {
     while (true) {
       let account
-      let lastAccount = this._esAccounts
-        .filter(account => account.coinType === coinType)
-        .reduce((lastAccount, account) =>
-          lastAccount.index > account.index ? lastAccount : account, {txInfos: [], index: -1})
-      if (lastAccount.index >= 0 && lastAccount.txInfos.length === 0) {
+      let lastAccount = this._getLastAccount(coinType)
+      if (lastAccount && lastAccount.txInfos.length === 0) {
         account = lastAccount
       } else {
         account = await this._coinData.newAccount(coinType)
@@ -284,6 +288,7 @@ export default class EsWallet {
    * @private
    */
   async _release () {
+    await this._settings.setSetting('recoveryFinish', false, this._info.walletId)
     await this._coinData.release()
   }
 
@@ -357,7 +362,7 @@ export default class EsWallet {
       order[coinType] = index++
     }
     return this._esAccounts
-      .filter(account => account.index === 0 || account.txInfos.length > 0)
+      .filter(account => account.status === D.account.status.show)
       .sort((a, b) => order[a.coinType] - order[b.coinType])
   }
 
@@ -368,6 +373,14 @@ export default class EsWallet {
    * @returns {Promise<IAccount>}
    */
   async newAccount (coinType) {
+    let lastAccount = this._getLastAccount(coinType)
+    if (lastAccount.status === D.account.status.hideByNoTxs) {
+      lastAccount.status = D.account.status.show
+      await this._coinData.updateAccount(lastAccount)
+      await lastAccount.sync()
+      return lastAccount
+    }
+
     let account = await this._coinData.newAccount(coinType)
     let esAccount
     if (D.isBtc(coinType)) {
@@ -386,6 +399,15 @@ export default class EsWallet {
     return esAccount
   }
 
+  _getLastAccount (coinType) {
+    let lastAccount = this._esAccounts
+      .filter(account => account.coinType === coinType)
+      .reduce((lastAccount, account) =>
+        lastAccount.index > account.index ? lastAccount : account, {txInfos: [], index: -1})
+    if (lastAccount.index === -1) lastAccount = null
+    return lastAccount
+  }
+
   /**
    * Returns coinTypes that match BIP44 account discovery limit to generate a new account
    * which needs last account has at least one transactions.
@@ -395,7 +417,10 @@ export default class EsWallet {
   async availableNewAccountCoinTypes () {
     let availables = []
     for (let coinType of D.supportedCoinTypes()) {
-      if ((await this._coinData._newAccountIndex(coinType)) >= 0) {
+      let lastAccount = this._getLastAccount(coinType)
+      if (lastAccount.status === D.account.status.hideByNoTxs) {
+        availables.push(coinType)
+      } else if ((await this._coinData._newAccountIndex(coinType)) >= 0) {
         availables.push(coinType)
       }
     }

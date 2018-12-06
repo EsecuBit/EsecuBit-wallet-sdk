@@ -194,6 +194,7 @@ export default class CoinData {
     let account = {
       accountId: makeId(),
       label: 'Account#' + (accountIndex + 1),
+      status: D.account.status.hideByNoTxs,
       coinType: coinType,
       index: accountIndex,
       balance: '0',

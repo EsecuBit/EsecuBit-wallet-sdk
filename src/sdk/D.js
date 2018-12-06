@@ -267,6 +267,14 @@ const D = {
     }
   },
 
+  account: {
+    status: {
+      show: 0,
+      hideByNoTxs: 1,
+      hideByUser: 2
+    }
+  },
+
   address: {
     external: 'external',
     change: 'change',
