@@ -233,9 +233,10 @@ export default class EsWallet {
       await this._settings.setSetting('recoveryFinish', true, this._info.walletId)
     }
 
+    // set account show status
     for (let esAccount of this._esAccounts) {
-      if (esAccount.status === D.account.status.hideByNoTxs &&
-        esAccount.txInfos.length !== 0) {
+      if ((esAccount.status === D.account.status.hideByNoTxs && esAccount.txInfos.length !== 0) ||
+        esAccount.index === 0) {
         esAccount.status = D.account.status.show
         await this._coinData.updateAccount(esAccount._toAccountInfo())
       }
