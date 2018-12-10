@@ -16,8 +16,9 @@ const D = {
     deviceChange: 3,
     auth: 4,
     authFinish: 5,
-    syncing: 9,
-    syncFinish: 10,
+    syncing: 10,
+    syncingNewAccount: 11,
+    syncFinish: 20,
     plugOut: 99
   },
 
