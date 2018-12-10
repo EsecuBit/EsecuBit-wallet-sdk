@@ -193,7 +193,7 @@ const D = {
           },
           delegate: {
             type: 'eosioDelegatebw',
-            account: 'eosio.stake',
+            account: 'eosio',
             name: 'delegatebw',
             data: {
               from: 'name',
@@ -205,7 +205,7 @@ const D = {
           },
           undelegate: {
             type: 'eosioUndelegatebw',
-            account: 'eosio.stake',
+            account: 'eosio',
             name: 'undelegatebw',
             data: {
               from: 'name',
