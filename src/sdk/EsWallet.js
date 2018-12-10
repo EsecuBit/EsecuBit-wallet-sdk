@@ -308,7 +308,7 @@ export default class EsWallet {
    * @see D.status
    */
   listenStatus (callback) {
-    this._callback = callback || this._callback
+    this._callback = callback || (() => {})
     switch (this._status) {
       case D.status.plugIn:
         D.dispatch(() => callback(D.error.succeed, D.status.plugIn))
@@ -339,7 +339,7 @@ export default class EsWallet {
    * @param callback Function(errorCode, txInfo)
    */
   listenTxInfo (callback) {
-    this._coinData.addListener(callback)
+    this._coinData.setListner(callback)
   }
 
   /**

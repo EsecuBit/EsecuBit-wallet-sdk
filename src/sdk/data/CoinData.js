@@ -134,6 +134,11 @@ export default class CoinData {
     return (await this._db.getAccounts(filter)).sort((a, b) => a.index - b.index)
   }
 
+  setListner (callback) {
+    callback = callback || (() => {})
+    this._listeners = [callback]
+  }
+
   addListener (callback) {
     let exists = this._listeners.some(listener => listener === callback)
     if (exists) {
