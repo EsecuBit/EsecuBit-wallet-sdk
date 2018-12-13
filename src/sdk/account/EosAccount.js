@@ -52,7 +52,7 @@ export default class EosAccount extends IAccount {
         }
         let accounts = await this._network.getAccountByPubKey(ownerInfo.publicKey)
         if (!accounts || accounts.length === 0) {
-          console.info('EosAccount specific path not registered', ownerInfo)
+          console.info('EosAccount specific path not registered', ownerInfo.path, ownerInfo.publicKey)
         } else {
           // choose the first account if this key matches multi accounts
           // set the label as account name
@@ -158,7 +158,7 @@ export default class EosAccount extends IAccount {
       for (let j = startKeyIndex; j < startRegKeyIndex + maxIndexThreshold; j++) {
         let path = D.address.path.makeSlip48Path(this.coinType, pIndex, this.index, j)
         if (!filteredPermissionPaths.some(p => p.path === path)) {
-          let publicKey = await this._device.getPublicKey(this.coinType, path)
+          let publicKey = await this._device.getAddress(this.coinType, path)
           console.debug('generate public key with path', path, publicKey)
           // generate a permissionInfo no matter it use or not for recovery
           newAddressInfos.push({
@@ -205,35 +205,25 @@ export default class EosAccount extends IAccount {
    * @returns {Promise<*>}
    */
   async getPermissions () {
-    if (this.permissions) {
-      let permissions = D.copy(this.permissions)
-      permissions.registered = true
-      return permissions
-    }
+    let permissions = await this._device.getPermissions(this.coinType)
+    let result = {}
+    result.permissions = permissions
+    result.isRegistered = this.isRegistered()
 
-    return {
-      registered: false,
-      'owner': {
-        name: 'owner',
-        parent: '',
-        threshold: 1,
-        keys: [{
-          publicKey: await this._device.getPublicKey(this.coinType, "m/48'/4'/0'/0'/0'", true), // slip-0048
-          weight: 1,
-          path: "m/48'/4'/0'/0'/0'"
-        }]
-      },
-      'active': {
-        name: 'active',
-        parent: 'owner',
-        threshold: 1,
-        keys: [{
-          publicKey: await this._device.getPublicKey(this.coinType, "m/48'/4'/1'/0'/0'", true), // slip-0048
-          weight: 1,
-          path: "m/48'/4'/1'/0'/0'"
-        }]
+    for (let permission of result.permissions) {
+      for (let key of permission.keys) {
+        let publicKey = this.addressInfos.find(a => a.publicKey === key.publicKey)
+        if (!publicKey || (result.isRegistered && !publicKey.address)) {
+          console.warn('found unknown permissions', permission, key)
+          throw D.error.permissionNotFound
+        }
+        key.weight = publicKey.weight || 1
+        key.path = publicKey.path
+        permission.threshold = publicKey.threshold || 1
+        permission.parent = publicKey.parent || ''
       }
     }
+    return result
   }
 
   async getAddress () {
