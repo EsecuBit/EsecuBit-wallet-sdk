@@ -238,7 +238,7 @@ export default class S300Wallet {
       let remain = 0
       if (D.isEos(coinType)) {
         remain = response[0]
-        response = response.slice(0, response.length - 1)
+        response = response.slice(0, response.length)
       }
 
       let r = response.slice(0, 32)
