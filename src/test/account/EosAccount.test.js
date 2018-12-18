@@ -114,7 +114,7 @@ describe('EosAccount sync and sign', function () {
   let coinData
 
   before(async function () {
-    await new Settings().setTestSeed('write your own seed')
+    await new Settings().setTestSeed('0000000000000000000000000000000000000000000000000000000000000000') // write your own seed
 
     jsWallet = new JsWallet(new JsTransmitter())
     coinData = new CoinData()
