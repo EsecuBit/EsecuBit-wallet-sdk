@@ -67,6 +67,13 @@ const FcBuffer = {
       b.writeUint64(this.encodeName(value, false))
     },
 
+    toBuffer (value) {
+      let buffer = new ByteBuffer(8, true, true)
+      this.appendByteBuffer(buffer, value)
+      buffer = buffer.copy(0, buffer.offset)
+      return Buffer.from(buffer.buffer)
+    },
+
     /**
      * Copy from eos.js.
      *

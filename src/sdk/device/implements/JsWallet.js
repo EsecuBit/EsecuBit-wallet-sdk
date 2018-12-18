@@ -140,6 +140,10 @@ export default class JsWallet {
     }]
   }
 
+  async addPermissions () {
+    // do nothing
+  }
+
   // noinspection JSMethodCanBeStatic
   async getRandom (length) {
     Buffer.from(D.getRandomHex(length * 2), 'hex')

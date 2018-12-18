@@ -21,7 +21,10 @@ const tokenList = {
   }
 }
 
-const maxIndexThreshold = 5
+// according to slip48, index threshold and permission threshold = 5.
+// but it's too waste time, so we only check first owner key and first active key
+const maxIndexThreshold = 1
+const maxPermissionThreshold = 2
 
 export default class EosAccount extends IAccount {
   constructor (info, device, coinData) {
@@ -33,45 +36,20 @@ export default class EosAccount extends IAccount {
     }
   }
 
-  async sync (firstSync = false, offlineMode = false) {
-    if (!offlineMode) {
-      await this._checkPermissionAndGenerateNew()
+  async sync (callback, firstSync = false, offlineMode = false) {
+    if (!this.isRegistered()) {
+      console.warn('this EosAccount has not been registered, exit')
+      return
     }
 
-    if (!this.isRegistered()) {
-      console.log('EosAccount not registered, check owner publickey')
-
-      // slip-0048 recovery
-      let i = 0
-      for (; i < maxIndexThreshold; i++) {
-        let path = D.address.path.makeSlip48Path(this.coinType, 0, this.index, i)
-        let ownerInfo = this.addressInfos.find(a => a.path === path)
-        if (!ownerInfo) {
-          console.warn('account have no permission info in storage, most likely it is in offlineMode, exit')
-          return
-        }
-        let accounts = await this._network.getAccountByPubKey(ownerInfo.publicKey)
-        if (!accounts || accounts.length === 0) {
-          console.info('EosAccount specific path not registered', ownerInfo.path, ownerInfo.publicKey)
-        } else {
-          // choose the first account if this key matches multi accounts
-          // set the label as account name
-          this.label = accounts[0]
-          break
-        }
-        // slow down the request speed
-        await D.wait(200)
-      }
-      if (i === maxIndexThreshold) {
-        console.warn('this EosAccount has not been registered, exit')
-        return
-      }
+    if (!offlineMode) {
+      await this._checkPermissionAndGenerateNew()
     }
 
     this.tokens = this.tokens || {'EOS': {code: 'eosio.token', symbol: 'EOS'}}
     let newAccountInfo = await this._network.getAccountInfo(this.label, this.tokens)
     console.info('EosAccount getAccountInfo', newAccountInfo)
-    await this._updatePermissions(newAccountInfo.permissions)
+    await this._updatePermissions(newAccountInfo.permissions, callback)
     this.tokens = D.copy(newAccountInfo.tokens)
     this.resources = D.copy(newAccountInfo.resources)
     this.balance = newAccountInfo.balance
@@ -89,8 +67,64 @@ export default class EosAccount extends IAccount {
     }
   }
 
-  async _updatePermissions (permissions) {
-    let updatedAddressInfos = []
+  /**
+   * Check new permissions for slip48 generated public keys. Needs device interaction
+   *
+   * @param callback callback(error, status, permissions) when new permission found.
+   * status = D.status.syncingNewEosPermissions or D.status.syncingNewEosWillConfirmPermissions
+   * @returns {Promise<boolean>}
+   */
+  async checkNewPermission (callback) {
+    if (this.isRegistered()) {
+      return false
+    }
+    try {
+      await this._checkPermissionAndGenerateNew()
+    } catch (e) {
+      console.warn('checkNewPermission checkPermissionAndGenerateNew error', e)
+      console.warn('app may in offline mode, ignore here')
+    }
+
+    let checkNewKey = async () => {
+      for (let pmIndex = 0; pmIndex < maxPermissionThreshold; pmIndex++) {
+        console.log('EosAccount not registered, check publickey', pmIndex)
+        // slip-0048 recovery
+        for (let keyIndex = 0; keyIndex < maxIndexThreshold; keyIndex++) {
+          let path = D.address.path.makeSlip48Path(this.coinType, 0, this.index, keyIndex)
+          let ownerInfo = this.addressInfos.find(a => a.path === path)
+          if (!ownerInfo) {
+            console.warn('account have no permission info in storage, most likely it is in offlineMode, exit')
+            return
+          }
+          let accounts = await this._network.getAccountByPubKey(ownerInfo.publicKey)
+          if (!accounts || accounts.length === 0) {
+            console.info('EosAccount specific path not registered', ownerInfo.path, ownerInfo.publicKey)
+          } else {
+            // choose the first account if this key matches multi accounts
+            // set the label as account name
+            this.label = accounts[0]
+            return true
+          }
+          // slow down the request speed
+          await D.wait(200)
+        }
+        console.info('this EosAccount has not been registered', pmIndex)
+      }
+      return false
+    }
+
+    if (await checkNewKey()) {
+      let newAccountInfo = await this._network.getAccountInfo(this.label, this.tokens)
+      console.info('EosAccount getAccountInfo', newAccountInfo)
+      await this.sync(callback)
+      return true
+    }
+    return false
+  }
+
+  async _updatePermissions (permissions, deviceUpdateCallBack) {
+    let updatedPmInfos = []
+    let updatedDevicePmInfos = []
     let needCheck = true
     while (needCheck) {
       for (let permission of Object.values(permissions)) {
@@ -106,20 +140,39 @@ export default class EosAccount extends IAccount {
             relativeInfo.parent !== permission.parent ||
             relativeInfo.threshold !== permission.threshold ||
             relativeInfo.weight !== pKey.weight) {
-            console.log('update permission info', relativeInfo, pKey)
+            // check permissions that needs update to device
+            if (!relativeInfo.address ||
+              !relativeInfo.registered ||
+              relativeInfo.type !== permission.name) {
+              updatedDevicePmInfos.push(relativeInfo)
+            }
+
+            console.log('update permission info', relativeInfo, permission)
             relativeInfo.address = this.label
             relativeInfo.registered = true
             relativeInfo.type = permission.name
             relativeInfo.parent = permission.parent
             relativeInfo.threshold = permission.threshold
             relativeInfo.weight = pKey.weight
-            updatedAddressInfos.push(relativeInfo)
+            updatedPmInfos.push(relativeInfo)
           }
         }
       }
       needCheck = (await this._checkPermissionAndGenerateNew()).length > 0
     }
-    await this._coinData.updateAddressInfos(updatedAddressInfos)
+
+    // TODO currently device not handle permission changes
+    if (updatedDevicePmInfos.length > 0) {
+      if (typeof deviceUpdateCallBack !== 'function') {
+        console.warn('deviceUpdateCallBack not a function')
+        throw D.error.invalidParams
+      }
+      console.info('device permissions needs update', updatedDevicePmInfos)
+      D.dispatch(() => deviceUpdateCallBack(D.error.succeed,
+        D.status.syncingNewEosPermissions, D.copy(updatedDevicePmInfos)))
+    }
+    await this._device.addPermissions(this.coinType, updatedDevicePmInfos, deviceUpdateCallBack)
+    await this._coinData.updateAddressInfos(updatedPmInfos)
   }
 
   async _checkPermissionAndGenerateNew () {
@@ -137,10 +190,10 @@ export default class EosAccount extends IAccount {
       .reduce((max, path) => Math.max(max, path.pathIndexes[2]), 0x80000000 - 1)
     maxRegPermissionIndex -= 0x80000000
 
-    let startPermissionIndex = maxRegPermissionIndex + 1
+    let endPermissionIndex = maxRegPermissionIndex + 1
     let newAddressInfos = [] // permission info
-    for (let pIndex = 0; pIndex < startPermissionIndex + maxIndexThreshold; pIndex++) {
-      let subPath = D.address.path.makeSlip48Path(this.coinType, pIndex, this.index)
+    for (let pmIndex = 0; pmIndex < endPermissionIndex + maxPermissionThreshold; pmIndex++) {
+      let subPath = D.address.path.makeSlip48Path(this.coinType, pmIndex, this.index)
       // filter paths that has the same coinType, permission, accountIndex
       let filteredPermissionPaths = permissionPaths.filter(path =>
         subPath === D.address.path.makeSlip48Path(
@@ -155,8 +208,9 @@ export default class EosAccount extends IAccount {
 
       let startKeyIndex = maxKeyIndex + 1
       let startRegKeyIndex = maxRegisteredKeyIndex + 1
+      console.warn('????', pmIndex, startKeyIndex, startRegKeyIndex)
       for (let j = startKeyIndex; j < startRegKeyIndex + maxIndexThreshold; j++) {
-        let path = D.address.path.makeSlip48Path(this.coinType, pIndex, this.index, j)
+        let path = D.address.path.makeSlip48Path(this.coinType, pmIndex, this.index, j)
         if (!filteredPermissionPaths.some(p => p.path === path)) {
           let publicKey = await this._device.getAddress(this.coinType, path)
           console.debug('generate public key with path', path, publicKey)
@@ -197,7 +251,7 @@ export default class EosAccount extends IAccount {
    * Returns whether this EOS account is registered.
    */
   isRegistered () {
-    return this.addressInfos.some(a => a.registered)
+    return !!this.label
   }
 
   /**
@@ -205,7 +259,7 @@ export default class EosAccount extends IAccount {
    * @returns {Promise<*>}
    */
   async getPermissions () {
-    let permissions = await this._device.getPermissions(this.coinType)
+    let permissions = await this._device.getPermissions(this.coinType, 0x80000000 + this.index)
     let result = {}
     result.permissions = permissions
     result.isRegistered = this.isRegistered()
@@ -285,7 +339,7 @@ export default class EosAccount extends IAccount {
       console.warn('unsupported transaction type', details.type)
       throw D.error.notImplemented
     }
-    return method(details)
+    return method.call(this, details)
   }
 
   /**

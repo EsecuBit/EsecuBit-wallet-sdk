@@ -12,6 +12,7 @@
 
 import D from '../../../../D'
 
+const openDebugLog = false
 const compatibleDevices = [
   {vid: 0x1ea8, pid: 0x800a}
 ]
@@ -115,7 +116,7 @@ export default class ChromeUsbDevice {
       endpoint: this._outEndPoint.address,
       data: data
     }
-    console.debug('send package', transferInfo.endpoint, data.toString('hex'))
+    openDebugLog && console.debug('send package', transferInfo.endpoint, data.toString('hex'))
 
     return new Promise((resolve, reject) => {
       chrome.usb.bulkTransfer(this._connectionHandle, transferInfo, (info) => {
@@ -152,7 +153,7 @@ export default class ChromeUsbDevice {
         }
 
         let data = Buffer.from(info.data)
-        console.debug('receive package', transferInfo.endpoint, data.toString('hex'))
+        openDebugLog && console.debug('receive package', transferInfo.endpoint, data.toString('hex'))
         resolve(data)
       })
     })

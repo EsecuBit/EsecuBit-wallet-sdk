@@ -18,6 +18,8 @@ const D = {
     authFinish: 5,
     syncing: 10,
     syncingNewAccount: 11,
+    syncingNewEosPermissions: 12,
+    syncingNewEosWillConfirmPermissions: 13,
     syncFinish: 20,
     plugOut: 99
   },

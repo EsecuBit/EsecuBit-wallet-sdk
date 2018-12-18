@@ -104,7 +104,7 @@ export default class IAccount {
     this.utxos = await this._coinData.getUtxos({accountId})
   }
 
-  async sync (firstSync = false, offlineMode = false) {
+  async sync (callback, firstSync = false, offlineMode = false) {
     if (!offlineMode) {
       await this._checkAddressIndexAndGenerateNew(true)
     }
@@ -191,19 +191,17 @@ export default class IAccount {
     return {total, txInfos}
   }
 
-  async hideAccount() {
+  async hideAccount () {
     if (this.status === D.account.status.show) {
       let oldAccountInfo = this._toAccountInfo()
-      oldAccountInfo.status === D.account.status.hideByUser
       await this._coinData.updateAccount(oldAccountInfo)
       this.status = D.account.status.hideByUser
     }
   }
 
-  async showAccount() {
+  async showAccount () {
     if (this.status === D.account.status.hideByUser) {
       let oldAccountInfo = this._toAccountInfo()
-      oldAccountInfo.status === D.account.status.show
       await this._coinData.updateAccount(oldAccountInfo)
       this.status = D.account.status.show
     }

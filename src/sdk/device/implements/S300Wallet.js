@@ -9,7 +9,9 @@ import base58 from 'bs58'
 import FcBuffer from './protocol/EosFcBuffer'
 
 const getAppId = (coinType) => {
-  if (D.isBtc(coinType)) {
+  if (!coinType) {
+    return '010102'
+  } else if (D.isBtc(coinType)) {
     return '020002'
   } else if (D.isEth(coinType)) {
     return '023C02'
@@ -44,7 +46,7 @@ export default class S300Wallet {
 
     let walletId = D.test.coin ? '01' : '00'
     walletId += D.test.jsWallet ? '01' : '00'
-    walletId += D.address.toBuffer(await this.getAddress(D.coin.main.btc, "m/44'/0'/0'/0/0")).toString('hex')
+    walletId += (await this.getWalletId()).toString('hex')
     return {walletId: walletId}
   }
 
@@ -61,6 +63,11 @@ export default class S300Wallet {
       sdk_version: D.sdkVersion,
       cos_version: cosVersion
     }
+  }
+
+  async getWalletId () {
+    await this._select()
+    return this.sendApdu('8060000000', false)
   }
 
   async _getCosVersion () {
@@ -110,18 +117,25 @@ export default class S300Wallet {
     return address
   }
 
-  async getPermissions (coinType) {
+  async getPermissions (coinType, accountIndex) {
     if (!D.isEos(coinType)) {
       console.warn('getPermissions only supports EOS', coinType)
       throw D.error.coinNotSupported
     }
-    let apdu = Buffer.from('8050000000', 'hex')
+    if (accountIndex < 0x80000000 || accountIndex > 0xFFFFFFFF) {
+      console.warn('accountIndex out of range', accountIndex)
+      throw D.error.invalidParams
+    }
+
+    let apdu = Buffer.from('8050000004' + accountIndex.toString(), 'hex')
     let response = await this.sendApdu(apdu)
     let parts = String.fromCharCode.apply(null, new Uint8Array(response)).split('\n')
+    // remove the head and the tail
+    parts = parts.slice(1, parts.length - 1)
     let permissions = []
 
     let index = 0
-    while (index < parts.length - 1) {
+    while (index < parts.length) {
       let name = parts[index++]
       name = name.slice(0, name.length - 1)
       let key = parts[index++]
@@ -133,6 +147,54 @@ export default class S300Wallet {
       }
     }
     return permissions
+  }
+
+  async addPermissions (coinType, permissions, showingCallback) {
+    if (!D.isEos(coinType)) {
+      console.warn('addPermissions only supports EOS', coinType)
+      throw D.error.coinNotSupported
+    }
+
+    // 8052 0000 len count[1] {actor[8] name[8] path[20]}...
+    let apduHead = Buffer.from('805200000000', 'hex')
+    let datas = Buffer.alloc(0)
+    let count = 0
+    let updatePermissions = async () => {
+      D.dispatch(() => showingCallback(D.error.succeed,
+        D.status.syncingNewEosWillConfirmPermissions, permissions.slice(0, count)))
+      let apdu = Buffer.concat([apduHead, datas])
+      apdu[0x04] = 1 + datas.length
+      apdu[0x05] = count
+      try {
+        await this.sendApdu(apdu)
+      } catch (e) {
+        console.warn('add permissions failed', permissions.slice(0, count))
+        D.dispatch(() => showingCallback(D.error.userCancel,
+          D.status.syncingNewEosWillConfirmPermissions, permissions.slice(0, count)))
+        throw D.error.userCancel
+      }
+      count = 0
+      datas = Buffer.alloc(0)
+    }
+
+    for (let pm of permissions) {
+      let data = Buffer.concat([
+        FcBuffer.name.toBuffer(pm.address), // actor
+        FcBuffer.name.toBuffer(pm.type), // name
+        D.address.path.toBuffer(pm.path) // path
+      ])
+
+      if (datas.length + data.length > 0xff) {
+        await updatePermissions()
+      }
+
+      datas = Buffer.concat([datas, data])
+      count++
+    }
+
+    if (datas.length !== 0) {
+      await updatePermissions()
+    }
   }
 
   /**
@@ -434,10 +496,12 @@ export default class S300Wallet {
     this._busy = true
 
     try {
+      console.log('send apdu', apdu.toString('hex'))
       // currently S300 APDU encryption not supported
       // must use await to make lock effective
       // noinspection UnnecessaryLocalVariableJS
       let response = await this._transmit(apdu)
+      console.log('apdu response', response.toString('hex'))
       return response
     } finally {
       this._busy = false
