@@ -108,7 +108,7 @@ chai.should()
 //   })
 // })
 
-D.test.jsWallet = true
+D.test.jsWallet = false
 D.test.coin = true
 
 describe('EosAccount sync and sign', function () {
@@ -139,7 +139,7 @@ describe('EosAccount sync and sign', function () {
         coinData = new CoinData()
         let walletInfo = await wallet.init()
         await coinData.init(walletInfo)
-        await coinData.clearData()
+        // await coinData.clearData()
 
         account = new EosAccount({
           label: 'sickworm1111',
@@ -148,28 +148,16 @@ describe('EosAccount sync and sign', function () {
           index: 0,
           balance: '0',
           externalPublicKeyIndex: 0,
-          changePublicKeyIndex: 0,
-          permissions: {
-            owner: [{
-              permission: 'owner',
-              publicKey: '',
-              keyPath: "m/48'/4'/0'/0'/0'"
-            }],
-            active: [{
-              permission: 'active',
-              publicKey: '',
-              keyPath: "m/48'/4'/1'/0'/0'"
-            }]
-          }
+          changePublicKeyIndex: 0
         }, wallet, coinData)
         await account.init()
         try {
           await account.sync((error, status, pms) => {
             console.warn('sync', error, status, pms)
           })
-          await account.checkNewPermission((error, status, pms) => {
-            console.warn('checkNewPermission', error, status, pms)
-          })
+          // await account.checkNewPermission((error, status, pms) => {
+          //   console.warn('checkNewPermission', error, status, pms)
+          // })
         } catch (e) {
           console.warn(e)
         }

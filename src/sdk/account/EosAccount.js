@@ -208,7 +208,6 @@ export default class EosAccount extends IAccount {
 
       let startKeyIndex = maxKeyIndex + 1
       let startRegKeyIndex = maxRegisteredKeyIndex + 1
-      console.warn('????', pmIndex, startKeyIndex, startRegKeyIndex)
       for (let j = startKeyIndex; j < startRegKeyIndex + maxIndexThreshold; j++) {
         let path = D.address.path.makeSlip48Path(this.coinType, pmIndex, this.index, j)
         if (!filteredPermissionPaths.some(p => p.path === path)) {
