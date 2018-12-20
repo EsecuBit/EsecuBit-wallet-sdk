@@ -364,15 +364,19 @@ export default class EsWallet {
     }
 
     let accounts = this._esAccounts
-      .filter(account => account.status !== D.account.status.hideByNoTxs)
+      .filter(a => a.status !== D.account.status.hideByNoTxs)
       .sort((a, b) => order[a.coinType] - order[b.coinType])
 
     if (!filter.showAll) {
-      accounts = accounts.filter(account => account.status === D.account.status.show)
+      accounts = accounts.filter(a => a.status === D.account.status.show)
     }
     if (filter.coinType) {
       accounts = accounts.filter(a => a.coinType === filter.coinType)
     }
+    if (filter.accountId) {
+      accounts = accounts.filter(a => a.accountId === filter.accountId)
+    }
+
     return accounts
   }
 
