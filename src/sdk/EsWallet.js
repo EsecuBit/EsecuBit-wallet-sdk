@@ -268,7 +268,7 @@ export default class EsWallet {
           throw D.error.coinNotSupported
         }
 
-        D.dispatch(() => this._callback(D.error.succeed, D.status.syncingNewAccount, account))
+        D.dispatch(() => this._callback(D.error.succeed, D.status.syncingNewAccount, esAccount))
         await esAccount.init()
         this._esAccounts.push(esAccount)
       }
