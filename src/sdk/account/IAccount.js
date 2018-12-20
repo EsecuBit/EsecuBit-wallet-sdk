@@ -191,6 +191,22 @@ export default class IAccount {
     return {total, txInfos}
   }
 
+  async hideAccount () {
+    if (this.status === D.account.status.show) {
+      let oldAccountInfo = this._toAccountInfo()
+      await this._coinData.updateAccount(oldAccountInfo)
+      this.status = D.account.status.hideByUser
+    }
+  }
+
+  async showAccount () {
+    if (this.status === D.account.status.hideByUser) {
+      let oldAccountInfo = this._toAccountInfo()
+      await this._coinData.updateAccount(oldAccountInfo)
+      this.status = D.account.status.show
+    }
+  }
+
   getSuggestedFee () {
     return this._coinData.getSuggestedFee(this.coinType).fee
   }
