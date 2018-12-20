@@ -347,13 +347,14 @@ export default class EsWallet {
    *
    * @param filter (optional)
    * {
-   *   accountId: string
+   *   accountId: string,
+   *   coinType: string,
+   *   showAll: bool // only return hide accounts if false
    * }
    * @returns {Promise<IAccount[]>}
    */
-  async getAccounts (filter) {
+  async getAccounts (filter = {}) {
     const order = {}
-
     let index = 0
     for (let coinType of Object.values(D.coin.main)) {
       order[coinType] = index++
@@ -362,9 +363,17 @@ export default class EsWallet {
       order[coinType] = index++
     }
 
-    return this._esAccounts
-      .filter(account => account.status === D.account.status.show)
+    let accounts = this._esAccounts
+      .filter(account => account.status !== D.account.status.hideByNoTxs)
       .sort((a, b) => order[a.coinType] - order[b.coinType])
+
+    if (!filter.showAll) {
+      accounts = accounts.filter(account => account.status === D.account.status.show)
+    }
+    if (filter.coinType) {
+      accounts = accounts.filter(a => a.coinType === filter.coinType)
+    }
+    return accounts
   }
 
   /**
