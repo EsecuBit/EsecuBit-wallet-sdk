@@ -92,7 +92,7 @@ export default class EthAccount extends IAccount {
     // update account info
     let index = this.txInfos.findIndex(t => t.txId === txInfo.txId)
     if (index === -1) {
-      txInfo.comment = ''
+      txInfo.comment = txInfo.comment || ''
       this.txInfos.push(txInfo)
     } else {
       txInfo.comment = this.txInfos[index].comment

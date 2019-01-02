@@ -241,7 +241,7 @@ export default class EsWallet {
     // set account show status
     for (let esAccount of this._esAccounts) {
       if ((esAccount.status === D.account.status.hideByNoTxs && esAccount.txInfos.length !== 0) ||
-        esAccount.index === 0) {
+        (esAccount.index === 0 && esAccount.status !== D.account.status.hideByUser)) {
         esAccount.status = D.account.status.show
         await this._coinData.updateAccount(esAccount._toAccountInfo())
       }
@@ -273,7 +273,7 @@ export default class EsWallet {
           throw D.error.coinNotSupported
         }
 
-        D.dispatch(() => this._callback(D.error.succeed, D.status.syncingNewAccount, account))
+        D.dispatch(() => this._callback(D.error.succeed, D.status.syncingNewAccount, esAccount))
         await esAccount.init()
         this._esAccounts.push(esAccount)
       }
@@ -352,13 +352,14 @@ export default class EsWallet {
    *
    * @param filter (optional)
    * {
-   *   accountId: string
+   *   accountId: string,
+   *   coinType: string,
+   *   showAll: bool // only return hide accounts if false
    * }
    * @returns {Promise<IAccount[]>}
    */
-  async getAccounts (filter) {
+  async getAccounts (filter = {}) {
     const order = {}
-
     let index = 0
     for (let coinType of Object.values(D.coin.main)) {
       order[coinType] = index++
@@ -367,9 +368,21 @@ export default class EsWallet {
       order[coinType] = index++
     }
 
-    return this._esAccounts
-      .filter(account => account.status === D.account.status.show)
+    let accounts = this._esAccounts
+      .filter(a => a.status !== D.account.status.hideByNoTxs)
       .sort((a, b) => order[a.coinType] - order[b.coinType])
+
+    if (!filter.showAll) {
+      accounts = accounts.filter(a => a.status === D.account.status.show)
+    }
+    if (filter.coinType) {
+      accounts = accounts.filter(a => a.coinType === filter.coinType)
+    }
+    if (filter.accountId) {
+      accounts = accounts.filter(a => a.accountId === filter.accountId)
+    }
+
+    return accounts
   }
 
   /**

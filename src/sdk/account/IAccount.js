@@ -194,6 +194,7 @@ export default class IAccount {
   async hideAccount () {
     if (this.status === D.account.status.show) {
       let oldAccountInfo = this._toAccountInfo()
+      oldAccountInfo.status = D.account.status.hideByUser
       await this._coinData.updateAccount(oldAccountInfo)
       this.status = D.account.status.hideByUser
     }
@@ -202,6 +203,7 @@ export default class IAccount {
   async showAccount () {
     if (this.status === D.account.status.hideByUser) {
       let oldAccountInfo = this._toAccountInfo()
+      oldAccountInfo.status = D.account.status.show
       await this._coinData.updateAccount(oldAccountInfo)
       this.status = D.account.status.show
     }
