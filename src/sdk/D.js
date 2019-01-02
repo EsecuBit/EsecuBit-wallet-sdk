@@ -709,8 +709,8 @@ const D = {
 
   supportedCoinTypes () {
     return D.test.coin
-      ? [D.coin.test.eosJungle]
-      : [D.coin.main.eos]
+      ? [D.coin.test.btcTestNet3]
+      : [D.coin.main.btc]
   },
 
   recoverCoinTypes () {
