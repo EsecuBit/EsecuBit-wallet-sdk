@@ -11,6 +11,7 @@ describe('NetBankWallet', function () {
   this.timeout(100000)
 
   before(function (done) {
+    // D.test.mockDevice = true
     let transmitter = new HidTransmitter()
     transmitter.listenPlug((error, status) => {
       error.should.equal(D.error.succeed)

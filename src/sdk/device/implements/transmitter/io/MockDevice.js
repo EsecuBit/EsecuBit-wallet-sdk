@@ -31,6 +31,20 @@ export default class MockDevice {
     if (apdu.toString('hex').startsWith('06048033534d')) {
       return Buffer.from('0403044933397EE38DA493E94BE1566CE5CABEB71E73DA65EEB2069000000000', 'hex')
     }
+    if (apdu.toString('hex').startsWith('030480330000')) {
+      throw D.error.deviceApduDataInvalid
+    }
+    throw D.error.deviceComm
+  }
+
+  async send (reportId, apdu) {
+    console.debug('MockDevice send', reportId, apdu.toString('hex'))
+    this._response = await this.sendAndReceive(reportId, apdu)
+    console.debug('MockDevice receive', reportId, this._response.toString('hex'))
+  }
+
+  async receive () {
+    return this._response
   }
 
   static getTestTempRsaKeyPair () {

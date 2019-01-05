@@ -1,9 +1,7 @@
-import {sm2} from 'sm.js'
 import D from '../../../D'
 import Provider from '../../../Provider'
 
 const factoryPubKey = '04284F6A1A1479FADB063452ED3060CD98A34583BB448954990C239EEC414A41C5A076705E52BC4F6297F667938F99D05C3994834E6639E6DF775F45B2310F50F6'
-// const Crypto = Provider.Crypto
 
 let des112DeriveKey = (rootKey, deriveData) => {
   let sKey = Buffer.allocUnsafe(0x10)
@@ -26,6 +24,7 @@ export default class Authenticate {
     this._hostName = Authenticate._makeHostName(hostName)
     this._featureData = featureData
     this._sender = sender
+    this._crypto = Provider.Crypto
   }
 
   static _makeHostName (hostName) {
@@ -48,9 +47,9 @@ export default class Authenticate {
     let isFirstTime = this._featureData === null
     let random
     if (isFirstTime) {
-      let tempKey = sm2.genKeyPair()
-      console.log('tempKey', tempKey.toString())
-      let pubKey = Buffer.from(tempKey.pubToString().slice(2, 130), 'hex')
+      let tempKey = await this._crypto.generateSM2KeyPair()
+      console.log('tempKey', tempKey)
+      let pubKey = Buffer.from(tempKey.publicKey)
       let apdu = Buffer.from('8033000043B44101', 'hex')
       apdu = Buffer.concat([apdu, pubKey])
       let authData = await this._sender.sendApdu(apdu, false)
@@ -80,7 +79,7 @@ export default class Authenticate {
     let feature = this._featureData
     feature.slice(0x10, 0x14).copy(authApdu, 0x08)
     let sKey = await des112DeriveKey(feature.slice(0, 0x10), random.slice(0x08, 0x10))
-    let encData = await Provider.Crypto.des112(true, random.slice(0, 0x08), sKey)
+    let encData = await this._crypto.des112(true, random.slice(0, 0x08), sKey)
     encData.copy(authApdu, 0x08 + 0x04)
     this._hostName.copy(authApdu, 0x08 + 0x04 + 0x08)
     this._authApdu = authApdu
@@ -105,25 +104,27 @@ export default class Authenticate {
     // let signature = authData.slice(0x110, 0x150)
 
     // // verify cert and get cert public key
-    // let factoryKey = new sm2.SM2KeyPair(factoryPubKey)
-    // if (!factoryKey.verifyRaw(Array.prototype.slice.call(cert.slice(0, 0x44), 0),
-    //   cert.slice(0x44, 0x64).toString('hex'), cert.slice(0x64, 0x84).toString('hex'))) {
+    // if (!(await this._crypto.sm2VerifyRaw(factoryPubKey,
+    //   Array.prototype.slice.call(cert.slice(0, 0x44), 0),
+    //   cert.slice(0x44, 0x64).toString('hex'),
+    //   cert.slice(0x64, 0x84).toString('hex')))) {
     //   console.warn('authenticate cert verify failed', cert.toString('hex'))
     //   throw D.error.handShake
     // }
-    // let certKey = new sm2.SM2KeyPair('04' + cert.slice(0x04, 0x44).toString('hex'))
+    // let certKey = '04' + cert.slice(0x04, 0x44).toString('hex')
     //
     // // verify device signature
     // let apduData = apdu.slice(0x05, apdu.length)
     // let resData = authData.slice(0, authData.length - 0x40)
     // let devSignMsg = Array.prototype.slice.call(Buffer.concat([apduData, resData]))
-    // if (!certKey.verifyRaw(devSignMsg, signature.slice(0, 0x20).toString('hex'), signature.slice(0x20, 0x40).toString('hex'))) {
+    // if (!(await this._crypto.verifyRaw(certKey, devSignMsg,
+    //   signature.slice(0, 0x20).toString('hex'),
+    //   signature.slice(0x20, 0x40).toString('hex')))) {
     //   console.warn('authenticate signature verify failed')
     //   throw D.error.handShake
     // }
 
-    let plainData = tempKey.decrypt(encFeature)
-    plainData = Buffer.from(plainData)
+    let plainData = Crypto.sm2Decrypt(tempKey.privateKey, encFeature)
     if (!plainData) {
       console.warn('authenticate decrypt feature failed')
       throw D.error.handShake
