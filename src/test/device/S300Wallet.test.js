@@ -25,18 +25,14 @@ describe('S300Wallet', function () {
     })
   })
 
-  it('init', async function () {
-    await s300Wallet.init()
-  })
-
-  it('get address by apdu', async () => {
-    let address = await s300Wallet.sendApdu('8046000709028000002c80000000', true)
-    address = String.fromCharCode.apply(null, new Uint8Array(address))
+  it('get address', async () => {
+    let address = await s300Wallet.getAddress(D.coin.main.btc, "m/44'/0'/0'/1/0", false)
     D.address.checkBtcAddress(D.coin.main.btc, address)
   })
 
-  it('get address', async () => {
-    let address = await s300Wallet.getAddress(D.coin.main.btc, "m/44'/0'/0'/1/0", false)
+  it('get address by apdu', async () => {
+    let address = await s300Wallet.sendApdu('8046000715058000002c80000000800000000000000000000000', true)
+    address = String.fromCharCode.apply(null, new Uint8Array(address))
     D.address.checkBtcAddress(D.coin.main.btc, address)
   })
 

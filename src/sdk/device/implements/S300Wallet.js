@@ -7,6 +7,8 @@ import {Buffer} from 'buffer'
 import createHash from 'create-hash'
 import base58 from 'bs58'
 import FcBuffer from './protocol/EosFcBuffer'
+import HandShake from './protocol/HandShake'
+import NetBankWallet from "./NetBankWallet";
 
 const getAppId = (coinType) => {
   if (!coinType) {
@@ -42,11 +44,14 @@ export default class S300Wallet {
 
   async init () {
     console.log('S300Wallet init')
+    this._currentApp = null
     await this._transmitter.reset()
 
+    this._handShake = new HandShake(null, HandShake.SM2)
     let walletId = D.test.coin ? '01' : '00'
     walletId += D.test.jsWallet ? '01' : '00'
     walletId += (await this.getWalletId()).toString('hex')
+
     return {walletId: walletId}
   }
 
@@ -489,6 +494,7 @@ export default class S300Wallet {
    * Apdu encrypt and decrypt
    */
   async sendApdu (apdu, isEnc = false) {
+    isEnc = this._allEnc || isEnc
     // a simple lock to guarantee apdu order
     while (this._busy) {
       await D.wait(10)
@@ -496,16 +502,42 @@ export default class S300Wallet {
     this._busy = true
 
     try {
+      if (typeof apdu === 'string') {
+        apdu = Buffer.from(apdu, 'hex')
+      }
       console.log('send apdu', apdu.toString('hex'))
-      // currently S300 APDU encryption not supported
-      // must use await to make lock effective
-      // noinspection UnnecessaryLocalVariableJS
+      if (isEnc) {
+        // 1. some other program may try to send command to device
+        // 2. in some limit situation, device is not stable yet
+        // try up to 3 times
+        await this._doHandShake()
+          .catch(() => this._doHandShake())
+          .catch(() => this._doHandShake())
+        apdu = await this._handShake.encApdu(apdu)
+        console.debug('send enc apdu', apdu.toString('hex'))
+      }
+
       let response = await this._transmit(apdu)
-      console.log('apdu response', response.toString('hex'))
+      if (isEnc) {
+        console.debug('got enc response', response.toString('hex'),)
+        let decResponse = await this._handShake.decResponse(response)
+        NetBankWallet._checkSw1Sw2(decResponse.result)
+        response = decResponse.response
+      }
+      console.log('got response', response.toString('hex'), 'isEnc', isEnc)
       return response
     } finally {
       this._busy = false
     }
+  }
+
+  async _doHandShake () {
+    if (this._handShake.isFinished) return
+    let {tempKeyPair, apdu} = await this._handShake.generateHandshakeApdu()
+    console.debug('handshake apdu', apdu.toString('hex'))
+    let response = await this._transmit(apdu)
+    console.debug('handshake apdu response', response.toString('hex'))
+    await this._handShake.parseHandShakeResponse(response, tempKeyPair, apdu)
   }
 
   /**
@@ -516,7 +548,7 @@ export default class S300Wallet {
 
     // 9060 means busy, send 00c0000000 immediately to get response
     while (result === 0x9060) {
-      let waitCmd = Buffer.from('000c0000000', 'hex')
+      let waitCmd = Buffer.from('000C0000000', 'hex')
       let {_result, _response} = await this._transmitter.transmit(waitCmd)
       result = _result
       response = _response
@@ -524,9 +556,10 @@ export default class S300Wallet {
 
     // 61XX means there are still XX bytes to get
     while ((result & 0xFF00) === 0x6100) {
-      console.debug('got 0x61XX, get remain data')
+      console.debug('got 0x61XX, get remain data', result & 0xFF)
       let rApdu = Buffer.from('00C0000000', 'hex')
       rApdu[0x04] = result & 0xFF
+      rApdu[0x04] = (rApdu[0x04] && rApdu[0x04]) || 0xFF
       let ret = await this._transmitter.transmit(rApdu)
       response = Buffer.concat([response, ret.response])
       result = ret.result

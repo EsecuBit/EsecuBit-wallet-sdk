@@ -3,7 +3,7 @@ import CryptoJS from 'crypto-js'
 import JSEncrypt from './jsencrypt'
 import MockDevice from '../transmitter/io/MockDevice'
 import D from '../../../D'
-import {sm2} from 'sm.js'
+import {sm2, sm3} from 'sm.js'
 
 export default class Crypto {
   static async sha1 (data) {
@@ -139,8 +139,12 @@ export default class Crypto {
 
   static async sm2VerifyRaw (publicKey, msg, r, s) {
     let key = sm2.SM2KeyPair(publicKey)
-    return Buffer.from(key.verifyRaw(
-      msg.toString('hex'), 'hex'), r.toString('hex'), s.toString('hex'))
+    return key.verifyRaw(
+      [...msg], r.toString('hex'), s.toString('hex'))
+  }
+
+  static async sm4Encrypt (key, data) {
+    throw D.error.notImplemented
   }
 
   static async sm4Decrypt (key, encData) {

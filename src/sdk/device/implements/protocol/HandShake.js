@@ -2,7 +2,8 @@ import {Buffer} from 'buffer'
 import D from '../../../D'
 import Provider from '../../../Provider'
 
-const factoryRSAPubKey = '30819f300d06092a864886f70d010101050003818d0030818902818100b721a1039865abb07039aca0bc541fbe1a4c3ff707619f68fccd1f59cacc39d2310a5ba1e8b39e179e552e97b305854c0276e356afe06ed6fd9a1969fe9b3ebc9889a5c5f00498449fa41ee12fb3be2140f3daffbf4075ecdf8c04df343bb85347d39c6b7739dfd5ad81bb2e09adcdc17959a89e7617e297b0aeb6dfa084e5e10203010001'
+const factoryRSA1024PubKey = '30819f300d06092a864886f70d010101050003818d0030818902818100b721a1039865abb07039aca0bc541fbe1a4c3ff707619f68fccd1f59cacc39d2310a5ba1e8b39e179e552e97b305854c0276e356afe06ed6fd9a1969fe9b3ebc9889a5c5f00498449fa41ee12fb3be2140f3daffbf4075ecdf8c04df343bb85347d39c6b7739dfd5ad81bb2e09adcdc17959a89e7617e297b0aeb6dfa084e5e10203010001'
+const factorySM2PubKey = '04284F6A1A1479FADB063452ED3060CD98A34583BB448954990C239EEC414A41C5A076705E52BC4F6297F667938F99D05C3994834E6639E6DF775F45B2310F50F6'
 const oidSha1 = Buffer.from('3021300906052b0e03021a05000414', 'hex')
 
 const RSA1024 = 'rsa1024'
@@ -41,10 +42,9 @@ export default class HandShake {
       let tempKeyPair = await this._crypto.generateSM2KeyPair()
       console.debug('tempKeyPair', tempKeyPair)
 
-      let apdu = Buffer.allocUnsafe(0x8B)
+      let apdu = Buffer.allocUnsafe(0x49)
       Buffer.from('80334B4E4402010008', 'hex').copy(apdu)
-      apdu = Buffer.concat([apdu,
-        Buffer.from(tempKeyPair.publicKey.slice(0x02, 0x82), 'hex')])
+      Buffer.from(tempKeyPair.publicKey.slice(0x02, 0x82), 'hex').copy(apdu, 0x09)
       return {tempKeyPair, apdu}
     }
   }
@@ -110,22 +110,14 @@ export default class HandShake {
       encSKey = response.slice(modLen, modLen * 2)
       devSign = response.slice(modLen * 2, modLen * 3)
     } else if (this._mode === SM2) {
-      let length1 = 0x84 + 0x74 + 0x40
-      let length2 = 0x84 + 0x86 + 0x40
-      if (response.length === 0x04 + length1 ||
-          response.length === 0x04 + length2) {
-        let keyVersion = response[3]
-        console.warn('length + 0x04', keyVersion)
-        response.slice(4)
-      }
-      if (response.length !== length1 && response.length !== length2) {
+      let length = 0x84 + 0x74 + 0x40
+      if (response.length !== length) {
         console.warn('handshare apdu response length invalid, length: ', response.length)
         throw D.error.handShake
       }
-      devCert = response.slice(0x84)
-      // TODO check
-      encSKey = response.slice(0x84, 0x74)
-      devSign = response.slice(response.length - 0x40, response.length)
+      devCert = response.slice(0, 0x84)
+      encSKey = response.slice(0x84, 0x84 + 0x74)
+      devSign = response.slice(0x84 + 0x74, 0x84 + 0x74 + 0x40)
     }
 
     console.debug('devCert', devCert.toString('hex'))
@@ -159,7 +151,7 @@ export default class HandShake {
     // 2. verify device cert by factory public key, and recover device public key
     let devPubKey
     if (this._mode === RSA1024) {
-      let decDevCert = await this._crypto.rsaEncrypt(factoryRSAPubKey, devCert)
+      let decDevCert = await this._crypto.rsaEncrypt(factoryRSA1024PubKey, devCert)
       if (!decDevCert) {
         console.warn('decrypted device cert encrypt failed')
         throw D.error.handShake
@@ -183,7 +175,7 @@ export default class HandShake {
         throw D.error.handShake
       }
     } else if (this._mode === SM2) {
-      let result = await this._crypto.sm2VerifyRaw(factoryRSAPubKey, devCert.slice(0, 0x44),
+      let result = await this._crypto.sm2VerifyRaw(factorySM2PubKey, devCert.slice(0, 0x44),
         devCert.slice(0x44, 0x64), devCert.slice(0x64, 0x84))
       if (!result) {
         console.warn('decrypted device cert encrypt failed')
@@ -193,24 +185,34 @@ export default class HandShake {
     }
 
     // 3. verify device sign by device public key(devPubKey)
-    devPubKey = buildPemPublicKeyHex(devPubKey)
-    let orgDevSign = await this._crypto.rsaEncrypt(devPubKey, devSign)
-    if (!orgDevSign) {
-      console.warn('device signature encrypt failed')
-      throw D.error.handShake
-    }
-    console.debug('orgDevSign', orgDevSign.toString('hex'))
-    orgDevSign = removePadding(orgDevSign)
-
     let apduData = this._mode === RSA1024 ? apdu.slice(7) : apdu.slice(5)
     let hashOrgValue = Buffer.concat([apduData, devCert, encSKey])
-    let hashResult = await this._crypto.sha1(hashOrgValue)
+    if (this._mode === RSA1024) {
+      devPubKey = buildPemPublicKeyHex(devPubKey)
+      let orgDevSign = await this._crypto.rsaEncrypt(devPubKey, devSign)
+      if (!orgDevSign) {
+        console.warn('device signature encrypt failed')
+        throw D.error.handShake
+      }
+      console.debug('orgDevSign', orgDevSign.toString('hex'))
+      orgDevSign = removePadding(orgDevSign)
+      let hashResult = await this._crypto.sha1(hashOrgValue)
 
-    let toSign = Buffer.concat([oidSha1, hashResult])
-    if (toSign.toString('hex') !== orgDevSign.toString('hex')) {
-      console.warn('sign data not match')
-      throw D.error.handShake
+      let toSign = Buffer.concat([oidSha1, hashResult])
+      if (toSign.toString('hex') !== orgDevSign.toString('hex')) {
+        console.warn('sign data not match')
+        throw D.error.handShake
+      }
+    } else if (this._mode === SM2) {
+      // let hashResult = await this._crypto.sm3(hashOrgValue)
+      let devPubKeyHex = '04' + devPubKey.toString('hex')
+      let result = this._crypto.sm2VerifyRaw(devPubKeyHex, hashOrgValue, devSign.slice(0, 0x20), devSign.slice(0x20, 0x40))
+      if (!result) {
+        console.warn('sign data verify failed')
+        throw D.error.handShake
+      }
     }
+
     return {sKey, sKeyCount}
   }
 
@@ -220,9 +222,14 @@ export default class HandShake {
       throw D.error.handShake
     }
 
-    let encryptedApdu = await this._crypto.des112(true, apdu, this._sKey, true)
+    let encryptedApdu
+    if (this._mode === RSA1024) {
+      encryptedApdu = await this._crypto.des112(true, apdu, this._sKey, true)
+    } else if (this._mode === SM2) {
+      encryptedApdu = await this._crypto.sm4Encrypt(true, apdu, this._sKey, true)
+    }
 
-    // 8033 534D Lc    00 00 00 PaddingNum(1) SKeyCount(4) EncApdu
+    // 8033 534D Lc 00 00 00 PaddingNum(1) SKeyCount(4) EncApdu
     let padNum = encryptedApdu.length - apdu.length
     let apduDataLen = 4 + this._sKeyCount.length + encryptedApdu.length
     let apduData = Buffer.allocUnsafe(apduDataLen)
@@ -253,3 +260,5 @@ export default class HandShake {
     }
   }
 }
+HandShake.RSA1024 = RSA1024
+HandShake.SM2 = SM2

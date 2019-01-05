@@ -353,9 +353,10 @@ export default class NetBankWallet {
         apdu = await this._handShake.encApdu(apdu)
         console.debug('send enc apdu', apdu.toString('hex'))
       }
+
       let response = await this._transmit(apdu)
       if (isEnc) {
-        console.debug('got enc response', response.toString('hex'), 'isEnc', isEnc)
+        console.debug('got enc response', response.toString('hex'))
         let decResponse = await this._handShake.decResponse(response)
         NetBankWallet._checkSw1Sw2(decResponse.result)
         response = decResponse.response
@@ -390,7 +391,7 @@ export default class NetBankWallet {
 
     // 61XX means there are still XX bytes to get
     while ((result & 0xFF00) === 0x6100) {
-      console.debug('got 0x61XX, get remain data')
+      console.debug('got 0x61XX, get remain data', result & 0xff)
       let rApdu = Buffer.from('00C0000000', 'hex')
       rApdu[0x04] = result & 0xFF
       let ret = await this._transmitter.transmit(rApdu)
