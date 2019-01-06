@@ -55,7 +55,7 @@ export default class HandShake {
       if (this._mode === RSA1024) {
         sKey = await this._crypto.des112(false, sKey, this._encKey)
       } else if (this._mode === SM2) {
-        // TODO implement
+        // TODO implement for BT
         sKey = await this._crypto.sm4Decrypt(this._encKey, sKey)
       }
     }
@@ -226,7 +226,7 @@ export default class HandShake {
     if (this._mode === RSA1024) {
       encryptedApdu = await this._crypto.des112(true, apdu, this._sKey, true)
     } else if (this._mode === SM2) {
-      encryptedApdu = await this._crypto.sm4Encrypt(true, apdu, this._sKey, true)
+      encryptedApdu = await this._crypto.sm4Encrypt(this._sKey, apdu)
     }
 
     // 8033 534D Lc 00 00 00 PaddingNum(1) SKeyCount(4) EncApdu
@@ -251,9 +251,16 @@ export default class HandShake {
     }
 
     let decResponse = await this._crypto.des112(false, response, this._sKey, true)
+    if (this._mode === RSA1024) {
+      decResponse = await this._crypto.des112(false, response, this._sKey, true)
+    } else if (this._mode === SM2) {
+      decResponse = await this._crypto.sm4Decrypt(this._sKey, response)
+    }
+    console.warn('??? 1', decResponse.toString('hex'))
 
     let length = decResponse.length
     let result = (decResponse[length - 2] << 8) + decResponse[length - 1]
+    console.warn('??? 2', decResponse.slice(0, -2).toString('hex'), result)
     return {
       result: result,
       response: decResponse.slice(0, -2)

@@ -8,7 +8,6 @@ import createHash from 'create-hash'
 import base58 from 'bs58'
 import FcBuffer from './protocol/EosFcBuffer'
 import HandShake from './protocol/HandShake'
-import NetBankWallet from "./NetBankWallet";
 
 const getAppId = (coinType) => {
   if (!coinType) {
@@ -519,9 +518,9 @@ export default class S300Wallet {
 
       let response = await this._transmit(apdu)
       if (isEnc) {
-        console.debug('got enc response', response.toString('hex'),)
+        console.debug('got enc response', response.toString('hex'))
         let decResponse = await this._handShake.decResponse(response)
-        NetBankWallet._checkSw1Sw2(decResponse.result)
+        S300Wallet._checkSw1Sw2(decResponse.result)
         response = decResponse.response
       }
       console.log('got response', response.toString('hex'), 'isEnc', isEnc)
