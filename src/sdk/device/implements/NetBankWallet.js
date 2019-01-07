@@ -55,7 +55,7 @@ export default class NetBankWallet {
         console.log('NetBankWallet new feature', featureHex)
       }
     } catch (e) {
-      if (e === D.error.deviceApduDataInvalid || e === D.error.operationTimeout) {
+      if (e === D.error.deviceApduDataInvalid) {
         console.info('authenticate not support, ignore')
       } else {
         console.warn('autenticate failed', e)

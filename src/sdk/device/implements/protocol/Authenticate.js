@@ -49,13 +49,13 @@ export default class Authenticate {
     if (isFirstTime) {
       let tempKey = await this._crypto.generateSM2KeyPair()
       console.log('tempKey', tempKey)
-      let pubKey = Buffer.from(tempKey.publicKey)
+      let pubKey = Buffer.from(tempKey.publicKey.slice(2, 130), 'hex')
       let apdu = Buffer.from('8033000043B44101', 'hex')
       apdu = Buffer.concat([apdu, pubKey])
       let authData = await this._sender.sendApdu(apdu, false)
       console.log('authData first time', authData.toString('hex'))
 
-      authData = this._parseAuthData(tempKey, apdu, authData)
+      authData = await this._parseAuthData(tempKey, apdu, authData)
       random = authData.random
       this._featureData = authData.feature
       console.log('parsed authData first time', random.toString('hex'), this._featureData.toString('hex'))
@@ -87,7 +87,7 @@ export default class Authenticate {
     return isFirstTime ? feature : null
   }
 
-  _parseAuthData (tempKey, apdu, authData) {
+  async _parseAuthData (tempKey, apdu, authData) {
     // authData: 0100000000 cert(132=0x84) encFeature(136=0x88) signature(64=0x40)
     if (authData.length < 0x04 + 0x84 + 0x88 + 0x40) {
       console.warn('authData invalid length', authData.toString('hex'), this._isFirstTime)
@@ -124,7 +124,7 @@ export default class Authenticate {
     //   throw D.error.handShake
     // }
 
-    let plainData = Crypto.sm2Decrypt(tempKey.privateKey, encFeature)
+    let plainData = await this._crypto.sm2Decrypt(tempKey.privateKey, encFeature)
     if (!plainData) {
       console.warn('authenticate decrypt feature failed')
       throw D.error.handShake
