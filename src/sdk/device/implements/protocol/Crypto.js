@@ -144,22 +144,24 @@ export default class Crypto {
       [...msg], r.toString('hex'), s.toString('hex'))
   }
 
-  static async sm4Encrypt (key, data) {
-    const sm4Config = {
+  static async sm4Encrypt (key, data, config = {}) {
+    let sm4Config = {
       key: key.toString('hex'),
-      mode: 'ecb',
-      padding: 'none'
+      mode: config.mode || 'ecb',
+      padding: config.padding || 'none',
+      iv: config.iv || null
     }
     data = _customPadding(data, 16)
     // eslint-disable-next-line
     return Buffer.from(new sm4(sm4Config).encrypt(data), 'hex')
   }
 
-  static async sm4Decrypt (key, encData) {
-    const sm4Config = {
+  static async sm4Decrypt (key, encData, config = {}) {
+    let sm4Config = {
       key: key.toString('hex'),
-      mode: 'ecb',
-      padding: 'none'
+      mode: config.mode || 'ecb',
+      padding: config.padding || 'none',
+      iv: config.iv || null
     }
     // eslint-disable-next-line
     let data = Buffer.from(new sm4(sm4Config).decrypt(encData), 'hex')

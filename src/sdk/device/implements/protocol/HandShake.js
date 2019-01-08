@@ -110,14 +110,14 @@ export default class HandShake {
       encSKey = response.slice(modLen, modLen * 2)
       devSign = response.slice(modLen * 2, modLen * 3)
     } else if (this._mode === SM2) {
-      let length = 0x84 + 0x74 + 0x40
+      let length = 0x04 + 0x84 + 0x74 + 0x40
       if (response.length !== length) {
         console.warn('handshare apdu response length invalid, length: ', response.length)
         throw D.error.handShake
       }
-      devCert = response.slice(0, 0x84)
-      encSKey = response.slice(0x84, 0x84 + 0x74)
-      devSign = response.slice(0x84 + 0x74, 0x84 + 0x74 + 0x40)
+      devCert = response.slice(0x04, 0x04 + 0x84)
+      encSKey = response.slice(0x04 + 0x84, 0x04 + 0x84 + 0x74)
+      devSign = response.slice(0x04 + 0x84 + 0x74, 0x04 + 0x84 + 0x74 + 0x40)
     }
 
     console.debug('devCert', devCert.toString('hex'))
@@ -222,21 +222,38 @@ export default class HandShake {
       throw D.error.handShake
     }
 
-    let encryptedApdu
+    let apduData
     if (this._mode === RSA1024) {
-      encryptedApdu = await this._crypto.des112(true, apdu, this._sKey, true)
+      // 8033 534D Lc 00 00 00 PaddingNum(1) SKeyCount(4) EncApdu
+      let encryptedApdu = await this._crypto.des112(true, apdu, this._sKey, true)
+      let padNum = encryptedApdu.length - apdu.length
+      let apduDataLen = 4 + this._sKeyCount.length + encryptedApdu.length
+      apduData = Buffer.alloc(apduDataLen)
+      apduData[0x03] = padNum
+
+      this._sKeyCount.copy(apduData, 0x04)
+      encryptedApdu.copy(apduData, 0x08)
     } else if (this._mode === SM2) {
-      encryptedApdu = await this._crypto.sm4Encrypt(this._sKey, apdu)
+      // 8033 534D Lc 00 RAND[6] u1PaddingNum pu1SKeyId[4] EncApdu pu1Mac[4]
+      let encryptedApdu = await this._crypto.sm4Encrypt(this._sKey, apdu)
+      let padNum = encryptedApdu.length - apdu.length
+      let apduDataLen = 1 + 6 + 1 + this._sKeyCount.length + encryptedApdu.length
+      apduData = Buffer.alloc(apduDataLen)
+
+      let rand = Buffer.from(D.getRandomHex(12), 'hex')
+      rand.copy(rand, 0x01)
+      apduData[0x07] = padNum
+      this._sKeyCount.copy(apduData, 0x08)
+      encryptedApdu.copy(apduData, 0x0C)
+
+      let mac = await this._crypto.sm4Encrypt(this._sKey, apduData, {
+        mode: 'cbc',
+        iv: '00000000000000000000000000000000'})
+      mac = mac.slice(-16, -12)
+      apduData = Buffer.concat([apduData, mac])
     }
 
-    // 8033 534D Lc 00 00 00 PaddingNum(1) SKeyCount(4) EncApdu
-    let padNum = encryptedApdu.length - apdu.length
-    let apduDataLen = 4 + this._sKeyCount.length + encryptedApdu.length
-    let apduData = Buffer.allocUnsafe(apduDataLen)
-    apduData[0x03] = padNum & 0xFF
-    this._sKeyCount.copy(apduData, 0x04)
-    encryptedApdu.copy(apduData, 0x08)
-
+    let apduDataLen = apduData.length
     let encApduHead = Buffer.from('8033534D000000', 'hex')
     encApduHead[0x04] = (apduDataLen >> 16) & 0xFF
     encApduHead[0x05] = (apduDataLen >> 8) & 0xFF
@@ -250,17 +267,27 @@ export default class HandShake {
       throw D.error.handShake
     }
 
-    let decResponse = await this._crypto.des112(false, response, this._sKey, true)
+    let decResponse
     if (this._mode === RSA1024) {
       decResponse = await this._crypto.des112(false, response, this._sKey, true)
     } else if (this._mode === SM2) {
-      decResponse = await this._crypto.sm4Decrypt(this._sKey, response)
+      // 00 00 TIME[6] EncResp Mac[4]
+      let encResponse = response.slice(8, -4)
+      let mac = response.slice(-4, response.length)
+      decResponse = await this._crypto.sm4Decrypt(this._sKey, encResponse)
+      let verifyMac = await this._crypto.sm4Encrypt(this._sKey, response.slice(0, -4), {
+        mode: 'cbc',
+        iv: '00000000000000000000000000000000'})
+      verifyMac = verifyMac.slice(-16, -12)
+      if (verifyMac.toString('hex') !== mac.toString('hex')) {
+        console.warn('decResponse verify mac failed',
+          verifyMac.toString('hex'), mac.toString('hex'))
+        throw D.error.deviceComm
+      }
     }
-    console.warn('??? 1', decResponse.toString('hex'))
 
     let length = decResponse.length
     let result = (decResponse[length - 2] << 8) + decResponse[length - 1]
-    console.warn('??? 2', decResponse.slice(0, -2).toString('hex'), result)
     return {
       result: result,
       response: decResponse.slice(0, -2)
