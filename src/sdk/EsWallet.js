@@ -106,6 +106,11 @@ export default class EsWallet {
         }
       })
     })
+
+    // receving event when accounts is syncing
+    this._syncCallback = (error, status, objects) => {
+      console.warn('???', error, status, objects)
+    }
   }
 
   /**
@@ -185,7 +190,7 @@ export default class EsWallet {
    */
   async _sync () {
     await this._coinData.sync()
-    await Promise.all(this._esAccounts.map(esAccount => esAccount.sync(true, this.offlineMode)))
+    await Promise.all(this._esAccounts.map(esAccount => esAccount.sync(this._syncCallback, true, this.offlineMode)))
 
     let recoveryFinish = await this._settings.getSetting('recoveryFinish', this._info.walletId)
     recoveryFinish = recoveryFinish || false
@@ -273,7 +278,7 @@ export default class EsWallet {
         this._esAccounts.push(esAccount)
       }
 
-      await esAccount.sync(true)
+      await esAccount.sync(this._syncCallback, true)
       // new account has no transactions, recover finish
       if (esAccount.txInfos.length === 0) {
         console.log(esAccount.accountId, 'has no txInfo, stop')
@@ -395,7 +400,6 @@ export default class EsWallet {
     if (lastAccount.status === D.account.status.hideByNoTxs) {
       lastAccount.status = D.account.status.show
       await this._coinData.updateAccount(lastAccount)
-      await lastAccount.sync()
       return lastAccount
     }
 

@@ -104,7 +104,7 @@ export default class IAccount {
     this.utxos = await this._coinData.getUtxos({accountId})
   }
 
-  async sync (firstSync = false, offlineMode = false) {
+  async sync (callback, firstSync = false, offlineMode = false) {
     if (!offlineMode) {
       await this._checkAddressIndexAndGenerateNew(true)
     }

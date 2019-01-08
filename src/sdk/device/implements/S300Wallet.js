@@ -6,6 +6,23 @@ import bitPony from 'bitpony'
 import {Buffer} from 'buffer'
 import createHash from 'create-hash'
 import base58 from 'bs58'
+import FcBuffer from './protocol/EosFcBuffer'
+import HandShake from './protocol/HandShake'
+
+const getAppId = (coinType) => {
+  if (!coinType) {
+    return '010102'
+  } else if (D.isBtc(coinType)) {
+    return '020002'
+  } else if (D.isEth(coinType)) {
+    return '023C02'
+  } else if (D.isEos(coinType)) {
+    return '02C202'
+  } else {
+    console.warn('unknown coinType for appId', coinType)
+    throw D.error.coinNotSupported
+  }
+}
 
 // rewrite _containKeys to make empty value available, so we can use it to build presign tx
 // noinspection JSPotentiallyInvalidConstructorUsage
@@ -20,22 +37,28 @@ bitPony.prototype._containKeys = function (keys) {
 export default class S300Wallet {
   constructor (transmitter) {
     this._transmitter = transmitter
+    this._currentApp = null
     this._allEnc = false
   }
 
   async init () {
     console.log('S300Wallet init')
+    this._currentApp = null
     await this._transmitter.reset()
-    await this._select()
 
+    this._handShake = new HandShake(null, HandShake.SM2)
     let walletId = D.test.coin ? '01' : '00'
     walletId += D.test.jsWallet ? '01' : '00'
-    walletId += D.address.toBuffer(await this.getAddress(D.coin.main.btc, "m/44'/0'/0'/0/0")).toString('hex')
+    walletId += (await this.getWalletId()).toString('hex')
+
     return {walletId: walletId}
   }
 
-  async _select () {
-    await this.sendApdu('00A4040006B00000000002', false)
+  async _select (coinType) {
+    let appId = getAppId(coinType)
+    if (this._currentApp === appId) return
+    await this.sendApdu('00A4040008B000000000' + appId, false)
+    this._currentApp = appId
   }
 
   async getWalletInfo () {
@@ -46,12 +69,18 @@ export default class S300Wallet {
     }
   }
 
+  async getWalletId () {
+    await this._select()
+    return this.sendApdu('8060000000', false)
+  }
+
   async _getCosVersion () {
     console.warn('get version not supported yet!')
     return 'get version not supported yet'
   }
 
   async getPublicKey (coinType, path, isShowing = false) {
+    await this._select(coinType)
     // see getAddress
     let flag = isShowing ? 0x02 : 0x00
 
@@ -60,17 +89,11 @@ export default class S300Wallet {
     let apdu = Buffer.concat([apduHead, pathBuffer])
     apdu[3] = flag
     let publicKey = await this.sendApdu(apdu, false)
-
-    if (D.isEos(coinType)) {
-      let checksum = createHash('ripemd160').update(publicKey).digest().slice(0, 4)
-      publicKey = 'EOS' + base58.encode(Buffer.concat([publicKey, checksum]))
-    } else {
-      publicKey.toString('hex')
-    }
-    return publicKey
+    return publicKey.toString('hex')
   }
 
   async getAddress (coinType, path, isShowing = false, isStoring = false) {
+    await this._select(coinType)
     // bit 0: 0 not save on key / 1 save on key
     // bit 1: 0 not show on key / 1 show on key
     // bit 2: 0 public key / 1 address
@@ -96,6 +119,86 @@ export default class S300Wallet {
       address = D.address.toString(coinType, addressBuffer)
     }
     return address
+  }
+
+  async getPermissions (coinType, accountIndex) {
+    if (!D.isEos(coinType)) {
+      console.warn('getPermissions only supports EOS', coinType)
+      throw D.error.coinNotSupported
+    }
+    if (accountIndex < 0x80000000 || accountIndex > 0xFFFFFFFF) {
+      console.warn('accountIndex out of range', accountIndex)
+      throw D.error.invalidParams
+    }
+
+    let apdu = Buffer.from('8050000004' + accountIndex.toString(), 'hex')
+    let response = await this.sendApdu(apdu)
+    let parts = String.fromCharCode.apply(null, new Uint8Array(response)).split('\n')
+    // remove the head and the tail
+    parts = parts.slice(1, parts.length - 1)
+    let permissions = []
+
+    let index = 0
+    while (index < parts.length) {
+      let name = parts[index++]
+      name = name.slice(0, name.length - 1)
+      let key = parts[index++]
+      let permission = permissions.find(p => p.name === name)
+      if (!permission) {
+        permissions.push({name: name, keys: [{publicKey: key}]})
+      } else {
+        permission.keys.push({publicKey: key})
+      }
+    }
+    return permissions
+  }
+
+  async addPermissions (coinType, permissions, showingCallback) {
+    if (!D.isEos(coinType)) {
+      console.warn('addPermissions only supports EOS', coinType)
+      throw D.error.coinNotSupported
+    }
+
+    // 8052 0000 len count[1] {actor[8] name[8] path[20]}...
+    let apduHead = Buffer.from('805200000000', 'hex')
+    let datas = Buffer.alloc(0)
+    let count = 0
+    let updatePermissions = async () => {
+      D.dispatch(() => showingCallback(D.error.succeed,
+        D.status.syncingNewEosWillConfirmPermissions, permissions.slice(0, count)))
+      let apdu = Buffer.concat([apduHead, datas])
+      apdu[0x04] = 1 + datas.length
+      apdu[0x05] = count
+      try {
+        await this.sendApdu(apdu)
+      } catch (e) {
+        console.warn('add permissions failed', permissions.slice(0, count))
+        D.dispatch(() => showingCallback(D.error.userCancel,
+          D.status.syncingNewEosWillConfirmPermissions, permissions.slice(0, count)))
+        throw D.error.userCancel
+      }
+      count = 0
+      datas = Buffer.alloc(0)
+    }
+
+    for (let pm of permissions) {
+      let data = Buffer.concat([
+        FcBuffer.name.toBuffer(pm.address), // actor
+        FcBuffer.name.toBuffer(pm.type), // name
+        D.address.path.toBuffer(pm.path) // path
+      ])
+
+      if (datas.length + data.length > 0xff) {
+        await updatePermissions()
+      }
+
+      datas = Buffer.concat([datas, data])
+      count++
+    }
+
+    if (datas.length !== 0) {
+      await updatePermissions()
+    }
   }
 
   /**
@@ -133,7 +236,8 @@ export default class S300Wallet {
    * }
    */
   async signTransaction (coinType, tx) {
-    let sign = async (path, changePath, msg) => {
+    // for btc and eth
+    let buildSign = (path, changePath, msg) => {
       // 8048 state flag length C0 u1PathNum pu1Path C1 u1ChangePathNum pu1ChangePath C2 xxxx pu1Msg
       let dataLength =
         2 + path.length +
@@ -157,11 +261,15 @@ export default class S300Wallet {
       data[index++] = msg.length
       msg.copy(data, index)
 
+      return data
+    }
+
+    let sendSign = async (data, isCompressed) => {
       let compressChange = 0x08
       let response
       if (data.length <= 0xFF) {
         let apduHead = Buffer.from('8048030000', 'hex')
-        apduHead[3] |= compressChange
+        isCompressed && (apduHead[3] |= compressChange)
         apduHead[4] = data.length
         response = await this.sendApdu(Buffer.concat([apduHead, data]), true)
       } else {
@@ -189,6 +297,15 @@ export default class S300Wallet {
           remainLen -= 0xFF
         }
       }
+      return response
+    }
+
+    let parseSignResponse = (coinType, response) => {
+      let remain = 0
+      if (D.isEos(coinType)) {
+        remain = response[0]
+        response = response.slice(0, response.length)
+      }
 
       let r = response.slice(0, 32)
       let s = response.slice(32, 64)
@@ -207,7 +324,7 @@ export default class S300Wallet {
         v = v ? 0 : 1
         console.debug('new s, v', s.toString('hex'), v)
       }
-      return {v, r, s, pubKey}
+      return {remain, v, r, s, pubKey}
     }
 
     let signBtc = async (coinType, tx) => {
@@ -287,7 +404,9 @@ export default class S300Wallet {
         sequence = sequence.then(async () => {
           let pathBuffer = D.address.path.toBuffer(input.path)
           let preSignScript = makePreSignScript(i, basicScript)
-          let {r, s, pubKey} = await sign(pathBuffer, changePathBuffer, preSignScript)
+          let apduData = buildSign(pathBuffer, changePathBuffer, preSignScript)
+          let response = await sendSign(apduData, true)
+          let {r, s, pubKey} = await parseSignResponse(coinType, response)
           let scirptSig = makeScriptSig(r, s, pubKey)
           signedTx.inputs[i].scriptSig = scirptSig.toString('hex')
         })
@@ -301,14 +420,16 @@ export default class S300Wallet {
       }
     }
 
-    let signEth = async (tx) => {
+    let signEth = async (coinType, tx) => {
       let chainId = D.coin.eth.getChainId(coinType)
 
       // rlp
       let unsignedTx = [tx.nonce, tx.gasPrice, tx.gasLimit, tx.output.address, tx.output.value, tx.data, chainId, 0, 0]
       let rlpUnsignedTx = rlp.encode(unsignedTx)
 
-      let {v, r, s} = await sign(D.address.path.toBuffer(tx.input.path), null, rlpUnsignedTx)
+      let apduData = buildSign(D.address.path.toBuffer(tx.input.path), null, rlpUnsignedTx)
+      let response = await sendSign(apduData)
+      let {v, r, s} = await parseSignResponse(coinType, response)
       let signedTx = [tx.nonce, tx.gasPrice, tx.gasLimit, tx.output.address, tx.output.value, tx.data,
         35 + chainId * 2 + (v % 2), r, s]
       let rawTx = rlp.encode(signedTx).toString('hex')
@@ -319,10 +440,49 @@ export default class S300Wallet {
       }
     }
 
+    let signEos = async (coinType, tx) => {
+      let chainId = D.coin.params.eos.getChainId(coinType)
+
+      let rawTx = FcBuffer.serializeTx(tx)
+      console.log('signEos rawTx', rawTx.toString('hex'))
+      let packedContextFreeData = Buffer.from('0000000000000000000000000000000000000000000000000000000000000000', 'hex')
+      let signBuf = Buffer.concat([chainId, rawTx, packedContextFreeData])
+
+      let signedTx = {
+        compression: 'none',
+        packedContextFreeData: '',
+        packed_trx: rawTx.toString('hex'),
+        signatures: []
+      }
+
+      while (true) {
+        let response = await sendSign(signBuf)
+        let {remain, v, r, s} = parseSignResponse(coinType, response)
+        let i = v + 4 + 27
+        let buffer = Buffer.allocUnsafe(65)
+        buffer.writeUInt8(i, 0)
+        r.copy(buffer, 1)
+        s.copy(buffer, 33)
+
+        let checkBuffer = Buffer.concat([buffer, Buffer.from('K1')])
+        let check = createHash('ripemd160').update(checkBuffer).digest().slice(0, 4)
+        let signature = base58.encode(Buffer.concat([buffer, check]))
+        signedTx.signatures.push('SIG_K1_' + signature)
+
+        if (remain === 0) break
+      }
+
+      let txId = createHash('sha256').update(rawTx).digest().toString('hex')
+      return {txId, signedTx}
+    }
+
+    await this._select(coinType)
     if (D.isBtc(coinType)) {
       return signBtc(coinType, tx)
     } else if (D.isEth(coinType)) {
-      return signEth(tx)
+      return signEth(coinType, tx)
+    } else if (D.isEos(coinType)) {
+      return signEos(coinType, tx)
     } else {
       console.warn('S300Wallet don\'t support this coinType', coinType)
       throw D.error.coinNotSupported
@@ -333,6 +493,7 @@ export default class S300Wallet {
    * Apdu encrypt and decrypt
    */
   async sendApdu (apdu, isEnc = false) {
+    isEnc = this._allEnc || isEnc
     // a simple lock to guarantee apdu order
     while (this._busy) {
       await D.wait(10)
@@ -340,14 +501,42 @@ export default class S300Wallet {
     this._busy = true
 
     try {
-      // currently S300 APDU encryption not supported
-      // must use await to make lock effective
-      // noinspection UnnecessaryLocalVariableJS
+      if (typeof apdu === 'string') {
+        apdu = Buffer.from(apdu, 'hex')
+      }
+      console.log('send apdu', apdu.toString('hex'))
+      if (isEnc) {
+        // 1. some other program may try to send command to device
+        // 2. in some limit situation, device is not stable yet
+        // try up to 3 times
+        await this._doHandShake()
+          .catch(() => this._doHandShake())
+          .catch(() => this._doHandShake())
+        apdu = await this._handShake.encApdu(apdu)
+        console.debug('send enc apdu', apdu.toString('hex'))
+      }
+
       let response = await this._transmit(apdu)
+      if (isEnc) {
+        console.debug('got enc response', response.toString('hex'))
+        let decResponse = await this._handShake.decResponse(response)
+        S300Wallet._checkSw1Sw2(decResponse.result)
+        response = decResponse.response
+      }
+      console.log('got response', response.toString('hex'), 'isEnc', isEnc)
       return response
     } finally {
       this._busy = false
     }
+  }
+
+  async _doHandShake () {
+    if (this._handShake.isFinished) return
+    let {tempKeyPair, apdu} = await this._handShake.generateHandshakeApdu()
+    console.debug('handshake apdu', apdu.toString('hex'))
+    let response = await this._transmit(apdu)
+    console.debug('handshake apdu response', response.toString('hex'))
+    await this._handShake.parseHandShakeResponse(response, tempKeyPair, apdu)
   }
 
   /**
@@ -358,7 +547,7 @@ export default class S300Wallet {
 
     // 9060 means busy, send 00c0000000 immediately to get response
     while (result === 0x9060) {
-      let waitCmd = Buffer.from('000c0000000', 'hex')
+      let waitCmd = Buffer.from('000C0000000', 'hex')
       let {_result, _response} = await this._transmitter.transmit(waitCmd)
       result = _result
       response = _response
@@ -366,9 +555,10 @@ export default class S300Wallet {
 
     // 61XX means there are still XX bytes to get
     while ((result & 0xFF00) === 0x6100) {
-      console.debug('got 0x61XX, get remain data')
+      console.debug('got 0x61XX, get remain data', result & 0xFF)
       let rApdu = Buffer.from('00C0000000', 'hex')
       rApdu[0x04] = result & 0xFF
+      rApdu[0x04] = (rApdu[0x04] && rApdu[0x04]) || 0xFF
       let ret = await this._transmitter.transmit(rApdu)
       response = Buffer.concat([response, ret.response])
       result = ret.result

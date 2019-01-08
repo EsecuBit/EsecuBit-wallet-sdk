@@ -3,6 +3,24 @@ import CryptoJS from 'crypto-js'
 import JSEncrypt from './jsencrypt'
 import MockDevice from '../transmitter/io/MockDevice'
 import D from '../../../D'
+import {sm2, sm4} from 'sm.js'
+
+const _customPadding = (data, modeLen) => {
+  let padNum = modeLen - data.length % modeLen
+  if (padNum === modeLen) return data
+
+  let padding = Buffer.alloc(padNum)
+  padding[0] = 0x80
+  return Buffer.concat([data, padding])
+}
+
+const _removeCustomPadding = (data) => {
+  if (typeof data === 'string') {
+    data = Buffer.from(data, 'hex')
+  }
+  let padNum = data[0]
+  return data.slice(1, data.length - padNum)
+}
 
 export default class Crypto {
   static async sha1 (data) {
@@ -15,22 +33,6 @@ export default class Crypto {
   }
 
   static async des112 (isEnc, data, key, padding = false) {
-    let customPadding = (data) => {
-      let padNum = 8 - data.length % 8
-      if (padNum === 8) return data
-
-      let padding = Buffer.alloc(padNum)
-      padding[0] = 0x80
-      return Buffer.concat([data, padding])
-    }
-
-    let removeCustomPadding = (data) => {
-      if (typeof data === 'string') {
-        data = Buffer.from(data, 'hex')
-      }
-      let padNum = data[0]
-      return data.slice(1, data.length - padNum)
-    }
 
     if (typeof data === 'string') {
       data = Buffer.from(data, 'hex')
@@ -40,7 +42,7 @@ export default class Crypto {
     }
 
     if (isEnc && padding) {
-      data = customPadding(data)
+      data = _customPadding(data, 8)
     }
     let des168Key = Buffer.concat([key, key.slice(0, 8)]) // des112 => des 168
     let input = CryptoJS.lib.WordArray.create(data)
@@ -59,15 +61,11 @@ export default class Crypto {
         })
       plaintext = plaintext.toString(CryptoJS.enc.Hex)
       if (padding) {
-        return removeCustomPadding(plaintext)
+        return _removeCustomPadding(plaintext, 8)
       } else {
         return Buffer.from(plaintext, 'hex')
       }
     }
-  }
-
-  static getNFromPublicKey(publicKey) {
-    return Buffer.from(publicKey.slice(publicKey.length - 256 - 10, publicKey.length - 10), 'hex')
   }
 
   static async generateRsaKeyPair (bits = 1024) {
@@ -79,7 +77,10 @@ export default class Crypto {
     if (D.test.mockDevice) {
       let testKeyPair = MockDevice.getTestTempRsaKeyPair()
       keyPair.setPrivateKey(testKeyPair.privKey)
-      return keyPair
+      return {
+        privateKey: keyPair.key.getPrivateBaseKey(),
+        publicKey: keyPair.key.getPublicBaseKey()
+      }
     }
 
     while (true) {
@@ -94,11 +95,15 @@ export default class Crypto {
       }
       break
     }
-    // noinspection JSAccessibilityCheck
+
     return {
       privateKey: keyPair.key.getPrivateBaseKey(),
       publicKey: keyPair.key.getPublicBaseKey()
     }
+  }
+
+  static getNFromPublicKey (publicKey) {
+    return Buffer.from(publicKey.slice(publicKey.length - 256 - 10, publicKey.length - 10), 'hex')
   }
 
   static async rsaEncrypt (publicKey, data) {
@@ -113,5 +118,53 @@ export default class Crypto {
     key.setPrivateKey(privateKey)
     let plainData = key.decrypt(encData.toString('hex'))
     return (plainData && Buffer.from(plainData, 'hex')) || null
+  }
+
+  static async generateSM2KeyPair () {
+    let keyPair = sm2.genKeyPair()
+    return {
+      privateKey: keyPair.pri.toString(16, 32),
+      publicKey: keyPair.pubToString()
+    }
+  }
+
+  static async sm2Encrypt (publicKey, data) {
+    let key = sm2.SM2KeyPair(publicKey)
+    return Buffer.from(key.encrypt(data.toString('hex'), 'hex'), 'hex')
+  }
+
+  static async sm2Decrypt (privateKey, encData) {
+    let key = sm2.SM2KeyPair(null, privateKey)
+    return Buffer.from(key.decrypt(encData.toString('hex'), 'hex'), 'hex')
+  }
+
+  static async sm2VerifyRaw (publicKey, msg, r, s) {
+    let key = sm2.SM2KeyPair(publicKey)
+    return key.verifyRaw(
+      [...msg], r.toString('hex'), s.toString('hex'))
+  }
+
+  static async sm4Encrypt (key, data, config = {}) {
+    let sm4Config = {
+      key: key.toString('hex'),
+      mode: config.mode || 'ecb',
+      padding: config.padding || 'none',
+      iv: config.iv || null
+    }
+    data = _customPadding(data, 16)
+    // eslint-disable-next-line
+    return Buffer.from(new sm4(sm4Config).encrypt(data), 'hex')
+  }
+
+  static async sm4Decrypt (key, encData, config = {}) {
+    let sm4Config = {
+      key: key.toString('hex'),
+      mode: config.mode || 'ecb',
+      padding: config.padding || 'none',
+      iv: config.iv || null
+    }
+    // eslint-disable-next-line
+    let data = Buffer.from(new sm4(sm4Config).decrypt(encData), 'hex')
+    return _removeCustomPadding(data, 16)
   }
 }

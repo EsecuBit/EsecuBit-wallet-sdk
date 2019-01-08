@@ -3,6 +3,8 @@ import {Buffer} from 'buffer'
 import MockDevice from './io/MockDevice'
 import ChromeUsbDevice from './io/ChromeUsbDevice'
 
+const openDebugLog = false
+
 /**
  * Esecubit USB CCID protocol
  */
@@ -21,7 +23,6 @@ export default class CcidTransmitter {
     if (callback) this._plugListener = callback
   }
 
-  // noinspection JSUnusedGlobalSymbols
   async reset () {
     await this._sendAndReceive(Buffer.from('63000000000000000000', 'hex'))
     await this._sendAndReceive(Buffer.from('62000000000000010000', 'hex'))
@@ -43,7 +44,7 @@ export default class CcidTransmitter {
     }
 
     this._seqNum = 0
-    console.debug('transmitter send apdu', apdu.toString('hex'))
+    openDebugLog && console.debug('transmitter send apdu', apdu.toString('hex'))
     let sendPack = packCcidCmd(this._seqNum++, apdu)
     let response = await this._sendAndReceive(sendPack)
     if (!response || response.length < 2) {
@@ -54,7 +55,7 @@ export default class CcidTransmitter {
     let indexSw1Sw2 = response.length - 2
     let sw1sw2 = (response[indexSw1Sw2] << 8) + response[indexSw1Sw2 + 1]
     let responseData = response.slice(0, indexSw1Sw2)
-    console.debug('transmitter got response', sw1sw2.toString(16), responseData.toString('hex'))
+    openDebugLog && console.debug('transmitter got response', sw1sw2.toString(16), responseData.toString('hex'))
     return {result: sw1sw2, response: responseData}
   }
 

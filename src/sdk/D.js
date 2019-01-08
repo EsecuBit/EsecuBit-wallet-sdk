@@ -18,6 +18,8 @@ const D = {
     authFinish: 5,
     syncing: 10,
     syncingNewAccount: 11,
+    syncingNewEosPermissions: 12,
+    syncingNewEosWillConfirmPermissions: 13,
     syncFinish: 20,
     plugOut: 99
   },
@@ -148,7 +150,7 @@ const D = {
       eos: {
         chainId: {
           main: Buffer.from('aca376f206b8fc25a6ed44dbdc66547c36c6c33e3a119ffbeaef943642f0e906', 'hex'), // main network
-          jungle: Buffer.from('038f4b0fc8ff18a4f0842a8f0564611f6e96e8535901dd45e43ac8691a1c4dca', 'hex'), // jungle testnet
+          jungle: Buffer.from('e70aaab8997e1dfce58fbfac80cbbb8fecec7b99cf982a9444273cbc64c41473', 'hex'), // jungle testnet
           sys: Buffer.from('cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f', 'hex'), // local developer
           kylin: Buffer.from('5fff1dae8dc8e2fc4d5b23b2c7665c97f9e9d8edf2b6485a86ba311c25639191', 'hex') // kylin testnet
         },
@@ -707,8 +709,8 @@ const D = {
 
   supportedCoinTypes () {
     return D.test.coin
-      ? [D.coin.test.btcTestNet3, D.coin.test.ethRinkeby]
-      : [D.coin.main.btc, D.coin.main.eth]
+      ? [D.coin.test.btcTestNet3]
+      : [D.coin.main.btc]
   },
 
   recoverCoinTypes () {
