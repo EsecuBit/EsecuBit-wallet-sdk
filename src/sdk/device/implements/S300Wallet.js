@@ -51,6 +51,9 @@ export default class S300Wallet {
     walletId += D.test.jsWallet ? '01' : '00'
     walletId += (await this.getWalletId()).toString('hex')
 
+    // CoreWallet will try S300Wallet first before try NetBankWallet
+    // won't enable enc apdu for fast failing S300Wallet when it's a NetBankWallet
+    this._allEnc = true
     return {walletId: walletId}
   }
 
@@ -103,7 +106,7 @@ export default class S300Wallet {
     flag += isStoring ? 0x01 : 0x00
     flag += isShowing ? 0x02 : 0x00
     flag += 0x04
-    flag += 0x08
+    flag += !D.isEth(coinType) && 0x08 // compressed if not ETH
 
     let apduHead = Buffer.from('804600001505', 'hex')
     let pathBuffer = D.address.path.toBuffer(path)

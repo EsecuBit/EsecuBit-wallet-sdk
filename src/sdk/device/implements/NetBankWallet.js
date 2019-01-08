@@ -99,7 +99,7 @@ export default class NetBankWallet {
     flag += isStoring ? 0x01 : 0x00
     flag += isShowing ? 0x02 : 0x00
     flag += 0x04
-    flag += 0x08
+    flag += 0x08 // ignore compressed flag if ETH
     let apdu = Buffer.allocUnsafe(26)
     Buffer.from('803D00001505', 'hex').copy(apdu)
     apdu[3] = flag
