@@ -105,12 +105,15 @@ export default class IAccount {
   }
 
   async sync (callback, firstSync = false, offlineMode = false) {
+    console.log('syncing account', this.accountId)
     if (!offlineMode) {
       await this._checkAddressIndexAndGenerateNew(true)
     }
 
     let checkAddressInfos = D.copy(this.addressInfos)
     while (checkAddressInfos.length > 0) {
+      console.log('sync checkAddresses', JSON.stringify(checkAddressInfos.map(a => a.address)))
+
       // find out all the transactions
       let blobs = await this._coinData.checkAddresses(this.coinType, checkAddressInfos)
 
@@ -153,6 +156,7 @@ export default class IAccount {
           this._coinData.listenTx(this.coinType, D.copy(txInfo), this._txListener)
         })
     }
+    console.log('syncing account finished', this.accountId)
   }
 
   /**

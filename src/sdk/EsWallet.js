@@ -235,6 +235,7 @@ export default class EsWallet {
         this._esAccounts = []
         throw error
       }
+      console.warn('recovery finish, set recoveryFinish true')
       await this._settings.setSetting('recoveryFinish', true, this._info.walletId)
     }
 
@@ -293,7 +294,6 @@ export default class EsWallet {
    * @private
    */
   async _release () {
-    await this._settings.setSetting('recoveryFinish', false, this._info.walletId)
     await this._coinData.release()
   }
 
