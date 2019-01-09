@@ -424,7 +424,7 @@ export default class S300Wallet {
     }
 
     let signEth = async (coinType, tx) => {
-      let chainId = D.coin.eth.getChainId(coinType)
+      let chainId = D.coin.params.eth.getChainId(coinType)
 
       // rlp
       let unsignedTx = [tx.nonce, tx.gasPrice, tx.gasLimit, tx.output.address, tx.output.value, tx.data, chainId, 0, 0]
