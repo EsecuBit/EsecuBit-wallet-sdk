@@ -54,6 +54,13 @@ export default class S300Wallet {
     // CoreWallet will try S300Wallet first before try NetBankWallet
     // won't enable enc apdu for fast failing S300Wallet when it's a NetBankWallet
     this._allEnc = true
+    // we do handshake here to make other commands (e.g. getAddress) looks more quickly
+    // 1. some other program may try to send command to device
+    // 2. in some limit situation, device is not stable yet
+    // try up to 3 times
+    await this._doHandShake()
+      .catch(() => this._doHandShake())
+      .catch(() => this._doHandShake())
     return {walletId: walletId}
   }
 
