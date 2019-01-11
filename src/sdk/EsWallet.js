@@ -40,7 +40,8 @@ export default class EsWallet {
     }
     EsWallet.prototype.Instance = this
 
-    this._connectedBefore = false
+    this._syncBefore = false
+    this.offlineMode = true
     this._settings = new Settings()
     this._info = {}
     this._esAccounts = []
@@ -69,39 +70,7 @@ export default class EsWallet {
         D.dispatch(() => this._callback(D.error.succeed, this._status))
         if (this._status === D.status.plugIn) {
           this.offlineMode = false
-          this._connectedBefore = true
-
-          // initializing
-          this._status = D.status.initializing
-          D.dispatch(() => this._callback(D.error.succeed, this._status))
-          try {
-            let newInfo = await this._init()
-            if (this._info.walletId !== newInfo.walletId) {
-              D.dispatch(() => this._callback(D.error.succeed, D.status.deviceChange))
-            }
-            this._info = newInfo
-          } catch (e) {
-            console.warn(e)
-            D.dispatch(() => this._callback(e, this._status))
-            return
-          }
-          if (this._status === D.status.plugOut) return
-
-          // syncing
-          this._status = D.status.syncing
-          D.dispatch(() => this._callback(D.error.succeed, this._status))
-          try {
-            this._connectedBefore && await this._sync()
-          } catch (e) {
-            console.warn(e)
-            D.dispatch(() => this._callback(e, this._status))
-            return
-          }
-          if (this._status === D.status.plugOut) return
-
-          // syncFinish
-          this._status = D.status.syncFinish
-          D.dispatch(() => this._callback(D.error.succeed, this._status))
+          await this._handleInit(error, plugStatus)
         } else if (this._status === D.status.plugOut) {
           this.offlineMode = true
           await this._release()
@@ -111,18 +80,51 @@ export default class EsWallet {
 
     // receving event when accounts is syncing
     this._syncCallback = (error, status, objects) => {
-      console.warn('???', error, status, objects)
+      // TODO implement
+      console.warn('implement _syncCallback', error, status, objects)
     }
   }
 
   /**
    * Use wallet in offline mode, do not have to connect the key and network
    */
-  async enterOfflineMode () {
+  enterOfflineMode () {
     if (this._status !== D.status.plugOut) throw D.error.offlineModeUnnecessary
-    this.offlineMode = true
-    this._info = await this._init()
-    await this._sync()
+    // noinspection JSIgnoredPromiseFromCall
+    this._handleInit()
+  }
+
+  async _handleInit () {
+    while (this._initLock) await D.wait(10)
+    this._initLock = true
+
+    try {
+      // initializing
+      this._status = D.status.initializing
+      D.dispatch(() => this._callback(D.error.succeed, this._status))
+      let newInfo = await this._init()
+      if (this._info.walletId !== newInfo.walletId) {
+        D.dispatch(() => this._callback(D.error.succeed, D.status.deviceChange))
+      }
+      this._info = newInfo
+      if (this._status === D.status.plugOut) return
+
+      // syncing
+      this._status = D.status.syncing
+      D.dispatch(() => this._callback(D.error.succeed, this._status))
+      this._syncBefore && await this._sync()
+      if (this._status === D.status.plugOut) return
+      this._syncBefore = true
+
+      // syncFinish
+      this._status = D.status.syncFinish
+      D.dispatch(() => this._callback(D.error.succeed, this._status))
+    } catch (e) {
+      console.warn(e)
+      D.dispatch(() => this._callback(e, this._status))
+    } finally {
+      this._initLock = false
+    }
   }
 
   /**
