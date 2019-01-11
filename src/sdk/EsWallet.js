@@ -40,6 +40,7 @@ export default class EsWallet {
     }
     EsWallet.prototype.Instance = this
 
+    this._connectedBefore = false
     this._settings = new Settings()
     this._info = {}
     this._esAccounts = []
@@ -68,6 +69,7 @@ export default class EsWallet {
         D.dispatch(() => this._callback(D.error.succeed, this._status))
         if (this._status === D.status.plugIn) {
           this.offlineMode = false
+          this._connectedBefore = true
 
           // initializing
           this._status = D.status.initializing
@@ -89,7 +91,7 @@ export default class EsWallet {
           this._status = D.status.syncing
           D.dispatch(() => this._callback(D.error.succeed, this._status))
           try {
-            await this._sync()
+            this._connectedBefore && await this._sync()
           } catch (e) {
             console.warn(e)
             D.dispatch(() => this._callback(e, this._status))
