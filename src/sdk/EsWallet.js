@@ -52,10 +52,8 @@ export default class EsWallet {
     this._device = new CoreWallet()
     this._device.listenPlug(async (error, plugStatus) => {
       // ignore the same plug event sent multiple times
-      if (this._status !== D.status.plugOut) {
-        if (plugStatus === D.status.plugIn) {
-          return
-        }
+      if (plugStatus === this._status) {
+        return
       }
 
       // handle error
@@ -103,7 +101,7 @@ export default class EsWallet {
       this._status = D.status.initializing
       D.dispatch(() => this._callback(D.error.succeed, this._status))
       let newInfo = await this._init()
-      if (this._info.walletId !== newInfo.walletId) {
+      if (this._info.walletId && (this._info.walletId !== newInfo.walletId)) {
         D.dispatch(() => this._callback(D.error.succeed, D.status.deviceChange))
       }
       this._info = newInfo
@@ -112,7 +110,7 @@ export default class EsWallet {
       // syncing
       this._status = D.status.syncing
       D.dispatch(() => this._callback(D.error.succeed, this._status))
-      this._syncBefore && await this._sync()
+      !this._syncBefore && await this._sync()
       if (this._status === D.status.plugOut) return
       this._syncBefore = true
 
