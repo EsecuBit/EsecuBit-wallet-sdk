@@ -55,6 +55,7 @@ export default class EsWallet {
       if (plugStatus === this._status) {
         return
       }
+      console.log('new plug status', plugStatus, this._status)
 
       // handle error
       this._status = plugStatus
@@ -86,7 +87,7 @@ export default class EsWallet {
   /**
    * Use wallet in offline mode, do not have to connect the key and network
    */
-  enterOfflineMode () {
+  async enterOfflineMode () {
     if (this._status !== D.status.plugOut) throw D.error.offlineModeUnnecessary
     // noinspection JSIgnoredPromiseFromCall
     this._handleInit()
@@ -305,6 +306,7 @@ export default class EsWallet {
    * @private
    */
   async reset () {
+    this._syncBefore = false
     await this._coinData.clearData()
   }
 
