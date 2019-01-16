@@ -80,7 +80,6 @@ export default class S300Wallet {
   }
 
   async getWalletId () {
-    await this._select()
     return this.sendApdu('8060000000', false)
   }
 
@@ -90,7 +89,6 @@ export default class S300Wallet {
   }
 
   async getPublicKey (coinType, path, isShowing = false) {
-    await this._select(coinType)
     // see getAddress
     let flag = isShowing ? 0x02 : 0x00
 
@@ -98,12 +96,11 @@ export default class S300Wallet {
     let pathBuffer = D.address.path.toBuffer(path)
     let apdu = Buffer.concat([apduHead, pathBuffer])
     apdu[3] = flag
-    let publicKey = await this.sendApdu(apdu, false)
+    let publicKey = await this.sendApdu(apdu, false, coinType)
     return publicKey.toString('hex')
   }
 
   async getAddress (coinType, path, isShowing = false, isStoring = false) {
-    await this._select(coinType)
     // bit 0: 0 not save on key / 1 save on key
     // bit 1: 0 not show on key / 1 show on key
     // bit 2: 0 public key / 1 address
@@ -120,7 +117,7 @@ export default class S300Wallet {
     let apdu = Buffer.concat([apduHead, pathBuffer])
     apdu[3] = flag
 
-    let response = await this.sendApdu(apdu, false)
+    let response = await this.sendApdu(apdu, false, coinType)
     let address = String.fromCharCode.apply(null, new Uint8Array(response))
     // device only return mainnet address
     if (coinType === D.coin.test.btcTestNet3) {
@@ -142,7 +139,7 @@ export default class S300Wallet {
     }
 
     let apdu = Buffer.from('8050000004' + accountIndex.toString(), 'hex')
-    let response = await this.sendApdu(apdu)
+    let response = await this.sendApdu(apdu, true, coinType)
     let parts = String.fromCharCode.apply(null, new Uint8Array(response)).split('\n')
     // remove the head and the tail
     parts = parts.slice(1, parts.length - 1)
@@ -180,7 +177,7 @@ export default class S300Wallet {
       apdu[0x04] = 1 + datas.length
       apdu[0x05] = count
       try {
-        await this.sendApdu(apdu)
+        await this.sendApdu(apdu, true, coinType)
       } catch (e) {
         console.warn('add permissions failed', permissions.slice(0, count))
         D.dispatch(() => showingCallback(D.error.userCancel,
@@ -281,7 +278,7 @@ export default class S300Wallet {
         let apduHead = Buffer.from('8048030000', 'hex')
         isCompressed && (apduHead[3] |= compressChange)
         apduHead[4] = data.length
-        response = await this.sendApdu(Buffer.concat([apduHead, data]), true)
+        response = await this.sendApdu(Buffer.concat([apduHead, data]), true, coinType)
       } else {
         let remainLen = data.length
         // devide tx to sign due to wallet command length limit
@@ -291,7 +288,7 @@ export default class S300Wallet {
             apduHead[3] |= compressChange
             apduHead[4] = remainLen
             let offset = data.length - remainLen
-            response = await this.sendApdu(Buffer.concat([apduHead, data.slice(offset, data.length)]), true)
+            response = await this.sendApdu(Buffer.concat([apduHead, data.slice(offset, data.length)]), true, coinType)
             break
           } else if (remainLen === data.length) {
             // first package
@@ -302,7 +299,7 @@ export default class S300Wallet {
             let apduHead = Buffer.from('80480000FF', 'hex')
             apduHead[3] |= compressChange
             let offset = data.length - remainLen
-            await this.sendApdu(Buffer.concat([apduHead, data.slice(offset, offset + 0xFF)]), true)
+            await this.sendApdu(Buffer.concat([apduHead, data.slice(offset, offset + 0xFF)]), true, coinType)
           }
           remainLen -= 0xFF
         }
@@ -486,7 +483,6 @@ export default class S300Wallet {
       return {txId, signedTx}
     }
 
-    await this._select(coinType)
     if (D.isBtc(coinType)) {
       return signBtc(coinType, tx)
     } else if (D.isEth(coinType)) {
@@ -502,7 +498,7 @@ export default class S300Wallet {
   /**
    * Apdu encrypt and decrypt
    */
-  async sendApdu (apdu, isEnc = false) {
+  async sendApdu (apdu, isEnc = false, coinType = null) {
     isEnc = this._allEnc || isEnc
     // a simple lock to guarantee apdu order
     while (this._busy) {
@@ -522,6 +518,11 @@ export default class S300Wallet {
         await this._doHandShake()
           .catch(() => this._doHandShake())
           .catch(() => this._doHandShake())
+
+        // select applet if it's not a select APDU
+        if (apdu[0] !== 0x00 && apdu[1] !== 0xA4 && apdu[2] !== 0x04) {
+          await this._select(coinType)
+        }
         apdu = await this._handShake.encApdu(apdu)
         console.debug('send enc apdu', apdu.toString('hex'))
       }
