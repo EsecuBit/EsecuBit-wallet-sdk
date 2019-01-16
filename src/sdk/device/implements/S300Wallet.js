@@ -64,13 +64,6 @@ export default class S300Wallet {
     return {walletId: walletId}
   }
 
-  async _select (coinType) {
-    let appId = getAppId(coinType)
-    if (this._currentApp === appId) return
-    await this.sendApdu('00A4040008B000000000' + appId, false)
-    this._currentApp = appId
-  }
-
   async getWalletInfo () {
     let cosVersion = await this._getCosVersion()
     return {
@@ -507,34 +500,41 @@ export default class S300Wallet {
     this._busy = true
 
     try {
-      if (typeof apdu === 'string') {
-        apdu = Buffer.from(apdu, 'hex')
-      }
-      console.log('send apdu', apdu.toString('hex'))
-      if (isEnc) {
-        // 1. some other program may try to send command to device
-        // 2. in some limit situation, device is not stable yet
-        // try up to 3 times
-        await this._doHandShake()
-          .catch(() => this._doHandShake())
-          .catch(() => this._doHandShake())
-
-        // select applet if it's not a select APDU
-        if (apdu[0] !== 0x00 && apdu[1] !== 0xA4 && apdu[2] !== 0x04) {
-          await this._select(coinType)
+      let sendEncApdu = async (apdu) => {
+        console.log('send apdu', apdu.toString('hex'))
+        if (typeof apdu === 'string') {
+          apdu = Buffer.from(apdu, 'hex')
         }
-        apdu = await this._handShake.encApdu(apdu)
-        console.debug('send enc apdu', apdu.toString('hex'))
+        if (isEnc) {
+          // 1. some other program may try to send command to device
+          // 2. in some limit situation, device is not stable yet
+          // try up to 3 times
+          await this._doHandShake()
+            .catch(() => this._doHandShake())
+            .catch(() => this._doHandShake())
+          apdu = await this._handShake.encApdu(apdu)
+          console.debug('send enc apdu', apdu.toString('hex'))
+        }
+
+        let response = await this._transmit(apdu)
+        if (isEnc) {
+          console.debug('got enc response', response.toString('hex'))
+          let decResponse = await this._handShake.decResponse(response)
+          S300Wallet._checkSw1Sw2(decResponse.result)
+          response = decResponse.response
+        }
+        console.log('got response', response.toString('hex'), 'isEnc', isEnc)
+        return response
       }
 
-      let response = await this._transmit(apdu)
-      if (isEnc) {
-        console.debug('got enc response', response.toString('hex'))
-        let decResponse = await this._handShake.decResponse(response)
-        S300Wallet._checkSw1Sw2(decResponse.result)
-        response = decResponse.response
+      // select applet if it's not the require applet
+      let appId = getAppId(coinType)
+      if (this._currentApp !== appId) {
+        await sendEncApdu('00A4040008B000000000' + appId)
+        this._currentApp = appId
       }
-      console.log('got response', response.toString('hex'), 'isEnc', isEnc)
+      // use await to make lock works
+      let response = await sendEncApdu(apdu)
       return response
     } finally {
       this._busy = false
@@ -548,6 +548,7 @@ export default class S300Wallet {
     let response = await this._transmit(apdu)
     console.debug('handshake apdu response', response.toString('hex'))
     await this._handShake.parseHandShakeResponse(response, tempKeyPair, apdu)
+    console.debug('handshake finish')
   }
 
   /**
