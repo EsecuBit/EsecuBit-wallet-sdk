@@ -8,6 +8,8 @@ import createHash from 'create-hash'
 import base58 from 'bs58'
 import FcBuffer from './protocol/EosFcBuffer'
 import HandShake from './protocol/HandShake'
+import Authenticate from "./protocol/Authenticate";
+import Settings from "../../Settings";
 
 const getAppId = (coinType) => {
   if (!coinType) {
@@ -41,26 +43,55 @@ export default class S300Wallet {
     this._allEnc = false
   }
 
-  async init () {
+  async init (authCallback) {
     console.log('S300Wallet init')
+
     this._currentApp = null
     await this._transmitter.reset()
 
-    this._handShake = new HandShake(null, HandShake.SM2)
+    // authenticate
+    if (!authCallback) {
+      console.warn('S300Wallet auth missing authCallback')
+      authCallback = () => {}
+    }
+    let deivceName = this._transmitter.getName && this._transmitter.getName()
+    let oldFeature = await new Settings().getSetting('netBankFeature', deivceName)
+    console.log('S300Wallet old feature', oldFeature)
+    oldFeature = oldFeature && Buffer.from(oldFeature, 'hex')
+    let authenticate = new Authenticate('Esecubit', this, oldFeature)
+    let newFeature
+    try {
+      newFeature = await authenticate.prepareAuth()
+      if (!oldFeature) {
+        let pairCode = String.fromCharCode.apply(null,
+          newFeature.slice(newFeature.length - 4))
+        D.dispatch(() => authCallback(D.status.auth, pairCode))
+      }
+      console.log('S300Wallet do authenticate')
+      await authenticate.auth()
+      console.log('S300Wallet authenticate succeed')
+      D.dispatch(() => authCallback(D.status.authFinish))
+
+      if (!oldFeature) {
+        let featureHex = newFeature.toString('hex')
+        await new Settings().setSetting('netBankFeature', featureHex, deivceName)
+        console.log('S300Wallet new feature', featureHex)
+      }
+    } catch (e) {
+      if (e === D.error.deviceApduDataInvalid) {
+        console.info('S300Wallet authenticate not support, ignore')
+      } else {
+        console.warn('S300Wallet autenticate failed', e)
+        throw e
+      }
+    }
+
+    this._handShake = new HandShake(oldFeature || newFeature, HandShake.SM2)
+    this._allEnc = true
     let walletId = D.test.coin ? '01' : '00'
     walletId += D.test.jsWallet ? '01' : '00'
     walletId += (await this.getWalletId()).toString('hex')
 
-    // CoreWallet will try S300Wallet first before try NetBankWallet
-    // won't enable enc apdu for fast failing S300Wallet when it's a NetBankWallet
-    this._allEnc = true
-    // we do handshake here to make other commands (e.g. getAddress) looks more quickly
-    // 1. some other program may try to send command to device
-    // 2. in some limit situation, device is not stable yet
-    // try up to 3 times
-    await this._doHandShake()
-      .catch(() => this._doHandShake())
-      .catch(() => this._doHandShake())
     return {walletId: walletId}
   }
 

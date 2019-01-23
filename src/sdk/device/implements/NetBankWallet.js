@@ -32,6 +32,10 @@ export default class NetBankWallet {
     }
 
     let deivceName = this._transmitter.getName && this._transmitter.getName()
+    if (!deivceName.startsWith('ES12')) {
+      throw D.error.deviceProtocol
+    }
+
     let oldFeature = await new Settings().getSetting('netBankFeature', deivceName)
     console.log('NetBankWallet old feature', oldFeature)
     oldFeature = oldFeature && Buffer.from(oldFeature, 'hex')

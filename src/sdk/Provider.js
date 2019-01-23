@@ -20,8 +20,8 @@ const Provider = {
 
   Wallets: [
     JSWallet,
-    S300Wallet,
-    NetBankWallet
+    NetBankWallet,
+    S300Wallet
   ],
 
   DB: IndexedDB,
