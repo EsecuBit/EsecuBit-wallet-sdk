@@ -33,6 +33,7 @@ export default class NetBankWallet {
 
     let deivceName = this._transmitter.getName && this._transmitter.getName()
     if (!deivceName.startsWith('ES12')) {
+      console.log('device is not a NetBankWallet', deivceName)
       throw D.error.deviceProtocol
     }
 
