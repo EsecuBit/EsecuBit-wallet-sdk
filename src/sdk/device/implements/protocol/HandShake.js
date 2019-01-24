@@ -55,8 +55,7 @@ export default class HandShake {
       if (this._mode === RSA1024) {
         sKey = await this._crypto.des112(false, sKey, this._encKey)
       } else if (this._mode === SM2) {
-        // TODO implement for BT
-        sKey = await this._crypto.sm4Decrypt(this._encKey, sKey)
+        sKey = await this._crypto.sm4Decrypt(this._encKey, sKey, {needPadding: false})
       }
     }
 

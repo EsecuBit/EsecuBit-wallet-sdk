@@ -151,7 +151,10 @@ export default class Crypto {
       padding: config.padding || 'none',
       iv: config.iv || null
     }
-    data = _customPadding(data, 16)
+    config.needPadding = config.needPadding === false ? false : true; // default true
+    if (config.needPadding) {
+      data = _customPadding(data, 16)
+    }
     // eslint-disable-next-line
     return Buffer.from(new sm4(sm4Config).encrypt(data), 'hex')
   }
@@ -163,8 +166,12 @@ export default class Crypto {
       padding: config.padding || 'none',
       iv: config.iv || null
     }
+    config.needPadding = config.needPadding === false ? false : true; // default true
     // eslint-disable-next-line
     let data = Buffer.from(new sm4(sm4Config).decrypt(encData), 'hex')
-    return _removeCustomPadding(data, 16)
+    if (config.needPadding) {
+      data = _removeCustomPadding(data, 16)
+    }
+    return data
   }
 }
