@@ -118,6 +118,11 @@ const D = {
       eosKylin: 'eos_kylin',
       eosSys: 'eos_sys'
     },
+    other: {
+      hdwallet: 'hdwallet',
+      manager: 'manager',
+      backup: 'hdwallet'
+    },
 
     params: {
       btc: {

@@ -471,6 +471,10 @@ export default class EsWallet {
     return this._coinData.getProviders()
   }
 
+  getDeviceBattery () {
+    return this._device.getWalletBattery()
+  }
+
   /**
    *
    * Convert value between coin value and legal currency value. The data comes from the Internet

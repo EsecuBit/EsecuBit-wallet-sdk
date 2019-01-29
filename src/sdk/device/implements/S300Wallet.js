@@ -8,12 +8,16 @@ import createHash from 'create-hash'
 import base58 from 'bs58'
 import FcBuffer from './protocol/EosFcBuffer'
 import HandShake from './protocol/HandShake'
-import Authenticate from "./protocol/Authenticate";
-import Settings from "../../Settings";
+import Authenticate from './protocol/Authenticate'
+import Settings from '../../Settings'
 
 const getAppId = (coinType) => {
-  if (!coinType) {
+  if (coinType === D.coin.other.hdwallet) {
     return '010102'
+  } else if (coinType === D.coin.other.manager) {
+    return '010202'
+  } else if (coinType === D.coin.other.backup) {
+    return '010302'
   } else if (D.isBtc(coinType)) {
     return '020002'
   } else if (D.isEth(coinType)) {
@@ -104,12 +108,64 @@ export default class S300Wallet {
   }
 
   async getWalletId () {
-    return this.sendApdu('8060000000', false)
+    return this.sendApdu('8060000000', false, D.coin.other.hdwallet)
+  }
+
+  async getWalletBattery () {
+    let response = await this.sendApdu('8034000000', false, D.coin.other.manager)
+    let isCharging = (response[0] & 0x80) === 0x80
+    let level = response[0] & 0x03
+    return {
+      level, isCharging
+    }
   }
 
   async _getCosVersion () {
-    console.warn('get version not supported yet!')
-    return 'get version not supported yet'
+    // TODO optimize
+    let version
+    try {
+      let response = await this.sendApdu('8062000000', false, D.coin.other.hdwallet)
+      version = response.toString('hex')
+    } catch (e) {
+      // ignore
+    }
+    try {
+      let response = await this.sendApdu('8062000000', false, D.coin.other.manager)
+      version += '_' + response.toString('hex')
+    } catch (e) {
+      // ignore
+    }
+    try {
+      let response = await this.sendApdu('8036000000', false, D.coin.other.manager)
+      version += '_' + response.toString('hex')
+    } catch (e) {
+      // ignore
+    }
+    try {
+      let response = await this.sendApdu('8062000000', false, D.coin.other.backup)
+      version += '_' + response.toString('hex')
+    } catch (e) {
+      // ignore
+    }
+    try {
+      let response = await this.sendApdu('8062000000', false, D.coin.main.btc)
+      version += '_' + response.toString('hex')
+    } catch (e) {
+      // ignore
+    }
+    try {
+      let response = await this.sendApdu('8062000000', false, D.coin.main.eth)
+      version += '_' + response.toString('hex')
+    } catch (e) {
+      // ignore
+    }
+    try {
+      let response = await this.sendApdu('8062000000', false, D.coin.main.eos)
+      version += '_' + response.toString('hex')
+    } catch (e) {
+      // ignore
+    }
+    return version
   }
 
   async getPublicKey (coinType, path, isShowing = false) {
