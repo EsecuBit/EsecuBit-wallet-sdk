@@ -67,10 +67,6 @@ export default class IAccount {
     info.externalPublicKeyIndex = this.externalPublicKeyIndex
     info.changePublicKeyIndex = this.changePublicKeyIndex
 
-    // EOS
-    if (this.queryOffset) info.queryOffset = this.queryOffset
-    if (this.tokens) info.tokens = D.copy(this.tokens)
-    if (this.resources) info.resources = D.copy(this.resources)
     return info
   }
 
@@ -89,11 +85,6 @@ export default class IAccount {
     this.balance = info.balance
     this.externalPublicKeyIndex = info.externalPublicKeyIndex
     this.changePublicKeyIndex = info.changePublicKeyIndex
-
-    // EOS
-    if (info.queryOffset) this.queryOffset = info.queryOffset
-    if (info.tokens) this.tokens = D.copy(info.tokens)
-    if (info.resources) this.resources = D.copy(info.resources)
   }
 
   async init () {

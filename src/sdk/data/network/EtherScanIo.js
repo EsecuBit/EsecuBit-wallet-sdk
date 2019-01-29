@@ -73,12 +73,35 @@ export default class EtherScanIo extends ICoinNetwork {
   }
 
   async queryAddress (address, offset = 0) {
-    let response = await this.get(this._apiUrl + '/api?module=account&action=txlist&address=' + address)
+    let responseEth = await this.get(this._apiUrl + '/api?module=account&action=txlist&address=' + address)
+    responseEth = responseEth.map(tx => this._wrapTx(tx))
+
+    let responseToken = await this.get(this._apiUrl + '/api?module=account&action=tokentx&address=' + address)
+    responseToken = responseToken.map(tx => this._wrapTx(tx, true))
+
+    let response = []
+    response.push(...responseEth)
+    response.push(...responseToken)
+
+    return {
+      address: address,
+      txCount: response.length,
+      txs: response
+    }
+  }
+
+  async queryTokenAddress (address, offset = 0) {
+    let response = await this.get(this._apiUrl + '/api?module=account&action=tokentx&address=' + address)
     return {
       address: address,
       txCount: response.length,
       txs: response.map(tx => this._wrapTx(tx))
     }
+  }
+
+  async isToken (address) {
+    let response = await this.get(this._apiUrl + '/api?module=stats&action=tokensupply&contractaddress=' + address)
+    return !!((response && response.result !== '0'))
   }
 
   async queryTx (txId) {
@@ -90,7 +113,7 @@ export default class EtherScanIo extends ICoinNetwork {
     return this.post(this._apiUrl + '/api?module=proxy&action=eth_sendRawTransaction', 'hex=' + rawTransaction)
   }
 
-  _wrapTx (rTx) {
+  _wrapTx (rTx, isToken = false) {
     // if no blockNumber, that tx is in the pool, and confirmations should be 0
     let blockNumber = Number(rTx.blockNumber) || (this._blockHeight + 1)
     let confirmations = Number(rTx.confirmations) || (this._blockHeight - blockNumber + 1)
@@ -107,6 +130,7 @@ export default class EtherScanIo extends ICoinNetwork {
       rTx.gasPrice = (rTx.gasPrice.length % 2 === 0 ? '' : '0') + rTx.gasPrice
       rTx.gasPrice = BigInteger.fromHex(rTx.gasPrice).toString(10)
     }
+
     let value = new BigInteger(rTx.value)
     let tx = {
       txId: rTx.hash,
@@ -117,8 +141,14 @@ export default class EtherScanIo extends ICoinNetwork {
       gasPrice: rTx.gasPrice,
       data: rTx.input,
       nonce: rTx.nonce ? parseInt(rTx.nonce) : undefined,
-      hasDetails: true
+      hasDetails: true,
+      contractAddress: rTx.contractAddress,
+      isToken: isToken
     }
+    if (isToken) {
+      tx.txId = tx.txId + '_t'
+    }
+
     tx.inputs = [{
       prevAddress: rTx.from,
       value: value.toString(10)

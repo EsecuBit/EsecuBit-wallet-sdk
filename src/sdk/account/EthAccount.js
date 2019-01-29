@@ -2,8 +2,14 @@
 import D from '../D'
 import BigInteger from 'bigi'
 import IAccount from './IAccount'
+import EthToken from './EthToken'
 
 export default class EthAccount extends IAccount {
+  async init () {
+    await super.init()
+    this.tokens = await EthToken.getEthTokens(this, this._coinData)
+  }
+
   async _checkAddressIndexAndGenerateNew () {
     if (this.addressInfos.length === 0) {
       let path = D.address.path.makeBip44Path(this.coinType, this.index, D.address.external, 0)
@@ -42,17 +48,11 @@ export default class EthAccount extends IAccount {
     removedTxInfo.confirmations = D.tx.confirmation.dropped
     this.addressInfos[0].txs = this.addressInfos[0].txs.filter(txId => txId !== removedTxId)
 
-    // can't use BigInteger.ZERO here, addTo, subTo will modify the value of BigInteger.ZERO
-    let newBalance = new BigInteger()
-    newBalance.fromInt(0)
-    this.txInfos
-      .filter(txInfo => txInfo.confirmations !== D.tx.confirmation.dropped)
-      .forEach(txInfo => {
-        newBalance.addTo(new BigInteger(txInfo.value), newBalance)
-        if (txInfo.direction === D.tx.direction.out) {
-          newBalance.subTo(new BigInteger(txInfo.fee), newBalance)
-        }
-      })
+    let newBalance = new BigInteger(this.balance)
+    newBalance.subTo(new BigInteger(removedTxInfo.value), newBalance)
+    if (removedTxInfo.direction === D.tx.direction.out) {
+      newBalance.addTo(new BigInteger(removedTxInfo.fee), newBalance)
+    }
     this.balance = newBalance.toString(10)
 
     await this._coinData.removeTx(this._toAccountInfo(), D.copy([this.addressInfos[0]]), D.copy(removedTxInfo))
@@ -95,6 +95,25 @@ export default class EthAccount extends IAccount {
       txInfo.comment = txInfo.comment || ''
       this.txInfos.push(txInfo)
     } else {
+      // revert balance
+      if (txInfo.isToken) {
+        let token = this.tokens.find(t => t.contractAddress === txInfo.contractAddress)
+        if (!token) return
+
+        let newBalance = new BigInteger(token.balance)
+        newBalance.subTo(new BigInteger(txInfo.value), newBalance)
+        token.txInfos.push(txInfo)
+        token.balance = newBalance.toString(10)
+      } else {
+        let oldTxInfo = this.txInfos[index]
+        let newBalance = new BigInteger(this.balance)
+        newBalance.subTo(new BigInteger(oldTxInfo.value), newBalance)
+        if (txInfo.direction === D.tx.direction.out) {
+          newBalance.addTo(new BigInteger(oldTxInfo.fee), newBalance)
+        }
+        this.balance = newBalance.toString(10)
+      }
+
       txInfo.comment = this.txInfos[index].comment
       this.txInfos[index] = txInfo
     }
@@ -102,20 +121,25 @@ export default class EthAccount extends IAccount {
       this.addressInfos[0].txs.push(txInfo.txId)
     }
 
-    // can't use BigInteger.ZERO here, addTo, subTo will modify the value of BigInteger.ZERO
-    let newBalance = new BigInteger()
-    newBalance.fromInt(0)
-    this.txInfos
-      .filter(txInfo => txInfo.confirmations !== D.tx.confirmation.dropped)
-      .forEach(txInfo => {
-        newBalance.addTo(new BigInteger(txInfo.value), newBalance)
-        if (txInfo.direction === D.tx.direction.out) {
-          newBalance.subTo(new BigInteger(txInfo.fee), newBalance)
-        }
-      })
-    this.balance = newBalance.toString(10)
+    if (txInfo.isToken) {
+      let token = this.tokens.find(t => t.contractAddress === txInfo.contractAddress)
+      if (!token) return
 
-    await this._coinData.newTx(this._toAccountInfo(), D.copy([this.addressInfos[0]]), D.copy(txInfo), [])
+      let newBalance = new BigInteger(token.balance)
+      newBalance.addTo(new BigInteger(txInfo.value), newBalance)
+      token.txInfos.push(txInfo)
+      token.balance = newBalance.toString(10)
+      await this._coinData.updateToken(token._toTokenInfo())
+    } else {
+      let newBalance = new BigInteger(this.balance)
+      newBalance.addTo(new BigInteger(txInfo.value), newBalance)
+      if (txInfo.direction === D.tx.direction.out) {
+        newBalance.subTo(new BigInteger(txInfo.fee), newBalance)
+      }
+      this.balance = newBalance.toString(10)
+    }
+
+    await this._coinData.newTx(this._toAccountInfo(), D.copy([this.addressInfos[0]]), D.copy(txInfo))
 
     if (txInfo.confirmations !== D.tx.confirmation.dropped &&
       txInfo.confirmations < D.tx.getMatureConfirms(this.coinType) &&
@@ -319,5 +343,43 @@ export default class EthAccount extends IAccount {
     console.log('sendTx', signedTx)
     if (!test) await this._coinData.sendTx(this.coinType, signedTx.hex)
     await this._handleNewTx(signedTx.txInfo)
+  }
+
+  /**
+   * @param token {address, decimals, name}
+   */
+  async addToken (token) {
+    await this._device.addToken(token)
+    await this._coinData.addToken(token)
+
+    token = this._buildEthToken(token)
+    this.tokens.push(token)
+    return token
+  }
+
+  /**
+   * @param token {address, decimals, name}
+   */
+  async removeToken (token) {
+    await this._device.removeToken(token)
+    await this._coinData.deleteToken(token)
+  }
+
+  _buildEthToken (token) {
+    let txInfos = this.txInfos
+      .filter(t => t.txId.endsWith('_t'))
+      .filter(t => t.contractAddress === token.address)
+    if (!token.balance) {
+      // can't use BigInteger.ZERO here, addTo, subTo will modify the value of BigInteger.ZERO
+      let balance = new BigInteger('0')
+      txInfos
+        .filter(txInfo => txInfo.confirmations !== D.tx.confirmation.dropped)
+        .forEach(txInfo => {
+          balance.addTo(new BigInteger(txInfo.value), balance)
+        })
+      token.balance = balance.toString(10)
+    }
+
+    return new EthToken(token.address, token.name, token.decimals, token.balance, txInfos, this)
   }
 }

@@ -36,6 +36,22 @@ export default class EosAccount extends IAccount {
     }
   }
 
+  _fromAccountInfo (info) {
+    super._fromAccountInfo(info)
+
+    this.queryOffset = info.queryOffset
+    this.tokens = D.copy(info.tokens)
+    this.resources = D.copy(info.resources)
+  }
+
+  _toAccountInfo (info) {
+    info = super._toAccountInfo()
+    info.queryOffset = this.queryOffset
+    info.tokens = D.copy(this.tokens)
+    info.resources = D.copy(this.resources)
+    return info
+  }
+
   async sync (callback, firstSync = false, offlineMode = false) {
     if (!this.isRegistered()) {
       console.warn('this EosAccount has not been registered, exit')

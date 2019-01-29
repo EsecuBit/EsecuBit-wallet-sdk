@@ -245,6 +245,22 @@ export default class CoinData {
     this._db.updateAccount(account)
   }
 
+  async newToken (token) {
+    this._db.newToken(token)
+  }
+
+  async updateToken (token) {
+    return this._db.updateToken(token)
+  }
+
+  async getTokens (filter) {
+    return this._db.getTokens(filter)
+  }
+
+  async deleteToken (token) {
+    this._db.deleteToken(token)
+  }
+
   async newAddressInfos (account, addressInfos) {
     await this._db.newAddressInfos(account, addressInfos)
   }
@@ -253,7 +269,7 @@ export default class CoinData {
     await this._db.updateAddressInfos(addressInfos)
   }
 
-  getAddressInfos (filter) {
+  async getAddressInfos (filter) {
     return this._db.getAddressInfos(filter)
   }
 

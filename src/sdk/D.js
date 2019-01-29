@@ -144,7 +144,7 @@ const D = {
               console.warn('eth don\'t support this coinType for chainId', coinType)
               throw D.error.coinNotSupported
           }
-        }
+        },
       },
 
       eos: {

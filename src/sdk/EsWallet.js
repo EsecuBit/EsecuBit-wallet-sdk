@@ -472,6 +472,26 @@ export default class EsWallet {
   }
 
   /**
+   * Get known ETH token list.
+   * Token list is copied from https://github.com/kvhnuke/etherwallet/blob/mercury/app/scripts/tokens/ethTokens.json
+   * in 2019/01/27.
+   *
+   * @returns {Promise<Object>}
+   */
+  async getEthTokenList () {
+    throw D.error.notImplemented
+  }
+
+  /**
+   * Query ETH browser to get a ETH token info, e.g. https://etherscan.io/token/TOKEN_NAME'
+   *
+   * @returns {Promise<Object>}
+   */
+  getEthTokenByName (name) {
+    throw D.error.notImplemented
+  }
+
+  /**
    *
    * Convert value between coin value and legal currency value. The data comes from the Internet
    * and refresh every 30 mins (2018/11/2) in background.

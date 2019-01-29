@@ -232,6 +232,34 @@ export default class S300Wallet {
     }
   }
 
+  async addToken (coinType, token) {
+    if (!D.isEth(coinType)) {
+      throw D.error.coinNotSupported
+    }
+    // 8064 0000 len nameLength[1] name[nameLength] decimals[1] address[20]
+    let apdu = Buffer.allocUnsafe(4 + 23 + token.name.length)
+    Buffer.from('80640000', 'hex').copy(apdu)
+    apdu[4] = 23 + token.name.length
+    apdu[5] = token.name.length
+    for (let i = 0; i < token.name.length; i++) {
+      apdu[6 + i] = token.name.charCodeAt(i)
+    }
+    apdu[6 + token.name.length] = token.decimals
+    D.address.toBuffer(token.address).copy(apdu, 2 + token.name.length)
+    await this.sendApdu(apdu, true, coinType)
+  }
+
+  async removeToken (coinType, token) {
+    if (!D.isEth(coinType)) {
+      throw D.error.coinNotSupported
+    }
+    // 8066 0000 len address[20]
+    let apdu = Buffer.allocUnsafe(5 + 20)
+    Buffer.from('8066000014', 'hex').copy(apdu)
+    D.address.toBuffer(token.address).copy(apdu, 5)
+    await this.sendApdu(apdu, true, coinType)
+  }
+
   /**
    * tx:
    * btc:
