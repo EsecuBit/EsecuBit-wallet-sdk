@@ -615,10 +615,12 @@ export default class S300Wallet {
       }
 
       // select applet if it's not the require applet
-      let appId = getAppId(coinType)
-      if (this._currentApp !== appId) {
-        await sendEncApdu('00A4040008B000000000' + appId)
-        this._currentApp = appId
+      if (coinType) {
+        let appId = getAppId(coinType)
+        if (this._currentApp !== appId) {
+          await sendEncApdu('00A4040008B000000000' + appId)
+          this._currentApp = appId
+        }
       }
       // use await to make lock works
       let response = await sendEncApdu(apdu)
