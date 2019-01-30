@@ -41,6 +41,7 @@ const D = {
     devicePressKeyTooEarly: 112,
     deviceApduDataInvalid: 113,
     deviceNotConnected: 114,
+    deviceNeedReauthenticate: 115,
 
     fatUnavailable: 121,
     fatOutOfRange: 122,
@@ -99,6 +100,7 @@ const D = {
       if (sw1sw2 === 0x6FF8) return D.error.userCancel
       if (sw1sw2 === 0x6FF9) return D.error.operationTimeout
       if (sw1sw2 === 0x6FFE) return D.error.devicePressKeyTooEarly
+      if (sw1sw2 === 0x6A83) return D.error.deviceNeedReauthenticate
       if ((sw1sw2 & 0xFFF0) === 0x63C0) return D.error.pinError
       return D.error.deviceProtocol
     }

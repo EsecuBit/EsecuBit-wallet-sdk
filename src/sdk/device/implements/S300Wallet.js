@@ -62,31 +62,39 @@ export default class S300Wallet {
     let oldFeature = await new Settings().getSetting('netBankFeature', deivceName)
     console.log('S300Wallet old feature', oldFeature)
     oldFeature = oldFeature && Buffer.from(oldFeature, 'hex')
-    let authenticate = new Authenticate('Esecubit', this, oldFeature)
-    let newFeature
-    try {
-      newFeature = await authenticate.prepareAuth()
-      if (!oldFeature) {
-        let pairCode = String.fromCharCode.apply(null,
-          newFeature.slice(newFeature.length - 4))
-        D.dispatch(() => authCallback(D.status.auth, pairCode))
-      }
-      console.log('S300Wallet do authenticate')
-      await authenticate.auth()
-      console.log('S300Wallet authenticate succeed')
-      D.dispatch(() => authCallback(D.status.authFinish))
 
-      if (!oldFeature) {
-        let featureHex = newFeature.toString('hex')
-        await new Settings().setSetting('netBankFeature', featureHex, deivceName)
-        console.log('S300Wallet new feature', featureHex)
-      }
-    } catch (e) {
-      if (e === D.error.deviceApduDataInvalid) {
-        console.info('S300Wallet authenticate not support, ignore')
-      } else {
-        console.warn('S300Wallet autenticate failed', e)
-        throw e
+    let newFeature
+    while (true) {
+      let authenticate = new Authenticate('Esecubit', this, oldFeature)
+      try {
+        newFeature = await authenticate.prepareAuth()
+        if (!oldFeature) {
+          let pairCode = String.fromCharCode.apply(null,
+            newFeature.slice(newFeature.length - 4))
+          D.dispatch(() => authCallback(D.status.auth, pairCode))
+        }
+        console.log('S300Wallet do authenticate')
+        await authenticate.auth()
+        console.log('S300Wallet authenticate succeed')
+        D.dispatch(() => authCallback(D.status.authFinish))
+
+        if (!oldFeature) {
+          let featureHex = newFeature.toString('hex')
+          await new Settings().setSetting('netBankFeature', featureHex, deivceName)
+          console.log('S300Wallet new feature', featureHex)
+        }
+        break
+      } catch (e) {
+        if (e === D.error.deviceApduDataInvalid) {
+          console.info('S300Wallet authenticate not support, ignore')
+          break
+        } else if (e === D.error.deviceNeedReauthenticate) {
+          await new Settings().setSetting('netBankFeature', null, deivceName)
+          oldFeature = null
+        } else {
+          console.warn('S300Wallet autenticate failed', e)
+          throw e
+        }
       }
     }
 
