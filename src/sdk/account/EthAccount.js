@@ -7,7 +7,7 @@ import EthToken from './EthToken'
 export default class EthAccount extends IAccount {
   async init () {
     await super.init()
-    this.tokens = await EthToken.getEthTokens(this, this._coinData)
+    this.tokens = await this._getEthTokens()
   }
 
   async _checkAddressIndexAndGenerateNew () {
@@ -123,13 +123,13 @@ export default class EthAccount extends IAccount {
 
     if (txInfo.isToken) {
       let token = this.tokens.find(t => t.contractAddress === txInfo.contractAddress)
-      if (!token) return
-
-      let newBalance = new BigInteger(token.balance)
-      newBalance.addTo(new BigInteger(txInfo.value), newBalance)
-      token.txInfos.push(txInfo)
-      token.balance = newBalance.toString(10)
-      await this._coinData.updateToken(token._toTokenInfo())
+      if (token) {
+        let newBalance = new BigInteger(token.balance)
+        newBalance.addTo(new BigInteger(txInfo.value), newBalance)
+        token.txInfos.push(txInfo)
+        token.balance = newBalance.toString(10)
+        await this._coinData.updateToken(token._toTokenInfo())
+      }
     } else {
       let newBalance = new BigInteger(this.balance)
       newBalance.addTo(new BigInteger(txInfo.value), newBalance)
@@ -149,6 +149,15 @@ export default class EthAccount extends IAccount {
     }
 
     this._busy = false
+  }
+
+  async getTxInfos (startIndex, endIndex) {
+    let txInfos = this.txInfos.sort((a, b) => b.time - a.time)
+    let total = this.txInfos.length
+    txInfos = txInfos.filter(t => !t.isToken)
+    txInfos = D.copy(txInfos.slice(startIndex, endIndex))
+    txInfos.forEach(t => this._coinData.setTxFlags(t))
+    return {total, txInfos}
   }
 
   async getAddress (isStoring = false) {
@@ -367,8 +376,9 @@ export default class EthAccount extends IAccount {
 
   _buildEthToken (token) {
     let txInfos = this.txInfos
-      .filter(t => t.txId.endsWith('_t'))
+      .filter(t => t.isToken)
       .filter(t => t.contractAddress === token.address)
+    txInfos.forEach(t => { t.txId = t.txId.slice(0, -2) })
     if (!token.balance) {
       // can't use BigInteger.ZERO here, addTo, subTo will modify the value of BigInteger.ZERO
       let balance = new BigInteger('0')
@@ -381,5 +391,28 @@ export default class EthAccount extends IAccount {
     }
 
     return new EthToken(token.address, token.name, token.decimals, token.balance, txInfos, this)
+  }
+
+  async _getEthTokens () {
+    let tokenInfos = await this._coinData.getTokens({accountId: this.accountId})
+    let txInfos = await this.getTxInfos()
+
+    let tokens = []
+    for (let tokenInfo of tokenInfos) {
+      let tokenTxInfos = txInfos
+        .filter(t => t.outputs[0].address === tokenInfo.address)
+        .filter(t => t.txId.endsWith('_t'))
+      tokens.push(new EthToken(
+        tokenInfo.address,
+        tokenInfo.name,
+        tokenInfo.decimals,
+        tokenInfo.type,
+        tokenInfo.balance,
+        tokenTxInfos,
+        this,
+        this._coinData
+      ))
+    }
+    return tokens
   }
 }

@@ -799,7 +799,7 @@ const D = {
   },
 
   isDecimal (num) {
-    return num.toString().includes('.')
+    return num && num.toString().includes('.')
   },
 
   getCoinIndex (coinType) {

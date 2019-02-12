@@ -2,7 +2,7 @@
 import IDatabase from './IDatabase'
 import D from '../../D'
 
-const DB_VERSION = 8
+const DB_VERSION = 9
 export default class IndexedDB extends IDatabase {
   constructor (walletId) {
     super()

@@ -1,29 +1,7 @@
-import {Bigdecimals, BigInteger} from 'bigdecimals'
+import {Bigdecimals, BigInteger} from 'bigdecimal'
 import D from '../D'
 
 export default class EthToken {
-  static async getEthTokens (account, coinData) {
-    let tokenInfos = await coinData.getTokens({accountId: account.accountId})
-    let txInfos = await account.getTxInfos()
-
-    let tokens = []
-    for (let tokenInfo of tokenInfos) {
-      let tokenTxInfos = txInfos
-        .filter(t => t.outputs[0].address === tokenInfo.address)
-        .filter(t => t.txId.endsWith('_t'))
-      tokens.push(new EthToken(
-        tokenInfo.address,
-        tokenInfo.name,
-        tokenInfo.decimals,
-        tokenInfo.type,
-        tokenInfo.balance,
-        tokenTxInfos,
-        account,
-        coinData
-      ))
-    }
-    return tokens
-  }
 
   constructor (address, name, decimals, type, balance, txInfos, account, coinData) {
     this.address = address

@@ -2,25 +2,31 @@
 import chai from 'chai'
 import D from '../../sdk/D'
 import EsWallet from '../../sdk/EsWallet'
+import Settings from "../../sdk/Settings";
 
 chai.should()
 describe('EthAccount', function () {
   this.timeout(60000)
   let esWallet
   let supportedCoinTypes
+  let oldSupported
 
-  it('init', async () => {
+  // new EsWallet may trigger sync, so do it when doing Test
+  before(async function () {
     D.test.coin = true
     D.test.jsWallet = true
-    supportedCoinTypes = D.supportedCoinTypes
+    oldSupported = D.supportedCoinTypes
     D.supportedCoinTypes = () => [D.coin.test.ethRinkeby]
+    // await new Settings().setTestSeed('00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000')
+    await new Settings().setTestSeed('dd416ff6a277596f8ef5cbbf92f870f2138dd67e18c673cd5fc2a3eca48b7da2')
     esWallet = new EsWallet()
   })
 
-  it('listenStatus', (done) => {
-    const statusList = [D.status.plugIn, D.status.initializing, D.status.syncing, D.status.syncFinish]
-    let currentStatusIndex = 0
+  after(function () {
+    D.supportedCoinTypes = oldSupported
+  })
 
+  it('listenStatus', function (done) {
     esWallet.listenTxInfo((error, txInfo) => {
       console.log('detect new tx', error, txInfo)
     })
@@ -31,12 +37,7 @@ describe('EthAccount', function () {
         done(error)
         return
       }
-      if (status !== statusList[currentStatusIndex]) {
-        done(status !== statusList[currentStatusIndex])
-        return
-      }
-      currentStatusIndex++
-      if (currentStatusIndex === statusList.length) {
+      if (status === D.status.syncFinish) {
         done()
       }
     })
