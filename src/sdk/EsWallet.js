@@ -6,6 +6,7 @@ import EthAccount from './account/EthAccount'
 import EosAccount from './account/EosAccount'
 import Settings from './Settings'
 import CoreWallet from './device/CoreWallet'
+import EthTokenList from './data/EthTokenList'
 
 /**
  * Main entry of SDK, singleton. Object to manage wallet operation and wallet data.
@@ -473,22 +474,11 @@ export default class EsWallet {
 
   /**
    * Get known ETH token list.
-   * Token list is copied from https://github.com/kvhnuke/etherwallet/blob/mercury/app/scripts/tokens/ethTokens.json
-   * in 2019/01/27.
    *
    * @returns {Promise<Object>}
    */
   async getEthTokenList () {
-    throw D.error.notImplemented
-  }
-
-  /**
-   * Query ETH browser to get a ETH token info, e.g. https://etherscan.io/token/TOKEN_NAME'
-   *
-   * @returns {Promise<Object>}
-   */
-  getEthTokenByName (name) {
-    throw D.error.notImplemented
+    return EthTokenList
   }
 
   /**

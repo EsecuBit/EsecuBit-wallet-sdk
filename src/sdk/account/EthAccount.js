@@ -346,7 +346,7 @@ export default class EthAccount extends IAccount {
   }
 
   /**
-   * @param token {address, decimals, name}
+   * @param token {address, decimals, name, type}
    */
   async addToken (token) {
     await this._device.addToken(token)

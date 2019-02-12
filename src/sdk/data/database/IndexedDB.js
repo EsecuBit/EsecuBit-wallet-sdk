@@ -105,6 +105,7 @@ export default class IndexedDB extends IDatabase {
          *   address: string,
          *   name: string,
          *   decimals: number,
+         *   type: string,
          *   accountId: string, // parent accountId
          *   coinType: string,
          *   balance: string, // (decimal string)
@@ -112,7 +113,6 @@ export default class IndexedDB extends IDatabase {
          */
         if (!db.objectStoreNames.contains('token')) {
           let token = db.createObjectStore('token', {keyPath: 'address'})
-          token.createIndex('coinType', 'coinType', {unique: false})
           token.createIndex('accountId', 'accountId', {unique: false})
         }
 
@@ -491,11 +491,6 @@ export default class IndexedDB extends IDatabase {
         request = this._db.transaction(['token'], 'readonly')
           .objectStore('token')
           .openCursor(IDBKeyRange.only(filter.accountId))
-      } else if (filter.coinType) {
-        request = this._db.transaction(['token'], 'readonly')
-          .objectStore('token')
-          .index('coinType')
-          .openCursor(IDBKeyRange.only(filter.coinType))
       } else {
         request = this._db.transaction(['token'], 'readonly')
           .objectStore('token')

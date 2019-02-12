@@ -8,16 +8,16 @@ export default class EthToken {
 
     let tokens = []
     for (let tokenInfo of tokenInfos) {
-      let tokenTxInfos = txInfos.filter(t => t.outputs[0].address === tokenInfo.address)
-      tokenTxInfos = tokenTxInfos.map(t => {
-        // TODO query erc20?
-      })
+      let tokenTxInfos = txInfos
+        .filter(t => t.outputs[0].address === tokenInfo.address)
+        .filter(t => t.txId.endsWith('_t'))
       tokens.push(new EthToken(
         tokenInfo.address,
         tokenInfo.name,
         tokenInfo.decimals,
+        tokenInfo.type,
         tokenInfo.balance,
-        tokenInfos,
+        tokenTxInfos,
         account,
         coinData
       ))
@@ -25,15 +25,17 @@ export default class EthToken {
     return tokens
   }
 
-  constructor (address, name, decimals, balance, txInfos, account) {
+  constructor (address, name, decimals, type, balance, txInfos, account, coinData) {
     this.address = address
     this.name = name
     this.decimals = decimals
+    this.type = type
     this.accountId = account.accountId
     this.coinType = account.coinType
     this.balance = balance
-    this.account = account
     this.txInfos = txInfos
+    this._account = account
+    this._coinData = coinData
   }
 
   _toTokenInfo () {
@@ -41,54 +43,35 @@ export default class EthToken {
       address: this.address,
       name: this.name,
       decimals: this.decimals,
+      type: this.type,
       accountId: this.accountId,
       coinType: this.coinType,
       balance: this.balance
     }
   }
 
-  async getTxInfos () {
-    return this.txInfos
+  async getTxInfos (startIndex, endIndex) {
+    let txInfos = this.txInfos.sort((a, b) => b.time - a.time)
+    let total = this.txInfos.length
+    txInfos = D.copy(txInfos.slice(startIndex, endIndex))
+    txInfos.forEach(tx => this._coinData.setTxFlags(tx))
+    return {total, txInfos}
   }
 
   async prepareTx (details) {
-    details.data = this._toErc20Data(details.output.address, details.output.value)
+    // TODO support ERC721
+    details.data = EthToken._toErc20Data(details.output.address, details.output.value)
     details.output.address = this.address
-    return this.account.prepareTx(details)
+    details.gasLimit = details.gasLimit || '200000'
+    return this._account.prepareTx(details)
   }
 
   async signTx (prepareTx) {
-    return this.account.signTx(prepareTx)
+    return this._account.signTx(prepareTx)
   }
 
   async sendTx (signedTx) {
-    return this.account.sendTx(signedTx)
-  }
-
-  static _parseErc20Data (data, decimals) {
-    if (typeof data === 'string') {
-      if (data.startsWith('0x')) {
-        data = data.substring(2)
-      }
-      data = Buffer.from(data, 'hex')
-    }
-    if (data.length !== 68) {
-      return null
-    }
-    if (!(data.slice(0, 4).toString('hex').toUpperCase() === 'A9059CBB')) {
-      return null
-    }
-    if (!(data.slice(4 + 32, 4 + 32 + 12).toString('hex') === '000000000000000000000000')) {
-      return null
-    }
-
-    let value = new BigInteger(data.slice(4, 4 + 32).toString('hex'), 16)
-    let rawValue = value.toString()
-    value = new Bigdecimals(rawValue)
-    value = value.divide(new Bigdecimals(10 ** decimals))
-    let address = D.address.toString(D.coin.main.eth, data.slice(4 + 32 + 12))
-
-    return {value, rawValue, address}
+    return this._account.sendTx(signedTx)
   }
 
   static _toErc20Data (receiver, value, decimals) {
@@ -97,7 +80,21 @@ export default class EthToken {
     let valueBuffer = Buffer.alloc(32)
 
     value = new Bigdecimals(value)
-    value = value.divide(new Bigdecimals(10 ** decimals))
+    value = value.multiply(new Bigdecimals(10 ** decimals))
+    value = value.toPlainString()
+    if (value.includes('.')) {
+      let index = value.length - 1
+      while (value[index] === '0') index--
+      if (value[index] === '.') index--
+      value = value.slice(0, index + 1)
+    }
+    if (value.includes('.')) {
+      throw D.error.valueIsDecimal
+    }
+    value = new BigInteger(value, 10)
+    value = value.toString(16)
+    value = Buffer.from(value, 'hex')
+    valueBuffer.copy(value)
 
     return '0x' + Buffer.concat([
       receiverBuffer, valueBuffer
