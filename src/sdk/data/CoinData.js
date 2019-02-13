@@ -286,8 +286,9 @@ export default class CoinData {
   }
 
   async newTx (account, addressInfos, txInfo, utxos = []) {
-    this.setTxFlags(txInfo)
-    this._uncomfirmedTxs.push(txInfo)
+    let unconfirmedTxInfo = D.copy(txInfo)
+    this.setTxFlags(unconfirmedTxInfo)
+    this._uncomfirmedTxs.push(unconfirmedTxInfo)
 
     console.log('newTx', account.accountId, addressInfos.map(a => a.address),
       txInfo.txId, utxos.map(u => JSON.stringify(u)))
@@ -324,6 +325,7 @@ export default class CoinData {
     } else {
       txInfo.link = this._network[txInfo.coinType].getTxLink(txInfo)
     }
+    return txInfo
   }
 
   /**

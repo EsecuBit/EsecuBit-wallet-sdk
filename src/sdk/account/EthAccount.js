@@ -1,6 +1,7 @@
 
 import D from '../D'
 import BigInteger from 'bigi'
+import ignoreCase from 'ignore-case'
 import IAccount from './IAccount'
 import EthToken from './EthToken'
 
@@ -49,7 +50,20 @@ export default class EthAccount extends IAccount {
     this.addressInfos[0].txs = this.addressInfos[0].txs.filter(txId => txId !== removedTxId)
 
     let newBalance = new BigInteger(this.balance)
-    newBalance.subTo(new BigInteger(removedTxInfo.value), newBalance)
+    if (removedTxInfo.isToken) {
+      let token = this.tokens.find(t => ignoreCase.equals(t.contractAddress, removedTxInfo.contractAddress))
+      if (token) {
+        token.txInfos = token.txInfos.filter(t => t.txId !== removedTxInfo.txId)
+
+        let newBalance = new BigInteger(token.balance)
+        newBalance.subTo(new BigInteger(removedTxInfo.value), newBalance)
+
+        token.balance = newBalance.toString(10)
+        await this._coinData.updateToken(token._toTokenInfo())
+      }
+    } else {
+      newBalance.subTo(new BigInteger(removedTxInfo.value), newBalance)
+    }
     if (removedTxInfo.direction === D.tx.direction.out) {
       newBalance.addTo(new BigInteger(removedTxInfo.fee), newBalance)
     }
@@ -69,10 +83,10 @@ export default class EthAccount extends IAccount {
 
     txInfo = D.copy(txInfo)
     txInfo.inputs.forEach(input => {
-      input['isMine'] = this.addressInfos.some(a => a.address.toLowerCase() === input.prevAddress.toLowerCase())
+      input['isMine'] = this.addressInfos.some(a => ignoreCase.equals(a.address, input.prevAddress))
     })
     txInfo.outputs.forEach(output => {
-      output['isMine'] = this.addressInfos.some(a => a.address.toLowerCase() === output.address.toLowerCase())
+      output['isMine'] = this.addressInfos.some(a => ignoreCase.equals(a.address, output.address))
     })
     let input = txInfo.inputs.find(input => input.isMine)
     txInfo.direction = input ? D.tx.direction.out : D.tx.direction.in
@@ -96,33 +110,34 @@ export default class EthAccount extends IAccount {
       this.txInfos.push(txInfo)
     } else {
       // revert balance
+      let newBalance = new BigInteger(this.balance)
+      let oldTxInfo = this.txInfos[index]
       if (txInfo.isToken) {
-        let token = this.tokens.find(t => t.contractAddress === txInfo.contractAddress)
-        if (!token) return
-
-        let newBalance = new BigInteger(token.balance)
-        newBalance.subTo(new BigInteger(txInfo.value), newBalance)
-        token.txInfos.push(txInfo)
-        token.balance = newBalance.toString(10)
-      } else {
-        let oldTxInfo = this.txInfos[index]
-        let newBalance = new BigInteger(this.balance)
-        newBalance.subTo(new BigInteger(oldTxInfo.value), newBalance)
-        if (txInfo.direction === D.tx.direction.out) {
-          newBalance.addTo(new BigInteger(oldTxInfo.fee), newBalance)
+        let token = this.tokens.find(t => ignoreCase.equals(t.contractAddress, txInfo.contractAddress))
+        if (token) {
+          let newBalance = new BigInteger(token.balance)
+          newBalance.subTo(new BigInteger(txInfo.value), newBalance)
+          token.balance = newBalance.toString(10)
         }
-        this.balance = newBalance.toString(10)
+      } else {
+        newBalance.subTo(new BigInteger(oldTxInfo.value), newBalance)
       }
 
+      if (txInfo.direction === D.tx.direction.out) {
+        newBalance.addTo(new BigInteger(oldTxInfo.fee), newBalance)
+      }
+      this.balance = newBalance.toString(10)
       txInfo.comment = this.txInfos[index].comment
       this.txInfos[index] = txInfo
     }
+
     if (!this.addressInfos[0].txs.includes(txInfo.txId)) {
       this.addressInfos[0].txs.push(txInfo.txId)
     }
 
+    let newBalance = new BigInteger(this.balance)
     if (txInfo.isToken) {
-      let token = this.tokens.find(t => t.contractAddress === txInfo.contractAddress)
+      let token = this.tokens.find(t => ignoreCase.equals(t.contractAddress, txInfo.contractAddress))
       if (token) {
         let newBalance = new BigInteger(token.balance)
         newBalance.addTo(new BigInteger(txInfo.value), newBalance)
@@ -131,13 +146,13 @@ export default class EthAccount extends IAccount {
         await this._coinData.updateToken(token._toTokenInfo())
       }
     } else {
-      let newBalance = new BigInteger(this.balance)
       newBalance.addTo(new BigInteger(txInfo.value), newBalance)
-      if (txInfo.direction === D.tx.direction.out) {
-        newBalance.subTo(new BigInteger(txInfo.fee), newBalance)
-      }
-      this.balance = newBalance.toString(10)
     }
+
+    if (txInfo.direction === D.tx.direction.out) {
+      newBalance.subTo(new BigInteger(txInfo.fee), newBalance)
+    }
+    this.balance = newBalance.toString(10)
 
     await this._coinData.newTx(this._toAccountInfo(), D.copy([this.addressInfos[0]]), D.copy(txInfo))
 
@@ -297,7 +312,7 @@ export default class EthAccount extends IAccount {
     value = '0x' + (value.length % 2 === 0 ? '' : '0') + value
     if (value === '0x00') value = '0x'
 
-    let preSignTx = {
+    let presignTx = {
       input: {address: prepareTx.input.address, path: prepareTx.input.path},
       output: {address: output.address, value: value},
       nonce: prepareTx.nonce,
@@ -305,8 +320,8 @@ export default class EthAccount extends IAccount {
       gasLimit: gasLimit,
       data: prepareTx.data
     }
-    console.log('preSignTx', preSignTx)
-    let signedTx = await this._device.signTransaction(this.coinType, preSignTx)
+    console.log('presignTx', presignTx)
+    let signedTx = await this._device.signTransaction(this.coinType, presignTx)
 
     return {
       txInfo: {
@@ -355,21 +370,25 @@ export default class EthAccount extends IAccount {
   }
 
   /**
-   * @param token {address, decimals, name, type}
+   * @param tokenInfo {address, decimals, symbol}
+   * name and type is optional
    */
-  async addToken (token) {
+  async addToken (tokenInfo) {
+    tokenInfo.name = tokenInfo.name || ''
+    tokenInfo.type = tokenInfo.type || 'ERC20'
+
     try {
-      await this._device.addToken(token)
+      await this._device.addToken(tokenInfo)
     } catch (e) {
       if (e !== D.error.deviceConditionNotSatisfied) {
         throw e
       }
     }
-    await this._coinData.newToken(token)
+    await this._coinData.newToken(tokenInfo)
 
-    token = this._buildEthToken(token)
-    this.tokens.push(token)
-    return token
+    tokenInfo = this._buildEthToken(tokenInfo)
+    this.tokens.push(tokenInfo)
+    return tokenInfo
   }
 
   /**
@@ -391,24 +410,21 @@ export default class EthAccount extends IAccount {
     return this.tokens
   }
 
-  _buildEthToken (token) {
+  _buildEthToken (tokenInfo) {
     let txInfos = this.txInfos
       .filter(t => t.isToken)
-      .filter(t => t.contractAddress === token.address)
-    txInfos.forEach(t => { t.txId = t.txId.slice(0, -2) })
-    if (!token.balance) {
-      // can't use BigInteger.ZERO here, addTo, subTo will modify the value of BigInteger.ZERO
-      let balance = new BigInteger('0')
-      txInfos
-        .filter(txInfo => txInfo.confirmations !== D.tx.confirmation.dropped)
-        .forEach(txInfo => {
-          balance.addTo(new BigInteger(txInfo.value), balance)
-        })
-      token.balance = balance.toString(10)
-    }
+      .filter(t => ignoreCase.equals(t.contractAddress, tokenInfo.address))
 
-    return new EthToken(token.address, token.name, token.decimals, token.type, token.balance,
-      txInfos, this, this._coinData)
+    // can't use BigInteger.ZERO here, addTo, subTo will modify the value of BigInteger.ZERO
+    let balance = new BigInteger('0')
+    txInfos
+      .filter(txInfo => txInfo.confirmations !== D.tx.confirmation.dropped)
+      .forEach(txInfo => {
+        balance.addTo(new BigInteger(txInfo.value), balance)
+      })
+    balance = balance.toString(10)
+
+    return new EthToken(tokenInfo, balance, txInfos, this, this._coinData)
   }
 
   async _getEthTokens () {
@@ -419,13 +435,9 @@ export default class EthAccount extends IAccount {
     for (let tokenInfo of tokenInfos) {
       let tokenTxInfos = txInfos
         .filter(t => t.outputs[0].address === tokenInfo.address)
-        .filter(t => t.txId.endsWith('_t'))
+        .filter(t => t.isToken)
       tokens.push(new EthToken(
-        tokenInfo.address,
-        tokenInfo.name,
-        tokenInfo.decimals,
-        tokenInfo.type,
-        tokenInfo.balance,
+        tokenInfo,
         tokenTxInfos,
         this,
         this._coinData

@@ -2,7 +2,7 @@
 import chai from 'chai'
 import D from '../../sdk/D'
 import EsWallet from '../../sdk/EsWallet'
-import Settings from "../../sdk/Settings";
+import Settings from '../../sdk/Settings'
 
 chai.should()
 describe('EthAccount', function () {
@@ -16,8 +16,7 @@ describe('EthAccount', function () {
     D.test.jsWallet = true
     oldSupported = D.supportedCoinTypes
     D.supportedCoinTypes = () => [D.coin.test.ethRinkeby]
-    // await new Settings().setTestSeed('00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000')
-    await new Settings().setTestSeed('dd416ff6a277596f8ef5cbbf92f870f2138dd67e18c673cd5fc2a3eca48b7da2')
+    await new Settings().setTestSeed('00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000')
     esWallet = new EsWallet()
   })
 
@@ -123,7 +122,6 @@ describe('EthAccount', function () {
       error = D.error.succeed
       account.checkAddress('0xc18f087c3837d974d6911c68404325e11999cf12')
     } catch (e) {
-      console.log('0', e)
       error = e
     }
     error.should.equal(D.error.noAddressCheckSum)
@@ -181,7 +179,9 @@ describe('EthAccount', function () {
         gasPrice: '1000000000',
         output: {address: '0x5c69f6b7a38ca89d5dd48a7f21be5f1030760891', value: '3200000000000'}
       })
+      console.log('prepareTx', prepareTx)
       let signedTx = await account.buildTx(prepareTx)
+      console.log('signedTx', signedTx)
       // await account.sendTx(signedTx)
     }
   })
@@ -192,31 +192,42 @@ describe('EthAccount', function () {
     tokenInfo = tokenList.find(t => t.name === 'BNB')
     tokenInfo.name.should.equal('BNB')
     await account.addToken(tokenInfo)
+    await account.addToken({
+      symbol: 'ESBIT',
+      name: 'Example Fixed Supply Token',
+      address: '0xbcf39e6d4b31871cac03c60d774f33ae7b147f55',
+      decimals: 9,
+      type: 'ERC20'
+    })
 
     let tokens = await account.getTokens()
-    tokens.should.lengthOf(1)
+    tokens.should.lengthOf(2)
   })
 
   it('sendTokenTx', async function () {
     let tokens = await account.getTokens()
-    tokens.should.lengthOf(1)
-    let token = tokens[0]
+    tokens.should.lengthOf(2)
+    let token = tokens.find(t => t.symbol === 'ESBIT')
 
     let prepareTx = await token.prepareTx({
       output: {
-        address: '0xc18f087c3837d974d6911c68404325e11999',
-        value: '23300000000000'
-      }
+        address: '0xc18f087c3837d974d6911c68404325e11999cf12',
+        value: '23.566'
+      },
+      gasPrice: '8000000000'
     })
-    console.log(prepareTx)
+    console.log('prepareTx', prepareTx)
     let signedTx = await token.buildTx(prepareTx)
-    console.log(signedTx)
+    console.log('signedTx', signedTx)
 
     // await account.sendTx(signedTx)
   })
 
   it('removeToken', async function () {
     await account.removeToken(tokenInfo)
+    await account.removeToken({
+      address: '0xbcf39e6d4b31871cac03c60d774f33ae7b147f55'
+    })
     let tokens = await account.getTokens()
     tokens.should.lengthOf(0)
   })

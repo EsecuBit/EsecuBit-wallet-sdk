@@ -20,7 +20,7 @@ export default class CoreWallet {
         if (target._wallet &&
           (typeof target._wallet[key] === 'function')) {
           return function () {
-            console.debug('proxy CoreWallet function to wallet implement', arguments.length)
+            console.debug('proxy CoreWallet function to wallet implement', key, arguments.length)
             return target._wallet[key].apply(target._wallet, arguments)
           }
         }

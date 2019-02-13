@@ -9894,19 +9894,6 @@ const tokenList = [
     "logo": { "src": "", "width": "", "height": "", "ipfs_hash": "" },
   },
   {
-    "symbol": "WOC",
-    "name": "WallOfChain",
-    "type": "ERC721",
-    "address": "0xf9d9702d031407f425a4412682fdc56b07d05262",
-    "decimals": 0,
-    "logo": {
-      "src": "https://wallofchain.com/assets/images/logo/icon_28x28px@2x.png",
-      "width": "56",
-      "height": "56",
-      "ipfs_hash": ""
-    }
-  },
-  {
     "symbol": "WOLK",
     "name": "Wolk Token",
     "type": "ERC20",

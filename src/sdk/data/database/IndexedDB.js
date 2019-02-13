@@ -103,6 +103,7 @@ export default class IndexedDB extends IDatabase {
          * token:
          * {
          *   address: string,
+         *   symbol: string,
          *   name: string,
          *   decimals: number,
          *   type: string,
