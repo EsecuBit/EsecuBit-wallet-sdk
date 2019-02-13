@@ -178,7 +178,7 @@ export default class EthAccount extends IAccount {
    *   output: {
    *     address: hex string,
    *     value: decimal integer string integer (Wei)
-   *   }
+   *   },
    *   gasPrice: decimal integer string (Wei),
    *   gasLimit: decimal integer string (Wei),
    *   data: （0x) hex string (optional),
@@ -358,8 +358,14 @@ export default class EthAccount extends IAccount {
    * @param token {address, decimals, name, type}
    */
   async addToken (token) {
-    await this._device.addToken(token)
-    await this._coinData.addToken(token)
+    try {
+      await this._device.addToken(token)
+    } catch (e) {
+      if (e !== D.error.deviceConditionNotSatisfied) {
+        throw e
+      }
+    }
+    await this._coinData.newToken(token)
 
     token = this._buildEthToken(token)
     this.tokens.push(token)
@@ -367,11 +373,22 @@ export default class EthAccount extends IAccount {
   }
 
   /**
-   * @param token {address, decimals, name}
+   * @param token {address}
    */
   async removeToken (token) {
-    await this._device.removeToken(token)
+    try {
+      await this._device.removeToken(token)
+    } catch (e) {
+      if (e !== D.error.deviceConditionNotSatisfied) {
+        throw e
+      }
+    }
     await this._coinData.deleteToken(token)
+    this.tokens = this.tokens.filter(t => t.address !== token.address)
+  }
+
+  async getTokens () {
+    return this.tokens
   }
 
   _buildEthToken (token) {
@@ -390,7 +407,8 @@ export default class EthAccount extends IAccount {
       token.balance = balance.toString(10)
     }
 
-    return new EthToken(token.address, token.name, token.decimals, token.balance, txInfos, this)
+    return new EthToken(token.address, token.name, token.decimals, token.type, token.balance,
+      txInfos, this, this._coinData)
   }
 
   async _getEthTokens () {

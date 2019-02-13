@@ -112,7 +112,7 @@ export default class IndexedDB extends IDatabase {
          * }
          */
         if (!db.objectStoreNames.contains('token')) {
-          let token = db.createObjectStore('token', {keyPath: 'address'})
+          let token = db.createObjectStore('token', {keyPath: ['address', 'accountId']})
           token.createIndex('accountId', 'accountId', {unique: false})
         }
 

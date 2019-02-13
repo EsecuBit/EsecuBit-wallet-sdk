@@ -1,8 +1,7 @@
-import {Bigdecimals, BigInteger} from 'bigdecimal'
+import {BigDecimal, BigInteger} from 'bigdecimal'
 import D from '../D'
 
 export default class EthToken {
-
   constructor (address, name, decimals, type, balance, txInfos, account, coinData) {
     this.address = address
     this.name = name
@@ -37,15 +36,20 @@ export default class EthToken {
   }
 
   async prepareTx (details) {
+    if (details.data) throw D.error.invalidParams
+    if (!details.output) throw D.error.invalidParams
+    if (!details.output.address) throw D.error.invalidParams
+    if (!details.output.value) throw D.error.invalidParams
+
     // TODO support ERC721
-    details.data = EthToken._toErc20Data(details.output.address, details.output.value)
+    details.data = EthToken._toErc20Data(details.output.address, details.output.value, this.decimals)
     details.output.address = this.address
     details.gasLimit = details.gasLimit || '200000'
     return this._account.prepareTx(details)
   }
 
-  async signTx (prepareTx) {
-    return this._account.signTx(prepareTx)
+  async buildTx (prepareTx) {
+    return this._account.buildTx(prepareTx)
   }
 
   async sendTx (signedTx) {
@@ -57,8 +61,8 @@ export default class EthToken {
     D.address.toBuffer(receiver).copy(receiverBuffer, 12)
     let valueBuffer = Buffer.alloc(32)
 
-    value = new Bigdecimals(value)
-    value = value.multiply(new Bigdecimals(10 ** decimals))
+    value = new BigDecimal(value)
+    value = value.multiply(new BigDecimal(10 ** decimals))
     value = value.toPlainString()
     if (value.includes('.')) {
       let index = value.length - 1
@@ -71,6 +75,9 @@ export default class EthToken {
     }
     value = new BigInteger(value, 10)
     value = value.toString(16)
+    if (value.length % 2 === 1) {
+      value = '0' + value
+    }
     value = Buffer.from(value, 'hex')
     valueBuffer.copy(value)
 

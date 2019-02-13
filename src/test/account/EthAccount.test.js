@@ -8,7 +8,6 @@ chai.should()
 describe('EthAccount', function () {
   this.timeout(60000)
   let esWallet
-  let supportedCoinTypes
   let oldSupported
 
   // new EsWallet may trigger sync, so do it when doing Test
@@ -44,7 +43,7 @@ describe('EthAccount', function () {
   })
 
   let account = null
-  it('checkAccount', async () => {
+  it('checkAccount', async function () {
     let accounts = await esWallet.getAccounts()
     accounts.length.should.not.equal(0)
     let ethAccount = accounts.find(account => account.coinType === D.coin.test.ethRinkeby)
@@ -55,7 +54,7 @@ describe('EthAccount', function () {
     Number(account.balance).should.above(0)
   })
 
-  it('getTxInfos', async () => {
+  it('getTxInfos', async function () {
     let {total, txInfos} = await account.getTxInfos(0, 100)
     total.should.above(0)
     txInfos.length.should.above(0)
@@ -85,7 +84,7 @@ describe('EthAccount', function () {
     })
   })
 
-  it('rename', async () => {
+  it('rename', async function () {
     let oldName = account.label
     let newName = 'This is a test account name'
     await account.rename(newName)
@@ -162,7 +161,7 @@ describe('EthAccount', function () {
     error.should.equal(D.error.invalidAddress)
   })
 
-  it('getAddress', async () => {
+  it('getAddress', async function () {
     let address = await account.getAddress()
     address.address.should.be.a('string')
     address.qrAddress.should.be.a('string')
@@ -176,7 +175,7 @@ describe('EthAccount', function () {
     fee[D.fee.fast].should.at.least(fee[D.fee.normal])
   })
 
-  it('sendTx', async () => {
+  it('sendTx', async function () {
     for (let nonce = 0; nonce < 1; nonce++) {
       let prepareTx = await account.prepareTx({
         gasPrice: '1000000000',
@@ -187,7 +186,38 @@ describe('EthAccount', function () {
     }
   })
 
-  it('recover', async () => {
-    D.supportedCoinTypes = supportedCoinTypes
+  let tokenInfo = null
+  it('addToken', async function () {
+    let tokenList = await esWallet.getEthTokenList()
+    tokenInfo = tokenList.find(t => t.name === 'BNB')
+    tokenInfo.name.should.equal('BNB')
+    await account.addToken(tokenInfo)
+
+    let tokens = await account.getTokens()
+    tokens.should.lengthOf(1)
+  })
+
+  it('sendTokenTx', async function () {
+    let tokens = await account.getTokens()
+    tokens.should.lengthOf(1)
+    let token = tokens[0]
+
+    let prepareTx = await token.prepareTx({
+      output: {
+        address: '0xc18f087c3837d974d6911c68404325e11999',
+        value: '23300000000000'
+      }
+    })
+    console.log(prepareTx)
+    let signedTx = await token.buildTx(prepareTx)
+    console.log(signedTx)
+
+    // await account.sendTx(signedTx)
+  })
+
+  it('removeToken', async function () {
+    await account.removeToken(tokenInfo)
+    let tokens = await account.getTokens()
+    tokens.should.lengthOf(0)
   })
 })
