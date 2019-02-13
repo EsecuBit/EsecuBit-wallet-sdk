@@ -91,10 +91,10 @@ export default class CoreWallet {
       console.warn('init wallet first')
       throw D.error.deviceNotConnected
     }
-    if (this._wallet.getWalletInfo === null) {
+    if (this._wallet.getWalletBattery === null) {
       throw D.error.deviceComm
     }
-    return this._wallet.getWalletInfo()
+    return this._wallet.getWalletBattery()
   }
 
   getAddress (coinType, path, isShowing = false, isStoring = false) {
