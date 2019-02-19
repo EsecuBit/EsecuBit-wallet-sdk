@@ -3,7 +3,7 @@ import CryptoJS from 'crypto-js'
 import JSEncrypt from './jsencrypt'
 import MockDevice from '../transmitter/io/MockDevice'
 import D from '../../../D'
-import {sm2, sm4} from 'sm.js'
+import {sm2, sm4} from 'sm-series-crypto'
 
 const _customPadding = (data, modeLen) => {
   let padNum = modeLen - data.length % modeLen
@@ -33,7 +33,6 @@ export default class Crypto {
   }
 
   static async des112 (isEnc, data, key, padding = false) {
-
     if (typeof data === 'string') {
       data = Buffer.from(data, 'hex')
     }

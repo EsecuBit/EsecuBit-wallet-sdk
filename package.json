@@ -65,6 +65,7 @@
     "ecurve": "^1.0.6",
     "ignore-case": "^0.1.0",
     "keccak": "^1.4.0",
-    "rlp": "2.1.0"
+    "rlp": "2.1.0",
+    "sm-series-crypto": "^0.2.0"
   }
 }
