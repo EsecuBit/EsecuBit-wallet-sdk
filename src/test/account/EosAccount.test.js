@@ -14,7 +14,7 @@ chai.should()
 D.test.jsWallet = true
 D.test.coin = true
 
-describe('EosAccount sync and sign', function () {
+describe('EosAccount', function () {
   this.timeout(60 * 1000)
   let account
   let coinData

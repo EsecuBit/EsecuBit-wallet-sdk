@@ -266,7 +266,7 @@ export default class EosAccount extends IAccount {
    * Returns whether this EOS account is registered.
    */
   isRegistered () {
-    return !!this.label
+    return this.addressInfos.some(a => a.address)
   }
 
   /**
