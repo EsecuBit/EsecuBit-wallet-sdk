@@ -15,7 +15,7 @@ describe('BtcAccount', function () {
     console.log(tx)
   })
 
-  // new EsWallet may trigger sync, so make it lazy
+  // new EsWallet may trigger sync, so do it when doing Test
   before(async function () {
     D.test.coin = true
     D.test.jsWallet = true
@@ -23,6 +23,10 @@ describe('BtcAccount', function () {
     D.supportedCoinTypes = () => [D.coin.test.btcTestNet3]
     await new Settings().setTestSeed('00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000')
     esWallet = new EsWallet()
+  })
+
+  after(function () {
+    D.supportedCoinTypes = oldSupported
   })
 
   it('listenStatus', function (done) {
@@ -156,9 +160,5 @@ describe('BtcAccount', function () {
     let signedTx = await account.buildTx(prepareTx)
     console.log('signedTx', signedTx)
     // await account.sendTx(signedTx)
-  })
-
-  after(function () {
-    D.supportedCoinTypes = oldSupported
   })
 })

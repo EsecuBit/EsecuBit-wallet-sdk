@@ -6,6 +6,7 @@ import EthAccount from './account/EthAccount'
 import EosAccount from './account/EosAccount'
 import Settings from './Settings'
 import CoreWallet from './device/CoreWallet'
+import EthTokenList from './data/EthTokenList'
 
 /**
  * Main entry of SDK, singleton. Object to manage wallet operation and wallet data.
@@ -473,6 +474,15 @@ export default class EsWallet {
 
   getDeviceBattery () {
     return this._device.getWalletBattery()
+  }
+
+  /**
+   * Get known ETH token list.
+   *
+   * @returns {Promise<Object>}
+   */
+  async getEthTokenList () {
+    return EthTokenList
   }
 
   /**

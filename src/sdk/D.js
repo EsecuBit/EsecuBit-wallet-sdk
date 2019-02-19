@@ -42,6 +42,7 @@ const D = {
     deviceApduDataInvalid: 113,
     deviceNotConnected: 114,
     deviceNeedReauthenticate: 115,
+    deviceConditionNotSatisfied: 116,
 
     fatUnavailable: 121,
     fatOutOfRange: 122,
@@ -101,6 +102,7 @@ const D = {
       if (sw1sw2 === 0x6FF9) return D.error.operationTimeout
       if (sw1sw2 === 0x6FFE) return D.error.devicePressKeyTooEarly
       if (sw1sw2 === 0x6A83) return D.error.deviceNeedReauthenticate
+      if (sw1sw2 === 0x6985) return D.error.deviceConditionNotSatisfied
       if ((sw1sw2 & 0xFFF0) === 0x63C0) return D.error.pinError
       return D.error.deviceProtocol
     }
@@ -806,7 +808,7 @@ const D = {
   },
 
   isDecimal (num) {
-    return num.toString().includes('.')
+    return num && num.toString().includes('.')
   },
 
   getCoinIndex (coinType) {

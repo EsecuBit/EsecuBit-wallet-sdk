@@ -11,112 +11,17 @@ import CcidTransmitter from '../../sdk/device/implements/transmitter/CcidTransmi
 
 chai.should()
 
-// describe('EosAccount sign only', function () {
-//   this.timeout(60 * 1000)
-//   let account
-//   let jsWallet
-//   let coinData
-//
-//   before(async function () {
-//     jsWallet = new JsWallet(new JsTransmitter())
-//     coinData = new CoinData()
-//     let walletInfo = await jsWallet.init()
-//     await coinData.init(walletInfo)
-//
-//     account = new EosAccount({
-//       label: 'atestaccount',
-//       coinType: D.coin.test.eosJungle,
-//       accountId: 'eos_jungle_0_23f876c8a',
-//       index: 0,
-//       balance: '50',
-//       externalPublicKeyIndex: 0,
-//       changePublicKeyIndex: 0,
-//       permissions: {
-//         owner: [{
-//           permission: 'owner',
-//           publicKey: '',
-//           keyPath: "m/48'/4'/0'/0'/0'"
-//         }],
-//         active: [{
-//           permission: 'active',
-//           publicKey: '',
-//           keyPath: "m/48'/4'/1'/0'/0'"
-//         }]
-//       }
-//     }, jsWallet, coinData)
-//   })
-//
-//   after(async function () {
-//     await coinData.release()
-//   })
-//
-//   it('signTx', async function () {
-//     let details = {
-//       type: 'tokenTransfer',
-//       token: 'EOS',
-//       outputs: [{
-//         account: 'inita',
-//         value: '70'
-//       }, {
-//         account: 'initb',
-//         value: '6.6'
-//       }]
-//     }
-//     let prepareTx = await account.prepareTx(details)
-//     console.log('prepareTx', prepareTx, JSON.stringify(prepareTx, null, 2))
-//     prepareTx.should.deep.equal({
-//       expirationAfter: 600,
-//       actions: [
-//         {
-//           account: 'eosio.token',
-//           name: 'transfer',
-//           authorization: [
-//             {
-//               actor: 'atestaccount',
-//               permission: 'active'
-//             }
-//           ],
-//           data: {
-//             from: 'atestaccount',
-//             to: 'inita',
-//             quantity: '70.0000 EOS',
-//             memo: ''
-//           }
-//         },
-//         {
-//           account: 'eosio.token',
-//           name: 'transfer',
-//           authorization: [
-//             {
-//               actor: 'atestaccount',
-//               permission: 'active'
-//             }
-//           ],
-//           data: {
-//             from: 'atestaccount',
-//             to: 'initb',
-//             quantity: '6.6000 EOS',
-//             memo: ''
-//           }
-//         }
-//       ],
-//       comment: ''
-//     })
-//     let buildTx = await account.buildTx(prepareTx)
-//     console.log('EosAccount buildTx', buildTx, JSON.stringify(buildTx, null, 2))
-//     buildTx.should.not.equal(undefined)
-//   })
-// })
-
-D.test.jsWallet = false
+D.test.jsWallet = true
 D.test.coin = true
 
 describe('EosAccount sync and sign', function () {
   this.timeout(60 * 1000)
   let account
   let coinData
+  let oldSupported
 
   before(async function () {
+    oldSupported = D.supportedCoinTypes
     let coinType = D.test.coin ? D.coin.test.eosJungle : D.coin.main.eos
     D.supportedCoinTypes = () => [coinType]
 
@@ -142,7 +47,7 @@ describe('EosAccount sync and sign', function () {
         // await coinData.clearData()
 
         account = new EosAccount({
-          label: 'sickworm1111',
+          label: 'esecubit1111',
           coinType: coinType,
           accountId: coinType + '_0_23f876c8a',
           index: 0,
@@ -171,6 +76,7 @@ describe('EosAccount sync and sign', function () {
   })
 
   after(async function () {
+    D.supportedCoinTypes = oldSupported
     // await coinData.clearData()
     // await coinData.release()
   })
@@ -192,5 +98,22 @@ describe('EosAccount sync and sign', function () {
     let buildTx = await account.buildTx(prepareTx)
     console.log('EosAccount buildTx', buildTx, JSON.stringify(buildTx, null, 2))
     buildTx.should.not.equal(undefined)
+  })
+
+  it('signTx2', async function () {
+    let details = {
+      type: 'tokenTransfer',
+      token: 'EOS',
+      outputs: [{
+        account: 'sickworm1111',
+        value: '0.213'
+      }]
+    }
+    let prepareTx = await account.prepareTx(details)
+    console.log('prepareTx 2', prepareTx, JSON.stringify(prepareTx, null, 2))
+    let signedTx = await account.buildTx(prepareTx)
+    console.log('EosAccount buildTx 2', signedTx, JSON.stringify(signedTx, null, 2))
+    signedTx.should.not.equal(undefined)
+    // await account.sendTx(signedTx)
   })
 })

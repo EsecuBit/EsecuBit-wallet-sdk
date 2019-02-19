@@ -9,6 +9,7 @@ import D from '../../D'
 import FcBuffer from './protocol/EosFcBuffer'
 import createHash from 'create-hash'
 import base58 from 'bs58'
+import {Buffer} from "buffer";
 
 /**
  * A wallet implemented by JavaScript.
@@ -138,6 +139,14 @@ export default class JsWallet {
         publicKey: await this.getAddress(coinType, "m/48'/4'/1'/0'/0'") // slip-0048
       }]
     }]
+  }
+
+  async addToken (coinType, token) {
+    // do nothing
+  }
+
+  async removeToken (coinType, token) {
+    // do nothing
   }
 
   async addPermissions () {

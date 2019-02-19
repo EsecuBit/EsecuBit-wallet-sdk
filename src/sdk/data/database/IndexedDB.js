@@ -2,7 +2,7 @@
 import IDatabase from './IDatabase'
 import D from '../../D'
 
-const DB_VERSION = 8
+const DB_VERSION = 9
 export default class IndexedDB extends IDatabase {
   constructor (walletId) {
     super()
@@ -100,6 +100,24 @@ export default class IndexedDB extends IDatabase {
         }
 
         /**
+         * token:
+         * {
+         *   address: string,
+         *   symbol: string,
+         *   name: string,
+         *   decimals: number,
+         *   type: string,
+         *   accountId: string, // parent accountId
+         *   coinType: string,
+         *   balance: string, // (decimal string)
+         * }
+         */
+        if (!db.objectStoreNames.contains('token')) {
+          let token = db.createObjectStore('token', {keyPath: ['address', 'accountId']})
+          token.createIndex('accountId', 'accountId', {unique: false})
+        }
+
+        /**
          * txInfo:
          * btc:
          * {
@@ -141,6 +159,8 @@ export default class IndexedDB extends IDatabase {
          *   gasPrice: string (decimal string Wei),
          *   data: hex string,
          *   nonce: number
+         *   contractAddress: string,
+         *   isToken: bool
          * }
          *
          * eos:
@@ -418,6 +438,96 @@ export default class IndexedDB extends IDatabase {
 
       let error = e => {
         console.warn('updateAccount', e)
+        reject(D.error.databaseExecFailed)
+      }
+
+      request.onsuccess = resolve
+      request.onerror = error
+    })
+  }
+
+  newToken (token) {
+    return new Promise((resolve, reject) => {
+      if (this._db === null) {
+        reject(D.error.databaseOpenFailed)
+        return
+      }
+
+      let transaction = this._db.transaction(['token'], 'readwrite')
+      let request = transaction.objectStore('token').add(token)
+      request.onsuccess = resolve
+      request.onerror = (e) => {
+        console.warn('newToken', e)
+        reject(D.error.databaseExecFailed)
+      }
+    })
+  }
+
+  deleteToken (token) {
+    return new Promise((resolve, reject) => {
+      if (this._db === null) {
+        reject(D.error.databaseOpenFailed)
+        return
+      }
+
+      let transaction = this._db.transaction(['token'], 'readwrite')
+      let request = transaction.objectStore('token').delete(token.address)
+      request.onsuccess = resolve
+      request.onerror = (e) => {
+        console.warn('deleteToken', e)
+        reject(D.error.databaseExecFailed)
+      }
+    })
+  }
+
+  getTokens (filter = {}) {
+    return new Promise((resolve, reject) => {
+      if (this._db === null) {
+        reject(D.error.databaseOpenFailed)
+        return
+      }
+
+      let request
+      if (filter.accountId) {
+        request = this._db.transaction(['token'], 'readonly')
+          .objectStore('token')
+          .openCursor(IDBKeyRange.only(filter.accountId))
+      } else {
+        request = this._db.transaction(['token'], 'readonly')
+          .objectStore('token')
+          .openCursor()
+      }
+
+      let result = []
+      request.onsuccess = (e) => {
+        let cursor = e.target.result
+        if (!cursor) {
+          resolve(result)
+          return
+        }
+        result.push(cursor.value)
+        cursor.continue()
+      }
+      request.onerror = (e) => {
+        console.warn('getTokens', e)
+        reject(D.error.databaseExecFailed)
+      }
+    })
+  }
+
+  updateToken (token) {
+    return new Promise((resolve, reject) => {
+      if (this._db === null) {
+        reject(D.error.databaseOpenFailed)
+        return
+      }
+
+      let request = this._db.transaction(['token'], 'readwrite')
+        .objectStore('token')
+        .put(token)
+
+      let error = e => {
+        console.warn('updateToken', e)
         reject(D.error.databaseExecFailed)
       }
 

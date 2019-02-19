@@ -2,25 +2,29 @@
 import chai from 'chai'
 import D from '../../sdk/D'
 import EsWallet from '../../sdk/EsWallet'
+import Settings from '../../sdk/Settings'
 
 chai.should()
 describe('EthAccount', function () {
   this.timeout(60000)
   let esWallet
-  let supportedCoinTypes
+  let oldSupported
 
-  it('init', async () => {
+  // new EsWallet may trigger sync, so do it when doing Test
+  before(async function () {
     D.test.coin = true
     D.test.jsWallet = true
-    supportedCoinTypes = D.supportedCoinTypes
+    oldSupported = D.supportedCoinTypes
     D.supportedCoinTypes = () => [D.coin.test.ethRinkeby]
+    await new Settings().setTestSeed('00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000')
     esWallet = new EsWallet()
   })
 
-  it('listenStatus', (done) => {
-    const statusList = [D.status.plugIn, D.status.initializing, D.status.syncing, D.status.syncFinish]
-    let currentStatusIndex = 0
+  after(function () {
+    D.supportedCoinTypes = oldSupported
+  })
 
+  it('listenStatus', function (done) {
     esWallet.listenTxInfo((error, txInfo) => {
       console.log('detect new tx', error, txInfo)
     })
@@ -31,19 +35,14 @@ describe('EthAccount', function () {
         done(error)
         return
       }
-      if (status !== statusList[currentStatusIndex]) {
-        done(status !== statusList[currentStatusIndex])
-        return
-      }
-      currentStatusIndex++
-      if (currentStatusIndex === statusList.length) {
+      if (status === D.status.syncFinish) {
         done()
       }
     })
   })
 
   let account = null
-  it('checkAccount', async () => {
+  it('checkAccount', async function () {
     let accounts = await esWallet.getAccounts()
     accounts.length.should.not.equal(0)
     let ethAccount = accounts.find(account => account.coinType === D.coin.test.ethRinkeby)
@@ -54,7 +53,7 @@ describe('EthAccount', function () {
     Number(account.balance).should.above(0)
   })
 
-  it('getTxInfos', async () => {
+  it('getTxInfos', async function () {
     let {total, txInfos} = await account.getTxInfos(0, 100)
     total.should.above(0)
     txInfos.length.should.above(0)
@@ -84,7 +83,7 @@ describe('EthAccount', function () {
     })
   })
 
-  it('rename', async () => {
+  it('rename', async function () {
     let oldName = account.label
     let newName = 'This is a test account name'
     await account.rename(newName)
@@ -123,7 +122,6 @@ describe('EthAccount', function () {
       error = D.error.succeed
       account.checkAddress('0xc18f087c3837d974d6911c68404325e11999cf12')
     } catch (e) {
-      console.log('0', e)
       error = e
     }
     error.should.equal(D.error.noAddressCheckSum)
@@ -161,7 +159,7 @@ describe('EthAccount', function () {
     error.should.equal(D.error.invalidAddress)
   })
 
-  it('getAddress', async () => {
+  it('getAddress', async function () {
     let address = await account.getAddress()
     address.address.should.be.a('string')
     address.qrAddress.should.be.a('string')
@@ -175,18 +173,62 @@ describe('EthAccount', function () {
     fee[D.fee.fast].should.at.least(fee[D.fee.normal])
   })
 
-  it('sendTx', async () => {
+  it('sendTx', async function () {
     for (let nonce = 0; nonce < 1; nonce++) {
       let prepareTx = await account.prepareTx({
         gasPrice: '1000000000',
         output: {address: '0x5c69f6b7a38ca89d5dd48a7f21be5f1030760891', value: '3200000000000'}
       })
+      console.log('prepareTx', prepareTx)
       let signedTx = await account.buildTx(prepareTx)
+      console.log('signedTx', signedTx)
       // await account.sendTx(signedTx)
     }
   })
 
-  it('recover', async () => {
-    D.supportedCoinTypes = supportedCoinTypes
+  let tokenInfo = null
+  it('addToken', async function () {
+    let tokenList = await esWallet.getEthTokenList()
+    tokenInfo = tokenList.find(t => t.name === 'BNB')
+    tokenInfo.name.should.equal('BNB')
+    await account.addToken(tokenInfo)
+    await account.addToken({
+      symbol: 'ESBIT',
+      name: 'Example Fixed Supply Token',
+      address: '0xbcf39e6d4b31871cac03c60d774f33ae7b147f55',
+      decimals: 9,
+      type: 'ERC20'
+    })
+
+    let tokens = await account.getTokens()
+    tokens.should.lengthOf(2)
+  })
+
+  it('sendTokenTx', async function () {
+    let tokens = await account.getTokens()
+    tokens.should.lengthOf(2)
+    let token = tokens.find(t => t.symbol === 'ESBIT')
+
+    let prepareTx = await token.prepareTx({
+      output: {
+        address: '0xc18f087c3837d974d6911c68404325e11999cf12',
+        value: '23.566'
+      },
+      gasPrice: '8000000000'
+    })
+    console.log('prepareTx', prepareTx)
+    let signedTx = await token.buildTx(prepareTx)
+    console.log('signedTx', signedTx)
+
+    // await account.sendTx(signedTx)
+  })
+
+  it('removeToken', async function () {
+    await account.removeToken(tokenInfo)
+    await account.removeToken({
+      address: '0xbcf39e6d4b31871cac03c60d774f33ae7b147f55'
+    })
+    let tokens = await account.getTokens()
+    tokens.should.lengthOf(0)
   })
 })
