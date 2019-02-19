@@ -99,4 +99,21 @@ describe('EosAccount sync and sign', function () {
     console.log('EosAccount buildTx', buildTx, JSON.stringify(buildTx, null, 2))
     buildTx.should.not.equal(undefined)
   })
+
+  it('signTx2', async function () {
+    let details = {
+      type: 'tokenTransfer',
+      token: 'EOS',
+      outputs: [{
+        account: 'sickworm1111',
+        value: '0.213'
+      }]
+    }
+    let prepareTx = await account.prepareTx(details)
+    console.log('prepareTx 2', prepareTx, JSON.stringify(prepareTx, null, 2))
+    let signedTx = await account.buildTx(prepareTx)
+    console.log('EosAccount buildTx 2', signedTx, JSON.stringify(signedTx, null, 2))
+    signedTx.should.not.equal(undefined)
+    // await account.sendTx(signedTx)
+  })
 })
