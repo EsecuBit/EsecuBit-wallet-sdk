@@ -147,7 +147,7 @@ export default class EosAccount extends IAccount {
         for (let pKey of permission.pKeys) {
           let relativeInfo = this.addressInfos.find(a => pKey.publicKey === a.publicKey)
           if (!relativeInfo) {
-            console.warn('publicKey not found in class', pKey)
+            console.warn('publicKey not found in account', pKey)
             continue
           }
           if (!relativeInfo.address ||
