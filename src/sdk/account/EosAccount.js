@@ -62,10 +62,9 @@ export default class EosAccount extends IAccount {
       await this._checkPermissionAndGenerateNew()
     }
 
-    this.tokens = this.tokens || {'EOS': {code: 'eosio.token', symbol: 'EOS'}}
     let newAccountInfo = await this._network.getAccountInfo(this.label, this.tokens)
-    console.info('EosAccount getAccountInfo', newAccountInfo)
-    await this._updatePermissions(newAccountInfo.permissions, callback)
+    console.info('EosAccount sync getAccountInfo', newAccountInfo)
+    this._syncPermissions = newAccountInfo.permissions
     this.tokens = D.copy(newAccountInfo.tokens)
     this.resources = D.copy(newAccountInfo.resources)
     this.balance = newAccountInfo.balance
@@ -90,10 +89,7 @@ export default class EosAccount extends IAccount {
    * status = D.status.syncingNewEosPermissions or D.status.syncingNewEosWillConfirmPermissions
    * @returns {Promise<boolean>}
    */
-  async checkNewPermission (callback) {
-    if (this.isRegistered()) {
-      return false
-    }
+  async checkAccountPermissions (callback) {
     try {
       await this._checkPermissionAndGenerateNew()
     } catch (e) {
@@ -101,7 +97,7 @@ export default class EosAccount extends IAccount {
       console.warn('app may in offline mode, ignore here')
     }
 
-    let checkNewKey = async () => {
+    let checkNewAccount = async () => {
       for (let pmIndex = 0; pmIndex < maxPermissionThreshold; pmIndex++) {
         console.log('EosAccount not registered, check publickey', pmIndex)
         // slip-0048 recovery
@@ -118,29 +114,44 @@ export default class EosAccount extends IAccount {
           } else {
             // choose the first account if this key matches multi accounts
             // set the label as account name
-            this.label = accounts[0]
-            return true
+            return accounts[0]
           }
           // slow down the request speed
           await D.wait(200)
         }
         console.info('this EosAccount has not been registered', pmIndex)
       }
+      return null
+    }
+
+    let accountName = this.label
+    if (!this.isRegistered()) {
+      accountName = await checkNewAccount()
+    }
+    if (!accountName) {
       return false
     }
+    this.label = accountName
 
-    if (await checkNewKey()) {
-      let newAccountInfo = await this._network.getAccountInfo(this.label, this.tokens)
-      console.info('EosAccount getAccountInfo', newAccountInfo)
-      await this.sync(callback)
-      return true
+    let tokens = this.tokens || {'EOS': {code: 'eosio.token', symbol: 'EOS'}}
+    let syncPermissions = this._syncPermissions
+    if (!syncPermissions) {
+      let newAccountInfo = await this._network.getAccountInfo(accountName, tokens)
+      console.info('EosAccount registered getAccountInfo', newAccountInfo)
+      syncPermissions = newAccountInfo.permissions
     }
-    return false
+    this._syncPermissions = null
+    let updatedPermissions = await this._updatePermissions(syncPermissions, callback)
+    if (this.isRegistered()) {
+      await this.sync(null)
+    }
+    return updatedPermissions.length > 0
   }
 
-  async _updatePermissions (permissions, deviceUpdateCallBack) {
-    let updatedPmInfos = []
-    let updatedDevicePmInfos = []
+  async _updatePermissions (permissions, updateCallback) {
+    let updatePmInfos = []
+    let addDevicePmInfos = []
+    let removeDevicePmInfos = []
     let needCheck = true
     while (needCheck) {
       for (let permission of Object.values(permissions)) {
@@ -156,12 +167,6 @@ export default class EosAccount extends IAccount {
             relativeInfo.parent !== permission.parent ||
             relativeInfo.threshold !== permission.threshold ||
             relativeInfo.weight !== pKey.weight) {
-            // check permissions that needs update to device
-            if (!relativeInfo.address ||
-              !relativeInfo.registered ||
-              relativeInfo.type !== permission.name) {
-              updatedDevicePmInfos.push(relativeInfo)
-            }
 
             console.log('update permission info', relativeInfo, permission)
             relativeInfo.address = this.label
@@ -170,25 +175,59 @@ export default class EosAccount extends IAccount {
             relativeInfo.parent = permission.parent
             relativeInfo.threshold = permission.threshold
             relativeInfo.weight = pKey.weight
-            updatedPmInfos.push(relativeInfo)
+            updatePmInfos.push(relativeInfo)
+
+            // check permissions that needs update to device
+            if (!relativeInfo.address ||
+              !relativeInfo.registered ||
+              relativeInfo.type !== permission.name) {
+              // TODO handle permission that only change path or name, first remove then add
+              addDevicePmInfos.push(relativeInfo)
+            }
+          }
+        }
+
+        let existsPmInfos = this.addressInfos.filter(a => a.address)
+        for (let pmInfo of existsPmInfos) {
+          let relativePKeys = permission.pKeys.find(p => p.publicKey === pmInfo.publicKey)
+          if (!relativePKeys) {
+            // this permission was deleted
+            pmInfo.registered = false
+            updatePmInfos.push(pmInfo)
+            removeDevicePmInfos.push(pmInfo)
           }
         }
       }
       needCheck = (await this._checkPermissionAndGenerateNew()).length > 0
     }
 
-    // TODO currently device not handle permission changes
-    if (updatedDevicePmInfos.length > 0) {
-      if (typeof deviceUpdateCallBack !== 'function') {
-        console.warn('deviceUpdateCallBack not a function')
-        throw D.error.invalidParams
-      }
-      console.info('device permissions needs update', updatedDevicePmInfos)
-      D.dispatch(() => deviceUpdateCallBack(D.error.succeed,
-        D.status.syncingNewEosPermissions, D.copy(updatedDevicePmInfos)))
+    if (updatePmInfos.length === 0) {
+      console.info('permissions not change')
+      return
     }
-    await this._device.addPermissions(this.coinType, updatedDevicePmInfos, deviceUpdateCallBack)
-    await this._coinData.updateAddressInfos(updatedPmInfos)
+
+    if (typeof updateCallback !== 'function') {
+      console.warn('updateCallback not a function')
+      throw D.error.invalidParams
+    }
+    console.info('permissions needs update', updatePmInfos, addDevicePmInfos, removeDevicePmInfos)
+    D.dispatch(() => updateCallback(D.error.succeed,
+      D.status.newEosPermissions, D.copy(updatePmInfos)))
+
+    for (let pmInfo of removeDevicePmInfos) {
+      await this._device.removePermission(this.coinType, pmInfo)
+      D.dispatch(() => updateCallback(D.error.succeed,
+        D.status.confirmedEosPermission, D.copy(pmInfo)))
+    }
+    for (let pmInfo of addDevicePmInfos) {
+      await this._device.addPermission(this.coinType, pmInfo)
+      D.dispatch(() => updateCallback(D.error.succeed,
+        D.status.confirmedEosPermission, D.copy(pmInfo)))
+    }
+
+    await this._coinData.updateAddressInfos(updatePmInfos)
+
+    return updatePmInfos
   }
 
   async _checkPermissionAndGenerateNew () {
@@ -273,26 +312,22 @@ export default class EosAccount extends IAccount {
    * Return all permissions or {owner, active} from device(important) if not registered
    * @returns {Promise<*>}
    */
-  async getPermissions () {
-    let permissions = await this._device.getPermissions(this.coinType, 0x80000000 + this.index)
-    let result = {}
-    result.permissions = permissions
-    result.isRegistered = this.isRegistered()
-
-    for (let permission of result.permissions) {
-      for (let key of permission.keys) {
-        let publicKey = this.addressInfos.find(a => a.publicKey === key.publicKey)
-        if (!publicKey || (result.isRegistered && !publicKey.address)) {
-          console.warn('found unknown permissions', permission, key)
-          throw D.error.permissionNotFound
-        }
-        key.weight = publicKey.weight || 1
-        key.path = publicKey.path
-        permission.threshold = publicKey.threshold || 1
-        permission.parent = publicKey.parent || ''
-      }
+  async getPermissions (showDefaultOnDevice = false) {
+    if (showDefaultOnDevice) {
+      await this._device.getDefaultPermissions(this.coinType, this.index)
     }
-    return result
+
+    if (this.isRegistered()) {
+      return D.copy(this.addressInfos)
+    } else {
+      // return default permissions
+      let ownerPmInfo = this.addressInfos.find(a => a.path === "m/48'/4'/0'/0'/0'")
+      let activePmInfo = this.addressInfos.find(a => a.path === "m/48'/4'/0'/0'/0'")
+      if (!ownerPmInfo || !activePmInfo) {
+        throw D.error.deviceNotConnected
+      }
+      return D.copy([ownerPmInfo, activePmInfo])
+    }
   }
 
   async getAddress () {

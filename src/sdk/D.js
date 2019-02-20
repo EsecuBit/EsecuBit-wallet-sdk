@@ -18,10 +18,10 @@ const D = {
     authFinish: 5,
     syncing: 10,
     syncingNewAccount: 11,
-    syncingNewEosPermissions: 12,
-    syncingNewEosWillConfirmPermissions: 13,
     syncFinish: 20,
-    plugOut: 99
+    plugOut: 99,
+    newEosPermissions: 10001,
+    confirmedEosPermission: 10002
   },
 
   error: {
@@ -701,15 +701,15 @@ const D = {
   },
 
   isBtc (coinType) {
-    return coinType.startsWith('btc')
+    return coinType && coinType.startsWith('btc')
   },
 
   isEth (coinType) {
-    return coinType.startsWith('eth')
+    return coinType && coinType.startsWith('eth')
   },
 
   isEos (coinType) {
-    return coinType.startsWith('eos')
+    return coinType && coinType.startsWith('eos')
   },
 
   suppertedLegals () {

@@ -216,84 +216,62 @@ export default class S300Wallet {
     return address
   }
 
-  async getPermissions (coinType, accountIndex) {
+  async getDefaultPermissions (coinType, accountIndex) {
     if (!D.isEos(coinType)) {
       console.warn('getPermissions only supports EOS', coinType)
       throw D.error.coinNotSupported
     }
+    accountIndex += 0x80000000
     if (accountIndex < 0x80000000 || accountIndex > 0xFFFFFFFF) {
       console.warn('accountIndex out of range', accountIndex)
       throw D.error.invalidParams
     }
 
-    let apdu = Buffer.from('8050000004' + accountIndex.toString(), 'hex')
-    let response = await this.sendApdu(apdu, true, coinType)
-    let parts = String.fromCharCode.apply(null, new Uint8Array(response)).split('\n')
-    // remove the head and the tail
-    parts = parts.slice(1, parts.length - 1)
-    let permissions = []
+    let apdu = Buffer.from('806800000400000000', 'hex')
+    apdu[5] = (accountIndex >> 24) & 0xff
+    apdu[6] = (accountIndex >> 16) & 0xff
+    apdu[7] = (accountIndex >> 8) & 0xff
+    apdu[8] = accountIndex & 0xff
 
-    let index = 0
-    while (index < parts.length) {
-      let name = parts[index++]
-      name = name.slice(0, name.length - 1)
-      let key = parts[index++]
-      let permission = permissions.find(p => p.name === name)
-      if (!permission) {
-        permissions.push({name: name, keys: [{publicKey: key}]})
-      } else {
-        permission.keys.push({publicKey: key})
-      }
-    }
-    return permissions
+    await this.sendApdu(apdu, true, coinType)
   }
 
-  async addPermissions (coinType, permissions, showingCallback) {
+  async addPermission (coinType, pmInfo) {
     if (!D.isEos(coinType)) {
       console.warn('addPermissions only supports EOS', coinType)
       throw D.error.coinNotSupported
     }
 
-    // 8052 0000 len count[1] {actor[8] name[8] path[20]}...
-    let apduHead = Buffer.from('805200000000', 'hex')
-    let datas = Buffer.alloc(0)
-    let count = 0
-    let updatePermissions = async () => {
-      D.dispatch(() => showingCallback(D.error.succeed,
-        D.status.syncingNewEosWillConfirmPermissions, permissions.slice(0, count)))
-      let apdu = Buffer.concat([apduHead, datas])
-      apdu[0x04] = 1 + datas.length
-      apdu[0x05] = count
-      try {
-        await this.sendApdu(apdu, true, coinType)
-      } catch (e) {
-        console.warn('add permissions failed', permissions.slice(0, count))
-        D.dispatch(() => showingCallback(D.error.userCancel,
-          D.status.syncingNewEosWillConfirmPermissions, permissions.slice(0, count)))
-        throw D.error.userCancel
-      }
-      count = 0
-      datas = Buffer.alloc(0)
+    // 8064 0000 lc actor[8] name[8] path[20]
+    let apduHead = Buffer.from('806400000000', 'hex')
+    let data = Buffer.concat([
+      FcBuffer.name.toBuffer(pmInfo.address), // actor
+      FcBuffer.name.toBuffer(pmInfo.type), // name
+      D.address.path.toBuffer(pmInfo.path) // path
+    ])
+    let apdu = Buffer.concat([apduHead, data])
+    apdu[0x04] = data.length
+
+    await this.sendApdu(apdu, true, coinType)
+  }
+
+  async removePermission (coinType, pmInfo) {
+    if (!D.isEos(coinType)) {
+      console.warn('addPermissions only supports EOS', coinType)
+      throw D.error.coinNotSupported
     }
 
-    for (let pm of permissions) {
-      let data = Buffer.concat([
-        FcBuffer.name.toBuffer(pm.address), // actor
-        FcBuffer.name.toBuffer(pm.type), // name
-        D.address.path.toBuffer(pm.path) // path
-      ])
+    // 8066 0000 lc actor[8] name[8] path[20]
+    let apduHead = Buffer.from('806600000000', 'hex')
+    let data = Buffer.concat([
+      FcBuffer.name.toBuffer(pmInfo.address), // actor
+      FcBuffer.name.toBuffer(pmInfo.type), // name
+      D.address.path.toBuffer(pmInfo.path) // path
+    ])
+    let apdu = Buffer.concat([apduHead, data])
+    apdu[0x04] = data.length
 
-      if (datas.length + data.length > 0xff) {
-        await updatePermissions()
-      }
-
-      datas = Buffer.concat([datas, data])
-      count++
-    }
-
-    if (datas.length !== 0) {
-      await updatePermissions()
-    }
+    await this.sendApdu(apdu, true, coinType)
   }
 
   async addToken (coinType, token) {

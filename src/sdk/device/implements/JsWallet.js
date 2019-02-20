@@ -122,7 +122,7 @@ export default class JsWallet {
     return address
   }
 
-  async getPermissions (coinType) {
+  async getDefaultPermissions (coinType) {
     if (!D.isEos(coinType)) {
       console.warn('getPermissions only supports EOS', coinType)
       throw D.error.coinNotSupported
@@ -149,7 +149,11 @@ export default class JsWallet {
     // do nothing
   }
 
-  async addPermissions () {
+  async addPermission () {
+    // do nothing
+  }
+
+  async removePermission () {
     // do nothing
   }
 
