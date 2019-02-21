@@ -11,9 +11,6 @@ import CcidTransmitter from '../../sdk/device/implements/transmitter/CcidTransmi
 
 chai.should()
 
-D.test.jsWallet = true
-D.test.coin = true
-
 describe('EosAccount', function () {
   this.timeout(60 * 1000)
   let account
@@ -21,6 +18,9 @@ describe('EosAccount', function () {
   let oldSupported
 
   before(async function () {
+    D.test.jsWallet = true
+    D.test.coin = true
+
     oldSupported = D.supportedCoinTypes
     let coinType = D.test.coin ? D.coin.test.eosJungle : D.coin.main.eos
     D.supportedCoinTypes = () => [coinType]
@@ -79,6 +79,17 @@ describe('EosAccount', function () {
     D.supportedCoinTypes = oldSupported
     // await coinData.clearData()
     // await coinData.release()
+  })
+
+  it('getPermissions', async function () {
+    // await account.getPermissions(true)
+    await account.getPermissions()
+  })
+
+  it('checkAccountPermissions', async function () {
+    await account.checkAccountPermissions(function () {
+      console.info('checkNewPermission callback')
+    })
   })
 
   it('signTx', async function () {

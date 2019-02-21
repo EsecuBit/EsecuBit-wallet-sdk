@@ -238,12 +238,12 @@ export default class S300Wallet {
 
   async addPermission (coinType, pmInfo) {
     if (!D.isEos(coinType)) {
-      console.warn('addPermissions only supports EOS', coinType)
+      console.warn('addPermission only supports EOS', coinType)
       throw D.error.coinNotSupported
     }
 
     // 8064 0000 lc actor[8] name[8] path[20]
-    let apduHead = Buffer.from('806400000000', 'hex')
+    let apduHead = Buffer.from('8064000000', 'hex')
     let data = Buffer.concat([
       FcBuffer.name.toBuffer(pmInfo.address), // actor
       FcBuffer.name.toBuffer(pmInfo.type), // name
@@ -257,12 +257,12 @@ export default class S300Wallet {
 
   async removePermission (coinType, pmInfo) {
     if (!D.isEos(coinType)) {
-      console.warn('addPermissions only supports EOS', coinType)
+      console.warn('removePermission only supports EOS', coinType)
       throw D.error.coinNotSupported
     }
 
     // 8066 0000 lc actor[8] name[8] path[20]
-    let apduHead = Buffer.from('806600000000', 'hex')
+    let apduHead = Buffer.from('8066000000', 'hex')
     let data = Buffer.concat([
       FcBuffer.name.toBuffer(pmInfo.address), // actor
       FcBuffer.name.toBuffer(pmInfo.type), // name
@@ -405,7 +405,7 @@ export default class S300Wallet {
       let remain = 0
       if (D.isEos(coinType)) {
         remain = response[0]
-        response = response.slice(0, response.length)
+        response = response.slice(1)
       }
 
       let r = response.slice(0, 32)

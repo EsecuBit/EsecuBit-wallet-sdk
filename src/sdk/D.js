@@ -20,8 +20,8 @@ const D = {
     syncingNewAccount: 11,
     syncFinish: 20,
     plugOut: 99,
-    newEosPermissions: 10001,
-    confirmedEosPermission: 10002
+    newEosPermissions: 1001,
+    confirmedEosPermission: 1002
   },
 
   error: {
@@ -83,6 +83,7 @@ const D = {
     valueIsNotDecimal: 606, // value is not 0-9 string
     invalidParams: 607,
     permissionNotFound: 608, // for eos
+    permissionNoNeedToConfirmed: 609, // for eos
 
     offlineModeNotAllowed: 701, // no device ever connected before
     offlineModeUnnecessary: 702, // device has connected

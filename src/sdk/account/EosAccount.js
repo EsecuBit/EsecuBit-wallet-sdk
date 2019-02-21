@@ -62,6 +62,7 @@ export default class EosAccount extends IAccount {
       await this._checkPermissionAndGenerateNew()
     }
 
+    this.tokens = this.tokens || {'EOS': {code: 'eosio.token', symbol: 'EOS'}}
     let newAccountInfo = await this._network.getAccountInfo(this.label, this.tokens)
     console.info('EosAccount sync getAccountInfo', newAccountInfo)
     this._syncPermissions = newAccountInfo.permissions
@@ -156,54 +157,60 @@ export default class EosAccount extends IAccount {
     while (needCheck) {
       for (let permission of Object.values(permissions)) {
         for (let pKey of permission.pKeys) {
-          let relativeInfo = this.addressInfos.find(a => pKey.publicKey === a.publicKey)
-          if (!relativeInfo) {
+          let pmInfo = this.addressInfos.find(a => pKey.publicKey === a.publicKey)
+          if (!pmInfo) {
             console.warn('publicKey not found in account', pKey)
             continue
           }
-          if (!relativeInfo.address ||
-            !relativeInfo.registered ||
-            relativeInfo.type !== permission.name ||
-            relativeInfo.parent !== permission.parent ||
-            relativeInfo.threshold !== permission.threshold ||
-            relativeInfo.weight !== pKey.weight) {
 
-            console.log('update permission info', relativeInfo, permission)
-            relativeInfo.address = this.label
-            relativeInfo.registered = true
-            relativeInfo.type = permission.name
-            relativeInfo.parent = permission.parent
-            relativeInfo.threshold = permission.threshold
-            relativeInfo.weight = pKey.weight
-            updatePmInfos.push(relativeInfo)
-
+          pmInfo = D.copy(pmInfo)
+          if (!pmInfo.address ||
+            !pmInfo.registered ||
+            pmInfo.type !== permission.name ||
+            pmInfo.parent !== permission.parent ||
+            pmInfo.threshold !== permission.threshold ||
+            pmInfo.weight !== pKey.weight) {
             // check permissions that needs update to device
-            if (!relativeInfo.address ||
-              !relativeInfo.registered ||
-              relativeInfo.type !== permission.name) {
+            if (!pmInfo.address ||
+              !pmInfo.registered ||
+              pmInfo.type !== permission.name) {
               // TODO handle permission that only change path or name, first remove then add
-              addDevicePmInfos.push(relativeInfo)
+              addDevicePmInfos.push(pmInfo)
             }
+
+            console.log('update permission info', pmInfo, permission)
+            pmInfo.address = this.label
+            pmInfo.registered = true
+            pmInfo.type = permission.name
+            pmInfo.parent = permission.parent
+            pmInfo.threshold = permission.threshold
+            pmInfo.weight = pKey.weight
+            updatePmInfos.push(pmInfo)
           }
         }
 
-        let existsPmInfos = this.addressInfos.filter(a => a.address)
+        let existsPmInfos = this.addressInfos.filter(a => a.registered)
+        let allPKeys = Object.values(permissions).reduce((sum, p) => sum.concat(p.pKeys), [])
         for (let pmInfo of existsPmInfos) {
-          let relativePKeys = permission.pKeys.find(p => p.publicKey === pmInfo.publicKey)
+          let relativePKeys = allPKeys.find(p => p.publicKey === pmInfo.publicKey)
           if (!relativePKeys) {
             // this permission was deleted
+            console.log('remove permission info', permission)
+
+            pmInfo = D.copy(pmInfo)
             pmInfo.registered = false
             updatePmInfos.push(pmInfo)
             removeDevicePmInfos.push(pmInfo)
           }
         }
       }
+
       needCheck = (await this._checkPermissionAndGenerateNew()).length > 0
     }
 
     if (updatePmInfos.length === 0) {
       console.info('permissions not change')
-      return
+      return []
     }
 
     if (typeof updateCallback !== 'function') {
@@ -212,22 +219,52 @@ export default class EosAccount extends IAccount {
     }
     console.info('permissions needs update', updatePmInfos, addDevicePmInfos, removeDevicePmInfos)
     D.dispatch(() => updateCallback(D.error.succeed,
-      D.status.newEosPermissions, D.copy(updatePmInfos)))
+      D.status.newEosPermissions,
+      {
+        all: D.copy(updatePmInfos),
+        addToDevice: D.copy(removeDevicePmInfos),
+        removeFromDevice: D.copy(addDevicePmInfos)
+      }))
 
     for (let pmInfo of removeDevicePmInfos) {
-      await this._device.removePermission(this.coinType, pmInfo)
-      D.dispatch(() => updateCallback(D.error.succeed,
+      let error = D.error.succeed
+      try {
+        await this._device.removePermission(this.coinType, pmInfo)
+      } catch (e) {
+        if (e === D.error.deviceConditionNotSatisfied) {
+          console.warn('remove permission not exists, ignore')
+          error = D.error.permissionNoNeedToConfirmed
+        } else {
+          throw e
+        }
+      }
+      D.dispatch(() => updateCallback(error,
         D.status.confirmedEosPermission, D.copy(pmInfo)))
     }
     for (let pmInfo of addDevicePmInfos) {
-      await this._device.addPermission(this.coinType, pmInfo)
-      D.dispatch(() => updateCallback(D.error.succeed,
+      let error = D.error.succeed
+      try {
+        await this._device.addPermission(this.coinType, pmInfo)
+      } catch (e) {
+        if (e === D.error.deviceConditionNotSatisfied) {
+          console.warn('add permission not exists, ignore')
+          error = D.error.permissionNoNeedToConfirmed
+        } else {
+          throw e
+        }
+      }
+      D.dispatch(() => updateCallback(error,
         D.status.confirmedEosPermission, D.copy(pmInfo)))
     }
 
     await this._coinData.updateAddressInfos(updatePmInfos)
+    // update addressInfo
+    this.addressInfos = this.addressInfos.map(a => {
+      let pmInfo = updatePmInfos.find(u => u.path === a.path)
+      return pmInfo || a
+    })
 
-    return updatePmInfos
+    return D.copy(updatePmInfos)
   }
 
   async _checkPermissionAndGenerateNew () {

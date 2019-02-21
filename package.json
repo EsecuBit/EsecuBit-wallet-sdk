@@ -39,8 +39,8 @@
     "start": "npm run server",
     "dev": "npm run server",
     "build": "npx webpack --config build/webpack.config.chrome.sdk.js",
-    "server": "npx webpack-dev-server --progress --open --config build/webpack.config.dev.js",
-    "watch": "npx webpack --progress --watch --config build/webpack.config.chrome.app.js"
+      "server": "npx webpack-dev-server --progress --open --config build/webpack.config.dev.js",
+    "chromeapp": "npx webpack --progress --watch --config build/webpack.config.chrome.app.js"
   },
   "repository": {
     "type": "git",
