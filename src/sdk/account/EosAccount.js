@@ -222,8 +222,8 @@ export default class EosAccount extends IAccount {
       D.status.newEosPermissions,
       {
         all: D.copy(updatePmInfos),
-        addToDevice: D.copy(removeDevicePmInfos),
-        removeFromDevice: D.copy(addDevicePmInfos)
+        removeFromDevice: D.copy(removeDevicePmInfos),
+        addToDevice: D.copy(addDevicePmInfos)
       }))
 
     for (let pmInfo of removeDevicePmInfos) {
