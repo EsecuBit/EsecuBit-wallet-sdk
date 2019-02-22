@@ -216,6 +216,7 @@ export default class EthAccount extends IAccount {
    */
   async prepareTx (details) {
     console.log('prepareTx details', details)
+    details = D.copy(details)
 
     if (Number(details.gasPrice) === 0) {
       console.warn('fee can not be 0')
@@ -297,7 +298,8 @@ export default class EthAccount extends IAccount {
    * @see prepareTx
    */
   async buildTx (prepareTx) {
-    let output = D.copy(prepareTx.output)
+    prepareTx = D.copy(prepareTx)
+    let output = prepareTx.output
 
     let gasPrice = new BigInteger(prepareTx.gasPrice).toString(16)
     gasPrice = '0x' + (gasPrice.length % 2 === 0 ? '' : '0') + gasPrice
@@ -365,6 +367,7 @@ export default class EthAccount extends IAccount {
   async sendTx (signedTx, test = false) {
     // broadcast transaction to network
     console.log('sendTx', signedTx)
+    signedTx = D.copy(signedTx)
     if (!test) await this._coinData.sendTx(this.coinType, signedTx.hex)
     await this._handleNewTx(signedTx.txInfo)
   }

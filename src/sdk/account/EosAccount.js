@@ -406,6 +406,7 @@ export default class EosAccount extends IAccount {
    * }
    */
   async prepareTx (details) {
+    details = D.copy(details)
     if (!details.token || !details.type) {
       console.warn('no require fields', details)
       throw D.error.invalidParams
@@ -445,11 +446,13 @@ export default class EosAccount extends IAccount {
    * @returns {Promise<{}>} see prepareTx
    */
   async prepareTransfer (details) {
+    details = D.copy(details)
     if (!details.token) {
       console.warn('prepareTransfer missing parameter token')
       throw D.error.invalidParams
     }
 
+    details = D.copy(details)
     let token = tokenList[details.token]
     details.account = details.account || token.account
     if (!details.account || typeof details.account !== 'string' || details.account.length > 12) {
@@ -483,7 +486,7 @@ export default class EosAccount extends IAccount {
         // noinspection JSValidateTypes
         output.value = '0'
       }
-      details.outputs[0] = this.balance
+      details.outputs[0].value = this.balance
     }
 
     let actionType = D.coin.params.eos.actionTypes.transfer
@@ -505,6 +508,7 @@ export default class EosAccount extends IAccount {
   }
 
   async prepareIssuer (details) {
+    details = D.copy(details)
     console.warn('prepareIssuer not implemented')
     throw D.error.notImplemented
   }
@@ -523,6 +527,7 @@ export default class EosAccount extends IAccount {
    * @returns {Promise<{}>} see prepareTx
    */
   async prepareDelegate (details) {
+    details = D.copy(details)
     let token = tokenList.EOS
     let prepareTx = EosAccount._prepareCommon(details)
     let network = EosAccount._makeAsset(token.precision, token.name, details.network || 0)
@@ -568,6 +573,7 @@ export default class EosAccount extends IAccount {
    * @returns {Promise<{}>} see prepareTx
    */
   async prepareBuyRam (details) {
+    details = D.copy(details)
     let prepareTx = EosAccount._prepareCommon(details)
 
     let receiver = details.receiver || this.label
@@ -631,6 +637,7 @@ export default class EosAccount extends IAccount {
    * @returns {Promise<{}>} see prepareTx
    */
   async prepareVote (details) {
+    details = D.copy(details)
     let producers = details.producers || []
     let proxy = details.proxy || ''
 
@@ -660,6 +667,7 @@ export default class EosAccount extends IAccount {
    * @returns {Promise<{}>} see prepareTx
    */
   async prepareOther (details) {
+    details = D.copy(details)
     console.warn('prepareDelegate not implemented')
     throw D.error.notImplemented
   }
@@ -733,6 +741,7 @@ export default class EosAccount extends IAccount {
    * @see prepareTx
    */
   async buildTx (prepareTx) {
+    prepareTx = D.copy(prepareTx)
     if (!prepareTx.refBlockNum || !prepareTx.refBlockPrefix) {
       let blockInfo = await this._network.getIrreversibleBlockInfo()
       prepareTx.refBlockNum = prepareTx.refBlockNum || blockInfo.refBlockNum
@@ -794,6 +803,7 @@ export default class EosAccount extends IAccount {
    * @see signedTx
    */
   async sendTx (signedTx, test = false) {
+    signedTx = D.copy(signedTx)
     // broadcast transaction to network
     console.log('sendTx', signedTx)
     if (!test) await this._coinData.sendTx(this.coinType, signedTx.signedTx)

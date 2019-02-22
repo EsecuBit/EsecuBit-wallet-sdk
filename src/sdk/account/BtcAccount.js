@@ -351,6 +351,7 @@ export default class BtcAccount extends IAccount {
    */
   async prepareTx (details) {
     console.log('prepareTx details', details)
+    details = D.copy(details)
 
     if (Number(details.feeRate) === 0) {
       console.warn('fee can not be 0')
@@ -431,6 +432,7 @@ export default class BtcAccount extends IAccount {
    * @see prepareTx
    */
   async buildTx (prepareTx) {
+    prepareTx = D.copy(prepareTx)
     let totalOut = prepareTx.outputs.reduce((sum, output) => sum + output.value, 0)
     if (totalOut + prepareTx.fee !== prepareTx.total) throw D.error.unknown
     let totalIn = prepareTx.utxos.reduce((sum, utxo) => sum + utxo.value, 0)
@@ -529,6 +531,7 @@ export default class BtcAccount extends IAccount {
   async sendTx (signedTx, test = false) {
     // broadcast transaction to network
     console.log('sendTx', signedTx)
+    signedTx = D.copy(signedTx)
     if (!test) await this._coinData.sendTx(this.coinType, signedTx.hex)
 
     if (signedTx.oldTxInfo) {
