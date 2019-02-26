@@ -543,7 +543,7 @@ export default class EosAccount extends IAccount {
         receiver: receiver,
         stake_net_quantity: network,
         stake_cpu_quantity: cpu,
-        transfer: transfer ? 0 : 1
+        transfer: transfer ? 1 : 0
       }
     } else {
       action.data = {
