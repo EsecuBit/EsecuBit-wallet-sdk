@@ -11,8 +11,10 @@ const jungle = {
 // TODO configurable
 const main = {
   // httpEndpoint: 'http://api.hkeos.com:80/',
-  httpEndpoint: 'https://eos.greymass.com/',
-  provider: 'eos.greymass.com',
+  // httpEndpoint: 'https://eos.greymass.com/',
+  // httpEndpoint: 'https://public.eosinfra.io',
+  httpEndpoint: 'https://geo.eosasia.one/',
+  provider: 'geo.eosasia.one',
   txUrl: 'https://eospark.com/Main/tx/'
 }
 
