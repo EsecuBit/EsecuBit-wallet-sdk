@@ -98,6 +98,11 @@ export default class EosPeer extends ICoinNetwork {
   }
 
   async queryActions (accountName, offset = 0) {
+    if (D.test.coin) {
+      // TODO testnet has different data structor
+      return []
+    }
+
     const url = this._apiUrl + 'v1/history/get_actions'
     const defaultPageSize = 100
 
