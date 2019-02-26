@@ -73,7 +73,6 @@ export default class EosAccount extends IAccount {
     await this._coinData.updateAccount(this._toAccountInfo())
 
     let txs = await this._network.queryAddress(this.label, this.queryOffset)
-    this.queryOffset = this._network.getNextActionSeq(this.label)
     txs.filter(tx => !this.txInfos.some(t => t.txId === tx.txId))
     for (let tx of txs) {
       tx.accountId = this.accountId
@@ -81,6 +80,7 @@ export default class EosAccount extends IAccount {
       tx.comment = ''
       await this._handleNewTx(tx)
     }
+    this.queryOffset = this._network.getNextActionSeq(this.label)
   }
 
   /**

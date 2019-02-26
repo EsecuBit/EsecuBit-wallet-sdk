@@ -3,7 +3,7 @@ import D from '../../D'
 
 // jungle
 const jungle = {
-  httpEndpoint: 'https://api.jungle.alohaeos.com:443/',
+  httpEndpoint: 'https://junglehistory.cryptolions.io:4433/',
   provider: 'api.jungle.alohaeos.com',
   txUrl: 'https://eospark.com/Jungle/tx/'
 }
