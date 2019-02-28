@@ -268,6 +268,11 @@ export default class EosAccount extends IAccount {
   }
 
   async _checkPermissionAndGenerateNew () {
+    while (this._busy) {
+      await D.wait(10)
+    }
+    this._busy = true
+
     // see slip-0048 recovery
     let permissionPaths = this.addressInfos.map(a => {
       return {
@@ -324,6 +329,8 @@ export default class EosAccount extends IAccount {
 
     await this._coinData.newAddressInfos(this._toAccountInfo(), newAddressInfos)
     this.addressInfos.push(...newAddressInfos)
+
+    this._busy = false
     return newAddressInfos
   }
 
