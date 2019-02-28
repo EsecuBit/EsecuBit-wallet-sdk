@@ -355,15 +355,17 @@ export default class EosAccount extends IAccount {
     }
 
     if (this.isRegistered()) {
-      return D.copy(this.addressInfos)
+      return D.copy(this.addressInfos.filter(a => a.registered))
     } else {
       // return default permissions
-      let ownerPmInfo = this.addressInfos.find(a => a.path === "m/48'/4'/0'/0'/0'")
-      let activePmInfo = this.addressInfos.find(a => a.path === "m/48'/4'/1'/0'/0'")
+      let ownerPmInfo = D.copy(this.addressInfos.find(a => a.path === "m/48'/4'/0'/0'/0'"))
+      let activePmInfo = D.copy(this.addressInfos.find(a => a.path === "m/48'/4'/1'/0'/0'"))
       if (!ownerPmInfo || !activePmInfo) {
         throw D.error.deviceNotConnected
       }
-      return D.copy([ownerPmInfo, activePmInfo])
+      ownerPmInfo.type = 'owner'
+      activePmInfo.type = 'active'
+      return [ownerPmInfo, activePmInfo]
     }
   }
 
