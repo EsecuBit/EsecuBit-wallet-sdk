@@ -359,7 +359,7 @@ export default class EosAccount extends IAccount {
     } else {
       // return default permissions
       let ownerPmInfo = this.addressInfos.find(a => a.path === "m/48'/4'/0'/0'/0'")
-      let activePmInfo = this.addressInfos.find(a => a.path === "m/48'/4'/0'/0'/0'")
+      let activePmInfo = this.addressInfos.find(a => a.path === "m/48'/4'/1'/0'/0'")
       if (!ownerPmInfo || !activePmInfo) {
         throw D.error.deviceNotConnected
       }
