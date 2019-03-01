@@ -1,7 +1,5 @@
 import Provider from '../Provider'
 import D from '../D'
-import {Buffer} from "buffer";
-import FcBuffer from "./implements/protocol/EosFcBuffer";
 
 export default class CoreWallet {
   constructor () {
