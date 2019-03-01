@@ -9,10 +9,8 @@ export default class CoreWallet {
 
     return new Proxy(this, {
       get: function (target, key, receiver) {
-        if (typeof target[key] === 'function' &&
+        if (typeof target[key] !== 'function' &&
           !key.startsWith('_') &&
-          key !== 'listenPlug' &&
-          key !== 'init' &&
           !target._wallet) {
           console.warn('init wallet first')
           throw D.error.deviceNotConnected
