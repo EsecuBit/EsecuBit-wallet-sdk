@@ -1,30 +1,13 @@
 import Provider from '../Provider'
 import D from '../D'
+import {Buffer} from "buffer";
+import FcBuffer from "./implements/protocol/EosFcBuffer";
 
 export default class CoreWallet {
   constructor () {
     this._transmitter = null
     this._wallet = null
     this._externlistener = () => {}
-
-    return new Proxy(this, {
-      get: function (target, key, receiver) {
-        if (typeof target[key] !== 'function' &&
-          !key.startsWith('_') &&
-          !target._wallet) {
-          console.warn('init wallet first')
-          throw D.error.deviceNotConnected
-        }
-        if (target._wallet &&
-          (typeof target._wallet[key] === 'function')) {
-          return function () {
-            console.debug('proxy CoreWallet function to wallet implement', key, arguments.length)
-            return target._wallet[key].apply(target._wallet, arguments)
-          }
-        }
-        return Reflect.get(target, key, receiver)
-      }
-    })
   }
 
   listenPlug (listener) {
@@ -87,5 +70,101 @@ export default class CoreWallet {
     }
     console.warn('no suitable wallet found, maybe wallet get error in init()', this._transmitter, messages)
     throw D.error.deviceProtocol
+  }
+
+  async verifyPin () {
+    if (!this._wallet) {
+      console.warn('init wallet first')
+      throw D.error.deviceNotConnected
+    }
+    return this._wallet.verifyPin()
+  }
+
+  getWalletInfo () {
+    if (!this._wallet) {
+      console.warn('init wallet first')
+      throw D.error.deviceNotConnected
+    }
+    return this._wallet.getWalletInfo()
+  }
+
+  getAddress (coinType, path, isShowing = false, isStoring = false) {
+    if (!this._wallet) {
+      console.warn('init wallet first')
+      throw D.error.deviceNotConnected
+    }
+    return this._wallet.getAddress(coinType, path, isShowing, isStoring)
+  }
+
+  getPublicKey (coinType, keyPath) {
+    if (!this._wallet) {
+      console.warn('init wallet first')
+      throw D.error.deviceNotConnected
+    }
+    return this._wallet.getPublicKey(coinType, keyPath)
+  }
+
+  async signTransaction (coinType, tx) {
+    if (!this._wallet) {
+      console.warn('init wallet first')
+      throw D.error.deviceNotConnected
+    }
+    return this._wallet.signTransaction(coinType, tx)
+  }
+
+  async getWalletBattery () {
+    if (!this._wallet) {
+      console.warn('init wallet first')
+      throw D.error.deviceNotConnected
+    }
+    return this._wallet.getWalletBattery()
+  }
+
+  async getDefaultPermissions (coinType, accountIndex) {
+    if (!this._wallet) {
+      console.warn('init wallet first')
+      throw D.error.deviceNotConnected
+    }
+    return this._wallet.getDefaultPermissions(coinType, accountIndex)
+  }
+
+  async addPermission (coinType, pmInfo) {
+    if (!this._wallet) {
+      console.warn('init wallet first')
+      throw D.error.deviceNotConnected
+    }
+    return this._wallet.addPermission(coinType, pmInfo)
+  }
+
+  async removePermission (coinType, pmInfo) {
+    if (!this._wallet) {
+      console.warn('init wallet first')
+      throw D.error.deviceNotConnected
+    }
+    return this._wallet.removePermission(coinType, pmInfo)
+  }
+
+  async addToken (coinType, token) {
+    if (!this._wallet) {
+      console.warn('init wallet first')
+      throw D.error.deviceNotConnected
+    }
+    return this._wallet.addToken(coinType, token)
+  }
+
+  async removeToken (coinType, token) {
+    if (!this._wallet) {
+      console.warn('init wallet first')
+      throw D.error.deviceNotConnected
+    }
+    return this._wallet.removeToken(coinType, token)
+  }
+
+  _sendApdu (apdu, isEnc = false) {
+    if (!this._wallet) {
+      console.warn('init wallet first')
+      throw D.error.deviceNotConnected
+    }
+    return this._wallet._sendApdu(apdu, isEnc)
   }
 }
