@@ -104,6 +104,7 @@ export default class EsWallet {
       D.dispatch(() => this._callback(D.error.succeed, this._status))
       let newInfo = await this._init()
       if (this._info.walletId && (this._info.walletId !== newInfo.walletId)) {
+        this._syncBefore = false
         D.dispatch(() => this._callback(D.error.succeed, D.status.deviceChange))
       }
       this._info = newInfo
