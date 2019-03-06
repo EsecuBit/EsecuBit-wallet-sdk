@@ -14,9 +14,14 @@ const D = {
     plugIn: 1,
     initializing: 2,
     deviceChange: 3,
-    syncing: 5,
-    syncFinish: 10,
-    plugOut: 99
+    auth: 4,
+    authFinish: 5,
+    syncing: 10,
+    syncingNewAccount: 11,
+    syncFinish: 20,
+    plugOut: 99,
+    newEosPermissions: 1001,
+    confirmedEosPermission: 1002
   },
 
   error: {
@@ -34,6 +39,10 @@ const D = {
     operationTimeout: 110,
     deviceNotInit: 111,
     devicePressKeyTooEarly: 112,
+    deviceApduDataInvalid: 113,
+    deviceNotConnected: 114,
+    deviceNeedReauthenticate: 115,
+    deviceConditionNotSatisfied: 116,
 
     fatUnavailable: 121,
     fatOutOfRange: 122,
@@ -74,6 +83,7 @@ const D = {
     valueIsNotDecimal: 606, // value is not 0-9 string
     invalidParams: 607,
     permissionNotFound: 608, // for eos
+    permissionNoNeedToConfirmed: 609, // for eos
 
     offlineModeNotAllowed: 701, // no device ever connected before
     offlineModeUnnecessary: 702, // device has connected
@@ -85,12 +95,15 @@ const D = {
     checkSw1Sw2 (sw1sw2) {
       if (sw1sw2 === 0x9000) return D.error.succeed
 
-      console.warn('sw1sw2 error', sw1sw2.toString(16))
+      console.warn('sw1sw2 error', sw1sw2 && sw1sw2.toString(16))
       sw1sw2 = sw1sw2 & 0xFFFF
+      if (sw1sw2 === 0x6A80) return D.error.deviceApduDataInvalid
       if (sw1sw2 === 0x6A81) return D.error.deviceNotInit
       if (sw1sw2 === 0x6FF8) return D.error.userCancel
       if (sw1sw2 === 0x6FF9) return D.error.operationTimeout
       if (sw1sw2 === 0x6FFE) return D.error.devicePressKeyTooEarly
+      if (sw1sw2 === 0x6A83) return D.error.deviceNeedReauthenticate
+      if (sw1sw2 === 0x6985) return D.error.deviceConditionNotSatisfied
       if ((sw1sw2 & 0xFFF0) === 0x63C0) return D.error.pinError
       return D.error.deviceProtocol
     }
@@ -98,9 +111,9 @@ const D = {
 
   coin: {
     main: {
-      btc: 'btc',
-      eth: 'eth',
-      eos: 'eos'
+      btc: 'btc_main',
+      eth: 'eth_main',
+      eos: 'eos_main'
     },
     test: {
       btcTestNet3: 'btc_testnet3',
@@ -109,6 +122,11 @@ const D = {
       eosJungle: 'eos_jungle',
       eosKylin: 'eos_kylin',
       eosSys: 'eos_sys'
+    },
+    other: {
+      hdwallet: 'hdwallet',
+      manager: 'manager',
+      backup: 'hdwallet'
     },
 
     params: {
@@ -133,6 +151,7 @@ const D = {
             case D.coin.test.ethRinkeby:
               return 4
             default:
+              console.warn('eth don\'t support this coinType for chainId', coinType)
               throw D.error.coinNotSupported
           }
         }
@@ -141,7 +160,7 @@ const D = {
       eos: {
         chainId: {
           main: Buffer.from('aca376f206b8fc25a6ed44dbdc66547c36c6c33e3a119ffbeaef943642f0e906', 'hex'), // main network
-          jungle: Buffer.from('038f4b0fc8ff18a4f0842a8f0564611f6e96e8535901dd45e43ac8691a1c4dca', 'hex'), // jungle testnet
+          jungle: Buffer.from('e70aaab8997e1dfce58fbfac80cbbb8fecec7b99cf982a9444273cbc64c41473', 'hex'), // jungle testnet
           sys: Buffer.from('cf057bbfb72640471fd910bcb67639c22df9f92470936cddc1ade0e2f2e7dc4f', 'hex'), // local developer
           kylin: Buffer.from('5fff1dae8dc8e2fc4d5b23b2c7665c97f9e9d8edf2b6485a86ba311c25639191', 'hex') // kylin testnet
         },
@@ -157,10 +176,115 @@ const D = {
             case D.coin.test.eosSys:
               return D.coin.params.eos.chainId.sys
             default:
+              console.warn('eos don\'t support this coinType for chainId', coinType)
               throw D.error.coinNotSupported
           }
+        },
+
+        defaultActionType: {type: 'other'},
+
+        actionTypes: {
+          transfer: {
+            type: 'tokenTransfer',
+            name: 'transfer',
+            data: {
+              from: 'name',
+              to: 'name',
+              quantity: 'asset',
+              memo: 'string'
+            }
+          },
+          issuer: {
+            type: 'tokenIssuer',
+            name: 'issuer',
+            data: {
+              from: 'name',
+              to: 'name',
+              quantity: 'asset',
+              memo: 'string'
+            }
+          },
+          delegate: {
+            type: 'eosioDelegatebw',
+            account: 'eosio',
+            name: 'delegatebw',
+            data: {
+              from: 'name',
+              receiver: 'name',
+              stake_net_quantity: 'asset',
+              stake_cpu_quantity: 'asset',
+              transfer: 'uint8'
+            }
+          },
+          undelegate: {
+            type: 'eosioUndelegatebw',
+            account: 'eosio',
+            name: 'undelegatebw',
+            data: {
+              from: 'name',
+              receiver: 'name',
+              unstake_net_quantity: 'asset',
+              unstake_cpu_quantity: 'asset'
+            }
+          },
+          buyram: {
+            type: 'eosioBuyRam',
+            account: 'eosio',
+            name: 'buyram',
+            data: {
+              payer: 'name',
+              receiver: 'name',
+              quant: 'asset'
+            }
+          },
+          buyrambytes: {
+            type: 'eosioBuyRamBytes',
+            account: 'eosio',
+            name: 'buyrambytes',
+            data: {
+              payer: 'name',
+              receiver: 'name',
+              bytes: 'uint32'
+            }
+          },
+          sellram: {
+            type: 'eosioSellRam',
+            account: 'eosio',
+            name: 'sellram',
+            data: {
+              account: 'name',
+              bytes: 'uint64'
+            }
+          },
+          vote: {
+            type: 'eosioVoteProducer',
+            account: 'eosio',
+            name: 'voteproducer',
+            data: {
+              voter: 'name',
+              proxy: 'name',
+              producers: 'name[]'
+            }
+          },
+          other: {
+            type: 'other'
+          }
+        },
+
+        getActionType (account, name) {
+          let actionType = Object.values(D.coin.params.eos.actionTypes).find(type =>
+            type.name === name && (!type.account || type.account === account))
+          return actionType || D.coin.params.eos.defaultActionType
         }
       }
+    }
+  },
+
+  account: {
+    status: {
+      show: 0,
+      hideByNoTxs: 1,
+      hideByUser: 2
     }
   },
 
@@ -175,21 +299,48 @@ const D = {
 
     checkAddress (coinType, address) {
       if (D.isBtc(coinType)) {
-        return D.address.checkBtcAddress(address)
+        return D.address.checkBtcAddress(coinType, address)
       } else if (D.isEth(coinType)) {
         return D.address.checkEthAddress(address)
       } else if (D.isEos(coinType)) {
         return D.address.checkEosAddress(address)
       } else {
+        console.warn('checkAddress don\'t this coinType', coinType, address)
         throw D.error.coinNotSupported
       }
     },
 
-    checkEosAddress () {
-      throw D.error.notImplemented
+    checkEosAddress (name) {
+      // check whether account name is valid, copy from eos.js
+      const charmap = '.12345abcdefghijklmnopqrstuvwxyz'
+      const charidx = function charidx (ch) {
+        const idx = charmap.indexOf(ch)
+        if (idx === -1) throw new TypeError('Invalid character: \'' + ch + '\'')
+        return idx
+      }
+      if (typeof name !== 'string') {
+        console.warn('checkEosAddress name parameter is a required string')
+        throw D.error.invalidAddress
+      }
+      if (name.length > 12) {
+        console.warn('checkEosAddress A name can be up to 12 characters long')
+        throw D.error.invalidAddress
+      }
+
+      for (let i = 0; i <= 12; i++) {
+        // process all 64 bits (even if name is short)
+        let c = i < name.length ? charidx(name[i]) : 0
+        let bitlen = i < 12 ? 5 : 4
+        let bits = Number(c).toString(2)
+        if (bits.length > bitlen) {
+          console.warn('checkEosAddress Invalid name ' + name)
+          throw D.error.invalidAddress
+        }
+        bits = '0'.repeat(bitlen - bits.length) + bits
+      }
     },
 
-    checkBtcAddress (address) {
+    checkBtcAddress (coinType, address) {
       let buffer
 
       // normal address, base58 encoded
@@ -198,20 +349,30 @@ const D = {
       } catch (e) {
         console.debug('address', address, 'is not base58 encoded')
       }
-      if (buffer.length === 21) {
+
+      let assertNet = (coinType, netType) => {
+        let isTest = Object.values(D.coin.test).includes(coinType)
+        let assertTest = netType === 'test'
+        if (isTest !== assertTest) {
+          console.warn('btc network type unmatched', coinType, address)
+          throw D.error.invalidAddress
+        }
+      }
+
+      if (buffer && buffer.length === 21) {
         let network = buffer.readUInt8(0)
         switch (network) {
           case 0: // main net P2PKH
-            if (D.test.coin) throw D.error.invalidAddress
+            assertNet(coinType, 'main')
             return D.address.p2pkh
           case 0x05: // main net P2SH
-            if (D.test.coin) throw D.error.invalidAddress
+            assertNet(coinType, 'main')
             return D.address.p2sh
           case 0x6f: // test net P2PKH
-            if (!D.test.coin) throw D.error.invalidAddress
+            assertNet(coinType, 'test')
             return D.address.p2pkh
           case 0xc4: // test net P2SH
-            if (!D.test.coin) throw D.error.invalidAddress
+            assertNet(coinType, 'test')
             return D.address.p2sh
           default:
             throw D.error.invalidAddress
@@ -219,7 +380,7 @@ const D = {
       }
 
       // publickey
-      if (buffer.length === 78) {
+      if (buffer && buffer.length === 78) {
         let versionBytes = buffer.readUInt32BE(0)
         switch (versionBytes) {
           case 0x0488B21E: // main net
@@ -268,8 +429,8 @@ const D = {
       throw D.error.invalidAddress
     },
 
-    makeOutputScript (address) {
-      let type = D.address.checkBtcAddress(address)
+    makeOutputScript (coinType, address) {
+      let type = D.address.checkBtcAddress(coinType, address)
       let scriptPubKey
       switch (type) {
         case D.address.p2pk:
@@ -288,7 +449,7 @@ const D = {
           scriptPubKey = '0020' + D.address.toBuffer(address).toString('hex')
           break
         default:
-          console.warn('makeBasicScript: unsupported address type')
+          console.warn('makeOutputScript: unsupported address type')
           throw D.error.invalidAddress
       }
       return scriptPubKey
@@ -349,7 +510,7 @@ const D = {
             buffer = bech32.fromWords(decodedBech32.words.slice(1))
             return buffer
           } catch (e) {
-            console.debug('address', address, 'is not bech32 encoded')
+            console.debug('address not bech32 encoded', address)
             throw D.error.invalidAddress
           }
         }
@@ -362,7 +523,10 @@ const D = {
             console.warn(e)
             throw D.error.invalidAddress
           }
-          if (buffer.length !== 21) throw D.error.invalidAddress
+          if (buffer.length !== 21) {
+            console.warn('btc p2pkh/p2sh address length unmatched', address, buffer.length)
+            throw D.error.invalidAddress
+          }
           return buffer.slice(1)
         }
         // p2pk address
@@ -373,48 +537,89 @@ const D = {
             console.warn(e)
             throw D.error.invalidAddress
           }
-          if (buffer.length !== 78) throw D.error.invalidAddress
+          if (buffer.length !== 78) {
+            console.warn('btc p2pk address lenght unmatched', address, buffer.length)
+            throw D.error.invalidAddress
+          }
           return buffer.slice(45)
         }
-        console.warn('no matching prefix for bitcoin address')
+        console.warn('no matching prefix for bitcoin address', address)
         throw D.error.invalidAddress
       }
     },
 
-    toString (address) {
-      if (address.length === 20) {
+    toString (coinType, address) {
+      if (D.isEth(coinType) && address.length === 20) {
         // eth
         return D.address.toEthChecksumAddress(address)
-      } else if (address.length === 21) {
+      } else if (D.isBtc(coinType) && address.length === 21) {
         // bitcoin
         return base58check.encode(Buffer.from(address))
       } else {
+        console.warn('address toString don\'t support this coinType and address', coinType, address)
         throw D.error.coinNotSupported
       }
     },
 
     path: {
+      parseString (path) {
+        if (typeof path !== 'string') {
+          console.warn('D.address.path.parseString invalid path', path)
+          throw D.error.invalidParams
+        }
+
+        let parts = path.split('/')
+        if (parts[0] === 'm') parts = parts.slice(1)
+
+        let values = []
+        for (let part of parts) {
+          let value = 0
+          if (part[part.length - 1] === "'") {
+            part = part.slice(0, part.length - 1)
+            value += 0x80000000
+          }
+          let num = Number(part)
+          if (Number.isNaN(num)) {
+            console.warn('D.address.path.parseString invalid index', part, path)
+            throw D.error.invalidParams
+          }
+          value += num
+          values.push(value)
+        }
+        return values
+      },
+
       /**
        * convert string type path to Buffer
        */
       toBuffer (path) {
-        let level = path.split('/').length
-        if (path[0] === 'm') level--
-        let buffer = Buffer.allocUnsafe(level * 4)
-        path.split('/').forEach((index, i) => {
-          if (i === 0 && index === 'm') return
-          let indexInt = 0
-          if (index[index.length - 1] === "'") {
-            indexInt += 0x80000000
-            index = index.slice(0, -1)
-          }
-          indexInt += parseInt(index)
-          buffer[4 * (i - 1)] = indexInt >> 24
-          buffer[4 * (i - 1) + 1] = indexInt >> 16
-          buffer[4 * (i - 1) + 2] = indexInt >> 8
-          buffer[4 * (i - 1) + 3] = indexInt
+        let indexes = D.address.path.parseString(path)
+        let buffer = Buffer.allocUnsafe(indexes.length * 4)
+        indexes.forEach((index, i) => {
+          buffer[4 * i] = index >> 24
+          buffer[4 * i + 1] = index >> 16
+          buffer[4 * i + 2] = index >> 8
+          buffer[4 * i + 3] = index
         })
         return buffer
+      },
+
+      makeBip44Path (coinType, accountIndex, type, addressIndex = undefined) {
+        coinType = typeof coinType === 'number' ? coinType : D.getCoinIndex(coinType)
+        return "m/44'/" +
+          coinType + "'/" +
+          accountIndex + "'/" +
+          (type === D.address.external ? 0 : 1) +
+          (addressIndex === undefined ? '' : ('/' + addressIndex))
+      },
+
+      makeSlip48Path (coinType, permissionIndex, accountIndex, keyIndex = undefined) {
+        coinType = typeof coinType === 'number' ? coinType : D.getCoinIndex(coinType)
+        return "m/48'/" +
+          coinType + "'/" +
+          permissionIndex + "'/" +
+          accountIndex + "'" +
+          (keyIndex === undefined ? '' : ('/' + keyIndex + "'"))
       }
     }
   },
@@ -431,8 +636,8 @@ const D = {
     },
 
     /**
-     *   -2: dropped by btcNetwork peer from memeory pool
-     *   -1: not found in btcNetwork
+     *   -2: dropped by network peer from memeory pool
+     *   -1: not found in network
      *   0: found in miner's memory pool.
      *   other: confirmations just for showing the status.
      *          won't be updated after confirmations >= D.tx.matureConfirms.coinType
@@ -442,7 +647,7 @@ const D = {
       pending: -1,
       inMemory: 0,
       waiting: 0, // for eos
-      excuted: 1 // for eos
+      executed: 1 // for eos
     },
 
     getMatureConfirms (coinType) {
@@ -451,6 +656,7 @@ const D = {
       } else if (D.isEth(coinType)) {
         return D.tx.matureConfirms.eth
       } else {
+        console.warn('getMatureConfirms don\'t supoort this coinType', coinType)
         throw D.error.coinNotSupported
       }
     }
@@ -484,6 +690,9 @@ const D = {
       GWei: 'GWei',
       Wei: 'Wei'
     },
+    eos: {
+      EOS: 'EOS'
+    },
     legal: {
       USD: 'USD',
       EUR: 'EUR',
@@ -493,15 +702,15 @@ const D = {
   },
 
   isBtc (coinType) {
-    return coinType.includes('btc')
+    return coinType && coinType.startsWith('btc')
   },
 
   isEth (coinType) {
-    return coinType.includes('eth')
+    return coinType && coinType.startsWith('eth')
   },
 
   isEos (coinType) {
-    return coinType.includes('eos')
+    return coinType && coinType.startsWith('eos')
   },
 
   suppertedLegals () {
@@ -509,10 +718,9 @@ const D = {
   },
 
   supportedCoinTypes () {
-    // TODO recover, S300 not support ETH yet
     return D.test.coin
-      ? [D.coin.test.btcTestNet3]
-      : [D.coin.main.btc]
+      ? [D.coin.test.btcTestNet3, D.coin.test.ethRinkeby, D.coin.test.eosJungle]
+      : [D.coin.main.btc, D.coin.main.eth, D.coin.main.eos]
   },
 
   recoverCoinTypes () {
@@ -573,15 +781,15 @@ const D = {
       }
       return '0'
     }
-    switch (coinType) {
-      case D.coin.main.btc:
-      case D.coin.test.btcTestNet3:
-        return convertBtc(value, fromType, toType)
-      case D.coin.main.eth:
-      case D.coin.test.ethRinkeby:
-        return convertEth(value, fromType, toType)
-      default:
-        throw D.error.coinNotSupported
+    if (D.isBtc(coinType)) {
+      return convertBtc(value, fromType, toType)
+    } else if (D.isEth(coinType)) {
+      return convertEth(value, fromType, toType)
+    } else if (D.isEos(coinType)) {
+      return value
+    } else {
+      console.warn('convertValue don\'t support this coinType', coinType)
+      throw D.error.coinNotSupported
     }
   },
 
@@ -601,28 +809,23 @@ const D = {
   },
 
   isDecimal (num) {
-    return num.toString().includes('.')
+    return num && num.toString().includes('.')
   },
 
   getCoinIndex (coinType) {
-    switch (coinType) {
-      case D.coin.main.btc:
-      case D.coin.test.btcTestNet3:
-        return 0
-      case D.coin.main.eth:
-      case D.coin.test.ethRinkeby:
-        return 60
-      default:
-        throw D.error.coinNotSupported
+    if (D.isBtc(coinType)) {
+      // bip-0044
+      return 0
+    } else if (D.isEth(coinType)) {
+      // bip-0044
+      return 60
+    } else if (D.isEos(coinType)) {
+      // slip-0048
+      return 4
+    } else {
+      console.warn('getCoinIndex don\'t support this coinType', coinType)
+      throw D.error.coinNotSupported
     }
-  },
-
-  makeBip44Path (coinType, accountIndex, type, addressIndex) {
-    return "m/44'/" +
-      D.getCoinIndex(coinType) + "'/" +
-      accountIndex + "'/" +
-      (type === D.address.external ? 0 : 1) +
-      (addressIndex === undefined ? '' : ('/' + addressIndex))
   },
 
   /**
@@ -649,6 +852,35 @@ const D = {
     if (object === undefined) return object
     if (object === null) return object
     return JSON.parse(JSON.stringify(object))
+  },
+
+  strToUtf8 (str) {
+    let utf8 = []
+    for (let i = 0; i < str.length; i++) {
+      let charcode = str.charCodeAt(i)
+      if (charcode < 0x80) utf8.push(charcode)
+      else if (charcode < 0x800) {
+        utf8.push(0xc0 | (charcode >> 6),
+          0x80 | (charcode & 0x3f))
+      } else if (charcode < 0xd800 || charcode >= 0xe000) {
+        utf8.push(0xe0 | (charcode >> 12),
+          0x80 | ((charcode >> 6) & 0x3f),
+          0x80 | (charcode & 0x3f))
+      } else {
+        // surrogate pair
+        i++
+        // UTF-16 encodes 0x10000-0x10FFFF by
+        // subtracting 0x10000 and splitting the
+        // 20 bits of 0x0-0xFFFFF into two halves
+        charcode = 0x10000 + (((charcode & 0x3ff) << 10) |
+          (str.charCodeAt(i) & 0x3ff))
+        utf8.push(0xf0 | (charcode >> 18),
+          0x80 | ((charcode >> 12) & 0x3f),
+          0x80 | ((charcode >> 6) & 0x3f),
+          0x80 | (charcode & 0x3f))
+      }
+    }
+    return Buffer.from(utf8)
   },
 
   test: {

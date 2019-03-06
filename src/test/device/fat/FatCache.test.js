@@ -1,7 +1,7 @@
 
 import chai from 'chai'
 import FatApi from '../../../sdk/device/implements/fat/FatApi'
-import MockTransmitter from '../../../sdk/device/implements/transmit/MockTransmitter'
+import MockTransmitter from '../../../sdk/device/implements/transmitter/MockTransmitter'
 import FatCache from '../../../sdk/device/implements/fat/FatCache'
 
 chai.should()

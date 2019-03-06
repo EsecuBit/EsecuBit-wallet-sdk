@@ -30,7 +30,12 @@ function selectCoinSet (utxos, presetUtxos, outputs, feeRate, sendAll) {
   }
 
   // recalculate utxos and use utxos as few as possible
-  utxos = utxos.sort((a, b) => b.value - a.value) // sort max => min
+  utxos = utxos.sort((a, b) => {
+    if (a.status === D.utxo.status.unspent && b.status === D.utxo.status.unspent_pending) return -1
+    if (a.status === D.utxo.status.unspent_pending && b.status === D.utxo.status.unspent) return 1
+    return b.value - a.value
+  }) // sort max => min, unspent first
+
   let proposalClassic = _coinSelectClassic(utxos, presetUtxos, outputs, feeRate, sendAll)
   if (calculateApduLength(proposalClassic.willSpentUtxos, outputs.length) <= maxApduDataLength) {
     return proposalClassic
@@ -85,7 +90,12 @@ function _coinSelectBnb (utxos, presetUtxos, outputs, feeRate, sendAll) {
   if (utxos.length <= 20) {
     return null
   }
-  utxos = utxos.sort((a, b) => a.value - b.value) // sort min => max
+  utxos = utxos.sort((a, b) => {
+    if (a.status === D.utxo.status.unspent && b.status === D.utxo.status.unspent_pending) return -1
+    if (a.status === D.utxo.status.unspent_pending && b.status === D.utxo.status.unspent) return 1
+    return a.value - b.value
+  }) // sort min => max, unspent first
+
   try {
     return _coinSelectClassic(utxos, presetUtxos, outputs, feeRate, sendAll)
   } catch (e) {

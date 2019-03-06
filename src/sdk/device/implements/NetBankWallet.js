@@ -1,10 +1,12 @@
 
 import D from '../../D'
-import Provider from '../../Provider'
 import rlp from 'rlp'
 import BigInteger from 'bigi'
 import bitPony from 'bitpony'
 import {Buffer} from 'buffer'
+import HandShake from './protocol/HandShake'
+import Authenticate from './protocol/Authenticate'
+import Settings from '../../Settings'
 
 // rewrite _containKeys to make empty value available, so we can use it to build presign tx
 // noinspection JSPotentiallyInvalidConstructorUsage
@@ -19,18 +21,60 @@ bitPony.prototype._containKeys = function (keys) {
 export default class NetBankWallet {
   constructor (transmitter) {
     this._transmitter = transmitter
-    this._allEnc = true
+    this._allEnc = false
   }
 
-  async init () {
+  async init (authCallback) {
+    console.log('NetBankWallet init')
+    if (!authCallback) {
+      console.warn('NetBankWallet auth missing authCallback')
+      authCallback = () => {}
+    }
+
+    let deivceName = this._transmitter.getName && this._transmitter.getName()
+    if (!deivceName.startsWith('ES12')) {
+      console.log('device is not a NetBankWallet', deivceName)
+      throw D.error.deviceProtocol
+    }
+
+    let oldFeature = await new Settings().getSetting('netBankFeature', deivceName)
+    console.log('NetBankWallet old feature', oldFeature)
+    oldFeature = oldFeature && Buffer.from(oldFeature, 'hex')
+    let authenticate = new Authenticate('Esecubit', this, oldFeature)
+    let newFeature
+    try {
+      newFeature = await authenticate.prepareAuth()
+      if (!oldFeature) {
+        let pairCode = String.fromCharCode.apply(null,
+          newFeature.slice(newFeature.length - 4))
+        D.dispatch(() => authCallback(D.status.auth, pairCode))
+      }
+      console.log('NetBankWallet do authenticate')
+      await authenticate.auth()
+      console.log('NetBankWallet authenticate succeed')
+      D.dispatch(() => authCallback(D.status.authFinish))
+
+      if (!oldFeature) {
+        let featureHex = newFeature.toString('hex')
+        await new Settings().setSetting('netBankFeature', featureHex, deivceName)
+        console.log('NetBankWallet new feature', featureHex)
+      }
+    } catch (e) {
+      if (e === D.error.deviceApduDataInvalid) {
+        console.info('authenticate not support, ignore')
+      } else {
+        console.warn('autenticate failed', e)
+        throw e
+      }
+    }
+
+    this._handShake = new HandShake(oldFeature || newFeature)
+    this._allEnc = true
     let walletId = D.test.coin ? '01' : '00'
     walletId += D.test.jsWallet ? '01' : '00'
     walletId += D.address.toBuffer(await this.getAddress(D.coin.main.btc, "m/44'/0'/0'/0/0")).toString('hex')
-    return {walletId: walletId}
-  }
 
-  listenPlug (callback) {
-    this._transmitter.listenPlug(callback)
+    return {walletId}
   }
 
   async getWalletInfo () {
@@ -43,11 +87,11 @@ export default class NetBankWallet {
 
   // noinspection JSMethodCanBeStatic
   async _getCosVersion () {
-    return (await this._sendApdu('803300000ABD080000000000000000')).toString('hex')
+    return (await this.sendApdu('803300000ABD080000000000000000')).toString('hex')
   }
 
   async verifyPin () {
-    return this._sendApdu('8082008100')
+    return this.sendApdu('8082008100')
   }
 
   async getAddress (coinType, path, isShowing = false, isStoring = false) {
@@ -60,20 +104,20 @@ export default class NetBankWallet {
     flag += isStoring ? 0x01 : 0x00
     flag += isShowing ? 0x02 : 0x00
     flag += 0x04
-    flag += 0x08
+    flag += 0x08 // ignore compressed flag if ETH
     let apdu = Buffer.allocUnsafe(26)
     Buffer.from('803D00001505', 'hex').copy(apdu)
     apdu[3] = flag
     let pathBuffer = D.address.path.toBuffer(path)
     pathBuffer.copy(apdu, 0x06)
 
-    let response = await this._sendApdu(apdu)
+    let response = await this.sendApdu(apdu)
     let address = String.fromCharCode.apply(null, response)
     // device only return mainnet address
     if (coinType === D.coin.test.btcTestNet3) {
       let addressBuffer = D.address.toBuffer(address)
       addressBuffer = Buffer.concat([Buffer.from('6F', 'hex'), addressBuffer])
-      address = D.address.toString(addressBuffer)
+      address = D.address.toString(coinType, addressBuffer)
     }
     return address
   }
@@ -141,7 +185,7 @@ export default class NetBankWallet {
       apdu[index++] = msg.length
       msg.copy(apdu, index)
 
-      let response = await this._sendApdu(apdu, true)
+      let response = await this.sendApdu(apdu, true)
       let r = response.slice(0, 32)
       let s = response.slice(32, 64)
       let pubKey = response.slice(64, 128)
@@ -162,7 +206,7 @@ export default class NetBankWallet {
       return {v, r, s, pubKey}
     }
 
-    let signBtc = async (tx) => {
+    let signBtc = async (coinType, tx) => {
       let makeBasicScript = (tx) => {
         return {
           version: 1,
@@ -175,7 +219,7 @@ export default class NetBankWallet {
             }
           }),
           outputs: tx.outputs.map(output => {
-            let scriptPubKey = D.address.makeOutputScript(output.address)
+            let scriptPubKey = D.address.makeOutputScript(coinType, output.address)
             return {
               amount: output.value,
               scriptPubKey: scriptPubKey
@@ -254,11 +298,7 @@ export default class NetBankWallet {
     }
 
     let signEth = async (tx) => {
-      const chainIds = {}
-      chainIds[D.coin.main.eth] = 1
-      chainIds[D.coin.test.ethRinkeby] = 4
-      let chainId = chainIds[coinType]
-      if (!chainId) throw D.error.coinNotSupported
+      let chainId = D.coin.params.eth.getChainId(coinType)
 
       // rlp
       let unsignedTx = [tx.nonce, tx.gasPrice, tx.gasLimit, tx.output.address, tx.output.value, tx.data, chainId, 0, 0]
@@ -277,10 +317,11 @@ export default class NetBankWallet {
 
     await this.verifyPin()
     if (D.isBtc(coinType)) {
-      return signBtc(tx)
+      return signBtc(coinType, tx)
     } else if (D.isEth(coinType)) {
       return signEth(tx)
     } else {
+      console.warn('NetBankWallet signTransaction don\'t support this coinType', coinType)
       throw D.error.coinNotSupported
     }
   }
@@ -288,10 +329,87 @@ export default class NetBankWallet {
   async getRandom (length) {
     if (length > 255) throw D.error.notImplemented
     let apdu = '00840000' + (length >> 8) + (length % 0xFF)
-    return this._sendApdu(apdu)
+    return this.sendApdu(apdu)
   }
 
-  _sendApdu (apdu, isEnc = false) {
-    return this._transmitter.sendApdu(apdu, this._allEnc || isEnc)
+  /**
+   * APDU encrypt & decrypt
+   */
+  async sendApdu (apdu, isEnc = false) {
+    isEnc = this._allEnc || isEnc
+    // a simple lock to guarantee apdu order
+    while (this._busy) {
+      await D.wait(10)
+    }
+    this._busy = true
+
+    try {
+      if (typeof apdu === 'string') {
+        apdu = Buffer.from(apdu, 'hex')
+      }
+      console.log('send apdu', apdu.toString('hex'), 'isEnc', isEnc)
+      if (isEnc) {
+        // 1. some other program may try to send command to device
+        // 2. in some limit situation, device is not stable yet
+        // try up to 3 times
+        await this._doHandShake()
+          .catch(() => this._doHandShake())
+          .catch(() => this._doHandShake())
+        apdu = await this._handShake.encApdu(apdu)
+        console.debug('send enc apdu', apdu.toString('hex'))
+      }
+
+      let response = await this._transmit(apdu)
+      if (isEnc) {
+        console.debug('got enc response', response.toString('hex'))
+        let decResponse = await this._handShake.decResponse(response)
+        NetBankWallet._checkSw1Sw2(decResponse.result)
+        response = decResponse.response
+      }
+      console.log('got response', response.toString('hex'), 'isEnc', isEnc)
+      return response
+    } finally {
+      this._busy = false
+    }
+  }
+
+  async _doHandShake () {
+    if (this._handShake.isFinished) return
+    let {tempKeyPair, apdu} = await this._handShake.generateHandshakeApdu()
+    let response = await this._transmit(apdu)
+    await this._handShake.parseHandShakeResponse(response, tempKeyPair, apdu)
+  }
+
+  /**
+   * APDU special response handling
+   */
+  async _transmit (apdu) {
+    let {result, response} = await this._transmitter.transmit(apdu)
+
+    // 6AA6 means busy, send 00A6000008 immediately to get response
+    while (result === 0x6AA6) {
+      console.debug('got 0xE0616AA6, resend apdu')
+      let {_result, _response} = await this._transmitter.transmit(Buffer.from('00A6000008'), 'hex')
+      result = _result
+      response = _response
+    }
+
+    // 61XX means there are still XX bytes to get
+    while ((result & 0xFF00) === 0x6100) {
+      console.debug('got 0x61XX, get remain data', result & 0xff)
+      let rApdu = Buffer.from('00C0000000', 'hex')
+      rApdu[0x04] = result & 0xFF
+      let ret = await this._transmitter.transmit(rApdu)
+      response = Buffer.concat([response, ret.response])
+      result = ret.result
+    }
+    NetBankWallet._checkSw1Sw2(result)
+
+    return response
+  }
+
+  static _checkSw1Sw2 (sw1sw2) {
+    let errorCode = D.error.checkSw1Sw2(sw1sw2)
+    if (errorCode !== D.error.succeed) throw errorCode
   }
 }

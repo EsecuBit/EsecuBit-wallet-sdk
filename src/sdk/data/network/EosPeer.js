@@ -3,18 +3,19 @@ import D from '../../D'
 
 // jungle
 const jungle = {
-  httpEndpoint: 'http://dev.cryptolions.io:38888/',
-  provider: 'dev.cryptolions.io'
+  httpEndpoint: 'https://junglehistory.cryptolions.io:4433/',
+  provider: 'api.jungle.alohaeos.com',
+  txUrl: 'https://eospark.com/Jungle/tx/'
 }
 
 // TODO configurable
 const main = {
-  // httpEndpoint: 'http://api.hkeos.com:80/',
-  httpEndpoint: 'https://eos.greymass.com/',
-  provider: 'eos.greymass.com'
+  // httpEndpoint: 'https://eos.greymass.com/',
+  // httpEndpoint: 'https://public.eosinfra.io/',
+  httpEndpoint: 'https://geo.eosasia.one/',
+  provider: 'geo.eosasia.one',
+  txUrl: 'https://eospark.com/Main/tx/'
 }
-
-const eosParkTxUrl = 'https://eospark.com/MainNet/tx/'
 
 export default class EosPeer extends ICoinNetwork {
   async init () {
@@ -24,16 +25,17 @@ export default class EosPeer extends ICoinNetwork {
       case D.coin.main.eos:
         this.provider = main.provider
         this._apiUrl = main.httpEndpoint
+        this._txUrl = main.txUrl
         break
       case D.coin.test.eosJungle:
         this.provider = jungle.provider
         this._apiUrl = jungle.httpEndpoint
+        this._txUrl = jungle.txUrl
         break
       default:
         console.warn('EosPeer don\'t support this coinType yet', this.coinType)
         throw D.error.coinNotSupported
     }
-    this._txUrl = eosParkTxUrl
     if (!this._apiUrl) throw D.error.coinNotSupported
     return super.init()
   }
@@ -78,55 +80,89 @@ export default class EosPeer extends ICoinNetwork {
   }
 
   async queryAddress (address, offset = 0) {
-    return this.queryActions(address, offset)
+    let actions = await this.queryActions(address, offset)
+
+    let txs = []
+    for (let rAction of actions) {
+      let tx = this._wrapActionToTx(rAction)
+      let oldTx = txs.find(t => t.txId === tx.txId)
+      if (oldTx) {
+        oldTx.actions.push(...tx.actions)
+      } else {
+        txs.push(tx)
+        // cache the max account_action_seq to reduce query next time
+        // it's not a good way to give account the account_action_seq, but for now we don't have a better way
+        this._maxActionSeq[address] = Math.max(this._maxActionSeq[address], rAction.account_action_seq)
+      }
+    }
+    return txs
   }
 
-  async queryActions (address, offset = 0) {
+  async queryActions (accountName, offset = 0) {
+    if (D.test.coin) {
+      // TODO testnet has different data structor
+      return []
+    }
+
     const url = this._apiUrl + 'v1/history/get_actions'
     const defaultPageSize = 100
 
-    let txs = []
-    let currentOffset = offset + 1
-    this._maxActionSeq[address] = offset
+    let actions = []
+    let currentOffset = offset
+    this._maxActionSeq[accountName] = offset
     while (true) {
-      const args = JSON.stringify({pos: currentOffset, offset: defaultPageSize, account_name: address})
+      const args = JSON.stringify({pos: currentOffset, offset: defaultPageSize, account_name: accountName})
       let response = await this.post(url, args)
 
-      for (let rAction of response.actions) {
-        let tx = this._wrapActionToTx(rAction)
-        let oldTx = txs.find(t => t.txId === tx.txId)
-        if (oldTx) {
-          oldTx.actions.push(...tx.actions)
-        } else {
-          txs.push(tx)
-          // cache the max account_action_seq to reduce query next time
-          // it's not a good way to give account the account_action_seq, but for now we don't have a better way
-          this._maxActionSeq[address] = Math.max(this._maxActionSeq[address], rAction.account_action_seq)
+      // filter actions that don't care
+      response.actions = response.actions.filter(action =>
+        action.action_trace.act.authorization.actor === accountName ||
+        Object.values(action.action_trace.act.data).includes(accountName))
+
+      // // filter actions that it's the same
+      // response.actions = response.actions.reduce((actions, action) => {
+      //   if (!actions.some(a =>
+      //     a.action_trace.receipt.act_digest === action.action_trace.receipt.act_digest)) {
+      //     actions.push(action)
+      //   }
+      //   return actions
+      // }, [])
+
+      // filter actions that is inline actions
+      let inlineActions = []
+      response.actions.forEach(action => {
+        action.action_trace.inline_traces.forEach(inline => {
+          if (!inlineActions.some(a =>
+            a.receipt.global_sequence === inline.receipt.global_sequence)) {
+            inlineActions.push(inline)
+          }
+        })
+      })
+      response.actions = response.actions.reduce((actions, action) => {
+        if (!inlineActions.some(a =>
+          a.receipt.global_sequence === action.action_trace.receipt.global_sequence)) {
+          actions.push(action)
         }
-      }
+        return actions
+      }, [])
+
+      actions.push(...response.actions)
       currentOffset += response.actions.length
+
       // caution: some nodes didn't return enough actions sometimes, like http://api.hkeos.com:80.
       // You may get [0, 5) even you query [0, 100), I don't known whether it's a common issue yet.
       if (response.actions.length === 0 || response.actions.length < defaultPageSize) {
         break
       }
     }
-    return txs
+    return actions
   }
 
-  async getMaxActionSeq (address) {
+  getNextActionSeq (address) {
     if (this._maxActionSeq[address]) {
-      return this._maxActionSeq[address]
+      return this._maxActionSeq[address] + 1
     }
-
-    console.warn('getMaxActionSeq before queryActions, it\'s not effective')
-    await this.queryActions(address)
-
-    if (!this._maxActionSeq[address]) {
-      console.warn('unable to cache max account_action_seq, something went wrong..')
-      throw D.error.unknown
-    }
-    return this._maxActionSeq[address]
+    return 0
   }
 
   async queryTx (txId) {
@@ -147,7 +183,7 @@ export default class EosPeer extends ICoinNetwork {
       txId: rTx.id,
       blockNumber: rTx.block_num,
       confirmations: this._blockHeight > rTx.block_num
-        ? D.tx.confirmation.excuted
+        ? D.tx.confirmation.executed
         : D.tx.confirmation.waiting, // see D.tx.confirmation
       time: EosPeer._getTimeStamp(rTx.block_time),
       actions: rTx.trx.trx.actions
@@ -159,7 +195,7 @@ export default class EosPeer extends ICoinNetwork {
       txId: rAction.action_trace.trx_id,
       blockNumber: rAction.block_num,
       confirmations: this._blockHeight > rAction.block_num
-        ? D.tx.confirmation.excuted
+        ? D.tx.confirmation.executed
         : D.tx.confirmation.waiting, // see D.tx.confirmation
       time: EosPeer._getTimeStamp(rAction.block_time),
       actions: [rAction.action_trace.act]
@@ -170,14 +206,14 @@ export default class EosPeer extends ICoinNetwork {
     let localDate = new Date(dateString)
     let localTime = localDate.getTime()
     let localOffset = localDate.getTimezoneOffset() * 60 * 1000
-    return Math.floor(new Date(localTime - localOffset).getTime() / 1000)
+    return new Date(localTime - localOffset).getTime()
   }
 
   async getIrreversibleBlockInfo () {
     let response = await this.getBlockInfo()
     let refBlockNum = response.last_irreversible_block_num & 0xffff
     let refBlockPrefixHex = response.last_irreversible_block_id.slice(16, 24)
-    let refBlockPrefix = Buffer.from(refBlockPrefixHex, 'hex').readUInt32BE(0)
+    let refBlockPrefix = Buffer.from(refBlockPrefixHex, 'hex').readUInt32LE(0)
     return {
       lastIrreversibleBlockNum: response.last_irreversible_block_num,
       lastIrreversibleBlockId: response.last_irreversible_block_id,
@@ -187,12 +223,17 @@ export default class EosPeer extends ICoinNetwork {
   }
 
   async getAccountInfo (accountName, tokens) {
+    if (!accountName || !tokens) {
+      console.warn('EosPeer getAccountInfo invalid params', accountName, tokens)
+      throw D.error.invalidParams
+    }
     let url = this._apiUrl + 'v1/chain/get_account'
     let args = JSON.stringify({account_name: accountName})
     let ret = await this.post(url, args)
 
+    let balance = (ret.core_liquid_balance && ret.core_liquid_balance.split(' ')[0]) || '0.0000'
     let accountInfo = {
-      balance: ret.core_liquid_balance,
+      balance: balance,
       resources: {
         ram: {
           used: ret.ram_usage,
@@ -239,6 +280,7 @@ export default class EosPeer extends ICoinNetwork {
     let responses = await Promise.all(Object.values(tokens).map(token =>
       this._getTokenBalance(token.code, token.symbol, accountName)))
     responses.forEach(ret => {
+      if (!ret) return
       let symbol = ret.split(' ')[1]
       accountInfo.tokens[symbol].value = ret.split(' ')[0]
     })
@@ -251,5 +293,12 @@ export default class EosPeer extends ICoinNetwork {
     let url = this._apiUrl + 'v1/chain/get_currency_balance'
     let response = await this.post(url, args)
     return response[0]
+  }
+
+  async getAccountByPubKey (publicKey) {
+    let args = JSON.stringify({public_key: publicKey})
+    let url = this._apiUrl + 'v1/history/get_key_accounts'
+    let response = await this.post(url, args)
+    return response.account_names
   }
 }

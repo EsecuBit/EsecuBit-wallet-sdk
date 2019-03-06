@@ -4,6 +4,7 @@ const fileSize = 10 * 1024 // 0x2800
 
 /**
  * Mock object of transmitter. Only enabled when D.test.mockTransmitter = true
+ * @deprecated
  */
 export default class MockTransmitter {
   constructor () {

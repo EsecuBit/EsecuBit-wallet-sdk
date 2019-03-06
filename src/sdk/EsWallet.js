@@ -3,8 +3,10 @@ import D from './D'
 import CoinData from './data/CoinData'
 import BtcAccount from './account/BtcAccount'
 import EthAccount from './account/EthAccount'
+import EosAccount from './account/EosAccount'
 import Settings from './Settings'
 import CoreWallet from './device/CoreWallet'
+import EthTokenList from './data/EthTokenList'
 
 /**
  * Main entry of SDK, singleton. Object to manage wallet operation and wallet data.
@@ -39,70 +41,48 @@ export default class EsWallet {
     }
     EsWallet.prototype.Instance = this
 
+    this._syncBefore = false
+    this.offlineMode = true
     this._settings = new Settings()
     this._info = {}
     this._esAccounts = []
     this._coinData = new CoinData()
     this._status = D.status.plugOut
-    this._callback = null
+    this._callback = () => {}
 
     this._device = new CoreWallet()
     this._device.listenPlug(async (error, plugStatus) => {
       // ignore the same plug event sent multiple times
-      if (this._status !== D.status.plugOut) {
-        if (plugStatus === D.status.plugIn) {
-          return
-        }
+      if (plugStatus === this._status) {
+        return
       }
+      console.log('new plug status', plugStatus, this._status)
 
       // handle error
       this._status = plugStatus
       if (error !== D.error.succeed) {
-        this._callback && D.dispatch(() => this._callback(error, this._status))
+        D.dispatch(() => this._callback(error, this._status))
         return
       }
 
-      // send plug status
-      this._callback && D.dispatch(() => this._callback(D.error.succeed, this._status))
-      if (this._status === D.status.plugIn) {
-        this.offlineMode = false
-
-        // initializing
-        this._status = D.status.initializing
-        this._callback && D.dispatch(() => this._callback(D.error.succeed, this._status))
-        try {
-          let newInfo = await this._init()
-          if (this._info.walletId !== newInfo.walletId) {
-            this._callback && D.dispatch(() => this._callback(D.error.succeed, D.status.deviceChange))
-          }
-          this._info = newInfo
-        } catch (e) {
-          console.warn(e)
-          this._callback && D.dispatch(() => this._callback(e, this._status))
-          return
+      D.dispatch(async () => {
+        // send plug status
+        D.dispatch(() => this._callback(D.error.succeed, this._status))
+        if (this._status === D.status.plugIn) {
+          this.offlineMode = false
+          await this._handleInit(error, plugStatus)
+        } else if (this._status === D.status.plugOut) {
+          this.offlineMode = true
+          await this._release()
         }
-        if (this._status === D.status.plugOut) return
-
-        // syncing
-        this._status = D.status.syncing
-        this._callback && D.dispatch(() => this._callback(D.error.succeed, this._status))
-        try {
-          await this._sync()
-        } catch (e) {
-          console.warn(e)
-          this._callback && D.dispatch(() => this._callback(e, this._status))
-          return
-        }
-        if (this._status === D.status.plugOut) return
-
-        // syncFinish
-        this._status = D.status.syncFinish
-        this._callback && D.dispatch(() => this._callback(D.error.succeed, this._status))
-      } else if (this._status === D.status.plugOut) {
-        this.offlineMode = true
-        this._release()
-      }
+      })
     })
+
+    // receving event when accounts is syncing
+    this._syncCallback = (error, status, objects) => {
+      // TODO implement
+      console.warn('implement _syncCallback', error, status, objects)
+    }
   }
 
   /**
@@ -110,9 +90,42 @@ export default class EsWallet {
    */
   async enterOfflineMode () {
     if (this._status !== D.status.plugOut) throw D.error.offlineModeUnnecessary
-    this.offlineMode = true
-    this._info = await this._init()
-    await this._sync()
+    // noinspection JSIgnoredPromiseFromCall
+    this._handleInit()
+  }
+
+  async _handleInit () {
+    while (this._initLock) await D.wait(10)
+    this._initLock = true
+
+    try {
+      // initializing
+      this._status = D.status.initializing
+      D.dispatch(() => this._callback(D.error.succeed, this._status))
+      let newInfo = await this._init()
+      if (this._info.walletId && (this._info.walletId !== newInfo.walletId)) {
+        this._syncBefore = false
+        D.dispatch(() => this._callback(D.error.succeed, D.status.deviceChange))
+      }
+      this._info = newInfo
+      if (this._status === D.status.plugOut) return
+
+      // syncing
+      this._status = D.status.syncing
+      D.dispatch(() => this._callback(D.error.succeed, this._status))
+      !this._syncBefore && await this._sync()
+      if (this._status === D.status.plugOut) return
+      this._syncBefore = true
+
+      // syncFinish
+      this._status = D.status.syncFinish
+      D.dispatch(() => this._callback(D.error.succeed, this._status))
+    } catch (e) {
+      console.warn(e)
+      D.dispatch(() => this._callback(e, this._status))
+    } finally {
+      this._initLock = false
+    }
   }
 
   /**
@@ -126,12 +139,25 @@ export default class EsWallet {
 
     let info
     if (!this.offlineMode) {
-      info = await this._device.init()
+      info = await this._device.init((status, authCode) => {
+        this._status = status
+        if (status === D.status.auth) {
+          console.log('show auth code', authCode)
+        } else {
+          console.log('auth finish')
+        }
+        D.dispatch(() => this._callback(D.error.succeed, this._status, authCode))
+      })
       await this._settings.setSetting('lastWalletId', info.walletId)
     } else {
       let lastWalletId = await this._settings.getSetting('lastWalletId')
       if (!lastWalletId) {
-        // noinspection ExceptionCaughtLocallyJS
+        console.warn('offlineMode no device connected before')
+        throw D.error.offlineModeNotAllowed
+      }
+      let recoveryFinish = await this._settings.getSetting('recoveryFinish', lastWalletId)
+      if (!recoveryFinish) {
+        console.warn('offlineMode last device not recovery finished', lastWalletId)
         throw D.error.offlineModeNotAllowed
       }
       info = {walletId: lastWalletId}
@@ -143,13 +169,22 @@ export default class EsWallet {
     accounts.forEach(account => {
       let exists = this._esAccounts.some(esAccount => esAccount.accountId === account.accountId)
       if (exists) return
-      let esAccount = D.isEth(account.coinType)
-        ? new EthAccount(account, this._device, this._coinData)
-        : new BtcAccount(account, this._device, this._coinData)
+
+      let coinType = account.coinType
+      let esAccount
+      if (D.isBtc(coinType)) {
+        esAccount = new BtcAccount(account, this._device, this._coinData)
+      } else if (D.isEth(coinType)) {
+        esAccount = new EthAccount(account, this._device, this._coinData)
+      } else if (D.isEos(coinType)) {
+        esAccount = new EosAccount(account, this._device, this._coinData)
+      } else {
+        console.warn('EsWallet don\'t support this coinType', coinType)
+        throw D.error.coinNotSupported
+      }
       this._esAccounts.push(esAccount)
     })
     await Promise.all(this._esAccounts.map(esAccount => esAccount.init()))
-
     return info
   }
 
@@ -159,72 +194,100 @@ export default class EsWallet {
    * @private
    */
   async _sync () {
-    await Promise.all(this._esAccounts.map(esAccount => esAccount.sync(true, this.offlineMode)))
+    await this._coinData.sync()
+    await Promise.all(this._esAccounts.map(esAccount => esAccount.sync(this._syncCallback, true, this.offlineMode)))
 
     let recoveryFinish = await this._settings.getSetting('recoveryFinish', this._info.walletId)
+    recoveryFinish = recoveryFinish || false
+
+    let recoverCoinTypes
     if (!recoveryFinish || this._esAccounts.length === 0) {
       if (this.offlineMode) throw D.error.offlineModeNotAllowed
-      console.log('start recovery', recoveryFinish, this._esAccounts.length)
-      try {
-        // make sure no empty account before recover
-        // if last recovery is stopped unexcepted, we will have part of accounts
-        for (let esAccount of this._esAccounts) {
-          if ((await esAccount.getTxInfos()).total === 0) {
-            console.warn(esAccount.accountId, 'has no txInfo before recovery, delete it')
-            this._esAccounts = this._esAccounts.filter(a => a !== esAccount)
-            await esAccount.delete()
-          }
+      recoverCoinTypes = D.recoverCoinTypes()
+    } else {
+      // if every accounts of a coinType has txs, checkout the next account in case next account
+      // is generated and make transaction on other device
+      // TODO LATER we are going to get these informations from device data(WalletData.js)
+      for (let coinType of D.recoverCoinTypes()) {
+        recoverCoinTypes = []
+        let lastAccount = this._getLastAccount(coinType)
+        if (!lastAccount || lastAccount.txInfos.length > 0) {
+          recoverCoinTypes.push(coinType)
         }
+      }
+    }
 
-        // Here we can't use Promise.all() in recover, because data may be invalid when one
-        // of account occur errors, while other type of account is still running recover.
-        // In this case, deleting all account may failed because account which is still running
-        // may writing account data into database later. We don't have mechanism to make them stop.
-        for (let coinType of D.recoverCoinTypes()) {
-          await this._recover(coinType)
-        }
-        await this._settings.setSetting('recoveryFinish', true, this._info.walletId)
-      } catch (e) {
-        console.warn('recover error', e)
+    if (recoverCoinTypes.length > 0) {
+      if (this.offlineMode) {
+        console.warn('wallet needs discover new accounts but it\'s in offlineMode, wait for next time')
+        return
+      }
+      console.log('start recovery', recoveryFinish, recoverCoinTypes, this._esAccounts.length)
+
+      // In case when one of accounts occur error, while other accounts
+      // is still running recover.
+      // In this case, wait for all accounts stop before throw an error.
+      let error = null
+      await Promise.all(D.recoverCoinTypes().map(coinType =>
+        this._recover(coinType).catch(e => {
+          console.warn('recover error occured', e)
+          error = e
+        })))
+
+      if (error) {
+        console.warn('recover error', error)
         console.warn('recover account failed, recoveryFinish = false, wait for recover next time', this._esAccounts)
         this._esAccounts = []
-        throw e
+        throw error
+      }
+      console.warn('recovery finish, set recoveryFinish true')
+      await this._settings.setSetting('recoveryFinish', true, this._info.walletId)
+    }
+
+    // set account show status
+    for (let esAccount of this._esAccounts) {
+      if ((esAccount.status === D.account.status.hideByNoTxs && esAccount.txInfos.length !== 0) ||
+        (esAccount.index === 0 && esAccount.status !== D.account.status.hideByUser)) {
+        esAccount.status = D.account.status.show
+        await this._coinData.updateAccount(esAccount._toAccountInfo())
       }
     }
   }
 
   /**
-   * Recover accounts for specific coinType. Invoke inside when detect device plugin or called enterOfflineMode()
-   * and found no accounts for this coinType.
+   * Recover accounts for specific coinType.
    *
    * @param coinType
    * @private
    */
   async _recover (coinType) {
     while (true) {
-      let account = await this._coinData.newAccount(coinType)
       let esAccount
-      if (D.isBtc(coinType)) {
-        esAccount = new BtcAccount(account, this._device, this._coinData)
-      } else if (D.isEth(coinType)) {
-        esAccount = new EthAccount(account, this._device, this._coinData)
+      let lastAccount = this._getLastAccount(coinType)
+      if (lastAccount && lastAccount.txInfos.length === 0) {
+        esAccount = lastAccount
       } else {
-        throw D.error.coinNotSupported
-      }
-      this._esAccounts.push(esAccount)
-
-      await esAccount.init()
-      await esAccount.sync(true)
-
-      // new account has no transactions, recover finish
-      if ((await esAccount.getTxInfos()).total === 0) {
-        if (esAccount.index !== 0) {
-          console.log(esAccount.accountId, 'has no txInfo, will not recover, delete it')
-          this._esAccounts = this._esAccounts.filter(a => a !== esAccount)
-          await esAccount.delete()
+        let account = await this._coinData.newAccount(coinType)
+        if (D.isBtc(coinType)) {
+          esAccount = new BtcAccount(account, this._device, this._coinData)
+        } else if (D.isEth(coinType)) {
+          esAccount = new EthAccount(account, this._device, this._coinData)
+        } else if (D.isEos(coinType)) {
+          esAccount = new EosAccount(account, this._device, this._coinData)
         } else {
-          console.log(esAccount.accountId, 'has no txInfo, but it is the first account, keep it')
+          console.warn('EsWallet don\'t support this coinType', coinType)
+          throw D.error.coinNotSupported
         }
+
+        D.dispatch(() => this._callback(D.error.succeed, D.status.syncingNewAccount, esAccount))
+        await esAccount.init()
+        this._esAccounts.push(esAccount)
+      }
+
+      await esAccount.sync(this._syncCallback, true)
+      // new account has no transactions, recover finish
+      if (esAccount.txInfos.length === 0) {
+        console.log(esAccount.accountId, 'has no txInfo, stop')
         break
       }
     }
@@ -236,7 +299,6 @@ export default class EsWallet {
    * @private
    */
   async _release () {
-    this._esAccounts = []
     await this._coinData.release()
   }
 
@@ -246,6 +308,7 @@ export default class EsWallet {
    * @private
    */
   async reset () {
+    this._syncBefore = false
     await this._coinData.clearData()
   }
 
@@ -256,7 +319,7 @@ export default class EsWallet {
    * @see D.status
    */
   listenStatus (callback) {
-    this._callback = callback
+    this._callback = callback || (() => {})
     switch (this._status) {
       case D.status.plugIn:
         D.dispatch(() => callback(D.error.succeed, D.status.plugIn))
@@ -287,7 +350,7 @@ export default class EsWallet {
    * @param callback Function(errorCode, txInfo)
    */
   listenTxInfo (callback) {
-    this._coinData.addListener(callback)
+    this._coinData.setListner(callback)
   }
 
   /**
@@ -295,18 +358,41 @@ export default class EsWallet {
    *
    * @param filter (optional)
    * {
-   *   accountId: string
+   *   accountId: string,
+   *   coinType: string,
+   *   showAll: bool // only return hide accounts if false
    * }
-   * @returns {Promise<IAccount array>}
+   * @returns {Promise<IAccount[]>}
    */
-  async getAccounts (filter) {
+  async getAccounts (filter = {}) {
     const order = {}
-    order[D.coin.main.btc] = 0
-    order[D.coin.main.eth] = 1
-    order[D.coin.test.btcTestNet3] = 100
-    order[D.coin.test.ethRinkeby] = 101
-    order[D.coin.test.ethRopsten] = 102
-    return this._esAccounts.sort((a, b) => order[a.coinType] - order[b.coinType])
+    let index = 0
+    for (let coinType of Object.values(D.coin.main)) {
+      order[coinType] = index++
+    }
+    for (let coinType of Object.values(D.coin.test)) {
+      order[coinType] = index++
+    }
+
+    let accounts = this._esAccounts
+      .filter(a => a.status !== D.account.status.hideByNoTxs)
+      .sort((a, b) => {
+        let coinOrder = order[a.coinType] - order[b.coinType]
+        if (coinOrder !== 0) return coinOrder
+        return b.index - a.index
+      })
+
+    if (!filter.showAll) {
+      accounts = accounts.filter(a => a.status === D.account.status.show)
+    }
+    if (filter.coinType) {
+      accounts = accounts.filter(a => a.coinType === filter.coinType)
+    }
+    if (filter.accountId) {
+      accounts = accounts.filter(a => a.accountId === filter.accountId)
+    }
+
+    return accounts
   }
 
   /**
@@ -316,14 +402,38 @@ export default class EsWallet {
    * @returns {Promise<IAccount>}
    */
   async newAccount (coinType) {
+    let lastAccount = this._getLastAccount(coinType)
+    if (lastAccount.status === D.account.status.hideByNoTxs) {
+      lastAccount.status = D.account.status.show
+      await this._coinData.updateAccount(lastAccount)
+      return lastAccount
+    }
+
     let account = await this._coinData.newAccount(coinType)
-    let esAccount = D.isBtc(coinType)
-      ? new BtcAccount(account, this._device, this._coinData)
-      : new EthAccount(account, this._device, this._coinData)
+    let esAccount
+    if (D.isBtc(coinType)) {
+      esAccount = new BtcAccount(account, this._device, this._coinData)
+    } else if (D.isEth(coinType)) {
+      esAccount = new EthAccount(account, this._device, this._coinData)
+    } else if (D.isEos(coinType)) {
+      esAccount = new EosAccount(account, this._device, this._coinData)
+    } else {
+      console.warn('EsWallet don\'t support this coinType', coinType)
+      throw D.error.coinNotSupported
+    }
     await esAccount.init()
     await esAccount.sync()
     this._esAccounts.push(esAccount)
     return esAccount
+  }
+
+  _getLastAccount (coinType) {
+    let lastAccount = this._esAccounts
+      .filter(account => account.coinType === coinType)
+      .reduce((lastAccount, account) =>
+        lastAccount.index > account.index ? lastAccount : account, {txInfos: [], index: -1})
+    if (lastAccount.index === -1) lastAccount = null
+    return lastAccount
   }
 
   /**
@@ -335,7 +445,10 @@ export default class EsWallet {
   async availableNewAccountCoinTypes () {
     let availables = []
     for (let coinType of D.supportedCoinTypes()) {
-      if ((await this._coinData._newAccountIndex(coinType)) >= 0) {
+      let lastAccount = this._getLastAccount(coinType)
+      if (lastAccount.status === D.account.status.hideByNoTxs) {
+        availables.push(coinType)
+      } else if ((await this._coinData._newAccountIndex(coinType)) >= 0) {
         availables.push(coinType)
       }
     }
@@ -358,6 +471,19 @@ export default class EsWallet {
    */
   getProviders () {
     return this._coinData.getProviders()
+  }
+
+  getDeviceBattery () {
+    return this._device.getWalletBattery()
+  }
+
+  /**
+   * Get known ETH token list.
+   *
+   * @returns {Promise<Object>}
+   */
+  async getEthTokenList () {
+    return EthTokenList
   }
 
   /**

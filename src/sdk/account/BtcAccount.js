@@ -165,7 +165,7 @@ export default class BtcAccount extends IAccount {
    * update account, store utxo, addressInfo, txInfo
    */
   async _handleNewTxInner (txInfo, utxos) {
-    console.log('btc newTransaction, utxos', txInfo, utxos)
+    console.log('btc newTransaction, utxos', txInfo.txId, utxos.map(u => JSON.stringify(u)))
 
     while (this._innerBusy) {
       await D.wait(2)
@@ -176,7 +176,7 @@ export default class BtcAccount extends IAccount {
       // update account info
       let index = this.txInfos.findIndex(t => t.txId === txInfo.txId)
       if (index === -1) {
-        txInfo.comment = ''
+        txInfo.comment = txInfo.comment || ''
         this.txInfos.push(txInfo)
       } else {
         txInfo.comment = this.txInfos[index].comment
@@ -282,12 +282,12 @@ export default class BtcAccount extends IAccount {
       console.log(this.accountId, 'generating', type, 'addressInfos, from', nextIndex, 'to', newNextIndex)
       let addressInfos = []
       for (let i = nextIndex; i < newNextIndex; i++) {
-        let address = await this._device.getAddress(this.coinType, D.makeBip44Path(this.coinType, this.index, type, i))
+        let address = await this._device.getAddress(this.coinType, D.address.path.makeBip44Path(this.coinType, this.index, type, i))
         addressInfos.push({
           address: address,
           accountId: this.accountId,
           coinType: this.coinType,
-          path: D.makeBip44Path(this.coinType, this.index, type, i),
+          path: D.address.path.makeBip44Path(this.coinType, this.index, type, i),
           type: type,
           index: i,
           txs: []
@@ -308,7 +308,7 @@ export default class BtcAccount extends IAccount {
 
   async getAddress (isStoring = false) {
     let address = await this._device.getAddress(this.coinType,
-      D.makeBip44Path(this.coinType, this.index, D.address.external, this.externalPublicKeyIndex),
+      D.address.path.makeBip44Path(this.coinType, this.index, D.address.external, this.externalPublicKeyIndex),
       true, isStoring)
 
     await this._checkAddressIndexAndGenerateNew()
@@ -351,6 +351,7 @@ export default class BtcAccount extends IAccount {
    */
   async prepareTx (details) {
     console.log('prepareTx details', details)
+    details = D.copy(details)
 
     if (Number(details.feeRate) === 0) {
       console.warn('fee can not be 0')
@@ -431,6 +432,7 @@ export default class BtcAccount extends IAccount {
    * @see prepareTx
    */
   async buildTx (prepareTx) {
+    prepareTx = D.copy(prepareTx)
     let totalOut = prepareTx.outputs.reduce((sum, output) => sum + output.value, 0)
     if (totalOut + prepareTx.fee !== prepareTx.total) throw D.error.unknown
     let totalIn = prepareTx.utxos.reduce((sum, utxo) => sum + utxo.value, 0)
@@ -483,7 +485,7 @@ export default class BtcAccount extends IAccount {
           address: output.address,
           isMine: output.address === (changeAddressInfo && changeAddressInfo.address),
           index: index,
-          script: D.address.makeOutputScript(output.address),
+          script: D.address.makeOutputScript(this.coinType, output.address),
           value: output.value
         }
       }),
@@ -512,6 +514,7 @@ export default class BtcAccount extends IAccount {
       prepareTx.utxos.push(changeUtxo)
     }
 
+    txInfo.comment = prepareTx.comment
     return {
       txInfo: txInfo,
       hex: signedTx.hex,
@@ -528,6 +531,7 @@ export default class BtcAccount extends IAccount {
   async sendTx (signedTx, test = false) {
     // broadcast transaction to network
     console.log('sendTx', signedTx)
+    signedTx = D.copy(signedTx)
     if (!test) await this._coinData.sendTx(this.coinType, signedTx.hex)
 
     if (signedTx.oldTxInfo) {

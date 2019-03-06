@@ -6,9 +6,10 @@ import BigInteger from 'bigi'
 import createHmac from 'create-hmac'
 import rlp from 'rlp'
 import D from '../../D'
-import FcBuffer from './EosFcBuffer'
+import FcBuffer from './protocol/EosFcBuffer'
 import createHash from 'create-hash'
 import base58 from 'bs58'
+import {Buffer} from "buffer";
 
 /**
  * A wallet implemented by JavaScript.
@@ -23,6 +24,10 @@ export default class JsWallet {
    *                  other: regard as transmitter. Will call getSeed() in init()
    */
   constructor (initParam) {
+    if (!initParam) {
+      console.warn('JsWallet need initParam in constructor', initParam)
+      throw D.error.invalidParams
+    }
     if (typeof initParam === 'string') {
       this._seed = initParam
     } else if (initParam) {
@@ -32,6 +37,7 @@ export default class JsWallet {
   }
 
   async init () {
+    console.log('JsWallet init')
     this._seed = this._seed || await this._transmitter.getSeed()
     this._root = bitcoin.HDNode.fromSeedHex(this._seed)
 
@@ -78,20 +84,6 @@ export default class JsWallet {
     }
   }
 
-  async getPublicKey (coinType, keyPath) {
-    let node = await this._derive(keyPath)
-    let publicKey = node.getPublicKeyBuffer()
-    // let chainCode = node.chainCode
-
-    if (D.isEos(coinType)) {
-      let checksum = createHash('ripemd160').update(publicKey).digest().slice(0, 4)
-      publicKey = 'EOS' + base58.encode(Buffer.concat([publicKey, checksum]))
-    } else {
-      publicKey.toString('hex')
-    }
-    return publicKey
-  }
-
   async getAddress (coinType, addressPath) {
     let btcAddress = async (addressPath) => {
       let node = await this._derive(addressPath)
@@ -107,21 +99,62 @@ export default class JsWallet {
       return '0x' + hash.slice(-40)
     }
 
+    let eosExternalPublicKey = async (addressPath) => {
+      let node = await this._derive(addressPath)
+      let publicKey = node.getPublicKeyBuffer()
+      let checksum = createHash('ripemd160').update(publicKey).digest().slice(0, 4)
+      publicKey = 'EOS' + base58.encode(Buffer.concat([publicKey, checksum]))
+      return publicKey
+    }
+
     let address
-    switch (coinType) {
-      case D.coin.main.btc:
-      case D.coin.test.btcTestNet3:
-        address = await btcAddress(addressPath)
-        break
-      case D.coin.main.eth:
-      case D.coin.test.ethRinkeby:
-        address = await ethAddress(addressPath)
-        break
-      default:
-        throw D.error.coinNotSupported
+    if (D.isBtc(coinType)) {
+      address = await btcAddress(addressPath)
+    } else if (D.isEth(coinType)) {
+      address = await ethAddress(addressPath)
+    } else if (D.isEos(coinType)) {
+      address = await eosExternalPublicKey(addressPath)
+    } else {
+      console.warn('getAddress not supported coinType', coinType, addressPath)
+      throw D.error.coinNotSupported
     }
     console.debug('path, address', addressPath, address)
     return address
+  }
+
+  async getDefaultPermissions (coinType) {
+    if (!D.isEos(coinType)) {
+      console.warn('getPermissions only supports EOS', coinType)
+      throw D.error.coinNotSupported
+    }
+    return [{
+      name: 'owner',
+      keys: [{
+        publicKey: await this.getAddress(coinType, "m/48'/4'/0'/0'/0'") // slip-0048
+      }]
+    }, {
+      name: 'active',
+      threshold: 1,
+      keys: [{
+        publicKey: await this.getAddress(coinType, "m/48'/4'/1'/0'/0'") // slip-0048
+      }]
+    }]
+  }
+
+  async addToken (coinType, token) {
+    // do nothing
+  }
+
+  async removeToken (coinType, token) {
+    // do nothing
+  }
+
+  async addPermission () {
+    // do nothing
+  }
+
+  async removePermission () {
+    // do nothing
   }
 
   // noinspection JSMethodCanBeStatic

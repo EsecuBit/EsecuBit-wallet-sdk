@@ -4,10 +4,11 @@ import JSWallet from './device/implements/JsWallet'
 import NetBankWallet from './device/implements/NetBankWallet'
 import S300Wallet from './device/implements/S300Wallet'
 
-import JsTransmitter from './device/implements/transmit/JsTransmitter'
-import MockTransmitter from './device/implements/transmit/MockTransmitter'
-import HidTransmitter from './device/implements/transmit/HidTransmitter'
-import CcidTransmitter from './device/implements/transmit/CcidTransmitter'
+import JsTransmitter from './device/implements/transmitter/JsTransmitter'
+import MockTransmitter from './device/implements/transmitter/MockTransmitter'
+import HidTransmitter from './device/implements/transmitter/HidTransmitter'
+import CcidTransmitter from './device/implements/transmitter/CcidTransmitter'
+import Crypto from './device/implements/protocol/Crypto'
 
 const Provider = {
   Transmitters: [
@@ -19,11 +20,13 @@ const Provider = {
 
   Wallets: [
     JSWallet,
-    S300Wallet,
-    NetBankWallet
+    NetBankWallet,
+    S300Wallet
   ],
 
-  DB: IndexedDB
+  DB: IndexedDB,
+
+  Crypto: Crypto
 }
 
 export default Provider

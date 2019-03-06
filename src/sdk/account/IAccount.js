@@ -3,6 +3,11 @@ import D from '../D'
 
 export default class IAccount {
   constructor (info, device, coinData) {
+    if (!info || !device || !coinData) {
+      console.warn('IAccount constructor needs valid object', info, device, coinData)
+      throw D.error.invalidParams
+    }
+
     this._fromAccountInfo(info)
     this._device = device
     this._coinData = coinData
@@ -55,16 +60,13 @@ export default class IAccount {
     let info = {}
     info.label = this.label
     info.accountId = this.accountId
+    info.status = this.status
     info.coinType = this.coinType
     info.index = this.index
     info.balance = this.balance
     info.externalPublicKeyIndex = this.externalPublicKeyIndex
     info.changePublicKeyIndex = this.changePublicKeyIndex
 
-    // EOS
-    if (this.queryOffset) info.queryOffset = this.queryOffset
-    if (this.tokens) info.tokens = D.copy(this.tokens)
-    if (this.resources) info.resources = D.copy(this.resources)
     return info
   }
 
@@ -77,59 +79,63 @@ export default class IAccount {
   _fromAccountInfo (info) {
     this.label = info.label
     this.accountId = info.accountId
+    this.status = info.status
     this.coinType = info.coinType
     this.index = info.index
     this.balance = info.balance
     this.externalPublicKeyIndex = info.externalPublicKeyIndex
     this.changePublicKeyIndex = info.changePublicKeyIndex
-
-    // EOS
-    if (info.queryOffset) this.queryOffset = info.queryOffset
-    if (info.tokens) this.tokens = D.copy(info.tokens)
-    if (info.resources) this.resources = D.copy(info.resources)
   }
 
   async init () {
     let accountId = this.accountId
     this.addressInfos = await this._coinData.getAddressInfos({accountId})
-    this.txInfos = (await this._coinData.getTxInfos({accountId})).txInfos
+    this.txInfos = await this._coinData.getTxInfos({accountId})
     // for BTC-liked account
     this.utxos = await this._coinData.getUtxos({accountId})
   }
 
-  async sync (firstSync = false, offlineMode = false) {
+  async sync (callback, firstSync = false, offlineMode = false) {
+    console.log('syncing account', this.accountId)
     if (!offlineMode) {
       await this._checkAddressIndexAndGenerateNew(true)
     }
 
     let checkAddressInfos = D.copy(this.addressInfos)
     while (checkAddressInfos.length > 0) {
+      console.log('sync checkAddresses', JSON.stringify(checkAddressInfos.map(a => a.address)))
+
       // find out all the transactions
       let blobs = await this._coinData.checkAddresses(this.coinType, checkAddressInfos)
-      let responses = await Promise.all(blobs.map(blob => {
+
+      let hasNewTxs = false
+      for (let blob of blobs) {
         if (blob.removedTxId) {
           let removedTxInfo = this.txInfos.find(txInfo => txInfo.txId === blob.removedTxId)
           // let the txListener handle the overTime pending tx
-          if (removedTxInfo && removedTxInfo.confirmations !== D.tx.confirmation.pending) {
-            return this._handleRemovedTx(blob.removedTxId)
+          if (removedTxInfo &&
+            removedTxInfo.confirmations !== D.tx.confirmation.pending &&
+            removedTxInfo.confirmations !== D.tx.confirmation.inMemory) {
+            await this._handleRemovedTx(blob.removedTxId)
+            hasNewTxs = true
           }
         } else {
-          return this._handleNewTx(blob.txInfo)
+          await this._handleNewTx(blob.txInfo)
+          hasNewTxs = true
         }
-      }))
+      }
 
       if (offlineMode) break
-      if (responses.length === 0) break
+      if (hasNewTxs) break
       checkAddressInfos = D.copy(await this._checkAddressIndexAndGenerateNew(true))
     }
 
     if (firstSync) {
       let listenAddressInfos = await this._getActiveAddressInfos()
-      for (let addressInfo of listenAddressInfos) {
-        if (!this._listenedAddresses.includes(addressInfo.address)) {
-          this._listenedAddresses.push(addressInfo.address)
-          this._coinData.listenAddresses(this.coinType, [D.copy(addressInfo)], this._addressListener)
-        }
+      listenAddressInfos = listenAddressInfos.filter(a => this._listenedAddresses.includes(a.address))
+      if (listenAddressInfos.length !== 0) {
+        this._listenedAddresses.push(...listenAddressInfos)
+        this._coinData.listenAddresses(this.coinType, D.copy(listenAddressInfos), this._addressListener)
       }
 
       this.txInfos
@@ -141,6 +147,7 @@ export default class IAccount {
           this._coinData.listenTx(this.coinType, D.copy(txInfo), this._txListener)
         })
     }
+    console.log('syncing account finished', this.accountId)
   }
 
   /**
@@ -157,7 +164,7 @@ export default class IAccount {
     newName = newName || this.label
     let oldAccountInfo = this._toAccountInfo()
     oldAccountInfo.label = newName
-    await this._coinData.renameAccount(oldAccountInfo)
+    await this._coinData.updateAccount(oldAccountInfo)
     this.label = newName
   }
 
@@ -171,9 +178,30 @@ export default class IAccount {
     oldTxInfo.comment = txInfo.comment
   }
 
-  getTxInfos (startIndex, endIndex) {
-    let accountId = this.accountId
-    return this._coinData.getTxInfos({accountId, startIndex, endIndex})
+  async getTxInfos (startIndex, endIndex) {
+    let txInfos = this.txInfos.sort((a, b) => b.time - a.time)
+    let total = this.txInfos.length
+    txInfos = D.copy(txInfos.slice(startIndex, endIndex))
+    txInfos.forEach(tx => this._coinData.setTxFlags(tx))
+    return {total, txInfos}
+  }
+
+  async hideAccount () {
+    if (this.status === D.account.status.show) {
+      let oldAccountInfo = this._toAccountInfo()
+      oldAccountInfo.status = D.account.status.hideByUser
+      await this._coinData.updateAccount(oldAccountInfo)
+      this.status = D.account.status.hideByUser
+    }
+  }
+
+  async showAccount () {
+    if (this.status === D.account.status.hideByUser) {
+      let oldAccountInfo = this._toAccountInfo()
+      oldAccountInfo.status = D.account.status.show
+      await this._coinData.updateAccount(oldAccountInfo)
+      this.status = D.account.status.show
+    }
   }
 
   getSuggestedFee () {
@@ -185,6 +213,14 @@ export default class IAccount {
     return D.address.checkAddress(this.coinType, address)
   }
 
+  // noinspection JSValidateJSDoc, JSMethodCanBeStatic
+  /**
+   * Get active addressInfos for listening while block height changed.
+   * Default won't return any addressInfos, so no address will be listened
+   *
+   * @returns {Promise<Array>}
+   * @private
+   */
   async _getActiveAddressInfos () {
     return []
   }

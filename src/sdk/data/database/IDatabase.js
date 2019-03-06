@@ -30,7 +30,7 @@ export default class IDatabase {
     throw D.error.notImplemented
   }
 
-  async renameAccount (account) {
+  async updateAccount (account) {
     throw D.error.notImplemented
   }
 
@@ -43,6 +43,10 @@ export default class IDatabase {
   }
 
   async newAddressInfos (account, addressInfos) {
+    throw D.error.notImplemented
+  }
+
+  async updateAddressInfos (addressInfos) {
     throw D.error.notImplemented
   }
 

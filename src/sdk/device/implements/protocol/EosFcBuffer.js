@@ -1,6 +1,6 @@
 import ByteBuffer from 'bytebuffer'
 import {Buffer} from 'buffer'
-import D from '../../D'
+import D from '../../../D'
 
 const FcBuffer = {
   serializeTx (tx) {
@@ -44,6 +44,12 @@ const FcBuffer = {
     }
   },
 
+  uint64: {
+    appendByteBuffer (b, value) {
+      b.writeUint64(value)
+    }
+  },
+
   varuint32: {
     appendByteBuffer (b, value) {
       b.writeVarint32(value)
@@ -59,6 +65,13 @@ const FcBuffer = {
   name: {
     appendByteBuffer (b, value) {
       b.writeUint64(this.encodeName(value, false))
+    },
+
+    toBuffer (value) {
+      let buffer = new ByteBuffer(8, true, true)
+      this.appendByteBuffer(buffer, value)
+      buffer = buffer.copy(0, buffer.offset)
+      return Buffer.from(buffer.buffer)
     },
 
     /**
@@ -177,45 +190,41 @@ const FcBuffer = {
 
   data: {
     appendByteBuffer (b, value, account, name) {
-      let type = Object.values(FcBuffer.data.types).find(type => type._name === name)
-      if (!type) {
+      let actionType = D.coin.params.eos.getActionType(account, name)
+      if (!actionType) {
         console.warn('unsupport data type', b, value, account, name)
         throw D.error.invalidParams
       }
 
       let content = new ByteBuffer(20, true, true)
-      Object.entries(type).forEach(([key, itemType]) => {
-        if (key.startsWith('_')) return
+      Object.entries(actionType.data).forEach(([key, itemType]) => {
         let item = value[key]
         if (item === undefined) {
-          console.warn('item not found in type', b, value, key, type)
+          console.warn('item not found in action type', b, value, key, itemType)
           throw D.error.invalidParams
         }
-        FcBuffer[itemType].appendByteBuffer(content, item)
+
+        if (itemType.endsWith('[]')) {
+          // handle vector
+          if (!Array.isArray(item)) {
+            console.warn('item not an array when itemType is vector', b, value, key, itemType)
+            throw D.error.invalidParams
+          }
+          let subItemType = itemType.slice(0, itemType.length - 2)
+
+          content.writeVarint32(item.length)
+          item.forEach(i => {
+            FcBuffer[subItemType].appendByteBuffer(content, i)
+          })
+        } else {
+          FcBuffer[itemType].appendByteBuffer(content, item)
+        }
       })
 
       b.writeVarint32(content.offset)
       content = content.copy(0, content.offset)
       // noinspection JSUnresolvedFunction
       content.copyTo(b)
-    },
-
-    types: {
-      EosIoTokenTransfer: {
-        _name: 'transfer',
-        from: 'name',
-        to: 'name',
-        quantity: 'asset',
-        memo: 'string'
-      },
-      EosIoDelegatebw: {
-        _name: 'delegatebw',
-        from: 'name',
-        receiver: 'name',
-        stake_net_quantity: 'asset',
-        stake_cpu_quantity: 'asset',
-        transfer: 'uint8'
-      }
     }
   },
 
@@ -234,7 +243,7 @@ const FcBuffer = {
       let symbolMatch = str.match(/(^| |,)([A-Z]+)(@|$)/)
       let symbol = symbolMatch ? symbolMatch[2] : null
 
-      if (precision === undefined || symbol === undefined || amount === undefined) {
+      if (precision === null || symbol === null || amount === null) {
         console.warn('parse asset failed', str, precision, symbol, amount)
         throw D.error.invalidParams
       }

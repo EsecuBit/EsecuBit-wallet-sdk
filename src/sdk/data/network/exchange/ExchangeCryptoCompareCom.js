@@ -1,39 +1,33 @@
 
 import D from '../../../D'
 
-let UPDATE_DURATION = 10 * 60 * 1000
-
-const UNITS = {}
-UNITS[D.coin.main.btc] = D.unit.btc.BTC
-UNITS[D.coin.test.btcTestNet3] = D.unit.btc.BTC
-UNITS[D.coin.main.eth] = D.unit.eth.Ether
-UNITS[D.coin.test.ethRinkeby] = D.unit.eth.Ether
-
-const REQUEST_COINS = {}
-REQUEST_COINS[D.coin.main.btc] = 'BTC'
-REQUEST_COINS[D.coin.test.btcTestNet3] = 'BTC'
-REQUEST_COINS[D.coin.main.eth] = 'ETH'
-REQUEST_COINS[D.coin.test.ethRinkeby] = 'ETH'
+let UPDATE_DURATION = 60 * 60 * 1000
 
 export default class ExchangeCryptoCompareCom {
   constructor (exchange) {
-    this.provider = 'cryptocompare.com'
-    switch (exchange.coinType) {
-      case D.coin.main.btc:
-      case D.coin.test.btcTestNet3:
-      case D.coin.main.eth:
-      case D.coin.test.ethRinkeby:
-        this.coinType = exchange.coinType
-        break
-      default:
-        throw D.error.coinNotSupported
+    if (!exchange) {
+      console.warn('ExchangeCryptoCompareCom invalid parameters', exchange)
+      throw D.error.invalidParams
     }
+    this.provider = 'cryptocompare.com'
 
+    this.coinType = exchange.coinType
     this.exchange = D.copy(exchange)
-    this.exchange.unit = UNITS[exchange.coinType]
+    if (D.isBtc(exchange.coinType)) {
+      this.exchange.unit = D.unit.btc.BTC
+      this.requestCoin = 'BTC'
+    } else if (D.isEth(exchange.coinType)) {
+      this.exchange.unit = D.unit.eth.Ether
+      this.requestCoin = 'ETH'
+    } else if (D.isEos(exchange.coinType)) {
+      this.exchange.unit = D.unit.eos.EOS
+      this.requestCoin = 'EOS'
+    } else {
+      console.warn('ExchangeCryptoCompareCom don\'t support this coinType', exchange.coinType)
+      throw D.error.coinNotSupported
+    }
     this.exchange.exchange = exchange.exchange ||
       D.suppertedLegals().reduce((obj, currency) => (obj[currency] = 0) || obj, {})
-    this.requestCoin = REQUEST_COINS[exchange.coinType]
 
     // noinspection JSIgnoredPromiseFromCall
     this.updateExchange()
@@ -78,13 +72,13 @@ export default class ExchangeCryptoCompareCom {
     }
 
     /**
-     * response
-     *{
-     * "USD": float,
-     * "JPY": float,
-     * "EUR": float,
-     * "CNY": float,
-     *}
+     * response:
+     * {
+     *   "USD": float,
+     *   "JPY": float,
+     *   "EUR": float,
+     *   "CNY": float
+     * }
      */
     let response = await get(url)
     let exchange = D.copy(this.exchange)

@@ -21,41 +21,369 @@ const tokenList = {
   }
 }
 
-const txType = {
-  tokenTransfer: 'tokenTransfer'
-}
+// according to slip48, index threshold and permission threshold = 5.
+// but it's too waste time, so we only check first owner key and first active key
+const maxIndexThreshold = 1
+const maxPermissionThreshold = 2
 
 export default class EosAccount extends IAccount {
+  constructor (info, device, coinData) {
+    super(info, device, coinData)
+    this._network = this._coinData.getNetwork(this.coinType)
+    if (!this._network) {
+      console.warn('EosAccount CoinData not support this network', this.coinType)
+      throw D.error.invalidParams
+    }
+  }
+
+  _fromAccountInfo (info) {
+    super._fromAccountInfo(info)
+
+    this.queryOffset = info.queryOffset
+    this.tokens = D.copy(info.tokens)
+    this.resources = D.copy(info.resources)
+  }
+
+  _toAccountInfo (info) {
+    info = super._toAccountInfo()
+    info.queryOffset = this.queryOffset
+    info.tokens = D.copy(this.tokens)
+    info.resources = D.copy(this.resources)
+    return info
+  }
+
+  async sync (callback, firstSync = false, offlineMode = false) {
+    if (!this.isRegistered()) {
+      console.warn('this EosAccount has not been registered, exit')
+      return
+    }
+
+    if (!offlineMode) {
+      await this._checkPermissionAndGenerateNew()
+    }
+
+    this.tokens = this.tokens || {'EOS': {code: 'eosio.token', symbol: 'EOS'}}
+    let newAccountInfo = await this._network.getAccountInfo(this.label, this.tokens)
+    console.info('EosAccount sync getAccountInfo', newAccountInfo)
+    this._syncPermissions = newAccountInfo.permissions
+    this.tokens = D.copy(newAccountInfo.tokens)
+    this.resources = D.copy(newAccountInfo.resources)
+    this.balance = newAccountInfo.balance
+
+    await this._coinData.updateAccount(this._toAccountInfo())
+
+    let txs = await this._network.queryAddress(this.label, this.queryOffset)
+    txs.filter(tx => !this.txInfos.some(t => t.txId === tx.txId))
+    for (let tx of txs) {
+      tx.accountId = this.accountId
+      tx.coinType = this.coinType
+      tx.comment = ''
+      await this._handleNewTx(tx)
+    }
+    this.queryOffset = this._network.getNextActionSeq(this.label)
+  }
+
+  /**
+   * Check new permissions for slip48 generated public keys. Needs device interaction
+   *
+   * @param callback callback(error, status, permissions) when new permission found.
+   * status = D.status.syncingNewEosPermissions or D.status.syncingNewEosWillConfirmPermissions
+   * @returns {Promise<boolean>}
+   */
+  async checkAccountPermissions (callback) {
+    try {
+      await this._checkPermissionAndGenerateNew()
+    } catch (e) {
+      console.warn('checkNewPermission checkPermissionAndGenerateNew error', e)
+      console.warn('app may in offline mode, ignore here')
+    }
+
+    let checkNewAccount = async () => {
+      for (let pmIndex = 0; pmIndex < maxPermissionThreshold; pmIndex++) {
+        console.log('EosAccount not registered, check publickey', pmIndex)
+        // slip-0048 recovery
+        for (let keyIndex = 0; keyIndex < maxIndexThreshold; keyIndex++) {
+          let path = D.address.path.makeSlip48Path(this.coinType, 0, this.index, keyIndex)
+          let ownerInfo = this.addressInfos.find(a => a.path === path)
+          if (!ownerInfo) {
+            console.warn('account have no permission info in storage, most likely it is in offlineMode, exit')
+            return
+          }
+          let accounts = await this._network.getAccountByPubKey(ownerInfo.publicKey)
+          if (!accounts || accounts.length === 0) {
+            console.info('EosAccount specific path not registered', ownerInfo.path, ownerInfo.publicKey)
+          } else {
+            // choose the first account if this key matches multi accounts
+            // set the label as account name
+            return accounts[0]
+          }
+          // slow down the request speed
+          await D.wait(200)
+        }
+        console.info('this EosAccount has not been registered', pmIndex)
+      }
+      return null
+    }
+
+    let accountName = this.label
+    if (!this.isRegistered()) {
+      accountName = await checkNewAccount()
+    }
+    if (!accountName) {
+      return false
+    }
+    this.label = accountName
+
+    let tokens = this.tokens || {'EOS': {code: 'eosio.token', symbol: 'EOS'}}
+    let syncPermissions = this._syncPermissions
+    if (!syncPermissions) {
+      let newAccountInfo = await this._network.getAccountInfo(accountName, tokens)
+      console.info('EosAccount registered getAccountInfo', newAccountInfo)
+      syncPermissions = newAccountInfo.permissions
+    }
+    this._syncPermissions = null
+    let updatedPermissions = await this._updatePermissions(syncPermissions, callback)
+    if (this.isRegistered()) {
+      await this.sync(null)
+    }
+    return updatedPermissions.length > 0
+  }
+
+  async _updatePermissions (permissions, updateCallback) {
+    let updatePmInfos = []
+    let addDevicePmInfos = []
+    let removeDevicePmInfos = []
+    let needCheck = true
+    while (needCheck) {
+      for (let permission of Object.values(permissions)) {
+        for (let pKey of permission.pKeys) {
+          let pmInfo = this.addressInfos.find(a => pKey.publicKey === a.publicKey)
+          if (!pmInfo) {
+            console.warn('publicKey not found in account', pKey)
+            continue
+          }
+
+          pmInfo = D.copy(pmInfo)
+          if (!pmInfo.address ||
+            !pmInfo.registered ||
+            pmInfo.type !== permission.name ||
+            pmInfo.parent !== permission.parent ||
+            pmInfo.threshold !== permission.threshold ||
+            pmInfo.weight !== pKey.weight) {
+            // check permissions that needs update to device
+            if (!pmInfo.address ||
+              !pmInfo.registered ||
+              pmInfo.type !== permission.name) {
+              // TODO handle permission that only change path or name, first remove then add
+              addDevicePmInfos.push(pmInfo)
+            }
+
+            console.log('update permission info', pmInfo, permission)
+            pmInfo.address = this.label
+            pmInfo.registered = true
+            pmInfo.type = permission.name
+            pmInfo.parent = permission.parent
+            pmInfo.threshold = permission.threshold
+            pmInfo.weight = pKey.weight
+            updatePmInfos.push(pmInfo)
+          }
+        }
+
+        let existsPmInfos = this.addressInfos.filter(a => a.registered)
+        let allPKeys = Object.values(permissions).reduce((sum, p) => sum.concat(p.pKeys), [])
+        for (let pmInfo of existsPmInfos) {
+          let relativePKeys = allPKeys.find(p => p.publicKey === pmInfo.publicKey)
+          if (!relativePKeys) {
+            // this permission was deleted
+            console.log('remove permission info', permission)
+
+            pmInfo = D.copy(pmInfo)
+            pmInfo.registered = false
+            updatePmInfos.push(pmInfo)
+            removeDevicePmInfos.push(pmInfo)
+          }
+        }
+      }
+
+      needCheck = (await this._checkPermissionAndGenerateNew()).length > 0
+    }
+
+    if (updatePmInfos.length === 0) {
+      console.info('permissions not change')
+      return []
+    }
+
+    if (typeof updateCallback !== 'function') {
+      console.warn('updateCallback not a function')
+      throw D.error.invalidParams
+    }
+    console.info('permissions needs update', updatePmInfos, addDevicePmInfos, removeDevicePmInfos)
+    D.dispatch(() => updateCallback(D.error.succeed,
+      D.status.newEosPermissions,
+      {
+        all: D.copy(updatePmInfos),
+        removeFromDevice: D.copy(removeDevicePmInfos),
+        addToDevice: D.copy(addDevicePmInfos)
+      }))
+
+    for (let pmInfo of removeDevicePmInfos) {
+      let error = D.error.succeed
+      try {
+        await this._device.removePermission(this.coinType, pmInfo)
+      } catch (e) {
+        if (e === D.error.deviceConditionNotSatisfied) {
+          console.warn('remove permission not exists, ignore')
+          error = D.error.permissionNoNeedToConfirmed
+        } else {
+          throw e
+        }
+      }
+      D.dispatch(() => updateCallback(error,
+        D.status.confirmedEosPermission, D.copy(pmInfo)))
+    }
+    for (let pmInfo of addDevicePmInfos) {
+      let error = D.error.succeed
+      try {
+        await this._device.addPermission(this.coinType, pmInfo)
+      } catch (e) {
+        if (e === D.error.deviceConditionNotSatisfied) {
+          console.warn('add permission not exists, ignore')
+          error = D.error.permissionNoNeedToConfirmed
+        } else {
+          throw e
+        }
+      }
+      D.dispatch(() => updateCallback(error,
+        D.status.confirmedEosPermission, D.copy(pmInfo)))
+    }
+
+    await this._coinData.updateAddressInfos(updatePmInfos)
+    // update addressInfo
+    this.addressInfos = this.addressInfos.map(a => {
+      let pmInfo = updatePmInfos.find(u => u.path === a.path)
+      return pmInfo || a
+    })
+
+    return D.copy(updatePmInfos)
+  }
+
+  async _checkPermissionAndGenerateNew () {
+    while (this._busy) {
+      await D.wait(10)
+    }
+    this._busy = true
+
+    // see slip-0048 recovery
+    let permissionPaths = this.addressInfos.map(a => {
+      return {
+        registered: a.registered,
+        path: a.path,
+        index: a.index,
+        pathIndexes: D.address.path.parseString(a.path)
+      }
+    })
+    let maxRegPermissionIndex = permissionPaths
+      .filter(path => path.registered)
+      .reduce((max, path) => Math.max(max, path.pathIndexes[2]), 0x80000000 - 1)
+    maxRegPermissionIndex -= 0x80000000
+
+    let endPermissionIndex = maxRegPermissionIndex + 1
+    let newAddressInfos = [] // permission info
+    for (let pmIndex = 0; pmIndex < endPermissionIndex + maxPermissionThreshold; pmIndex++) {
+      let subPath = D.address.path.makeSlip48Path(this.coinType, pmIndex, this.index)
+      // filter paths that has the same coinType, permission, accountIndex
+      let filteredPermissionPaths = permissionPaths.filter(path =>
+        subPath === D.address.path.makeSlip48Path(
+          path.pathIndexes[1] - 0x80000000,
+          path.pathIndexes[2] - 0x80000000,
+          path.pathIndexes[3] - 0x80000000))
+
+      let maxKeyIndex = filteredPermissionPaths.reduce((max, path) => Math.max(max, path.index), -1)
+      let maxRegisteredKeyIndex = filteredPermissionPaths
+        .filter(path => path.registered)
+        .reduce((max, path) => Math.max(max, path.index), -1)
+
+      let startKeyIndex = maxKeyIndex + 1
+      let startRegKeyIndex = maxRegisteredKeyIndex + 1
+      for (let j = startKeyIndex; j < startRegKeyIndex + maxIndexThreshold; j++) {
+        let path = D.address.path.makeSlip48Path(this.coinType, pmIndex, this.index, j)
+        if (!filteredPermissionPaths.some(p => p.path === path)) {
+          let publicKey = await this._device.getAddress(this.coinType, path)
+          console.debug('generate public key with path', path, publicKey)
+          // generate a permissionInfo no matter it use or not for recovery
+          newAddressInfos.push({
+            address: '',
+            accountId: this.accountId,
+            coinType: this.coinType,
+            path: path,
+            type: '',
+            index: j,
+            registered: false,
+            publicKey: publicKey,
+            parent: '',
+            txs: [] // rfu
+          })
+        }
+      }
+    }
+
+    await this._coinData.newAddressInfos(this._toAccountInfo(), newAddressInfos)
+    this.addressInfos.push(...newAddressInfos)
+
+    this._busy = false
+    return newAddressInfos
+  }
+
   async _handleRemovedTx (removedTxId) {
-    throw D.error.notImplemented
+    let txInfo = this.txInfos.find(txInfo => txInfo.txId === removedTxId)
+    await this._coinData.removeTx(this._toAccountInfo(), [], txInfo)
+    this.txInfos = this.txInfos.filter(t => t !== txInfo)
   }
 
   async _handleNewTx (txInfo) {
-    throw D.error.notImplemented
+    await this._coinData.newTx(this._toAccountInfo(), [], txInfo)
+    this.txInfos.push(txInfo)
   }
 
-  async getAddress (isStoring = false) {
+  /**
+   * Returns whether this EOS account is registered.
+   */
+  isRegistered () {
+    return this.addressInfos.some(a => a.address)
+  }
+
+  /**
+   * Return all permissions or {owner, active} from device(important) if not registered
+   * @returns {Promise<*>}
+   */
+  async getPermissions (showDefaultOnDevice = false) {
+    if (showDefaultOnDevice) {
+      await this._device.getDefaultPermissions(this.coinType, this.index)
+    }
+
+    if (this.isRegistered()) {
+      return D.copy(this.addressInfos.filter(a => a.registered))
+    } else {
+      // return default permissions
+      let ownerPmInfo = D.copy(this.addressInfos.find(a => a.path === "m/48'/4'/0'/0'/0'"))
+      let activePmInfo = D.copy(this.addressInfos.find(a => a.path === "m/48'/4'/1'/0'/0'"))
+      if (!ownerPmInfo || !activePmInfo) {
+        throw D.error.deviceNotConnected
+      }
+      ownerPmInfo.type = 'owner'
+      activePmInfo.type = 'active'
+      return [ownerPmInfo, activePmInfo]
+    }
+  }
+
+  async getAddress () {
     console.warn('eos don\'t support get address')
-    throw D.error.unknown
+    throw D.error.notImplemented
   }
 
   async rename () {
     console.warn('eos don\'t support change account name')
-    throw D.error.unknown
-  }
-
-  async prepareTx (details) {
-    if (!details.token || !details.type) {
-      console.warn('no require fields', details)
-      throw D.error.invalidParams
-    }
-
-    switch (details.type) {
-      case txType.tokenTransfer:
-        return this._prepareTransfer(details)
-      default:
-        throw D.error.notImplemented
-    }
+    throw D.error.notImplemented
   }
 
   /**
@@ -64,32 +392,6 @@ export default class EosAccount extends IAccount {
    * @param details
    * {
    *   type: string,
-   *   token: string,
-   *   outputs: [{
-   *     account: string,
-   *     value: decimal string / number
-   *   }],
-   *   sendAll: bool (optional),
-   *   account: string (optional), // contract name
-   *   precision: decimal string / number (optional),
-   *   expirationAfter: decimal string / number (optional),
-   *   maxNetUsageWords: decimal integer string / number (optional),
-   *   maxCpuUsageMs: decimal integer string / number (optional),
-   *   delaySec: decimal integer string / number (optional),
-   *   refBlockNum: decimal integer string / number (optional),
-   *   refBlockPrefix: decimal integer string / number (optional),
-   *   comment: string (optional),
-   * }
-   * @returns {Promise<{}>}
-   * {
-   *   type: string,
-   *   sendAll: bool,
-   *   token: string,
-   *   outputs: [{
-   *     account: string,
-   *     value: decimal string
-   *   }],
-   *   actions: [{...}, ...],
    *   expirationAfter: decimal string / number (optional),
    *   expiration: decimal string / number (optional), // ignore if expirationAfter exists
    *   maxNetUsageWords: decimal integer string / number (optional),
@@ -99,10 +401,67 @@ export default class EosAccount extends IAccount {
    *   refBlockPrefix: decimal integer string / number (optional),
    *   comment: string (optional),
    * }
+   * @returns {Promise<{}>}
+   * {
+   *   actions: [{...}, ...],
+   *   expirationAfter: decimal string / number (optional),
+   *   expiration: decimal string / number (optional), // if expirationAfter not exists and expiration exists
+   *   maxNetUsageWords: number,
+   *   maxCpuUsageMs: number,
+   *   delaySec: number,
+   *   refBlockNum: number,
+   *   refBlockPrefix: number,
+   *   comment: string,
+   * }
    */
-  async _prepareTransfer (details) {
-    const defaultExpirationAfter = 10 * 60 // seconds
+  async prepareTx (details) {
+    details = D.copy(details)
+    if (!details.token || !details.type) {
+      console.warn('no require fields', details)
+      throw D.error.invalidParams
+    }
 
+    let handler = {}
+    handler[D.coin.params.eos.actionTypes.transfer.type] = this.prepareTransfer
+    handler[D.coin.params.eos.actionTypes.issuer.type] = this.prepareIssuer
+    handler[D.coin.params.eos.actionTypes.delegate.type] = this.prepareDelegate
+    handler[D.coin.params.eos.actionTypes.undelegate.type] = this.prepareDelegate
+    handler[D.coin.params.eos.actionTypes.buyram.type] = this.prepareBuyRam
+    handler[D.coin.params.eos.actionTypes.buyrambytes.type] = this.prepareBuyRam
+    handler[D.coin.params.eos.actionTypes.sellram.type] = this.prepareBuyRam
+    handler[D.coin.params.eos.actionTypes.other.type] = this.prepareOther
+
+    let method = handler[details.type]
+    if (!method) {
+      console.warn('unsupported transaction type', details.type)
+      throw D.error.notImplemented
+    }
+    return method.call(this, details)
+  }
+
+  /**
+   * token transfer based on eosio.token API
+   *
+   * @param details, common part see prepareTx
+   * {
+   *   token: string,
+   *   outputs: [{
+   *     account: string,
+   *     value: decimal string / number
+   *   }],
+   *   sendAll: bool (optional),
+   *   account: string (optional), // token contract name
+   * }
+   * @returns {Promise<{}>} see prepareTx
+   */
+  async prepareTransfer (details) {
+    details = D.copy(details)
+    if (!details.token) {
+      console.warn('prepareTransfer missing parameter token')
+      throw D.error.invalidParams
+    }
+
+    details = D.copy(details)
     let token = tokenList[details.token]
     details.account = details.account || token.account
     if (!details.account || typeof details.account !== 'string' || details.account.length > 12) {
@@ -124,26 +483,11 @@ export default class EosAccount extends IAccount {
     }
 
     for (let output of details.outputs) {
-      if (!output.account || !output.value || Number(output.value) < 0) {
-        console.warn('invalid value', output)
+      if (!output || !output.account || !output.value || Number(output.value) < 0) {
+        console.warn('prepareTransfer invalid output', output)
         throw D.error.invalidParams
       }
-
-      if (typeof output.value !== 'string') {
-        output.value = new BigDecimal(output.value).toPlainString()
-      }
-      let parts = output.value.split('.')
-      let precision = (parts[1] && parts[1].length) || 0
-      if (precision > 18) { // eosjs format.js
-        console.warn('Precision should be 18 characters or less', details)
-        throw D.error.invalidParams
-      } else if (precision > tokenPrecision) {
-        console.warn('precision bigger than token specific precision', details, tokenPrecision)
-        throw D.error.invalidParams
-      } else {
-        if (parts[1] === undefined) output.value += '.'
-        output.value += '0'.repeat(tokenPrecision - precision)
-      }
+      output.value = EosAccount._makeAsset(tokenPrecision, token.name, output.value)
     }
 
     if (details.sendAll) {
@@ -151,8 +495,194 @@ export default class EosAccount extends IAccount {
         // noinspection JSValidateTypes
         output.value = '0'
       }
-      details.outputs[0] = this.balance
+      details.outputs[0].value = this.balance
     }
+
+    let actionType = D.coin.params.eos.actionTypes.transfer
+    let prepareTx = EosAccount._prepareCommon(details)
+
+    prepareTx.actions = details.outputs.map(output => {
+      let action = EosAccount._makeBasicAction(details.account, actionType.name, this.label)
+      action.data = {
+        from: this.label,
+        to: output.account,
+        quantity: output.value,
+        memo: details.comment || ''
+      }
+      return action
+    })
+
+    console.log('prepareTransfer', prepareTx)
+    return prepareTx
+  }
+
+  async prepareIssuer (details) {
+    details = D.copy(details)
+    console.warn('prepareIssuer not implemented')
+    throw D.error.notImplemented
+  }
+
+  /**
+   * delegate based on eosio.stake API
+   *
+   * @param details, common part see prepareTx
+   * {
+   *   delegate: bool, // deletegate or undelegate,
+   *   network: decimal string, / number,
+   *   cpu: decimal string / number
+   *   receiver: string (optional), // delegate for myself if not exists
+   *   transfer: boolean (optional) // ignore when undelegate = true
+   * }
+   * @returns {Promise<{}>} see prepareTx
+   */
+  async prepareDelegate (details) {
+    details = D.copy(details)
+    let token = tokenList.EOS
+    let prepareTx = EosAccount._prepareCommon(details)
+    let network = EosAccount._makeAsset(token.precision, token.name, details.network || 0)
+    let cpu = EosAccount._makeAsset(token.precision, token.name, details.cpu || 0)
+    let receiver = details.receiver || this.label
+    let transfer = details.transfer || false
+
+    let actionType = details.delegate ? D.coin.params.eos.actionTypes.delegate : D.coin.params.eos.actionTypes.undelegate
+    let action = EosAccount._makeBasicAction(actionType.account, actionType.name, this.label)
+    if (details.delegate) {
+      action.data = {
+        from: this.label,
+        receiver: receiver,
+        stake_net_quantity: network,
+        stake_cpu_quantity: cpu,
+        transfer: transfer ? 1 : 0
+      }
+    } else {
+      action.data = {
+        from: this.label,
+        receiver: receiver,
+        unstake_net_quantity: network,
+        unstake_cpu_quantity: cpu
+      }
+    }
+    prepareTx.actions = [action]
+
+    console.log('prepareDelegate', prepareTx)
+    return prepareTx
+  }
+
+  /**
+   * buy ram based on eosio API
+   *
+   * @param details, common part see prepareTx
+   * {
+   *   buy: bool, // buy or sell
+   *   quant: decimal string, / number, // buy ram for how much EOS
+   *   ramBytes: decimal string / number // buy how much ram bytes, ignore if quant exists
+   *   receiver: string (optional), // buy for myself if not exists, ignore if sell
+   *   transfer: boolean (optional) // ignore when undelegate = true
+   * }
+   * @returns {Promise<{}>} see prepareTx
+   */
+  async prepareBuyRam (details) {
+    details = D.copy(details)
+    let prepareTx = EosAccount._prepareCommon(details)
+
+    let receiver = details.receiver || this.label
+    if (!details.buy) {
+      if (!details.ramBytes) {
+        console.warn('no ram quantity provided', details)
+        throw D.error.invalidParams
+      }
+      if (details.ramBytes <= 2) {
+        // got "must purchase a positive amount" when ramBytes = 0, 1 or 2
+        throw D.error.networkValueTooSmall
+      }
+      let actionType = D.coin.params.eos.actionTypes.sellram
+      let action = EosAccount._makeBasicAction(actionType.account, actionType.name, this.label)
+      action.data = {
+        account: this.label,
+        bytes: details.ramBytes
+      }
+      prepareTx.actions = [action]
+    } else {
+      if (details.quant) {
+        let actionType = D.coin.params.eos.actionTypes.buyram
+        let action = EosAccount._makeBasicAction(actionType.account, actionType.name, this.label)
+        action.data = {
+          payer: this.label,
+          receiver: receiver,
+          quant: EosAccount._makeAsset(tokenList.EOS.precision, tokenList.EOS.name, details.quant)
+        }
+        prepareTx.actions = [action]
+      } else if (details.ramBytes) {
+        if (details.ramBytes <= 2) {
+          // got "must purchase a positive amount" when ramBytes = 0, 1 or 2
+          throw D.error.networkValueTooSmall
+        }
+        let actionType = D.coin.params.eos.actionTypes.buyrambytes
+        let action = EosAccount._makeBasicAction(actionType.account, actionType.name, this.label)
+        action.data = {
+          payer: this.label,
+          receiver: receiver,
+          bytes: details.ramBytes
+        }
+        prepareTx.actions = [action]
+      } else {
+        console.warn('no ram quantity provided', details)
+        throw D.error.invalidParams
+      }
+    }
+
+    console.log('prepareBuyRam', prepareTx)
+    return prepareTx
+  }
+
+  /**
+   * vote based on eosio API
+   *
+   * @param details, common part see prepareTx
+   * {
+   *   proxy: string,
+   *   producers: string array
+   * }
+   * @returns {Promise<{}>} see prepareTx
+   */
+  async prepareVote (details) {
+    details = D.copy(details)
+    let producers = details.producers || []
+    let proxy = details.proxy || ''
+
+    let prepareTx = EosAccount._prepareCommon(details)
+    let actionType = D.coin.params.eos.actionTypes.vote
+    let action = EosAccount._makeBasicAction(actionType.account, actionType.name, this.label)
+    action.data = {
+      voter: this.label,
+      proxy: proxy,
+      producers: producers
+    }
+    prepareTx.actions = [action]
+
+    console.log('prepareVote', prepareTx)
+    return prepareTx
+  }
+
+  /**
+   * customize transaction
+   *
+   * @param details, common part see prepareTx
+   * {
+   *   account: string, // contract name,
+   *   name: string // contract name
+   *   data: hex string
+   * }
+   * @returns {Promise<{}>} see prepareTx
+   */
+  async prepareOther (details) {
+    details = D.copy(details)
+    console.warn('prepareDelegate not implemented')
+    throw D.error.notImplemented
+  }
+
+  static _prepareCommon (details) {
+    const defaultExpirationAfter = 10 * 60 // seconds
 
     let prepareTx = {}
     if (details.expirationAfter) {
@@ -178,31 +708,39 @@ export default class EosAccount extends IAccount {
     if (details.refBlockPrefix) {
       prepareTx.refBlockPrefix = Number(details.refBlockPrefix)
     }
-
-    let makeTransferAction = (from, to, value, account, token, permission, comment) => {
-      return {
-        account: account,
-        name: 'transfer',
-        authorization: [
-          {
-            actor: from,
-            permission: permission
-          }
-        ],
-        data: {
-          from: from,
-          to: to,
-          quantity: value + ' ' + token,
-          memo: comment || ''
-        }
-      }
-    }
-
-    // TODO later, configurable permission
-    prepareTx.actions = details.outputs.map(output =>
-      makeTransferAction(this.label, output.account, output.value, details.account, details.token, 'active', details.comment))
-
+    prepareTx.comment = details.comment || ''
     return prepareTx
+  }
+
+  static _makeAsset (tokenPrecision, token, value) {
+    if (typeof value !== 'string') {
+      value = new BigDecimal(value).toPlainString()
+    }
+    let parts = value.split('.')
+    let precision = (parts[1] && parts[1].length) || 0
+    if (precision > 18) { // eosjs format.js
+      console.warn('Precision should be 18 characters or less', tokenPrecision, value)
+      throw D.error.invalidParams
+    } else if (precision > tokenPrecision) {
+      console.warn('precision bigger than token specific precision', tokenPrecision, precision, value)
+      throw D.error.invalidParams
+    } else {
+      if (parts[1] === undefined) value += '.'
+      value += '0'.repeat(tokenPrecision - precision)
+    }
+    return value + ' ' + token
+  }
+
+  static _makeBasicAction (account, name, actor) {
+    // TODO later, configurable permission
+    return {
+      account: account,
+      name: name,
+      authorization: [{
+        actor: actor,
+        permission: 'active'
+      }]
+    }
   }
 
   /**
@@ -212,10 +750,11 @@ export default class EosAccount extends IAccount {
    * @see prepareTx
    */
   async buildTx (prepareTx) {
+    prepareTx = D.copy(prepareTx)
     if (!prepareTx.refBlockNum || !prepareTx.refBlockPrefix) {
-      let blockInfo = await this._coinData.getEosBlockInfo()
-      prepareTx.refBlockNum = prepareTx.refBlockNum || blockInfo.ref_block_num
-      prepareTx.refBlockPrefix = prepareTx.refBlockPrefix || blockInfo.ref_block_prefix
+      let blockInfo = await this._network.getIrreversibleBlockInfo()
+      prepareTx.refBlockNum = prepareTx.refBlockNum || blockInfo.refBlockNum
+      prepareTx.refBlockPrefix = prepareTx.refBlockPrefix || blockInfo.refBlockPrefix
     }
 
     let expiration = prepareTx.expirationAfter
@@ -236,26 +775,32 @@ export default class EosAccount extends IAccount {
     presignTx.keyPaths = []
     for (let action of presignTx.actions) {
       for (let auth of action.authorization) {
-        let permission = this.permissions[auth.permission]
-        if (!permission) {
+        // not support multi-sig
+        let permissions = this.addressInfos.filter(a => a.type === auth.permission)
+        if (permissions.length === 0) {
           console.warn('key path of relative permission not found', action)
           throw D.error.permissionNotFound
         }
-        permission.forEach(p => {
-          if (!presignTx.keyPaths.includes(p.keyPath)) {
-            presignTx.keyPaths.push(p.keyPath)
+        permissions.forEach(p => {
+          if (!presignTx.keyPaths.includes(p.path)) {
+            presignTx.keyPaths.push(p.path)
           }
         })
       }
     }
+
     console.log('presign tx', presignTx)
     let {txId, signedTx} = await this._device.signTransaction(this.coinType, presignTx)
-
-    // TODO complete
     let txInfo = {
-      txId: txId
+      txId: txId,
+      accountId: this.accountId,
+      coinType: this.coinType,
+      blockNumber: D.tx.confirmation.pending,
+      time: new Date().getTime(),
+      confirmations: D.tx.confirmation.waiting,
+      comment: prepareTx.comment,
+      actions: D.copy(prepareTx.actions)
     }
-    delete signedTx.keyPaths
 
     return {signedTx, txInfo}
   }
@@ -267,6 +812,7 @@ export default class EosAccount extends IAccount {
    * @see signedTx
    */
   async sendTx (signedTx, test = false) {
+    signedTx = D.copy(signedTx)
     // broadcast transaction to network
     console.log('sendTx', signedTx)
     if (!test) await this._coinData.sendTx(this.coinType, signedTx.signedTx)

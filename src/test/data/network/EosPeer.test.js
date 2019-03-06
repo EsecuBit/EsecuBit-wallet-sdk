@@ -86,7 +86,7 @@ describe('Network EosPeer EOS', function () {
     console.log('EosPeer queryTx', tx)
     tx.txId.should.be.a('string')
     tx.blockNumber.should.at.least(1)
-    tx.confirmations.should.equal(D.tx.confirmation.excuted)
+    tx.confirmations.should.equal(D.tx.confirmation.executed)
     tx.time.should.at.least(1)
     tx.actions.should.have.length.at.least(1)
   })
@@ -98,7 +98,7 @@ describe('Network EosPeer EOS', function () {
     for (let tx of txs) {
       tx.txId.should.be.a('string')
       tx.blockNumber.should.at.least(1)
-      tx.confirmations.should.equal(D.tx.confirmation.excuted)
+      tx.confirmations.should.equal(D.tx.confirmation.executed)
       tx.time.should.at.least(1)
       tx.actions.should.have.length.at.least(1)
     }

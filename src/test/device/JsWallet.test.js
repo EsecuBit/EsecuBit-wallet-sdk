@@ -2,7 +2,7 @@
 import chai from 'chai'
 import D from '../../sdk/D'
 import JsWallet from '../../sdk/device/implements/JsWallet'
-import FcBuffer from '../../sdk/device/implements/EosFcBuffer'
+import FcBuffer from '../../sdk/device/implements/protocol/EosFcBuffer'
 
 chai.should()
 

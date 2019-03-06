@@ -62,6 +62,12 @@ export default class ICoinNetwork {
     setTimeout(blockHeightRequest, 0)
   }
 
+  async sync () {
+    console.log('sync CoinNetwork', this.provider)
+    this._blockHeight = await this.getBlockHeight()
+    console.log('sync CoinNetwork finish', this.provider, this._blockHeight)
+  }
+
   // noinspection JSUnusedGlobalSymbols
   async release () {
     this._startQueue = false
@@ -74,7 +80,8 @@ export default class ICoinNetwork {
       let xmlhttp = new XMLHttpRequest()
       xmlhttp.onreadystatechange = () => {
         if (xmlhttp.readyState === 4) {
-          if (xmlhttp.status === 200) {
+          console.debug('get response', xmlhttp.responseText)
+          if (xmlhttp.status === 200 || xmlhttp.status === 202) {
             try {
               resolve(JSON.parse(xmlhttp.responseText))
             } catch (e) {
@@ -95,13 +102,14 @@ export default class ICoinNetwork {
     })
   }
 
-  post (url, args) {
+  post (url, args = '', type = 'application/x-www-form-urlencoded') {
     console.debug('post', url, args)
     return new Promise((resolve, reject) => {
       const xmlhttp = new XMLHttpRequest()
       xmlhttp.onreadystatechange = () => {
         if (xmlhttp.readyState === 4) {
-          if (xmlhttp.status === 200) {
+          console.debug('post response', xmlhttp.responseText)
+          if (xmlhttp.status === 200 || xmlhttp.status === 202) {
             try {
               resolve(JSON.parse(xmlhttp.responseText))
             } catch (e) {
@@ -117,7 +125,7 @@ export default class ICoinNetwork {
         }
       }
       xmlhttp.open('POST', url, true)
-      xmlhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded')
+      xmlhttp.setRequestHeader('Content-type', type)
       xmlhttp.send(args)
     })
   }
@@ -135,10 +143,10 @@ export default class ICoinNetwork {
       blockHeightRequestPeriod = 60
       txIncludedRequestPeriod = 30
     } else if (D.isEth(this.coinType)) {
-      blockHeightRequestPeriod = 20
+      blockHeightRequestPeriod = 60
       txIncludedRequestPeriod = 5
     } else if (D.isEos(this.coinType)) {
-      blockHeightRequestPeriod = 20
+      blockHeightRequestPeriod = 60
       txIncludedRequestPeriod = 5
     } else {
       console.warn('getRequestPeroid no match coin period')
@@ -255,7 +263,6 @@ export default class ICoinNetwork {
       let newTxs = response.txs.filter(tx => !addressInfo.txs.some(txId => txId === tx.txId))
       newTxs.forEach(tx => addressInfo.txs.push(tx.txId))
       let newTxBlobs = await Promise.all(newTxs.map(async tx => {
-        // TODO later queryTx request speed for no details
         if (!tx.hasDetails) {
           console.debug('tx is not completed, get it in queue', tx)
           const getDetailsTask = (txId) => {
@@ -364,4 +371,3 @@ export default class ICoinNetwork {
     throw D.error.notImplemented
   }
 }
-ICoinNetwork.provider = 'undefined'

@@ -1,7 +1,7 @@
 {
   "name": "esecubit-wallet-sdk",
-  "version": "0.6.0",
-  "description": "SDK for EsecuBit wallet.",
+  "version": "0.9.0",
+  "description": "SDK for EsecuBit Wallet.",
   "main": "index.js",
   "directories": {
     "test": "test"
@@ -30,8 +30,8 @@
     "mocha": "^5.2.0",
     "style-loader": "^0.21.0",
     "uglifyjs-webpack-plugin": "^1.2.6",
-    "webpack": "^4.20.2",
-    "webpack-cli": "^3.1.1",
+    "webpack": "^4.12.1",
+    "webpack-cli": "^2.1.5",
     "webpack-dev-server": "^3.1.4"
   },
   "scripts": {
@@ -40,7 +40,7 @@
     "dev": "npm run server",
     "build": "npx webpack --config build/webpack.config.chrome.sdk.js",
     "server": "npx webpack-dev-server --progress --open --config build/webpack.config.dev.js",
-    "watch": "npx webpack --progress --watch --config build/webpack.config.chrome.app.js"
+    "chromeapp": "npx webpack --progress --watch --config build/webpack.config.chrome.app.js"
   },
   "repository": {
     "type": "git",
@@ -63,7 +63,9 @@
     "create-hmac": "^1.1.7",
     "crypto-js": "^3.1.9-1",
     "ecurve": "^1.0.6",
+    "ignore-case": "^0.1.0",
     "keccak": "^1.4.0",
-    "rlp": "^2.0.0"
+    "rlp": "2.1.0",
+    "sm-series-crypto": "^0.2.0"
   }
 }
