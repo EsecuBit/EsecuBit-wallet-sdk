@@ -1,6 +1,6 @@
 {
   "name": "esecubit-wallet-sdk",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "description": "SDK for EsecuBit Wallet.",
   "main": "index.js",
   "directories": {
