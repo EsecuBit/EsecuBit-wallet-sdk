@@ -69,7 +69,7 @@ resolve: {
 
 ## Usage
 
-1. SDK Configuration
+### 1. SDK Configuration
 
 Configuration should do before `new EsWallet()`.
 
@@ -91,7 +91,8 @@ D.supportedCoinTypes = () => {
 D.recoverCoinTypes = () => D.supportedCoinTypes()
 ```
 
-2. Connect Device and Initialize
+### 2. Connect Device and Initialize
+
 ```javascript
 import {D, EsWallet} from 'esecubit-wallet-sdk'
 
@@ -160,7 +161,8 @@ esWallet.listenStatus(function (error, status, data) {
 }
 ```
 
-3. Initialize without Connecting Device
+### 3. Initialize without Connecting Device
+
 ```javascript
 import {D, EsWallet} from 'esecubit-wallet-sdk'
 
@@ -203,7 +205,8 @@ try {
 }
 ```
 
-4. Use Wallet after Initialization
+### 4. Use Wallet after Initialization
+
 ```javascript
 import {D, EsWallet} from 'esecubit-wallet-sdk'
 
@@ -229,8 +232,9 @@ let account = await esWallet.newAccount(coinType)
 // return new account if the coin type is available to create new account
 ```
 
-5. Use Accounts after Initialization
-```
+### 5. Use Accounts after Initialization
+
+```javascript
 import {D, EsWallet} from 'esecubit-wallet-sdk'
 
 let accounts = await esWallet.getAccounts()
