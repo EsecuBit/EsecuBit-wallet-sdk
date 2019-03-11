@@ -422,7 +422,7 @@ export default class EosAccount extends IAccount {
     }
 
     let handler = {}
-    handler[D.coin.params.eos.actionTypes.transfer.type] = this.prepareTransfer
+    handler[D.coin.params.eos.actionTypes.transfer.type] = this.fer
     handler[D.coin.params.eos.actionTypes.issuer.type] = this.prepareIssuer
     handler[D.coin.params.eos.actionTypes.delegate.type] = this.prepareDelegate
     handler[D.coin.params.eos.actionTypes.undelegate.type] = this.prepareDelegate
@@ -474,20 +474,12 @@ export default class EosAccount extends IAccount {
       details.outputs = []
     }
     if (!details.outputs[0]) {
-      details.outputs[0] = {address: '', value: 0}
+      details.outputs[0] = {account: 'unspecified', value: 0}
     }
 
     if (details.token.length > 7) { // eosjs format.js
       console.warn('Asset symbol is 7 characters or less', details)
       throw D.error.invalidParams
-    }
-
-    for (let output of details.outputs) {
-      if (!output || !output.account || !output.value || Number(output.value) < 0) {
-        console.warn('prepareTransfer invalid output', output)
-        throw D.error.invalidParams
-      }
-      output.value = EosAccount._makeAsset(tokenPrecision, token.name, output.value)
     }
 
     if (details.sendAll) {
@@ -498,6 +490,14 @@ export default class EosAccount extends IAccount {
       details.outputs[0].value = this.balance
     }
 
+    for (let output of details.outputs) {
+      if (!output || !output.account || !output.value === undefined || Number(output.value) < 0) {
+        console.warn('prepareTransfer invalid output', output)
+        throw D.error.invalidParams
+      }
+      output.quantity = EosAccount._makeAsset(tokenPrecision, token.name, output.value)
+    }
+
     let actionType = D.coin.params.eos.actionTypes.transfer
     let prepareTx = EosAccount._prepareCommon(details)
 
@@ -506,7 +506,7 @@ export default class EosAccount extends IAccount {
       action.data = {
         from: this.label,
         to: output.account,
-        quantity: output.value,
+        quantity: output.quantity,
         memo: details.comment || ''
       }
       return action
@@ -716,6 +716,13 @@ export default class EosAccount extends IAccount {
     if (typeof value !== 'string') {
       value = new BigDecimal(value).toPlainString()
     }
+    if (value.includes('.')) {
+      let index = value.length - 1
+      while (value[index] === '0') index--
+      if (value[index] === '.') index--
+      value = value.slice(0, index + 1)
+    }
+
     let parts = value.split('.')
     let precision = (parts[1] && parts[1].length) || 0
     if (precision > 18) { // eosjs format.js
