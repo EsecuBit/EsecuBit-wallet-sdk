@@ -422,7 +422,7 @@ export default class EosAccount extends IAccount {
     }
 
     let handler = {}
-    handler[D.coin.params.eos.actionTypes.transfer.type] = this.fer
+    handler[D.coin.params.eos.actionTypes.transfer.type] = this.prepareTransfer
     handler[D.coin.params.eos.actionTypes.issuer.type] = this.prepareIssuer
     handler[D.coin.params.eos.actionTypes.delegate.type] = this.prepareDelegate
     handler[D.coin.params.eos.actionTypes.undelegate.type] = this.prepareDelegate
