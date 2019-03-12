@@ -248,6 +248,10 @@ export default class EosPeer extends ICoinNetwork {
       staked: 0,
       is_proxy: 0
     }
+    ret.self_delegated_bandwidth = ret.self_delegated_bandwidth || {
+      net_weight: '0.0000 EOS',
+      cpu_weight: '0.0000 EOS'
+    }
 
     let accountInfo = {
       balance: balance,
