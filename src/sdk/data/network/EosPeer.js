@@ -241,6 +241,14 @@ export default class EosPeer extends ICoinNetwork {
     }
 
     let balance = (ret.core_liquid_balance && ret.core_liquid_balance.split(' ')[0]) || '0.0000'
+
+    ret.voter_info = ret.voter_info || {
+      proxy: '',
+      producers: [],
+      staked: 0,
+      is_proxy: 0
+    }
+
     let accountInfo = {
       balance: balance,
       resources: {
