@@ -1,5 +1,6 @@
 import ICoinNetwork from './ICoinNetwork'
 import D from '../../D'
+import {BigDecimal} from 'bigdecimal'
 
 // jungle
 const jungle = {
@@ -231,6 +232,14 @@ export default class EosPeer extends ICoinNetwork {
     let args = JSON.stringify({account_name: accountName})
     let ret = await this.post(url, args)
 
+    let subEos = (a, b) => {
+      a = a.substring(0, a.length - 4)
+      b = b.substring(0, b.length - 4)
+
+      let c = (new BigDecimal(a)).subtract(new BigDecimal(b))
+      return c.toPlainString() + ' EOS'
+    }
+
     let balance = (ret.core_liquid_balance && ret.core_liquid_balance.split(' ')[0]) || '0.0000'
     let accountInfo = {
       balance: balance,
@@ -254,7 +263,11 @@ export default class EosPeer extends ICoinNetwork {
         stake: {
           total: {
             net: ret.total_resources.net_weight,
-            cpu: ret.total_resources.cpu_weight
+            cpu: ret.total_resources.cpu_weight,
+            net_self: ret.self_delegated_bandwidth.net_weight,
+            cpu_self: ret.self_delegated_bandwidth.cpu_weight,
+            net_others: subEos(ret.total_resources.net_weight, ret.self_delegated_bandwidth.net_weight),
+            cpu_others: subEos(ret.total_resources.cpu_weight, ret.self_delegated_bandwidth.cpu_weight)
           }
         },
         vote: {
