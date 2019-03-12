@@ -261,13 +261,15 @@ export default class EosPeer extends ICoinNetwork {
           max: ret.cpu_limit.max
         },
         stake: {
-          total: {
-            net: ret.total_resources.net_weight,
-            cpu: ret.total_resources.cpu_weight,
-            net_self: ret.self_delegated_bandwidth.net_weight,
-            cpu_self: ret.self_delegated_bandwidth.cpu_weight,
-            net_others: subEos(ret.total_resources.net_weight, ret.self_delegated_bandwidth.net_weight),
-            cpu_others: subEos(ret.total_resources.cpu_weight, ret.self_delegated_bandwidth.cpu_weight)
+          net: {
+            total: ret.total_resources.net_weight,
+            self: ret.self_delegated_bandwidth.net_weight,
+            others: subEos(ret.total_resources.net_weight, ret.self_delegated_bandwidth.net_weight)
+          },
+          cpu: {
+            total: ret.total_resources.cpu_weight,
+            self: ret.self_delegated_bandwidth.cpu_weight,
+            others: subEos(ret.total_resources.cpu_weight, ret.self_delegated_bandwidth.cpu_weight)
           }
         },
         vote: {
