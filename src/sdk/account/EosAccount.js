@@ -73,7 +73,7 @@ export default class EosAccount extends IAccount {
     await this._coinData.updateAccount(this._toAccountInfo())
 
     let txs = await this._network.queryAddress(this.label, this.queryOffset)
-    txs.filter(tx => !this.txInfos.some(t => t.txId === tx.txId))
+    txs = txs.filter(tx => !this.txInfos.some(t => t.txId === tx.txId))
     for (let tx of txs) {
       tx.accountId = this.accountId
       tx.coinType = this.coinType
