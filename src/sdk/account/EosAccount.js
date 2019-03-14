@@ -376,9 +376,17 @@ export default class EosAccount extends IAccount {
     }
   }
 
-  async getAddress () {
-    console.warn('eos don\'t support get address')
-    throw D.error.notImplemented
+  async getAddress (isStoring = false) {
+    if (!this.isRegistered()) {
+      console.warn('getAddress account not registered')
+    }
+
+    let addressInfo = this.addressInfos.find(a => a.registered)
+    if (isStoring) {
+      await this._device.getAddress(this.coinType, addressInfo.path, false, isStoring)
+    }
+    let prefix = ''
+    return {address: addressInfo.address, qrAddress: prefix + addressInfo.address}
   }
 
   async rename () {

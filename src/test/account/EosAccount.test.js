@@ -92,6 +92,11 @@ describe('EosAccount', function () {
     })
   })
 
+  it('getAddress', async function () {
+    let response = await account.getAddress(true)
+    console.info('getAddress', response)
+  })
+
   it('signTx', async function () {
     let details = {
       type: 'tokenTransfer',
