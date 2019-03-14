@@ -143,10 +143,12 @@ export default class EosAccount extends IAccount {
     }
     this._syncPermissions = null
     let updatedPermissions = await this._updatePermissions(syncPermissions, callback)
-    if (this.isRegistered()) {
+
+    let permissionsChanged = updatedPermissions.length > 0
+    if (permissionsChanged) {
       await this.sync(null)
     }
-    return updatedPermissions.length > 0
+    return permissionsChanged
   }
 
   async _updatePermissions (permissions, updateCallback) {
