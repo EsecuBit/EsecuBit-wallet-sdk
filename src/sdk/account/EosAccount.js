@@ -365,9 +365,12 @@ export default class EosAccount extends IAccount {
       return D.copy(this.addressInfos.filter(a => a.registered))
     } else {
       // return default permissions
-      let ownerPmInfo = D.copy(this.addressInfos.find(a => a.path === "m/48'/4'/0'/0'/0'"))
-      let activePmInfo = D.copy(this.addressInfos.find(a => a.path === "m/48'/4'/1'/0'/0'"))
+      let ownerPmInfo = D.copy(this.addressInfos.find(a => a.path ===
+        D.address.path.makeSlip48Path(this.coinType, 0, this.index, 0)))
+      let activePmInfo = D.copy(this.addressInfos.find(a => a.path ===
+        D.address.path.makeSlip48Path(this.coinType, 1, this.index, 0)))
       if (!ownerPmInfo || !activePmInfo) {
+        console.warn('no ownerPmInfo or activePmInfo, device might not connected')
         throw D.error.deviceNotConnected
       }
       ownerPmInfo.type = 'owner'
