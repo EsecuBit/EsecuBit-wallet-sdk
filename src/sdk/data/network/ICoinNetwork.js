@@ -291,7 +291,7 @@ export default class ICoinNetwork {
       })
 
       if (newTxBlobs.length || removedTxBlobs.length) {
-        console.debug('ICoinNetwork checkTx', newTxBlobs, removedTxBlobs)
+        console.debug('ICoinNetwork checkTx new txs status', JSON.stringify(newTxBlobs), JSON.stringify(removedTxBlobs))
       }
       return newTxBlobs.concat(removedTxBlobs)
     }
