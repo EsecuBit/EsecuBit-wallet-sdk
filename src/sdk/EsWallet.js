@@ -320,27 +320,29 @@ export default class EsWallet {
    */
   listenStatus (callback) {
     this._callback = callback || (() => {})
+
+    if (!this.offlineMode) {
+      D.dispatch(() => callback(D.error.succeed, D.status.plugIn))
+    }
+
     switch (this._status) {
       case D.status.plugIn:
-        D.dispatch(() => callback(D.error.succeed, D.status.plugIn))
         break
       case D.status.initializing:
-        D.dispatch(() => callback(D.error.succeed, D.status.plugIn))
         D.dispatch(() => callback(D.error.succeed, D.status.initializing))
         break
       case D.status.syncing:
-        D.dispatch(() => callback(D.error.succeed, D.status.plugIn))
         D.dispatch(() => callback(D.error.succeed, D.status.initializing))
         D.dispatch(() => callback(D.error.succeed, D.status.syncing))
         break
       case D.status.syncFinish:
-        D.dispatch(() => callback(D.error.succeed, D.status.plugIn))
         D.dispatch(() => callback(D.error.succeed, D.status.initializing))
         D.dispatch(() => callback(D.error.succeed, D.status.syncing))
         D.dispatch(() => callback(D.error.succeed, D.status.syncFinish))
         break
       case D.status.plugOut:
       default:
+        break
     }
   }
 
