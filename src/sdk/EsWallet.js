@@ -61,13 +61,13 @@ export default class EsWallet {
       // handle error
       this._status = plugStatus
       if (error !== D.error.succeed) {
-        D.dispatch(() => this._callback(error, this._status))
+        this._dispatchError(error)
         return
       }
 
       D.dispatch(async () => {
         // send plug status
-        D.dispatch(() => this._callback(D.error.succeed, this._status))
+        this._dispatchCurrentStatus()
         if (this._status === D.status.plugIn) {
           this.offlineMode = false
           await this._handleInit(error, plugStatus)
@@ -101,31 +101,47 @@ export default class EsWallet {
     try {
       // initializing
       this._status = D.status.initializing
-      D.dispatch(() => this._callback(D.error.succeed, this._status))
+      this._dispatchCurrentStatus()
       let newInfo = await this._init()
       if (this._info.walletId && (this._info.walletId !== newInfo.walletId)) {
         this._syncBefore = false
-        D.dispatch(() => this._callback(D.error.succeed, D.status.deviceChange))
+        this._dispatchEvent(D.status.deviceChange)
       }
       this._info = newInfo
       if (this._status === D.status.plugOut) return
 
       // syncing
       this._status = D.status.syncing
-      D.dispatch(() => this._callback(D.error.succeed, this._status))
+      this._dispatchCurrentStatus()
       !this._syncBefore && await this._sync()
       if (this._status === D.status.plugOut) return
       this._syncBefore = true
 
       // syncFinish
       this._status = D.status.syncFinish
-      D.dispatch(() => this._callback(D.error.succeed, this._status))
+      this._dispatchCurrentStatus()
     } catch (e) {
       console.warn(e)
-      D.dispatch(() => this._callback(e, this._status))
+      this._dispatchError(e)
     } finally {
       this._initLock = false
     }
+  }
+
+  _dispatch (error, state, data) {
+    D.dispatch(() => this._callback(error, state, data))
+  }
+
+  _dispatchError (error) {
+    this._dispatch(error, this._status, {})
+  }
+
+  _dispatchCurrentStatus (data = {}) {
+    this._dispatch(D.error.succeed, this._status, data)
+  }
+
+  _dispatchEvent (status, data = {}) {
+    this._dispatch(D.error.succeed, status, data)
   }
 
   /**
@@ -146,7 +162,7 @@ export default class EsWallet {
         } else {
           console.log('auth finish')
         }
-        D.dispatch(() => this._callback(D.error.succeed, this._status, authCode))
+        this._dispatchCurrentStatus(authCode)
       })
       await this._settings.setSetting('lastWalletId', info.walletId)
     } else {
@@ -279,7 +295,7 @@ export default class EsWallet {
           throw D.error.coinNotSupported
         }
 
-        D.dispatch(() => this._callback(D.error.succeed, D.status.syncingNewAccount, esAccount))
+        this._dispatchEvent(D.status.syncingNewAccount, esAccount)
         await esAccount.init()
         this._esAccounts.push(esAccount)
       }
@@ -322,23 +338,23 @@ export default class EsWallet {
     this._callback = callback || (() => {})
 
     if (!this.offlineMode) {
-      D.dispatch(() => callback(D.error.succeed, D.status.plugIn))
+      this._dispatch(D.status.plugIn)
     }
 
     switch (this._status) {
       case D.status.plugIn:
         break
       case D.status.initializing:
-        D.dispatch(() => callback(D.error.succeed, D.status.initializing))
+        this._dispatch(D.status.initializing)
         break
       case D.status.syncing:
-        D.dispatch(() => callback(D.error.succeed, D.status.initializing))
-        D.dispatch(() => callback(D.error.succeed, D.status.syncing))
+        this._dispatch(D.status.initializing)
+        this._dispatch(D.status.syncing)
         break
       case D.status.syncFinish:
-        D.dispatch(() => callback(D.error.succeed, D.status.initializing))
-        D.dispatch(() => callback(D.error.succeed, D.status.syncing))
-        D.dispatch(() => callback(D.error.succeed, D.status.syncFinish))
+        this._dispatch(D.status.initializing)
+        this._dispatch(D.status.syncing)
+        this._dispatch(D.status.syncFinish)
         break
       case D.status.plugOut:
       default:
