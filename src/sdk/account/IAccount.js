@@ -108,7 +108,6 @@ export default class IAccount {
       // find out all the transactions
       let blobs = await this._coinData.checkAddresses(this.coinType, checkAddressInfos)
 
-      let hasNewTxs = false
       for (let blob of blobs) {
         if (blob.removedTxId) {
           let removedTxInfo = this.txInfos.find(txInfo => txInfo.txId === blob.removedTxId)
@@ -117,16 +116,13 @@ export default class IAccount {
             removedTxInfo.confirmations !== D.tx.confirmation.pending &&
             removedTxInfo.confirmations !== D.tx.confirmation.inMemory) {
             await this._handleRemovedTx(blob.removedTxId)
-            hasNewTxs = true
           }
         } else {
           await this._handleNewTx(blob.txInfo)
-          hasNewTxs = true
         }
       }
 
       if (offlineMode) break
-      if (hasNewTxs) break
       checkAddressInfos = D.copy(await this._checkAddressIndexAndGenerateNew(true))
     }
 
