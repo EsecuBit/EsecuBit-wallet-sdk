@@ -77,7 +77,7 @@ export default class BtcAccount extends IAccount {
    * complete txInfo, generate utxos
    */
   async _handleNewTx (txInfo) {
-    console.log('btc newTransaction', txInfo)
+    console.log('btc newTransaction', JSON.stringify(txInfo))
 
     // async operation may lead to disorder. so we need a simple lock
     // eslint-disable-next-line
