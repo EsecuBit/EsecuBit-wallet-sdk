@@ -74,7 +74,7 @@ export default class EthAccount extends IAccount {
   }
 
   async _handleNewTx (txInfo) {
-    console.log('eth newTransaction', txInfo)
+    console.log('eth newTransaction', JSON.stringify(txInfo))
     // async operation may lead to disorder. so we need a simple lock
     while (this._busy) {
       await D.wait(2)
