@@ -144,7 +144,7 @@ export default class S300Wallet {
       // ignore
     }
     try {
-      let response = await this.sendApdu('8036000000', false, D.coin.other.manager)
+      let response = await this.sendApdu('8062000000', false, D.coin.other.manager)
       version += '_' + response.toString('hex')
     } catch (e) {
       // ignore
