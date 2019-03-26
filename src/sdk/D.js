@@ -5,6 +5,9 @@ import bitcoin from 'bitcoinjs-lib'
 import createKeccakHash from 'keccak'
 import {BigDecimal} from 'bigdecimal'
 import bech32 from 'bech32'
+import createHash from 'create-hash'
+import base58 from 'bs58'
+import {Buffer} from 'buffer'
 
 const D = {
   sdkVersion: require('../../package.json').version,
@@ -84,6 +87,7 @@ const D = {
     invalidParams: 607,
     permissionNotFound: 608, // for eos
     permissionNoNeedToConfirmed: 609, // for eos
+    invalidPrivateKey: 610, // for eos
 
     offlineModeNotAllowed: 701, // no device ever connected before
     offlineModeUnnecessary: 702, // device has connected
@@ -340,9 +344,34 @@ const D = {
       }
     },
 
+    eosPrivateToPublicBuffer (privateKey) {
+      let keyPair = bitcoin.ECPair.fromWIF(privateKey)
+      keyPair.compressed = true
+      return keyPair.getPublicKeyBuffer()
+    },
+
+    parseEosPrivateKey (privateKey) {
+      let buffer
+      // normal address, base58 encoded
+      try {
+        buffer = base58check.decode(privateKey)
+      } catch (e) {
+        console.warn('privateKey is not base58 encoded', privateKey)
+        throw D.error.invalidPrivateKey
+      }
+      if (buffer.length !== 33) {
+        console.warn('privateKey length invalid', privateKey)
+        throw D.error.invalidPrivateKey
+      }
+      if (buffer[0] !== 0x80) {
+        console.warn('privateKey first byte not 0x80', privateKey)
+        throw D.error.invalidPrivateKey
+      }
+      return buffer.slice(1, 33)
+    },
+
     checkBtcAddress (coinType, address) {
       let buffer
-
       // normal address, base58 encoded
       try {
         buffer = base58check.decode(address)
@@ -496,7 +525,14 @@ const D = {
      * convert string type address to Buffer
      */
     toBuffer (address) {
-      if (address.startsWith('0x')) {
+      if (typeof address !== 'string') {
+        console.warn('toBuffer invalid arguments', address)
+        throw D.error.invalidParams
+      }
+      if (address.startsWith('EOS')) {
+        address = address.slice(3, address.length)
+        return base58check.decode(address)
+      } else if (address.startsWith('0x')) {
         // eth
         return Buffer.from(address.slice(2), 'hex')
       } else {
@@ -555,6 +591,10 @@ const D = {
       } else if (D.isBtc(coinType) && address.length === 21) {
         // bitcoin
         return base58check.encode(Buffer.from(address))
+      } else if (D.isEos(coinType) && address.length === 33) {
+        let checksum = createHash('ripemd160').update(address).digest().slice(0, 4)
+        address = 'EOS' + base58.encode(Buffer.concat([address, checksum]))
+        return address
       } else {
         console.warn('address toString don\'t support this coinType and address', coinType, address)
         throw D.error.coinNotSupported

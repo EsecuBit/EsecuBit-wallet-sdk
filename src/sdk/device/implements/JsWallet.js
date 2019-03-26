@@ -9,7 +9,7 @@ import D from '../../D'
 import FcBuffer from './protocol/EosFcBuffer'
 import createHash from 'create-hash'
 import base58 from 'bs58'
-import {Buffer} from "buffer";
+import {Buffer} from 'buffer'
 
 /**
  * A wallet implemented by JavaScript.
@@ -102,9 +102,7 @@ export default class JsWallet {
     let eosExternalPublicKey = async (addressPath) => {
       let node = await this._derive(addressPath)
       let publicKey = node.getPublicKeyBuffer()
-      let checksum = createHash('ripemd160').update(publicKey).digest().slice(0, 4)
-      publicKey = 'EOS' + base58.encode(Buffer.concat([publicKey, checksum]))
-      return publicKey
+      return D.address.toString(coinType, publicKey)
     }
 
     let address

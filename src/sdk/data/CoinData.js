@@ -269,6 +269,10 @@ export default class CoinData {
     await this._db.updateAddressInfos(addressInfos)
   }
 
+  async deleteAddressInfos (addressInfos) {
+    await this._db.deleteAddressInfos(addressInfos)
+  }
+
   async getAddressInfos (filter) {
     return this._db.getAddressInfos(filter)
   }

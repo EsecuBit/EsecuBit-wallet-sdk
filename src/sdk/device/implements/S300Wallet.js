@@ -274,6 +274,36 @@ export default class S300Wallet {
     await this.sendApdu(apdu, true, coinType)
   }
 
+  async importKey (coinType, key) {
+    if (!D.isEos(coinType)) {
+      console.warn('importKey only supports EOS', coinType)
+      throw D.error.coinNotSupported
+    }
+
+    key = D.address.parseEosPrivateKey(key)
+    // 8064 0100 lc key[32]
+    let apduHead = Buffer.from('8066010000', 'hex')
+    let apdu = Buffer.concat([apduHead, key])
+    apdu[0x04] = key.length
+
+    await this.sendApdu(apdu, true, coinType)
+  }
+
+  async removeKey (coinType, keyInfo) {
+    if (!D.isEos(coinType)) {
+      console.warn('importKey only supports EOS', coinType)
+      throw D.error.coinNotSupported
+    }
+
+    let key = D.address.toBuffer(keyInfo.publicKey)
+    // 8064 0100 lc key[33]
+    let apduHead = Buffer.from('8066010000', 'hex')
+    let apdu = Buffer.concat([apduHead, key])
+    apdu[0x04] = key.length
+
+    await this.sendApdu(apdu, true, coinType)
+  }
+
   async addToken (coinType, token) {
     if (!D.isEth(coinType)) {
       throw D.error.coinNotSupported

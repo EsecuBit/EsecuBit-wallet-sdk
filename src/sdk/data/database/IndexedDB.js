@@ -662,6 +662,31 @@ export default class IndexedDB extends IDatabase {
     })
   }
 
+  deleteAddressInfos (addressInfos) {
+    return new Promise((resolve, reject) => {
+      if (this._db === null) {
+        reject(D.error.databaseOpenFailed)
+        return
+      }
+
+      let addressInfosRequest = () => {
+        return Promise.all(addressInfos.map(addressInfo => new Promise((resolve, reject) => {
+          let request = this._db.transaction(['addressInfo'], 'readwrite')
+            .objectStore('addressInfo')
+            .delete([addressInfo.accountId, addressInfo.path])
+
+          request.onsuccess = resolve
+          request.onerror = reject
+        })))
+      }
+
+      addressInfosRequest().then(resolve).catch(e => {
+        console.warn('deleteAddressInfos', e)
+        reject(D.error.databaseExecFailed)
+      })
+    })
+  }
+
   getAddressInfos (filter = {}) {
     return new Promise((resolve, reject) => {
       if (this._db === null) {

@@ -44,8 +44,8 @@ export default class EosAccount extends IAccount {
     this.resources = D.copy(info.resources)
   }
 
-  _toAccountInfo (info) {
-    info = super._toAccountInfo()
+  _toAccountInfo () {
+    let info = super._toAccountInfo()
     info.queryOffset = this.queryOffset
     info.tokens = D.copy(this.tokens)
     info.resources = D.copy(this.resources)
@@ -99,29 +99,20 @@ export default class EosAccount extends IAccount {
     }
 
     let checkNewAccount = async () => {
-      for (let pmIndex = 0; pmIndex < maxPermissionThreshold; pmIndex++) {
-        console.log('EosAccount not registered, check publickey', pmIndex)
+      for (let pmInfo of this.addressInfos) {
+        console.log('EosAccount not registered, check publickey', pmInfo.path, pmInfo.publicKey)
         // slip-0048 recovery
-        for (let keyIndex = 0; keyIndex < maxIndexThreshold; keyIndex++) {
-          let path = D.address.path.makeSlip48Path(this.coinType, 0, this.index, keyIndex)
-          let ownerInfo = this.addressInfos.find(a => a.path === path)
-          if (!ownerInfo) {
-            console.warn('account have no permission info in storage, most likely it is in offlineMode, exit')
-            return
-          }
-          let accounts = await this._network.getAccountByPubKey(ownerInfo.publicKey)
-          if (!accounts || accounts.length === 0) {
-            console.info('EosAccount specific path not registered', ownerInfo.path, ownerInfo.publicKey)
-          } else {
-            // choose the first account if this key matches multi accounts
-            // set the label as account name
-            return accounts[0]
-          }
-          // slow down the request speed
-          await D.wait(200)
+        let accounts = await this._network.getAccountByPubKey(pmInfo.publicKey)
+        if (!accounts || accounts.length === 0) {
+          console.info('EosAccount specific path not registered', pmInfo.path, pmInfo.publicKey)
+        } else {
+          // choose the first account if this key matches multi accounts
+          return accounts[0]
         }
-        console.info('this EosAccount has not been registered', pmIndex)
+        // slow down the request speed
+        await D.wait(200)
       }
+      console.info('this EosAccount has not been registered')
       return null
     }
 
@@ -352,6 +343,56 @@ export default class EosAccount extends IAccount {
    */
   isRegistered () {
     return this.addressInfos.some(a => a.address)
+  }
+
+  async importKey (key) {
+    let publicKeyBuffer = D.address.eosPrivateToPublicBuffer(key)
+    let publicKey = D.address.toString(this.coinType, publicKeyBuffer)
+    try {
+      await this._device.importKey(this.coinType, key)
+    } catch (e) {
+      if (e === D.error.deviceConditionNotSatisfied) {
+        console.log('device already has this key')
+        return false
+      }
+    }
+
+    let keyInfo = {
+      address: '',
+      accountId: this.accountId,
+      coinType: this.coinType,
+      path: publicKey,
+      type: '',
+      index: -1,
+      registered: false,
+      publicKey: publicKey,
+      parent: '',
+      txs: []
+    }
+    try {
+      await this._coinData.newAddressInfos(this._toAccountInfo(), [keyInfo])
+    } catch (e) {
+      console.log('database already has this key')
+    }
+    return true
+  }
+
+  async removeKey (key) {
+    let keyInfo = this.addressInfos.find(a => a.publicKey === key)
+    if (!keyInfo) {
+      console.warn('removeKey not exists', key)
+      throw D.error.invalidParams
+    }
+    try {
+      await this._device.removeKey(this.coinType, keyInfo)
+    } catch (e) {
+      if (e === D.error.deviceConditionNotSatisfied) {
+        console.log('device already removed this key')
+        return false
+      }
+    }
+    await this._coinData.deleteAddressInfos([keyInfo])
+    return true
   }
 
   /**
