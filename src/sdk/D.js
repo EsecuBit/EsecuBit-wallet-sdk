@@ -88,6 +88,8 @@ const D = {
     permissionNotFound: 608, // for eos
     permissionNoNeedToConfirmed: 609, // for eos
     invalidPrivateKey: 610, // for eos
+    multipleAccounts: 611, // for eos
+    keyNotMatch: 612, // for eos
 
     offlineModeNotAllowed: 701, // no device ever connected before
     offlineModeUnnecessary: 702, // device has connected

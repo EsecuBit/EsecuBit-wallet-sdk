@@ -199,6 +199,9 @@ export default class S300Wallet {
     flag += isShowing ? 0x02 : 0x00
     flag += 0x04
     flag += !D.isEth(coinType) && 0x08 // compressed if not ETH
+    if (D.isEos(coinType)) {
+      flag &= 0xfc
+    }
 
     let apduHead = Buffer.from('804600001505', 'hex')
     let pathBuffer = D.address.path.toBuffer(path)
@@ -213,7 +216,35 @@ export default class S300Wallet {
       addressBuffer = Buffer.concat([Buffer.from('6F', 'hex'), addressBuffer])
       address = D.address.toString(coinType, addressBuffer)
     }
+
     return address
+  }
+
+  async getAccountName (coinType, path, isShowing = false, isStoring = false) {
+    if (!D.isEos(coinType)) {
+      console.warn('getPermissions only supports EOS', coinType)
+      throw D.error.coinNotSupported
+    }
+    let flag = 0
+    flag += isStoring ? 0x01 : 0x00
+    flag += isShowing ? 0x02 : 0x00
+
+    let apduHead = Buffer.from('806A000000', 'hex')
+    let data
+    let isKey = path.startsWith('import_')
+    if (isKey) {
+      console.warn('???', path, path.slice('import_EOS'.length))
+      data = base58.decode(path.slice('import_EOS'.length)).slice(0, -4)
+    } else {
+      data = D.address.path.toBuffer(path)
+    }
+    let apdu = Buffer.concat([apduHead, data])
+    apdu[2] = isKey ? 0x01 : 0x00
+    apdu[3] = flag
+    apdu[4] = data.length
+
+    let response = await this.sendApdu(apdu, false, coinType)
+    return String.fromCharCode.apply(null, new Uint8Array(response))
   }
 
   async getDefaultPermissions (coinType, accountIndex) {
@@ -274,17 +305,22 @@ export default class S300Wallet {
     await this.sendApdu(apdu, true, coinType)
   }
 
-  async importKey (coinType, key) {
+  async importKey (coinType, keyInfo) {
     if (!D.isEos(coinType)) {
       console.warn('importKey only supports EOS', coinType)
       throw D.error.coinNotSupported
     }
 
-    key = D.address.parseEosPrivateKey(key)
+    let keyBuffer = D.address.parseEosPrivateKey(keyInfo.key)
     // 8064 0100 lc key[32]
-    let apduHead = Buffer.from('8066010000', 'hex')
-    let apdu = Buffer.concat([apduHead, key])
-    apdu[0x04] = key.length
+    let apduHead = Buffer.from('8064010000', 'hex')
+    let data = Buffer.concat([
+      FcBuffer.name.toBuffer(keyInfo.address), // actor
+      FcBuffer.name.toBuffer(keyInfo.type), // name
+      keyBuffer // private key
+    ])
+    let apdu = Buffer.concat([apduHead, data])
+    apdu[0x04] = data.length
 
     await this.sendApdu(apdu, true, coinType)
   }
@@ -295,11 +331,16 @@ export default class S300Wallet {
       throw D.error.coinNotSupported
     }
 
-    let key = D.address.toBuffer(keyInfo.publicKey)
+    let keyBuffer = D.address.toBuffer(keyInfo.publicKey)
     // 8064 0100 lc key[33]
     let apduHead = Buffer.from('8066010000', 'hex')
-    let apdu = Buffer.concat([apduHead, key])
-    apdu[0x04] = key.length
+    let data = Buffer.concat([
+      FcBuffer.name.toBuffer(keyInfo.address), // actor
+      FcBuffer.name.toBuffer(keyInfo.type), // name
+      keyBuffer // public key
+    ])
+    let apdu = Buffer.concat([apduHead, data])
+    apdu[0x04] = data.length
 
     await this.sendApdu(apdu, true, coinType)
   }

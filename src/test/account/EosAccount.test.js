@@ -81,6 +81,10 @@ describe('EosAccount', function () {
     // await coinData.release()
   })
 
+  it('importKey', async function () {
+    await account.importAccountByKeys('account name', 'owner key', 'active key')
+  })
+
   it('getPermissions', async function () {
     // await account.getPermissions(true)
     await account.getPermissions()

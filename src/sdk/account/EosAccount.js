@@ -267,14 +267,16 @@ export default class EosAccount extends IAccount {
     this._busy = true
 
     // see slip-0048 recovery
-    let permissionPaths = this.addressInfos.map(a => {
-      return {
-        registered: a.registered,
-        path: a.path,
-        index: a.index,
-        pathIndexes: D.address.path.parseString(a.path)
-      }
-    })
+    let permissionPaths = this.addressInfos
+      .filter(a => !a.path.startsWith('import_'))
+      .map(a => {
+        return {
+          registered: a.registered,
+          path: a.path,
+          index: a.index,
+          pathIndexes: D.address.path.parseString(a.path)
+        }
+      })
     let maxRegPermissionIndex = permissionPaths
       .filter(path => path.registered)
       .reduce((max, path) => Math.max(max, path.pathIndexes[2]), 0x80000000 - 1)
@@ -282,42 +284,50 @@ export default class EosAccount extends IAccount {
 
     let endPermissionIndex = maxRegPermissionIndex + 1
     let newAddressInfos = [] // permission info
-    for (let pmIndex = 0; pmIndex < endPermissionIndex + maxPermissionThreshold; pmIndex++) {
-      let subPath = D.address.path.makeSlip48Path(this.coinType, pmIndex, this.index)
-      // filter paths that has the same coinType, permission, accountIndex
-      let filteredPermissionPaths = permissionPaths.filter(path =>
-        subPath === D.address.path.makeSlip48Path(
-          path.pathIndexes[1] - 0x80000000,
-          path.pathIndexes[2] - 0x80000000,
-          path.pathIndexes[3] - 0x80000000))
 
-      let maxKeyIndex = filteredPermissionPaths.reduce((max, path) => Math.max(max, path.index), -1)
-      let maxRegisteredKeyIndex = filteredPermissionPaths
-        .filter(path => path.registered)
-        .reduce((max, path) => Math.max(max, path.index), -1)
+    try {
+      for (let pmIndex = 0; pmIndex < endPermissionIndex + maxPermissionThreshold; pmIndex++) {
+        let subPath = D.address.path.makeSlip48Path(this.coinType, pmIndex, this.index)
+        // filter paths that has the same coinType, permission, accountIndex
+        let filteredPermissionPaths = permissionPaths.filter(path =>
+          subPath === D.address.path.makeSlip48Path(
+            path.pathIndexes[1] - 0x80000000,
+            path.pathIndexes[2] - 0x80000000,
+            path.pathIndexes[3] - 0x80000000))
 
-      let startKeyIndex = maxKeyIndex + 1
-      let startRegKeyIndex = maxRegisteredKeyIndex + 1
-      for (let j = startKeyIndex; j < startRegKeyIndex + maxIndexThreshold; j++) {
-        let path = D.address.path.makeSlip48Path(this.coinType, pmIndex, this.index, j)
-        if (!filteredPermissionPaths.some(p => p.path === path)) {
-          let publicKey = await this._device.getAddress(this.coinType, path)
-          console.debug('generate public key with path', path, publicKey)
-          // generate a permissionInfo no matter it use or not for recovery
-          newAddressInfos.push({
-            address: '',
-            accountId: this.accountId,
-            coinType: this.coinType,
-            path: path,
-            type: '',
-            index: j,
-            registered: false,
-            publicKey: publicKey,
-            parent: '',
-            txs: [] // rfu
-          })
+        let maxKeyIndex = filteredPermissionPaths.reduce((max, path) => Math.max(max, path.index), -1)
+        let maxRegisteredKeyIndex = filteredPermissionPaths
+          .filter(path => path.registered)
+          .reduce((max, path) => Math.max(max, path.index), -1)
+
+        let startKeyIndex = maxKeyIndex + 1
+        let startRegKeyIndex = maxRegisteredKeyIndex + 1
+        for (let j = startKeyIndex; j < startRegKeyIndex + maxIndexThreshold; j++) {
+          let path = D.address.path.makeSlip48Path(this.coinType, pmIndex, this.index, j)
+          if (!filteredPermissionPaths.some(p => p.path === path)) {
+            let publicKey = await this._device.getAddress(this.coinType, path)
+            console.debug('generate public key with path', path, publicKey)
+            // generate a permissionInfo no matter it use or not for recovery
+            newAddressInfos.push({
+              address: '',
+              accountId: this.accountId,
+              coinType: this.coinType,
+              path: path,
+              type: '',
+              index: j,
+              registered: false,
+              publicKey: publicKey,
+              parent: '',
+              txs: [] // rfu
+            })
+          }
         }
       }
+    } catch (e) {
+      if (e === D.error.deviceConditionNotSatisfied) {
+        console.warn('device has no wallet, ignore')
+      }
+      throw e
     }
 
     await this._coinData.newAddressInfos(this._toAccountInfo(), newAddressInfos)
@@ -345,36 +355,62 @@ export default class EosAccount extends IAccount {
     return this.addressInfos.some(a => a.address)
   }
 
-  async importKey (key) {
-    let publicKeyBuffer = D.address.eosPrivateToPublicBuffer(key)
-    let publicKey = D.address.toString(this.coinType, publicKeyBuffer)
-    try {
-      await this._device.importKey(this.coinType, key)
-    } catch (e) {
-      if (e === D.error.deviceConditionNotSatisfied) {
-        console.log('device already has this key')
-        return false
+  async importAccountByKeys (name, ownerKey, activeKey) {
+    if (this.isRegistered() && (name !== this.label)) {
+      console.warn('currently not support multiple registered account')
+      throw D.error.multipleAccounts
+    }
+
+    let accountInfo = await this._network.getAccountInfo(name, [])
+    let importKey = async (key, auth) => {
+      let publicKeyBuffer = D.address.eosPrivateToPublicBuffer(key)
+      let publicKey = D.address.toString(this.coinType, publicKeyBuffer)
+
+      console.info('importAccountByKeys accounts', name, accountInfo)
+      if (!accountInfo.permissions[auth]) {
+        console.warn('owner key not found', publicKey)
+        throw D.error.keyNotMatch
+      }
+      if (!accountInfo.permissions[auth].pKeys.find(p => p.publicKey === publicKey)) {
+        console.warn('owner key not found in owner', publicKey)
+        throw D.error.keyNotMatch
+      }
+
+      try {
+        await this._device.importKey(this.coinType, {address: name, type: auth, key: key})
+      } catch (e) {
+        if (e === D.error.deviceConditionNotSatisfied) {
+          console.log('device already has this key')
+        } else {
+          throw e
+        }
+      }
+
+      let keyInfo = {
+        address: name,
+        accountId: this.accountId,
+        coinType: this.coinType,
+        path: 'import_' + publicKey,
+        type: auth,
+        index: -1,
+        registered: true,
+        publicKey: publicKey,
+        parent: '',
+        txs: []
+      }
+      try {
+        await this._coinData.newAddressInfos(this._toAccountInfo(), [keyInfo])
+      } catch (e) {
+        console.log('database already has this key', e)
       }
     }
 
-    let keyInfo = {
-      address: '',
-      accountId: this.accountId,
-      coinType: this.coinType,
-      path: publicKey,
-      type: '',
-      index: -1,
-      registered: false,
-      publicKey: publicKey,
-      parent: '',
-      txs: []
+    if (ownerKey) {
+      await importKey(ownerKey, 'owner')
     }
-    try {
-      await this._coinData.newAddressInfos(this._toAccountInfo(), [keyInfo])
-    } catch (e) {
-      console.log('database already has this key')
+    if (activeKey) {
+      await importKey(activeKey, 'active')
     }
-    return true
   }
 
   async removeKey (key) {
@@ -428,11 +464,9 @@ export default class EosAccount extends IAccount {
     }
 
     let addressInfo = this.addressInfos.find(a => a.registered)
-    if (isStoring) {
-      await this._device.getAddress(this.coinType, addressInfo.path, false, isStoring)
-    }
+    let accountName = await this._device.getAccountName(this.coinType, addressInfo.path, true, isStoring)
     let prefix = ''
-    return {address: addressInfo.address, qrAddress: prefix + addressInfo.address}
+    return {address: accountName, qrAddress: prefix + accountName}
   }
 
   async rename () {

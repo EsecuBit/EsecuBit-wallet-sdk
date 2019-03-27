@@ -310,7 +310,7 @@ export default class IndexedDB extends IDatabase {
 
       transaction.oncomplete = resolve
       transaction.onerror = ev => {
-        console.warn('clearDatabase', ev)
+        console.warn('indexedDB clearDatabase', ev)
         reject(D.error.databaseExecFailed)
       }
     })
@@ -332,7 +332,7 @@ export default class IndexedDB extends IDatabase {
       }
 
       setTimeout(() => {
-        finished || console.warn('deleteDatabase database time exceed, database maybe not closed')
+        finished || console.warn('indexedDB deleteDatabase database time exceed, database maybe not closed')
         finished++ || reject(D.error.databaseOpenFailed)
       }, 1900)
     })
@@ -349,7 +349,7 @@ export default class IndexedDB extends IDatabase {
       let request = transaction.objectStore('account').add(account)
       request.onsuccess = resolve
       request.onerror = (e) => {
-        console.warn('newAccount', e)
+        console.warn('indexedDB newAccount', e)
         reject(D.error.databaseExecFailed)
       }
     })
@@ -379,7 +379,7 @@ export default class IndexedDB extends IDatabase {
       }
 
       accountRequest().then(addressInfosRequest).then(resolve).catch(e => {
-        console.warn('deleteAccount', e)
+        console.warn('indexedDB deleteAccount', e)
         reject(D.error.databaseExecFailed)
       })
     })
@@ -419,7 +419,7 @@ export default class IndexedDB extends IDatabase {
         cursor.continue()
       }
       request.onerror = (e) => {
-        console.warn('getAccounts', e)
+        console.warn('indexedDB getAccounts', e)
         reject(D.error.databaseExecFailed)
       }
     })
@@ -437,7 +437,7 @@ export default class IndexedDB extends IDatabase {
         .put(account)
 
       let error = e => {
-        console.warn('updateAccount', e)
+        console.warn('indexedDB updateAccount', e)
         reject(D.error.databaseExecFailed)
       }
 
@@ -457,7 +457,7 @@ export default class IndexedDB extends IDatabase {
       let request = transaction.objectStore('token').add(token)
       request.onsuccess = resolve
       request.onerror = (e) => {
-        console.warn('newToken', e)
+        console.warn('indexedDB newToken', e)
         reject(D.error.databaseExecFailed)
       }
     })
@@ -474,7 +474,7 @@ export default class IndexedDB extends IDatabase {
       let request = transaction.objectStore('token').delete(token.address)
       request.onsuccess = resolve
       request.onerror = (e) => {
-        console.warn('deleteToken', e)
+        console.warn('indexedDB deleteToken', e)
         reject(D.error.databaseExecFailed)
       }
     })
@@ -509,7 +509,7 @@ export default class IndexedDB extends IDatabase {
         cursor.continue()
       }
       request.onerror = (e) => {
-        console.warn('getTokens', e)
+        console.warn('indexedDB getTokens', e)
         reject(D.error.databaseExecFailed)
       }
     })
@@ -527,7 +527,7 @@ export default class IndexedDB extends IDatabase {
         .put(token)
 
       let error = e => {
-        console.warn('updateToken', e)
+        console.warn('indexedDB updateToken', e)
         reject(D.error.databaseExecFailed)
       }
 
@@ -548,7 +548,7 @@ export default class IndexedDB extends IDatabase {
         .get([txInfo.txId, txInfo.accountId])
 
       let error = e => {
-        console.warn('saveOrUpdateTxComment', e)
+        console.warn('indexedDB saveOrUpdateTxComment', e)
         reject(D.error.databaseExecFailed)
       }
 
@@ -631,7 +631,7 @@ export default class IndexedDB extends IDatabase {
       }
 
       accountRequest().then(addressInfosRequest).then(resolve).catch(e => {
-        console.warn('newAddressInfos', e)
+        console.warn('indexedDB newAddressInfos', e)
         reject(D.error.databaseExecFailed)
       })
     })
@@ -656,7 +656,7 @@ export default class IndexedDB extends IDatabase {
       }
 
       addressInfosRequest().then(resolve).catch(e => {
-        console.warn('updateAddressInfos', e)
+        console.warn('indexedDB updateAddressInfos', e)
         reject(D.error.databaseExecFailed)
       })
     })
@@ -681,7 +681,7 @@ export default class IndexedDB extends IDatabase {
       }
 
       addressInfosRequest().then(resolve).catch(e => {
-        console.warn('deleteAddressInfos', e)
+        console.warn('indexedDB deleteAddressInfos', e)
         reject(D.error.databaseExecFailed)
       })
     })
@@ -717,7 +717,7 @@ export default class IndexedDB extends IDatabase {
         cursor.continue()
       }
       request.onerror = (e) => {
-        console.warn('getAddressInfos', e)
+        console.warn('indexedDB getAddressInfos', e)
         reject(D.error.databaseExecFailed)
       }
     })
@@ -753,7 +753,7 @@ export default class IndexedDB extends IDatabase {
         cursor.continue()
       }
       request.onerror = (e) => {
-        console.warn('getAccounts', e)
+        console.warn('indexedDB getAccounts', e)
         reject(D.error.databaseExecFailed)
       }
     })
@@ -774,7 +774,7 @@ export default class IndexedDB extends IDatabase {
 
       transaction.oncomplete = resolve
       transaction.onerror = ev => {
-        console.warn('newTx', ev)
+        console.warn('indexedDB newTx', ev)
         reject(D.error.databaseExecFailed)
       }
     })
@@ -799,11 +799,11 @@ export default class IndexedDB extends IDatabase {
 
       transaction.oncomplete = resolve
       transaction.onerror = ev => {
-        console.warn('removeTx onerror', ev)
+        console.warn('indexedDB removeTx onerror', ev)
         reject(D.error.databaseExecFailed)
       }
       transaction.onabort = ev => {
-        console.warn('removeTx onabort', ev)
+        console.warn('indexedDB removeTx onabort', ev)
         reject(D.error.databaseExecFailed)
       }
     })
@@ -820,7 +820,7 @@ export default class IndexedDB extends IDatabase {
       let request = transaction.objectStore('fee').get(coinType)
       request.onsuccess = (e) => resolve(e.target.result)
       request.onerror = (e) => {
-        console.warn('getFee', e)
+        console.warn('indexedDB getFee', e)
         reject(D.error.databaseExecFailed)
       }
     })
@@ -837,7 +837,7 @@ export default class IndexedDB extends IDatabase {
       let request = transaction.objectStore('fee').put(fee)
       request.onsuccess = resolve
       request.onerror = (e) => {
-        console.warn('saveOrUpdateFee', e)
+        console.warn('indexedDB saveOrUpdateFee', e)
         reject(D.error.databaseExecFailed)
       }
     })
@@ -854,7 +854,7 @@ export default class IndexedDB extends IDatabase {
       let request = transaction.objectStore('exchange').get(coinType)
       request.onsuccess = (e) => resolve(e.target.result)
       request.onerror = (e) => {
-        console.warn('getExchange', e)
+        console.warn('indexedDB getExchange', e)
         reject(D.error.databaseExecFailed)
       }
     })
@@ -871,7 +871,7 @@ export default class IndexedDB extends IDatabase {
       let request = transaction.objectStore('exchange').put(exchange)
       request.onsuccess = resolve
       request.onerror = (e) => {
-        console.warn('saveOrUpdateExchange', e)
+        console.warn('indexedDB saveOrUpdateExchange', e)
         reject(D.error.databaseExecFailed)
       }
     })
@@ -888,7 +888,7 @@ export default class IndexedDB extends IDatabase {
       let request = transaction.objectStore('settings').get(key)
       request.onsuccess = (e) => resolve(e.target.result && e.target.result.value)
       request.onerror = (e) => {
-        console.warn('getSettings', e)
+        console.warn('indexedDB getSettings', e)
         reject(D.error.databaseExecFailed)
       }
     })
@@ -905,7 +905,7 @@ export default class IndexedDB extends IDatabase {
       let request = transaction.objectStore('settings').put({key, value})
       request.onsuccess = resolve
       request.onerror = (e) => {
-        console.warn('saveOrUpdateSettings', e)
+        console.warn('indexedDB saveOrUpdateSettings', e)
         reject(D.error.databaseExecFailed)
       }
     })
