@@ -338,23 +338,23 @@ export default class EsWallet {
     this._callback = callback || (() => {})
 
     if (!this.offlineMode) {
-      this._dispatch(D.status.plugIn)
+      this._dispatchEvent(D.status.plugIn)
     }
 
     switch (this._status) {
       case D.status.plugIn:
         break
       case D.status.initializing:
-        this._dispatch(D.status.initializing)
+        this._dispatchEvent(D.status.initializing)
         break
       case D.status.syncing:
-        this._dispatch(D.status.initializing)
-        this._dispatch(D.status.syncing)
+        this._dispatchEvent(D.status.initializing)
+        this._dispatchEvent(D.status.syncing)
         break
       case D.status.syncFinish:
-        this._dispatch(D.status.initializing)
-        this._dispatch(D.status.syncing)
-        this._dispatch(D.status.syncFinish)
+        this._dispatchEvent(D.status.initializing)
+        this._dispatchEvent(D.status.syncing)
+        this._dispatchEvent(D.status.syncFinish)
         break
       case D.status.plugOut:
       default:
