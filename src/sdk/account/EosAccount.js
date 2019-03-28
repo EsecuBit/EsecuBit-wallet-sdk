@@ -399,7 +399,9 @@ export default class EosAccount extends IAccount {
         txs: []
       }
       try {
+        this.label = name
         await this._coinData.newAddressInfos(this._toAccountInfo(), [keyInfo])
+        this.addressInfos.push(keyInfo)
       } catch (e) {
         console.log('database already has this key', e)
       }
