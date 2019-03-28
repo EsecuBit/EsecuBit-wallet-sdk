@@ -274,7 +274,7 @@ export default class EosAccount extends IAccount {
           registered: a.registered,
           path: a.path,
           index: a.index,
-          pathIndexes: D.address.path.parseString(a.path)
+          pathIndexes: D.address.path.toArray(a.path)
         }
       })
     let maxRegPermissionIndex = permissionPaths
@@ -358,6 +358,11 @@ export default class EosAccount extends IAccount {
   async importAccountByKeys (name, ownerKey, activeKey) {
     if (this.isRegistered() && (name !== this.label)) {
       console.warn('currently not support multiple registered account')
+      throw D.error.multipleAccounts
+    }
+    // TODO S300 support specific accountIndex import
+    if (this.index !== 0) {
+      console.warn('currently only support import key for first account')
       throw D.error.multipleAccounts
     }
 

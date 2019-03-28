@@ -222,7 +222,7 @@ export default class S300Wallet {
 
   async getAccountName (coinType, path, isShowing = false, isStoring = false) {
     if (!D.isEos(coinType)) {
-      console.warn('getPermissions only supports EOS', coinType)
+      console.warn('getAccountName only supports EOS', coinType)
       throw D.error.coinNotSupported
     }
     let flag = 0
@@ -233,7 +233,6 @@ export default class S300Wallet {
     let data
     let isKey = path.startsWith('import_')
     if (isKey) {
-      console.warn('???', path, path.slice('import_EOS'.length))
       data = base58.decode(path.slice('import_EOS'.length)).slice(0, -4)
     } else {
       data = D.address.path.toBuffer(path)
@@ -249,7 +248,7 @@ export default class S300Wallet {
 
   async getDefaultPermissions (coinType, accountIndex) {
     if (!D.isEos(coinType)) {
-      console.warn('getPermissions only supports EOS', coinType)
+      console.warn('getDefaultPermissions only supports EOS', coinType)
       throw D.error.coinNotSupported
     }
     accountIndex += 0x80000000
@@ -265,6 +264,55 @@ export default class S300Wallet {
     apdu[8] = accountIndex & 0xff
 
     await this.sendApdu(apdu, true, coinType)
+  }
+
+  async getPermissions (coinType, accountIndex) {
+    // TODO S300 support specific accountIndex import
+    if (!D.isEos(coinType)) {
+      console.warn('getPermissions only supports EOS', coinType)
+      throw D.error.coinNotSupported
+    }
+
+    let offset = 0
+    let permissions = []
+    while (true) {
+      let apdu = Buffer.from('806C00000100', 'hex')
+      apdu[5] = offset
+      let response = await this.sendApdu(apdu, false, coinType)
+      let returnPmSize = response[1]
+      for (let i = 0; i < returnPmSize; i++) {
+        permissions.push(response.slice(2 + i * 0x32, (i + 1) * 0x32))
+      }
+
+      let remainPmSize = response[0]
+      if (remainPmSize === 0) {
+        break
+      }
+      offset += returnPmSize
+    }
+
+    permissions = permissions.map(pm => {
+      let type = pm[0]
+      let data
+      if (type === 0) {
+        data = pm.slice(17, 37)
+        data = D.address.path.fromBuffer(data)
+      } else if (type === 1) {
+        data = pm.slice(17, 50)
+        data = D.address.toString(coinType, data)
+      } else {
+        console.warn('getPermissions unknown type', type)
+        throw D.error.deviceApduDataInvalid
+      }
+      return {
+        type,
+        actor: FcBuffer.name.decodeName(pm.slice(1, 9)),
+        name: FcBuffer.name.decodeName(pm.slice(9, 17)),
+        data
+      }
+    })
+
+    return permissions
   }
 
   async addPermission (coinType, pmInfo) {
@@ -306,6 +354,7 @@ export default class S300Wallet {
   }
 
   async importKey (coinType, keyInfo) {
+    // TODO S300 support specific accountIndex import
     if (!D.isEos(coinType)) {
       console.warn('importKey only supports EOS', coinType)
       throw D.error.coinNotSupported

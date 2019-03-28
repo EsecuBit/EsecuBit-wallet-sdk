@@ -604,9 +604,9 @@ const D = {
     },
 
     path: {
-      parseString (path) {
+      toArray (path) {
         if (typeof path !== 'string') {
-          console.warn('D.address.path.parseString invalid path', path)
+          console.warn('D.address.path.toArray invalid path', path)
           throw D.error.invalidParams
         }
 
@@ -622,7 +622,7 @@ const D = {
           }
           let num = Number(part)
           if (Number.isNaN(num)) {
-            console.warn('D.address.path.parseString invalid index', part, path)
+            console.warn('D.address.path.toArray invalid index', part, path)
             throw D.error.invalidParams
           }
           value += num
@@ -635,7 +635,7 @@ const D = {
        * convert string type path to Buffer
        */
       toBuffer (path) {
-        let indexes = D.address.path.parseString(path)
+        let indexes = this.toArray(path)
         let buffer = Buffer.allocUnsafe(indexes.length * 4)
         indexes.forEach((index, i) => {
           buffer[4 * i] = index >> 24
@@ -646,22 +646,48 @@ const D = {
         return buffer
       },
 
+      fromBuffer (path) {
+        let level = path.length / 4
+        let indexes = []
+        for (let i = 0; i < level; i++) {
+          indexes.push(path.readUInt32BE(i * 4, 4))
+        }
+        return this.makePath(indexes)
+      },
+
       makeBip44Path (coinType, accountIndex, type, addressIndex = undefined) {
         coinType = typeof coinType === 'number' ? coinType : D.getCoinIndex(coinType)
-        return "m/44'/" +
-          coinType + "'/" +
-          accountIndex + "'/" +
-          (type === D.address.external ? 0 : 1) +
-          (addressIndex === undefined ? '' : ('/' + addressIndex))
+        let indexes = [44, coinType, accountIndex, type, addressIndex]
+        if (addressIndex) {
+          indexes.push(addressIndex)
+        }
+        return this.makePath(indexes, 3)
       },
 
       makeSlip48Path (coinType, permissionIndex, accountIndex, keyIndex = undefined) {
         coinType = typeof coinType === 'number' ? coinType : D.getCoinIndex(coinType)
-        return "m/48'/" +
-          coinType + "'/" +
-          permissionIndex + "'/" +
-          accountIndex + "'" +
-          (keyIndex === undefined ? '' : ('/' + keyIndex + "'"))
+        let indexes = [48, coinType, permissionIndex, accountIndex]
+        if (keyIndex) {
+          indexes.push(keyIndex)
+        }
+        return this.makePath(indexes, indexes.length)
+      },
+
+      makePath (indexes, hardLevel = 0) {
+        let path = 'm'
+        for (let index of indexes) {
+          path += '/'
+          let hard = false
+          if (index >= 0x80000000) {
+            hard = true
+            index -= 0x80000000
+          }
+          path += index.toString()
+          if (hard || index < hardLevel) {
+            path += "'"
+          }
+        }
+        return path
       }
     }
   },

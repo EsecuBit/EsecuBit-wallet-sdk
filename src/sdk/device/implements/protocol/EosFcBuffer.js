@@ -10,9 +10,9 @@ const FcBuffer = {
       FcBuffer.uint32.appendByteBuffer(buffer, tx.expiration)
       FcBuffer.uint16.appendByteBuffer(buffer, tx.ref_block_num)
       FcBuffer.uint32.appendByteBuffer(buffer, tx.ref_block_prefix)
-      FcBuffer.varuint32.appendByteBuffer(buffer, tx.max_net_usage_words)
+      FcBuffer.letuint32.appendByteBuffer(buffer, tx.max_net_usage_words)
       FcBuffer.uint8.appendByteBuffer(buffer, tx.max_cpu_usage_ms)
-      FcBuffer.varuint32.appendByteBuffer(buffer, tx.delay_sec)
+      FcBuffer.letuint32.appendByteBuffer(buffer, tx.delay_sec)
       FcBuffer.actions.appendByteBuffer(buffer, tx.context_free_actions)
       FcBuffer.actions.appendByteBuffer(buffer, tx.actions)
       FcBuffer.transactionExtensions.appendByteBuffer(buffer, tx.transaction_extensions)
@@ -50,9 +50,9 @@ const FcBuffer = {
     }
   },
 
-  varuint32: {
+  letuint32: {
     appendByteBuffer (b, value) {
-      b.writeVarint32(value)
+      b.writeletint32(value)
     }
   },
 
@@ -63,11 +63,11 @@ const FcBuffer = {
   },
 
   name: {
-    appendByteBuffer (b, value) {
+    appendByteBuffer(b, value) {
       b.writeUint64(this.encodeName(value, false))
     },
 
-    toBuffer (value) {
+    toBuffer(value) {
       let buffer = new ByteBuffer(8, true, true)
       this.appendByteBuffer(buffer, value)
       buffer = buffer.copy(0, buffer.offset)
@@ -90,10 +90,10 @@ const FcBuffer = {
      * @return {string<uint64>} - compressed string (from name arg).  A string is
      * always used because a number could exceed JavaScript's 52 bit limit.
      */
-    encodeName (name) {
+    encodeName(name) {
       const Long = ByteBuffer.Long
       const charmap = '.12345abcdefghijklmnopqrstuvwxyz'
-      const charidx = function charidx (ch) {
+      const charidx = function charidx(ch) {
         const idx = charmap.indexOf(ch)
         if (idx === -1) throw new TypeError('Invalid character: \'' + ch + '\'')
         return idx
@@ -130,7 +130,7 @@ const FcBuffer = {
       let _iterator = bytes[Symbol.iterator]()
       let _step
       try {
-        for (;!(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+        for (; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
           let b = _step.value
           let n = Number(b).toString(16)
           leHex += (n.length === 1 ? '0' : '') + n
@@ -154,13 +154,73 @@ const FcBuffer = {
       let ulName = Long.fromString(leHex, true, 16).toString()
       // console.log('encodeName', name, value.toString(), ulName.toString(), JSON.stringify(bitstr.split(/(.....)/).slice(1)))
       return ulName.toString()
-    }
+    },
 
+    /**
+     * @arg {Buffer}  bytes
+     *
+     * @return {string}
+     */
+    decodeName (bytes) {
+      const Long = ByteBuffer.Long
+      const charmap = '.12345abcdefghijklmnopqrstuvwxyz'
+
+      // convert from LITTLE_ENDIAN
+      bytes = Buffer.from(bytes.toString('hex').match(/.{2}/g).reverse().join(""), 'hex')
+      let beHex = ''
+      let _iteratorNormalCompletion2 = true
+      let _didIteratorError2 = false
+      let _iteratorError2
+
+      let _iterator2 = bytes[Symbol.iterator]()
+      try {
+        for (let _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+          let b = _step2.value
+
+          let n = Number(b).toString(16)
+          beHex += (n.length === 1 ? '0' : '') + n
+        }
+      } catch (err) {
+        _didIteratorError2 = true
+        _iteratorError2 = err
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion2 && _iterator2.return) {
+            _iterator2.return()
+          }
+        } finally {
+          if (_didIteratorError2) {
+            // eslint-disable-next-line no-unsafe-finally
+            throw _iteratorError2
+          }
+        }
+      }
+
+      beHex += '0'.repeat(16 - beHex.length)
+
+      let fiveBits = Long.fromNumber(0x1f, true)
+      let fourBits = Long.fromNumber(0x0f, true)
+      let beValue = Long.fromString(beHex, true, 16)
+
+      let str = ''
+      let tmp = beValue
+
+      for (let i = 0; i <= 12; i++) {
+        let c = charmap[tmp.and(i === 0 ? fourBits : fiveBits)]
+        str = c + str
+        tmp = tmp.shiftRight(i === 0 ? 4 : 5)
+      }
+      str = str.replace(/\.+$/, '') // remove trailing dots (all of them)
+
+      // console.log('decodeName', str, beValue.toString(), value.toString(), JSON.stringify(beValue.toString(2).split(/(.....)/).slice(1)))
+
+      return str
+    }
   },
 
   actions: {
     appendByteBuffer (b, value) {
-      b.writeVarint32(value.length)
+      b.writeletint32(value.length)
       for (let item of value) {
         if (!item.account || !item.name || !item.authorization || !item.data) {
           console.warn('invalid actions item params', b, item)
@@ -176,7 +236,7 @@ const FcBuffer = {
 
   authorization: {
     appendByteBuffer (b, value) {
-      b.writeVarint32(value.length)
+      b.writeletint32(value.length)
       for (let item of value) {
         if (!item.actor || !item.permission) {
           console.warn('invalid authorization item params', b, item)
@@ -212,7 +272,7 @@ const FcBuffer = {
           }
           let subItemType = itemType.slice(0, itemType.length - 2)
 
-          content.writeVarint32(item.length)
+          content.writeletint32(item.length)
           item.forEach(i => {
             FcBuffer[subItemType].appendByteBuffer(content, i)
           })
@@ -221,7 +281,7 @@ const FcBuffer = {
         }
       })
 
-      b.writeVarint32(content.offset)
+      b.writeletint32(content.offset)
       content = content.copy(0, content.offset)
       // noinspection JSUnresolvedFunction
       content.copyTo(b)
