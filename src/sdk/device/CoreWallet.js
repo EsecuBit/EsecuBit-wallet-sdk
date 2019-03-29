@@ -150,6 +150,14 @@ export default class CoreWallet {
     return this._wallet.removePermission(coinType, pmInfo)
   }
 
+  async getPermissions (coinType, accountIndex) {
+    if (!this._wallet) {
+      console.warn('init wallet first')
+      throw D.error.deviceNotConnected
+    }
+    return this._wallet.getPermissions(coinType, accountIndex)
+  }
+
   async importKey (coinType, keyInfo) {
     if (!this._wallet) {
       console.warn('init wallet first')

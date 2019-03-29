@@ -667,7 +667,7 @@ const D = {
       makeSlip48Path (coinType, permissionIndex, accountIndex, keyIndex = undefined) {
         coinType = typeof coinType === 'number' ? coinType : D.getCoinIndex(coinType)
         let indexes = [48, coinType, permissionIndex, accountIndex]
-        if (keyIndex) {
+        if (keyIndex !== undefined) {
           indexes.push(keyIndex)
         }
         return this.makePath(indexes, indexes.length)
@@ -675,7 +675,7 @@ const D = {
 
       makePath (indexes, hardLevel = 0) {
         let path = 'm'
-        for (let index of indexes) {
+        indexes.forEach((index, i) => {
           path += '/'
           let hard = false
           if (index >= 0x80000000) {
@@ -683,10 +683,10 @@ const D = {
             index -= 0x80000000
           }
           path += index.toString()
-          if (hard || index < hardLevel) {
+          if (hard || (i < hardLevel)) {
             path += "'"
           }
-        }
+        })
         return path
       }
     }

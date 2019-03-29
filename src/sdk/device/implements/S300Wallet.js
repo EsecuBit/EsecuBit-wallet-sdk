@@ -281,7 +281,7 @@ export default class S300Wallet {
       let response = await this.sendApdu(apdu, false, coinType)
       let returnPmSize = response[1]
       for (let i = 0; i < returnPmSize; i++) {
-        permissions.push(response.slice(2 + i * 0x32, (i + 1) * 0x32))
+        permissions.push(response.slice(2 + i * 0x32, 2 + (i + 1) * 0x32))
       }
 
       let remainPmSize = response[0]
@@ -290,7 +290,6 @@ export default class S300Wallet {
       }
       offset += returnPmSize
     }
-
     permissions = permissions.map(pm => {
       let type = pm[0]
       let data

@@ -83,6 +83,56 @@ export default class EosAccount extends IAccount {
     this.queryOffset = this._network.getNextActionSeq(this.label)
   }
 
+  async _checkAccountImportedKey () {
+    if (this.isRegistered()) {
+      console.log('account is registered, skip _checkAccountImportedKey')
+      return false
+    }
+
+    let response = await this._device.getPermissions(this.coinType, this.accountId)
+    console.log('_checkAccountImportedKey getPermissions', response)
+    let pmInfos = []
+    for (let pmInfo of response) {
+      this.label = pmInfo.actor
+      if (pmInfo.type === 0) {
+        let path = pmInfo.data
+        let publicKey = await this._device.getAddress(this.coinType, path)
+        pmInfos.push({
+          address: name,
+          accountId: this.accountId,
+          coinType: this.coinType,
+          path: path,
+          type: pmInfo.name,
+          index: D.path.toArray(path)[4],
+          registered: false,
+          publicKey: publicKey,
+          parent: '',
+          txs: []
+        })
+      } else if (pmInfo.type === 1) {
+        let publicKey = pmInfo.data
+        pmInfos.push({
+          address: name,
+          accountId: this.accountId,
+          coinType: this.coinType,
+          path: 'import_' + publicKey,
+          type: pmInfo.name,
+          index: -1,
+          registered: false,
+          publicKey: publicKey,
+          parent: '',
+          txs: []
+        })
+      }
+    }
+
+    if (pmInfos.length > 0) {
+      await this._coinData.newAddressInfos(this._toAccountInfo(), pmInfos)
+      this.addressInfos.push(...pmInfos)
+    }
+    return pmInfos.length > 0
+  }
+
   /**
    * Check new permissions for slip48 generated public keys. Needs device interaction
    *
@@ -92,9 +142,11 @@ export default class EosAccount extends IAccount {
    */
   async checkAccountPermissions (callback) {
     try {
-      await this._checkPermissionAndGenerateNew()
+      if (!(await this._checkAccountImportedKey())) {
+        await this._checkPermissionAndGenerateNew()
+      }
     } catch (e) {
-      console.warn('checkNewPermission checkPermissionAndGenerateNew error', e)
+      console.warn('checkNewPermission check error', e)
       console.warn('app may in offline mode, ignore here')
     }
 
@@ -168,7 +220,10 @@ export default class EosAccount extends IAccount {
               !pmInfo.registered ||
               pmInfo.type !== permission.name) {
               // TODO handle permission that only change path or name, first remove then add
-              addDevicePmInfos.push(pmInfo)
+              if (!pmInfo.path.startsWith('import_')) {
+                // imported key no need to add
+                addDevicePmInfos.push(pmInfo)
+              }
             }
 
             console.log('update permission info', pmInfo, permission)
@@ -266,26 +321,26 @@ export default class EosAccount extends IAccount {
     }
     this._busy = true
 
-    // see slip-0048 recovery
-    let permissionPaths = this.addressInfos
-      .filter(a => !a.path.startsWith('import_'))
-      .map(a => {
-        return {
-          registered: a.registered,
-          path: a.path,
-          index: a.index,
-          pathIndexes: D.address.path.toArray(a.path)
-        }
-      })
-    let maxRegPermissionIndex = permissionPaths
-      .filter(path => path.registered)
-      .reduce((max, path) => Math.max(max, path.pathIndexes[2]), 0x80000000 - 1)
-    maxRegPermissionIndex -= 0x80000000
-
-    let endPermissionIndex = maxRegPermissionIndex + 1
-    let newAddressInfos = [] // permission info
-
     try {
+      // see slip-0048 recovery
+      let permissionPaths = this.addressInfos
+        .filter(a => !a.path.startsWith('import_'))
+        .map(a => {
+          return {
+            registered: a.registered,
+            path: a.path,
+            index: a.index,
+            pathIndexes: D.address.path.toArray(a.path)
+          }
+        })
+      let maxRegPermissionIndex = permissionPaths
+        .filter(path => path.registered)
+        .reduce((max, path) => Math.max(max, path.pathIndexes[2]), 0x80000000 - 1)
+      maxRegPermissionIndex -= 0x80000000
+
+      let endPermissionIndex = maxRegPermissionIndex + 1
+      let newAddressInfos = [] // permission info
+
       for (let pmIndex = 0; pmIndex < endPermissionIndex + maxPermissionThreshold; pmIndex++) {
         let subPath = D.address.path.makeSlip48Path(this.coinType, pmIndex, this.index)
         // filter paths that has the same coinType, permission, accountIndex
@@ -323,18 +378,18 @@ export default class EosAccount extends IAccount {
           }
         }
       }
+
+      await this._coinData.newAddressInfos(this._toAccountInfo(), newAddressInfos)
+      this.addressInfos.push(...newAddressInfos)
+      return newAddressInfos
     } catch (e) {
       if (e === D.error.deviceConditionNotSatisfied) {
         console.warn('device has no wallet, ignore')
       }
       throw e
+    } finally {
+      this._busy = false
     }
-
-    await this._coinData.newAddressInfos(this._toAccountInfo(), newAddressInfos)
-    this.addressInfos.push(...newAddressInfos)
-
-    this._busy = false
-    return newAddressInfos
   }
 
   async _handleRemovedTx (removedTxId) {
@@ -450,13 +505,14 @@ export default class EosAccount extends IAccount {
     if (this.isRegistered()) {
       return D.copy(this.addressInfos.filter(a => a.registered))
     } else {
+      await this._checkPermissionAndGenerateNew()
       // return default permissions
       let ownerPmInfo = D.copy(this.addressInfos.find(a => a.path ===
         D.address.path.makeSlip48Path(this.coinType, 0, this.index, 0)))
       let activePmInfo = D.copy(this.addressInfos.find(a => a.path ===
         D.address.path.makeSlip48Path(this.coinType, 1, this.index, 0)))
       if (!ownerPmInfo || !activePmInfo) {
-        console.warn('no ownerPmInfo or activePmInfo, device might not connected')
+        console.warn('no ownerPmInfo or activePmInfo')
         throw D.error.deviceNotConnected
       }
       ownerPmInfo.type = 'owner'

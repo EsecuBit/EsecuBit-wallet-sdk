@@ -10,9 +10,9 @@ const FcBuffer = {
       FcBuffer.uint32.appendByteBuffer(buffer, tx.expiration)
       FcBuffer.uint16.appendByteBuffer(buffer, tx.ref_block_num)
       FcBuffer.uint32.appendByteBuffer(buffer, tx.ref_block_prefix)
-      FcBuffer.letuint32.appendByteBuffer(buffer, tx.max_net_usage_words)
+      FcBuffer.uint32.appendByteBuffer(buffer, tx.max_net_usage_words)
       FcBuffer.uint8.appendByteBuffer(buffer, tx.max_cpu_usage_ms)
-      FcBuffer.letuint32.appendByteBuffer(buffer, tx.delay_sec)
+      FcBuffer.uint32.appendByteBuffer(buffer, tx.delay_sec)
       FcBuffer.actions.appendByteBuffer(buffer, tx.context_free_actions)
       FcBuffer.actions.appendByteBuffer(buffer, tx.actions)
       FcBuffer.transactionExtensions.appendByteBuffer(buffer, tx.transaction_extensions)
@@ -50,9 +50,9 @@ const FcBuffer = {
     }
   },
 
-  letuint32: {
+  uint32: {
     appendByteBuffer (b, value) {
-      b.writeletint32(value)
+      b.writeUint32(value)
     }
   },
 
@@ -166,7 +166,7 @@ const FcBuffer = {
       const charmap = '.12345abcdefghijklmnopqrstuvwxyz'
 
       // convert from LITTLE_ENDIAN
-      bytes = Buffer.from(bytes.toString('hex').match(/.{2}/g).reverse().join(""), 'hex')
+      bytes = Buffer.from(bytes.toString('hex').match(/.{2}/g).reverse().join(''), 'hex')
       let beHex = ''
       let _iteratorNormalCompletion2 = true
       let _didIteratorError2 = false
@@ -220,7 +220,7 @@ const FcBuffer = {
 
   actions: {
     appendByteBuffer (b, value) {
-      b.writeletint32(value.length)
+      b.writeUint32(value.length)
       for (let item of value) {
         if (!item.account || !item.name || !item.authorization || !item.data) {
           console.warn('invalid actions item params', b, item)
@@ -236,7 +236,7 @@ const FcBuffer = {
 
   authorization: {
     appendByteBuffer (b, value) {
-      b.writeletint32(value.length)
+      b.writeUint32(value.length)
       for (let item of value) {
         if (!item.actor || !item.permission) {
           console.warn('invalid authorization item params', b, item)
@@ -272,7 +272,7 @@ const FcBuffer = {
           }
           let subItemType = itemType.slice(0, itemType.length - 2)
 
-          content.writeletint32(item.length)
+          content.writeUint32(item.length)
           item.forEach(i => {
             FcBuffer[subItemType].appendByteBuffer(content, i)
           })
@@ -281,7 +281,7 @@ const FcBuffer = {
         }
       })
 
-      b.writeletint32(content.offset)
+      b.writeUint32(content.offset)
       content = content.copy(0, content.offset)
       // noinspection JSUnresolvedFunction
       content.copyTo(b)
