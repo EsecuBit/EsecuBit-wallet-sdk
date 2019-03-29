@@ -10,9 +10,9 @@ const FcBuffer = {
       FcBuffer.uint32.appendByteBuffer(buffer, tx.expiration)
       FcBuffer.uint16.appendByteBuffer(buffer, tx.ref_block_num)
       FcBuffer.uint32.appendByteBuffer(buffer, tx.ref_block_prefix)
-      FcBuffer.uint32.appendByteBuffer(buffer, tx.max_net_usage_words)
+      FcBuffer.varuint32.appendByteBuffer(buffer, tx.max_net_usage_words)
       FcBuffer.uint8.appendByteBuffer(buffer, tx.max_cpu_usage_ms)
-      FcBuffer.uint32.appendByteBuffer(buffer, tx.delay_sec)
+      FcBuffer.varuint32.appendByteBuffer(buffer, tx.delay_sec)
       FcBuffer.actions.appendByteBuffer(buffer, tx.context_free_actions)
       FcBuffer.actions.appendByteBuffer(buffer, tx.actions)
       FcBuffer.transactionExtensions.appendByteBuffer(buffer, tx.transaction_extensions)
@@ -50,9 +50,9 @@ const FcBuffer = {
     }
   },
 
-  uint32: {
+  varuint32: {
     appendByteBuffer (b, value) {
-      b.writeUint32(value)
+      b.writeVarint32(value)
     }
   },
 
@@ -220,7 +220,7 @@ const FcBuffer = {
 
   actions: {
     appendByteBuffer (b, value) {
-      b.writeUint32(value.length)
+      b.writeVarint32(value.length)
       for (let item of value) {
         if (!item.account || !item.name || !item.authorization || !item.data) {
           console.warn('invalid actions item params', b, item)
@@ -236,7 +236,7 @@ const FcBuffer = {
 
   authorization: {
     appendByteBuffer (b, value) {
-      b.writeUint32(value.length)
+      b.writeVarint32(value.length)
       for (let item of value) {
         if (!item.actor || !item.permission) {
           console.warn('invalid authorization item params', b, item)
@@ -272,7 +272,7 @@ const FcBuffer = {
           }
           let subItemType = itemType.slice(0, itemType.length - 2)
 
-          content.writeUint32(item.length)
+          content.writeVarint32(item.length)
           item.forEach(i => {
             FcBuffer[subItemType].appendByteBuffer(content, i)
           })
@@ -281,7 +281,7 @@ const FcBuffer = {
         }
       })
 
-      b.writeUint32(content.offset)
+      b.writeVarint32(content.offset)
       content = content.copy(0, content.offset)
       // noinspection JSUnresolvedFunction
       content.copyTo(b)
