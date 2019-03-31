@@ -495,8 +495,20 @@ export default class EsWallet {
     return this._device.getWalletBattery()
   }
 
-  setEosAmountLimit (amountLimit) {
-    return this._device.setAmountLimit(D.coin.main.eos, amountLimit)
+  setEosAmountLimit (value) {
+    if (value.includes('.')) {
+      let index = value.length - 1
+      while (value[index] === '0') index--
+      if (value[index] === '.') index--
+      value = value.slice(0, index + 1)
+    }
+    let parts = value.split('.')
+    let precision = (parts[1] && parts[1].length) || 0
+    if (precision > 4) {
+      console.warn('setEosAmountLimit precision should not greater than 4', value)
+      throw D.error.invalidParams
+    }
+    return this._device.setAmountLimit(D.coin.main.eos, value)
   }
 
   /**
