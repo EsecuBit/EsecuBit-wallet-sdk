@@ -190,6 +190,14 @@ export default class CoreWallet {
     return this._wallet.removeToken(coinType, token)
   }
 
+  async setAmountLimit (coinType, amountLimit) {
+    if (!this._wallet) {
+      console.warn('init wallet first')
+      throw D.error.deviceNotConnected
+    }
+    return this._wallet.setAmountLimit(coinType, amountLimit)
+  }
+
   _sendApdu (apdu, isEnc = false) {
     if (!this._wallet) {
       console.warn('init wallet first')

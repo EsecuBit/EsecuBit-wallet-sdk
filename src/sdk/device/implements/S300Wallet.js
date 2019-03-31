@@ -393,6 +393,19 @@ export default class S300Wallet {
     await this.sendApdu(apdu, true, coinType)
   }
 
+  async setAmountLimit (coinType, amountLimit) {
+    if (!D.isEos(coinType)) {
+      throw D.error.coinNotSupported
+    }
+
+    // 806F 0000 lc amountLimit[8]
+    let apduHead = Buffer.from('806F000000', 'hex')
+    let data = FcBuffer.uint64.toBuffer(amountLimit.replace('.', ''))
+    let apdu = Buffer.concat([apduHead, data])
+    apdu[0x04] = data.length
+
+  }
+
   async addToken (coinType, token) {
     if (!D.isEth(coinType)) {
       throw D.error.coinNotSupported

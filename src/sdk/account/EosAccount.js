@@ -537,10 +537,6 @@ export default class EosAccount extends IAccount {
     throw D.error.notImplemented
   }
 
-  async setConfirmLimit (amount) {
-    console.warn('no implement yet', amount)
-  }
-
   /**
    * token transfer based on eosio.token API
    *

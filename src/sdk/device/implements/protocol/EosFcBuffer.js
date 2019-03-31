@@ -47,6 +47,12 @@ const FcBuffer = {
   uint64: {
     appendByteBuffer (b, value) {
       b.writeUint64(value)
+    },
+
+    toBuffer (value) {
+      let buffer = new ByteBuffer(8, true, true)
+      this.appendByteBuffer(buffer, value)
+      return Buffer.from(buffer.buffer)
     }
   },
 

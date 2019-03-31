@@ -495,6 +495,10 @@ export default class EsWallet {
     return this._device.getWalletBattery()
   }
 
+  setEosAmountLimit (amountLimit) {
+    return this._device.setAmountLimit(D.coin.main.eos, amountLimit)
+  }
+
   /**
    * Get known ETH token list.
    *
