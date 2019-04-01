@@ -80,10 +80,10 @@ export default class CoinData {
       }))
 
       // check the tx whether it is over time uncomfirmed
-      this._uncomfirmedTxs = null
+      this._uncomfirmedTxs = []
       this._unconfirmedCheck = async (firstInit = false) => {
         if (!firstInit && !this.initialized) return
-        if (!this._uncomfirmedTxs) {
+        if (firstInit) {
           this._uncomfirmedTxs = []
           let txInfos = await this._db.getTxInfos()
           for (let txInfo of txInfos) {
@@ -127,7 +127,7 @@ export default class CoinData {
     await Promise.all(Object.values(this._network).map(network => network.release()))
     if (this._db) await this._db.release()
     this.initialized = false
-    this._uncomfirmedTxs = null
+    this._uncomfirmedTxs = []
   }
 
   async getAccounts (filter = {}) {
