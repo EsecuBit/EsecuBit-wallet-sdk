@@ -94,22 +94,24 @@ export default class EosAccount extends IAccount {
     let pmInfos = []
     for (let pmInfo of response) {
       this.label = pmInfo.actor
-      if (pmInfo.type === 0) {
-        let path = pmInfo.data
-        let publicKey = await this._device.getAddress(this.coinType, path)
-        pmInfos.push({
-          address: name,
-          accountId: this.accountId,
-          coinType: this.coinType,
-          path: path,
-          type: pmInfo.name,
-          index: D.path.toArray(path)[4] - 0x80000000,
-          registered: false,
-          publicKey: publicKey,
-          parent: '',
-          txs: []
-        })
-      } else if (pmInfo.type === 1) {
+      // if (pmInfo.type === 0) {
+      //   let path = pmInfo.data
+      //   let publicKey = await this._device.getAddress(this.coinType, path)
+      //   pmInfos.push({
+      //     address: name,
+      //     accountId: this.accountId,
+      //     coinType: this.coinType,
+      //     path: path,
+      //     type: pmInfo.name,
+      //     index: D.address.path.toArray(path)[4] - 0x80000000,
+      //     registered: false,
+      //     publicKey: publicKey,
+      //     parent: '',
+      //     txs: []
+      //   })
+      // }
+      // only handle import key
+      if (pmInfo.type === 1) {
         let publicKey = pmInfo.data
         pmInfos.push({
           address: name,
