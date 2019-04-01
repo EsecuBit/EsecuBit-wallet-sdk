@@ -387,8 +387,11 @@ export default class EosAccount extends IAccount {
     } catch (e) {
       if (e === D.error.deviceConditionNotSatisfied) {
         console.warn('device has no wallet, ignore')
+        return []
+      } else {
+        this._busy = false
+        throw e
       }
-      throw e
     } finally {
       this._busy = false
     }
