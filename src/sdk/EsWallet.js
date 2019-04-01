@@ -508,7 +508,7 @@ export default class EsWallet {
       console.warn('setEosAmountLimit precision should not greater than 4', value)
       throw D.error.invalidParams
     }
-    value = (parseInt(value) * (10 ** (4 - precision))).toString()
+    value = (parseInt(value.replace('.', '')) * (10 ** (4 - precision))).toString()
     return this._device.setAmountLimit(D.coin.main.eos, value)
   }
 
