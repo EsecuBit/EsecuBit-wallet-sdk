@@ -115,6 +115,7 @@ export default class EosPeer extends ICoinNetwork {
       const args = JSON.stringify({pos: currentOffset, offset: defaultPageSize, account_name: accountName})
       let response = await this.post(url, args)
 
+      let actionsSize = response.actions.length
       // filter actions that don't care
       response.actions = response.actions.filter(action =>
         action.action_trace.act.authorization.actor === accountName ||
@@ -152,7 +153,7 @@ export default class EosPeer extends ICoinNetwork {
 
       // caution: some nodes didn't return enough actions sometimes, like http://api.hkeos.com:80.
       // You may get [0, 5) even you query [0, 100), I don't known whether it's a common issue yet.
-      if (response.actions.length === 0 || response.actions.length < defaultPageSize) {
+      if (actionsSize < defaultPageSize) {
         break
       }
     }
