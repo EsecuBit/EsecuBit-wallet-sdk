@@ -659,7 +659,7 @@ const D = {
         coinType = typeof coinType === 'number' ? coinType : D.getCoinIndex(coinType)
         type = type === D.address.external ? 0 : 1
         let indexes = [44, coinType, accountIndex, type]
-        if (addressIndex) {
+        if (addressIndex !== undefined) {
           indexes.push(addressIndex)
         }
         return this.makePath(indexes, 3)
