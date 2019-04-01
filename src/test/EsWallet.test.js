@@ -12,7 +12,7 @@ describe('EsWallet', function () {
   // new EsWallet may trigger sync, so make it lazy
   it('init', async () => {
     D.test.coin = true
-    D.test.jsWallet = true
+    D.test.jsWallet = false
     esWallet = new EsWallet()
   })
 
@@ -49,6 +49,11 @@ describe('EsWallet', function () {
         done()
       }
     })
+  })
+
+  it('setAmountLimit', async function () {
+    let response = await esWallet.setEosAmountLimit('7.0000')
+    console.info('setAmountLimit', response)
   })
 
   it('getAccounts', async () => {

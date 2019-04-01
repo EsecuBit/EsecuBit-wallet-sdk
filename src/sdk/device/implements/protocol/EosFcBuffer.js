@@ -52,6 +52,7 @@ const FcBuffer = {
     toBuffer (value) {
       let buffer = new ByteBuffer(8, true, true)
       this.appendByteBuffer(buffer, value)
+      buffer = buffer.copy(0, buffer.offset)
       return Buffer.from(buffer.buffer)
     }
   },
@@ -69,11 +70,11 @@ const FcBuffer = {
   },
 
   name: {
-    appendByteBuffer(b, value) {
+    appendByteBuffer (b, value) {
       b.writeUint64(this.encodeName(value, false))
     },
 
-    toBuffer(value) {
+    toBuffer (value) {
       let buffer = new ByteBuffer(8, true, true)
       this.appendByteBuffer(buffer, value)
       buffer = buffer.copy(0, buffer.offset)
@@ -96,10 +97,10 @@ const FcBuffer = {
      * @return {string<uint64>} - compressed string (from name arg).  A string is
      * always used because a number could exceed JavaScript's 52 bit limit.
      */
-    encodeName(name) {
+    encodeName (name) {
       const Long = ByteBuffer.Long
       const charmap = '.12345abcdefghijklmnopqrstuvwxyz'
-      const charidx = function charidx(ch) {
+      const charidx = function charidx (ch) {
         const idx = charmap.indexOf(ch)
         if (idx === -1) throw new TypeError('Invalid character: \'' + ch + '\'')
         return idx
