@@ -103,7 +103,7 @@ export default class EosAccount extends IAccount {
           coinType: this.coinType,
           path: path,
           type: pmInfo.name,
-          index: D.path.toArray(path)[4],
+          index: D.path.toArray(path)[4] - 0x80000000,
           registered: false,
           publicKey: publicKey,
           parent: '',
@@ -407,7 +407,7 @@ export default class EosAccount extends IAccount {
    * Returns whether this EOS account is registered.
    */
   isRegistered () {
-    return this.addressInfos.some(a => a.address)
+    return this.addressInfos.some(a => a.registered)
   }
 
   async importAccountByKeys (name, ownerKey, activeKey) {
