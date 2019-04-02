@@ -7,6 +7,7 @@ import EosAccount from './account/EosAccount'
 import Settings from './Settings'
 import CoreWallet from './device/CoreWallet'
 import EthTokenList from './data/EthTokenList'
+import BigInteger from 'bigi'
 
 /**
  * Main entry of SDK, singleton. Object to manage wallet operation and wallet data.
@@ -495,7 +496,8 @@ export default class EsWallet {
     return this._device.getWalletBattery()
   }
 
-  setEosAmountLimit (value) {
+  setEosAmountLimit (amount) {
+    let value = amount
     if (value.includes('.')) {
       let index = value.length - 1
       while (value[index] === '0') index--
@@ -505,10 +507,17 @@ export default class EsWallet {
     let parts = value.split('.')
     let precision = (parts[1] && parts[1].length) || 0
     if (precision > 4) {
-      console.warn('setEosAmountLimit precision should not greater than 4', value)
+      console.warn('setEosAmountLimit precision should not greater than 4', amount)
       throw D.error.invalidParams
     }
-    value = (parseInt(value.replace('.', '')) * (10 ** (4 - precision))).toString()
+
+    value = new BigInteger(value.replace('.', ''))
+    value = value.multiply(new BigInteger((10 ** (4 - precision)).toString()))
+    if (value.compareTo(BigInteger.fromHex('ffffffffffffffff')) > 0) {
+      console.warn('setEosAmountLimit value overflow', amount)
+      throw D.error.invalidParams
+    }
+    value = value.toString()
     return this._device.setAmountLimit(D.coin.main.eos, value)
   }
 
