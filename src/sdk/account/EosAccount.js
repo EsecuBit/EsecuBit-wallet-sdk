@@ -89,7 +89,12 @@ export default class EosAccount extends IAccount {
       return false
     }
 
-    let response = await this._device.getPermissions(this.coinType, this.accountId)
+    if (this.index !== 0) {
+      console.log('not the first account, skip', this.index)
+      return false
+    }
+
+    let response = await this._device.getPermissions(this.coinType, this.index)
     console.log('_checkAccountImportedKey getPermissions', response)
     let pmInfos = []
     for (let pmInfo of response) {
