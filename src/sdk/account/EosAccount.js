@@ -114,7 +114,7 @@ export default class EosAccount extends IAccount {
       if (pmInfo.type === 1) {
         let publicKey = pmInfo.data
         pmInfos.push({
-          address: name,
+          address: pmInfo.name,
           accountId: this.accountId,
           coinType: this.coinType,
           path: 'import_' + pmInfo.name + '_' + publicKey,
