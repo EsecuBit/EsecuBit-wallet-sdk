@@ -900,13 +900,24 @@ export default class EosAccount extends IAccount {
   }
 
   static _makeBasicAction (account, name, actor) {
-    // TODO later, configurable permission
+    let pmInfos = this.addressInfos.filter(a => a.name === actor)
+    let pmInfo = pmInfos.find(p => p.type === 'active')
+    if (!pmInfo) {
+      pmInfo = pmInfos.find(p => p.type === 'owner')
+      if (!pmInfo) {
+        pmInfo = pmInfos.find(p => p.registered)
+      }
+    }
+    if (!pmInfo) {
+      console.warn('registered key not found')
+      throw D.error.permissionNotFound
+    }
     return {
       account: account,
       name: name,
       authorization: [{
-        actor: actor,
-        permission: 'active'
+        actor: pmInfos.address,
+        permission: pmInfo.type
       }]
     }
   }
