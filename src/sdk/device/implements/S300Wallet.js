@@ -233,7 +233,8 @@ export default class S300Wallet {
     let data
     let isKey = path.startsWith('import_')
     if (isKey) {
-      data = base58.decode(path.slice('import_EOS'.length)).slice(0, -4)
+      let startIndex = path.indexOf('EOS') + 'EOS'.length
+      data = base58.decode(path.slice(startIndex)).slice(0, -4)
     } else {
       data = D.address.path.toBuffer(path)
     }
