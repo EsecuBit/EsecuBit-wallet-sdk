@@ -116,7 +116,7 @@ export default class S300Wallet {
   }
 
   async getWalletId () {
-    return this.sendApdu('8060000000', false, D.coin.other.hdwallet)
+    return this.sendApdu('8070000000', false, D.coin.other.hdwallet)
   }
 
   async getWalletBattery () {
@@ -132,43 +132,43 @@ export default class S300Wallet {
     // TODO optimize
     let version
     try {
-      let response = await this.sendApdu('8062000000', false, D.coin.other.hdwallet)
+      let response = await this.sendApdu('804A000000', false, D.coin.other.hdwallet)
       version = response.toString('hex')
     } catch (e) {
       // ignore
     }
     try {
-      let response = await this.sendApdu('8062000000', false, D.coin.other.manager)
+      let response = await this.sendApdu('804A000000', false, D.coin.other.manager)
       version += '_' + response.toString('hex')
     } catch (e) {
       // ignore
     }
     try {
-      let response = await this.sendApdu('8062000000', false, D.coin.other.manager)
+      let response = await this.sendApdu('804A000000', false, D.coin.other.manager)
       version += '_' + response.toString('hex')
     } catch (e) {
       // ignore
     }
     try {
-      let response = await this.sendApdu('8062000000', false, D.coin.other.backup)
+      let response = await this.sendApdu('804A000000', false, D.coin.other.backup)
       version += '_' + response.toString('hex')
     } catch (e) {
       // ignore
     }
     try {
-      let response = await this.sendApdu('8062000000', false, D.coin.main.btc)
+      let response = await this.sendApdu('804A000000', false, D.coin.main.btc)
       version += '_' + response.toString('hex')
     } catch (e) {
       // ignore
     }
     try {
-      let response = await this.sendApdu('8062000000', false, D.coin.main.eth)
+      let response = await this.sendApdu('804A000000', false, D.coin.main.eth)
       version += '_' + response.toString('hex')
     } catch (e) {
       // ignore
     }
     try {
-      let response = await this.sendApdu('8062000000', false, D.coin.main.eos)
+      let response = await this.sendApdu('804A000000', false, D.coin.main.eos)
       version += '_' + response.toString('hex')
     } catch (e) {
       // ignore
@@ -229,7 +229,7 @@ export default class S300Wallet {
     flag += isStoring ? 0x01 : 0x00
     flag += isShowing ? 0x02 : 0x00
 
-    let apduHead = Buffer.from('806A000000', 'hex')
+    let apduHead = Buffer.from('8076000000', 'hex')
     let data
     let isKey = path.startsWith('import_')
     if (isKey) {
@@ -257,7 +257,7 @@ export default class S300Wallet {
       throw D.error.invalidParams
     }
 
-    let apdu = Buffer.from('806800000400000000', 'hex')
+    let apdu = Buffer.from('807400000400000000', 'hex')
     apdu[5] = (accountIndex >> 24) & 0xff
     apdu[6] = (accountIndex >> 16) & 0xff
     apdu[7] = (accountIndex >> 8) & 0xff
@@ -276,7 +276,7 @@ export default class S300Wallet {
     let offset = 0
     let permissions = []
     while (true) {
-      let apdu = Buffer.from('806C00000100', 'hex')
+      let apdu = Buffer.from('807800000100', 'hex')
       apdu[5] = offset
       let response = await this.sendApdu(apdu, false, coinType)
       let returnPmSize = response[1]
@@ -320,8 +320,8 @@ export default class S300Wallet {
       throw D.error.coinNotSupported
     }
 
-    // 8064 0000 lc actor[8] name[8] path[20]
-    let apduHead = Buffer.from('8064000000', 'hex')
+    // 8070 0000 lc actor[8] name[8] path[20]
+    let apduHead = Buffer.from('8070000000', 'hex')
     let data = Buffer.concat([
       FcBuffer.name.toBuffer(pmInfo.address), // actor
       FcBuffer.name.toBuffer(pmInfo.type), // name
@@ -339,8 +339,8 @@ export default class S300Wallet {
       throw D.error.coinNotSupported
     }
 
-    // 8066 0000 lc actor[8] name[8] path[20]
-    let apduHead = Buffer.from('8066000000', 'hex')
+    // 8072 0000 lc actor[8] name[8] path[20]
+    let apduHead = Buffer.from('8072000000', 'hex')
     let data = Buffer.concat([
       FcBuffer.name.toBuffer(pmInfo.address), // actor
       FcBuffer.name.toBuffer(pmInfo.type), // name
@@ -360,8 +360,8 @@ export default class S300Wallet {
     }
 
     let keyBuffer = D.address.parseEosPrivateKey(keyInfo.key)
-    // 8064 0100 lc key[32]
-    let apduHead = Buffer.from('8064010000', 'hex')
+    // 8072 0100 lc key[32]
+    let apduHead = Buffer.from('8070010000', 'hex')
     let data = Buffer.concat([
       FcBuffer.name.toBuffer(keyInfo.address), // actor
       FcBuffer.name.toBuffer(keyInfo.type), // name
@@ -380,8 +380,8 @@ export default class S300Wallet {
     }
 
     let keyBuffer = D.address.toBuffer(keyInfo.publicKey)
-    // 8064 0100 lc key[33]
-    let apduHead = Buffer.from('8066010000', 'hex')
+    // 8072 0100 lc key[33]
+    let apduHead = Buffer.from('8072010000', 'hex')
     let data = Buffer.concat([
       FcBuffer.name.toBuffer(keyInfo.address), // actor
       FcBuffer.name.toBuffer(keyInfo.type), // name
@@ -398,8 +398,8 @@ export default class S300Wallet {
       throw D.error.coinNotSupported
     }
 
-    // 806E 0000 lc amountLimit[8]
-    let apduHead = Buffer.from('806E000000', 'hex')
+    // 807A 0000 lc amountLimit[8]
+    let apduHead = Buffer.from('807A000000', 'hex')
     let data = FcBuffer.uint64.toBuffer(amountLimit.replace('.', ''))
     let apdu = Buffer.concat([apduHead, data])
     apdu[0x04] = data.length
@@ -411,9 +411,9 @@ export default class S300Wallet {
     if (!D.isEth(coinType)) {
       throw D.error.coinNotSupported
     }
-    // 8064 0000 len nameLength[1] name[nameLength] decimals[1] address[20]
+    // 8070 0000 len nameLength[1] name[nameLength] decimals[1] address[20]
     let apdu = Buffer.allocUnsafe(4 + 23 + token.name.length)
-    Buffer.from('80640000', 'hex').copy(apdu)
+    Buffer.from('80700000', 'hex').copy(apdu)
     apdu[4] = 23 + token.name.length
     apdu[5] = token.name.length
     for (let i = 0; i < token.name.length; i++) {
@@ -428,9 +428,9 @@ export default class S300Wallet {
     if (!D.isEth(coinType)) {
       throw D.error.coinNotSupported
     }
-    // 8066 0000 len address[20]
+    // 8072 0000 len address[20]
     let apdu = Buffer.allocUnsafe(5 + 20)
-    Buffer.from('8066000014', 'hex').copy(apdu)
+    Buffer.from('8072000014', 'hex').copy(apdu)
     D.address.toBuffer(token.address).copy(apdu, 5)
     await this.sendApdu(apdu, true, coinType)
   }
