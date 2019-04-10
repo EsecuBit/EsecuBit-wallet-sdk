@@ -10,6 +10,8 @@ import FcBuffer from './protocol/EosFcBuffer'
 import HandShake from './protocol/HandShake'
 import Authenticate from './protocol/Authenticate'
 import Settings from '../../Settings'
+import bitcoin from 'bitcoinjs-lib'
+import ecurve from 'ecurve'
 
 const getAppId = (coinType) => {
   if (coinType === D.coin.other.hdwallet) {
@@ -218,6 +220,48 @@ export default class S300Wallet {
     }
 
     return address
+  }
+
+  async getDeriveData (coinType, path) {
+    if (!D.isBtc(coinType)) {
+      console.warn('getAccountName only supports BTC', coinType)
+      throw D.error.coinNotSupported
+    }
+
+    let apduHead = Buffer.from('804C00000003', 'hex')
+    let pathBuffer = D.address.path.toBuffer(path)
+    let apdu = Buffer.concat([apduHead, pathBuffer])
+
+    let response = await this.sendApdu(apdu)
+    return {
+      publicKey: response.slice(0, 33).toString('hex'),
+      chainCode: response.slice(33, 65).toString('hex')
+    }
+  }
+
+  async getAddresses (coinType, publicKey, chainCode, type, fromIndex, toIndex) {
+    if (!D.isBtc(coinType)) {
+      console.warn('getAccountName only supports BTC', coinType)
+      throw D.error.coinNotSupported
+    }
+
+    const ECPair = bitcoin.ECPair
+    const HDNode = bitcoin.HDNode
+    let curve = ecurve.getCurveByName('secp256k1')
+    let Q = ecurve.Point.decodeFrom(curve, Buffer.from(publicKey, 'hex'))
+    let keyPair = new ECPair(null, Q, null)
+
+    type = type === D.address.external ? 0 : 1
+    let node = new HDNode(keyPair, Buffer.from(chainCode, 'hex'))
+    let childNode = node.derivePath(type)
+    childNode.keyPair.network = D.coin.params.btc.getNetwork(coinType)
+
+    let addresses = {}
+    for (let i = fromIndex; i < toIndex; i++) {
+      let node = childNode.derive(i)
+      addresses[i] = node.getAddress()
+    }
+    return addresses
   }
 
   async getAccountName (coinType, path, isShowing = false, isStoring = false) {

@@ -94,6 +94,14 @@ export default class CoreWallet {
     return this._wallet.getAddress(coinType, path, isShowing, isStoring)
   }
 
+  getAddresses (coinType, publicKey, chainNode, fromIndex, toIndex) {
+    if (!this._wallet) {
+      console.warn('init wallet first')
+      throw D.error.deviceNotConnected
+    }
+    return this._wallet.getAddresses(coinType, publicKey, chainNode, fromIndex, toIndex)
+  }
+
   getAccountName (coinType, path, isShowing = false, isStoring = false) {
     if (!this._wallet) {
       console.warn('init wallet first')
@@ -196,6 +204,14 @@ export default class CoreWallet {
       throw D.error.deviceNotConnected
     }
     return this._wallet.setAmountLimit(coinType, amountLimit)
+  }
+
+  async getDeriveData (coinType, path) {
+    if (!this._wallet) {
+      console.warn('init wallet first')
+      throw D.error.deviceNotConnected
+    }
+    return this._wallet.getDeriveData(coinType, path)
   }
 
   _sendApdu (apdu, isEnc = false) {

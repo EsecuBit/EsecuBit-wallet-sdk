@@ -261,13 +261,35 @@ export default class BtcAccount extends IAccount {
     }
   }
 
+  _fromAccountInfo (info) {
+    super._fromAccountInfo(info)
+    this.resources = D.copy(info.resources)
+  }
+
+  _toAccountInfo () {
+    let info = super._toAccountInfo()
+    info.resources = D.copy(this.resources)
+    return info
+  }
+
   /**
    * check address index and genreate new necessary addressInfos
    * @private
    */
   async _checkAddressIndexAndGenerateNew (sync = false) {
     const maxAddressIndexLength = sync ? 20 : 1
+
+    if (!this.resources) this.resources = {}
     let checkAndGenerate = async (type) => {
+      try {
+        if (!this.resources.deriveData) {
+          this.resources.deriveData = await this._device.getDeriveData(this.coinType,
+            D.address.makeBip44Path(this.coinType, this.index))
+        }
+      } catch (e) {
+        console.debug('device not support derive locally, ignore', e)
+      }
+
       let maxIndex = this.addressInfos.filter(addressInfo => addressInfo.type === type)
         .reduce((max, addressInfo) => Math.max(max, addressInfo.index), -1)
       let nextIndex = maxIndex + 1
@@ -281,18 +303,30 @@ export default class BtcAccount extends IAccount {
 
       console.log(this.accountId, 'generating', type, 'addressInfos, from', nextIndex, 'to', newNextIndex)
       let addressInfos = []
-      for (let i = nextIndex; i < newNextIndex; i++) {
-        let address = await this._device.getAddress(this.coinType, D.address.path.makeBip44Path(this.coinType, this.index, type, i))
+      let addresses = {}
+
+      if (this.resources.deriveData) {
+        let deriveData = this.resources.deriveData
+        addresses = await this._device.getAddress(this.coinType, deriveData.publicKey, deriveData.chainCode, nextIndex, newNextIndex)
+      } else {
+        for (let i = nextIndex; i < newNextIndex; i++) {
+          addresses[i] = await this._device.getAddress(this.coinType, D.address.path.makeBip44Path(this.coinType, this.index, type, i))
+        }
+      }
+
+      Object.entries(addresses).forEach(([index, address]) => {
+        // noinspection JSValidateTypes
+        index = parseInt(index)
         addressInfos.push({
           address: address,
           accountId: this.accountId,
           coinType: this.coinType,
-          path: D.address.path.makeBip44Path(this.coinType, this.index, type, i),
+          path: D.address.path.makeBip44Path(this.coinType, this.index, type, index),
           type: type,
-          index: i,
+          index: index,
           txs: []
         })
-      }
+      })
       return addressInfos
     }
 

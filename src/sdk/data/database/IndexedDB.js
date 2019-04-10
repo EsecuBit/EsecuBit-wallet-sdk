@@ -92,6 +92,14 @@ export default class IndexedDB extends IDatabase {
          *       isProxy: bool
          *     }
          *   }
+         *
+         *   // btc
+         *   resources: {
+         *      deriveData: {
+         *        publicKey: string,
+         *        chainCode: string
+         *      }
+         *   }
          * }
          */
         if (!db.objectStoreNames.contains('account')) {

@@ -655,12 +655,16 @@ const D = {
         return this.makePath(indexes)
       },
 
-      makeBip44Path (coinType, accountIndex, type, addressIndex = undefined) {
+      makeBip44Path (coinType, accountIndex, type = undefined, addressIndex = undefined) {
         coinType = typeof coinType === 'number' ? coinType : D.getCoinIndex(coinType)
-        type = type === D.address.external ? 0 : 1
-        let indexes = [44, coinType, accountIndex, type]
-        if (addressIndex !== undefined) {
-          indexes.push(addressIndex)
+        let indexes = [44, coinType, accountIndex]
+        if (type !== undefined) {
+          type = type === D.address.external ? 0 : 1
+          indexes.push(type)
+
+          if (addressIndex !== undefined) {
+            indexes.push(addressIndex)
+          }
         }
         return this.makePath(indexes, 3)
       },
