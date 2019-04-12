@@ -12,6 +12,7 @@ import Authenticate from './protocol/Authenticate'
 import Settings from '../../Settings'
 import bitcoin from 'bitcoinjs-lib'
 import ecurve from 'ecurve'
+import Provider from "../../Provider";
 
 const getAppId = (coinType) => {
   if (coinType === D.coin.other.hdwallet) {
@@ -245,23 +246,9 @@ export default class S300Wallet {
       throw D.error.coinNotSupported
     }
 
-    const ECPair = bitcoin.ECPair
-    const HDNode = bitcoin.HDNode
-    let curve = ecurve.getCurveByName('secp256k1')
-    let Q = ecurve.Point.decodeFrom(curve, Buffer.from(publicKey, 'hex'))
-    let keyPair = new ECPair(null, Q, null)
-
     type = type === D.address.external ? 0 : 1
-    let node = new HDNode(keyPair, Buffer.from(chainCode, 'hex'))
-    let childNode = node.derive(type)
-    childNode.keyPair.network = D.coin.params.btc.getNetwork(coinType)
-
-    let addresses = {}
-    for (let i = fromIndex; i < toIndex; i++) {
-      let node = childNode.derive(i)
-      addresses[i] = node.getAddress()
-    }
-    return addresses
+    let network = D.coin.params.btc.getNetwork(coinType)
+    return Provider.Crypto.deriveAddresses(network.pubKeyHash, publicKey, chainCode, type, fromIndex, toIndex)
   }
 
   async getAccountName (coinType, path, isShowing = false, isStoring = false) {

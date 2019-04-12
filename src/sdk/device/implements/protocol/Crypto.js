@@ -4,6 +4,8 @@ import JSEncrypt from './jsencrypt'
 import MockDevice from '../transmitter/io/MockDevice'
 import D from '../../../D'
 import {sm2, sm4} from 'sm-series-crypto'
+import bitcoin from 'bitcoinjs-lib'
+import ecurve from 'ecurve'
 
 const _customPadding = (data, modeLen) => {
   let padNum = modeLen - data.length % modeLen
@@ -150,7 +152,7 @@ export default class Crypto {
       padding: config.padding || 'none',
       iv: config.iv || null
     }
-    config.needPadding = config.needPadding === false ? false : true; // default true
+    config.needPadding = config.needPadding !== false // default true
     if (config.needPadding) {
       data = _customPadding(data, 16)
     }
@@ -165,12 +167,38 @@ export default class Crypto {
       padding: config.padding || 'none',
       iv: config.iv || null
     }
-    config.needPadding = config.needPadding === false ? false : true; // default true
+    config.needPadding = config.needPadding !== false // default true
     // eslint-disable-next-line
     let data = Buffer.from(new sm4(sm4Config).decrypt(encData), 'hex')
     if (config.needPadding) {
       data = _removeCustomPadding(data, 16)
     }
     return data
+  }
+
+  static async deriveAddresses (version, publicKeyHex, chainCodeHex, type, fromIndex, toIndex) {
+    const ECPair = bitcoin.ECPair
+    const HDNode = bitcoin.HDNode
+    let curve = ecurve.getCurveByName('secp256k1')
+    let Q = ecurve.Point.decodeFrom(curve, Buffer.from(publicKeyHex, 'hex'))
+    let keyPair = new ECPair(null, Q, null)
+
+    let node = new HDNode(keyPair, Buffer.from(chainCodeHex, 'hex'))
+    let childNode = node.derive(type)
+
+    let network
+    if (version === bitcoin.networks.bitcoin.pubKeyHash) {
+      network = bitcoin.networks.bitcoin
+    } else {
+      network = bitcoin.networks.testnet
+    }
+    childNode.keyPair.network = network
+
+    let addresses = {}
+    for (let i = fromIndex; i < toIndex; i++) {
+      let node = childNode.derive(i)
+      addresses[i] = node.getAddress()
+    }
+    return addresses
   }
 }
