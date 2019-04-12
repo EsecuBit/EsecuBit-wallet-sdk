@@ -94,12 +94,12 @@ export default class CoreWallet {
     return this._wallet.getAddress(coinType, path, isShowing, isStoring)
   }
 
-  getAddresses (coinType, publicKey, chainNode, fromIndex, toIndex) {
+  getAddresses (coinType, publicKey, chainNode, type, fromIndex, toIndex) {
     if (!this._wallet) {
       console.warn('init wallet first')
       throw D.error.deviceNotConnected
     }
-    return this._wallet.getAddresses(coinType, publicKey, chainNode, fromIndex, toIndex)
+    return this._wallet.getAddresses(coinType, publicKey, chainNode, type, fromIndex, toIndex)
   }
 
   getAccountName (coinType, path, isShowing = false, isStoring = false) {

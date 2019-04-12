@@ -228,11 +228,11 @@ export default class S300Wallet {
       throw D.error.coinNotSupported
     }
 
-    let apduHead = Buffer.from('804C00000003', 'hex')
+    let apduHead = Buffer.from('804C00000D03', 'hex')
     let pathBuffer = D.address.path.toBuffer(path)
     let apdu = Buffer.concat([apduHead, pathBuffer])
 
-    let response = await this.sendApdu(apdu)
+    let response = await this.sendApdu(apdu, true, coinType)
     return {
       publicKey: response.slice(0, 33).toString('hex'),
       chainCode: response.slice(33, 65).toString('hex')
@@ -253,7 +253,7 @@ export default class S300Wallet {
 
     type = type === D.address.external ? 0 : 1
     let node = new HDNode(keyPair, Buffer.from(chainCode, 'hex'))
-    let childNode = node.derivePath(type)
+    let childNode = node.derive(type)
     childNode.keyPair.network = D.coin.params.btc.getNetwork(coinType)
 
     let addresses = {}

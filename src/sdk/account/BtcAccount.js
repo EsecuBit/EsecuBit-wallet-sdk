@@ -284,10 +284,10 @@ export default class BtcAccount extends IAccount {
       try {
         if (!this.resources.deriveData) {
           this.resources.deriveData = await this._device.getDeriveData(this.coinType,
-            D.address.makeBip44Path(this.coinType, this.index))
+            D.address.path.makeBip44Path(this.coinType, this.index))
         }
       } catch (e) {
-        console.debug('device not support derive locally, ignore', e)
+        console.warn('device not support derive locally, ignore', e)
       }
 
       let maxIndex = this.addressInfos.filter(addressInfo => addressInfo.type === type)
@@ -307,7 +307,7 @@ export default class BtcAccount extends IAccount {
 
       if (this.resources.deriveData) {
         let deriveData = this.resources.deriveData
-        addresses = await this._device.getAddress(this.coinType, deriveData.publicKey, deriveData.chainCode, nextIndex, newNextIndex)
+        addresses = await this._device.getAddresses(this.coinType, deriveData.publicKey, deriveData.chainCode, type, nextIndex, newNextIndex)
       } else {
         for (let i = nextIndex; i < newNextIndex; i++) {
           addresses[i] = await this._device.getAddress(this.coinType, D.address.path.makeBip44Path(this.coinType, this.index, type, i))
