@@ -103,6 +103,7 @@ export default class Authenticate {
     let encFeature = authData.slice(0x88, 0x110)
     // let signature = authData.slice(0x110, 0x150)
 
+    // skip for speed
     // // verify cert and get cert public key
     // if (!(await this._crypto.sm2VerifyRaw(factoryPubKey,
     //   Array.prototype.slice.call(cert.slice(0, 0x44), 0),

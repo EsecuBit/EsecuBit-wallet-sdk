@@ -147,70 +147,71 @@ export default class HandShake {
     }
     console.debug('sKey', sKey.toString('hex'), sKeyCount.toString('hex'), decDevPubKey && decDevPubKey.toString('hex'))
 
-    // 2. verify device cert by factory public key, and recover device public key
-    let devPubKey
-    if (this._mode === RSA1024) {
-      let decDevCert = await this._crypto.rsaEncrypt(factoryRSA1024PubKey, devCert)
-      if (!decDevCert) {
-        console.warn('decrypted device cert encrypt failed')
-        throw D.error.handShake
-      }
-      console.debug('decDevCert', decDevCert.toString('hex'))
-      let orgDevCert = removePadding(decDevCert)
-
-      if (orgDevCert.slice(0, 15).toString('hex') !== oidSha1.toString('hex')) {
-        console.warn('decrypted device cert oid != sha1 ', orgDevCert.toString('hex'))
-        throw D.error.handShake
-      }
-
-      let tempLen = modLen - 0x2E
-      let devPubHash = orgDevCert.slice(15, 35)
-      devPubKey = orgDevCert.slice(35, 35 + tempLen)
-      devPubKey = Buffer.concat([devPubKey, decDevPubKey])
-
-      let devPubSha1 = await this._crypto.sha1(devPubKey)
-      if (devPubSha1.toString('hex') !== devPubHash.toString('hex')) {
-        console.warn('sha1(devPubKey) != devPubHash', devPubKey.toString('hex'), devPubHash.toString('hex'))
-        throw D.error.handShake
-      }
-    } else if (this._mode === SM2) {
-      let result = await this._crypto.sm2VerifyRaw(factorySM2PubKey, devCert.slice(0, 0x44),
-        devCert.slice(0x44, 0x64), devCert.slice(0x64, 0x84))
-      if (!result) {
-        console.warn('decrypted device cert encrypt failed')
-        throw D.error.handShake
-      }
-      devPubKey = devCert.slice(0x04, 0x44)
-    }
-
-    // 3. verify device sign by device public key(devPubKey)
-    let apduData = this._mode === RSA1024 ? apdu.slice(7) : apdu.slice(5)
-    let hashOrgValue = Buffer.concat([apduData, devCert, encSKey])
-    if (this._mode === RSA1024) {
-      devPubKey = buildPemPublicKeyHex(devPubKey)
-      let orgDevSign = await this._crypto.rsaEncrypt(devPubKey, devSign)
-      if (!orgDevSign) {
-        console.warn('device signature encrypt failed')
-        throw D.error.handShake
-      }
-      console.debug('orgDevSign', orgDevSign.toString('hex'))
-      orgDevSign = removePadding(orgDevSign)
-      let hashResult = await this._crypto.sha1(hashOrgValue)
-
-      let toSign = Buffer.concat([oidSha1, hashResult])
-      if (toSign.toString('hex') !== orgDevSign.toString('hex')) {
-        console.warn('sign data not match')
-        throw D.error.handShake
-      }
-    } else if (this._mode === SM2) {
-      // let hashResult = await this._crypto.sm3(hashOrgValue)
-      let devPubKeyHex = '04' + devPubKey.toString('hex')
-      let result = this._crypto.sm2VerifyRaw(devPubKeyHex, hashOrgValue, devSign.slice(0, 0x20), devSign.slice(0x20, 0x40))
-      if (!result) {
-        console.warn('sign data verify failed')
-        throw D.error.handShake
-      }
-    }
+    // skip for speed
+    // // 2. verify device cert by factory public key, and recover device public key
+    // let devPubKey
+    // if (this._mode === RSA1024) {
+    //   let decDevCert = await this._crypto.rsaEncrypt(factoryRSA1024PubKey, devCert)
+    //   if (!decDevCert) {
+    //     console.warn('decrypted device cert encrypt failed')
+    //     throw D.error.handShake
+    //   }
+    //   console.debug('decDevCert', decDevCert.toString('hex'))
+    //   let orgDevCert = removePadding(decDevCert)
+    //
+    //   if (orgDevCert.slice(0, 15).toString('hex') !== oidSha1.toString('hex')) {
+    //     console.warn('decrypted device cert oid != sha1 ', orgDevCert.toString('hex'))
+    //     throw D.error.handShake
+    //   }
+    //
+    //   let tempLen = modLen - 0x2E
+    //   let devPubHash = orgDevCert.slice(15, 35)
+    //   devPubKey = orgDevCert.slice(35, 35 + tempLen)
+    //   devPubKey = Buffer.concat([devPubKey, decDevPubKey])
+    //
+    //   let devPubSha1 = await this._crypto.sha1(devPubKey)
+    //   if (devPubSha1.toString('hex') !== devPubHash.toString('hex')) {
+    //     console.warn('sha1(devPubKey) != devPubHash', devPubKey.toString('hex'), devPubHash.toString('hex'))
+    //     throw D.error.handShake
+    //   }
+    // } else if (this._mode === SM2) {
+    //   let result = await this._crypto.sm2VerifyRaw(factorySM2PubKey, devCert.slice(0, 0x44),
+    //     devCert.slice(0x44, 0x64), devCert.slice(0x64, 0x84))
+    //   if (!result) {
+    //     console.warn('decrypted device cert encrypt failed')
+    //     throw D.error.handShake
+    //   }
+    //   devPubKey = devCert.slice(0x04, 0x44)
+    // }
+    //
+    // // 3. verify device sign by device public key(devPubKey)
+    // let apduData = this._mode === RSA1024 ? apdu.slice(7) : apdu.slice(5)
+    // let hashOrgValue = Buffer.concat([apduData, devCert, encSKey])
+    // if (this._mode === RSA1024) {
+    //   devPubKey = buildPemPublicKeyHex(devPubKey)
+    //   let orgDevSign = await this._crypto.rsaEncrypt(devPubKey, devSign)
+    //   if (!orgDevSign) {
+    //     console.warn('device signature encrypt failed')
+    //     throw D.error.handShake
+    //   }
+    //   console.debug('orgDevSign', orgDevSign.toString('hex'))
+    //   orgDevSign = removePadding(orgDevSign)
+    //   let hashResult = await this._crypto.sha1(hashOrgValue)
+    //
+    //   let toSign = Buffer.concat([oidSha1, hashResult])
+    //   if (toSign.toString('hex') !== orgDevSign.toString('hex')) {
+    //     console.warn('sign data not match')
+    //     throw D.error.handShake
+    //   }
+    // } else if (this._mode === SM2) {
+    //   // let hashResult = await this._crypto.sm3(hashOrgValue)
+    //   let devPubKeyHex = '04' + devPubKey.toString('hex')
+    //   let result = this._crypto.sm2VerifyRaw(devPubKeyHex, hashOrgValue, devSign.slice(0, 0x20), devSign.slice(0x20, 0x40))
+    //   if (!result) {
+    //     console.warn('sign data verify failed')
+    //     throw D.error.handShake
+    //   }
+    // }
 
     return {sKey, sKeyCount}
   }
