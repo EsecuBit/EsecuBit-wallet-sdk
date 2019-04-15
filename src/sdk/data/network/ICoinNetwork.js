@@ -63,6 +63,10 @@ export default class ICoinNetwork {
   }
 
   async sync () {
+    if (this._blockHeight > 0) {
+      console.log('synced CoinNetwork, skip', this.provider, this._blockHeight)
+      return
+    }
     console.log('sync CoinNetwork', this.provider)
     this._blockHeight = await this.getBlockHeight()
     console.log('sync CoinNetwork finish', this.provider, this._blockHeight)

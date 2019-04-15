@@ -393,4 +393,8 @@ export default class JsWallet {
       s.toBuffer()
     ]
   }
+
+  async setAmountLimit (coinType, amountLimit) {
+    // do nothing
+  }
 }

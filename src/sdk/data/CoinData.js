@@ -47,9 +47,6 @@ export default class CoinData {
       this._db = new Provider.DB(info.walletId)
       await this._db.init()
 
-      // network
-      await Promise.all(Object.values(this._network).map(network => network.init()))
-
       // fee
       await Promise.all(Object.keys(this._networkFee).map(async coinType => {
         if (this._networkFee[coinType]) {
@@ -118,8 +115,13 @@ export default class CoinData {
     }
   }
 
-  async sync () {
+  async initNetWork () {
+    // network
+    await Promise.all(Object.values(this._network).map(network => network.init()))
     await Promise.all(Object.values(this._network).map(network => network.sync()))
+  }
+
+  async sync () {
   }
 
   async release () {

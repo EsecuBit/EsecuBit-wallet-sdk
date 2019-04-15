@@ -2,23 +2,28 @@
 import chai from 'chai'
 import D from '../sdk/D'
 import EsWallet from '../sdk/EsWallet'
-import IndexedDB from '../sdk/data/database/IndexedDB'
+import Settings from '../sdk/Settings'
 
 chai.should()
 describe('EsWallet', function () {
   this.timeout(200000)
   let esWallet = null
 
-  // new EsWallet may trigger sync, so make it lazy
-  it('init', async () => {
+  before(async function () {
     D.test.coin = true
-    D.test.jsWallet = false
+    D.test.jsWallet = true
+
+    if (D.test.jsWallet) {
+      // write your own seed
+      await new Settings().setTestSeed('00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000')
+    }
+
     esWallet = new EsWallet()
   })
 
   it('supportedCoinTypes', () => {
     let supportedCoinTypes = EsWallet.supportedCoinTypes()
-    supportedCoinTypes.should.deep.equal([D.coin.test.btcTestNet3, D.coin.test.ethRinkeby])
+    supportedCoinTypes.should.deep.equal([D.coin.test.btcTestNet3, D.coin.test.ethRinkeby, D.coin.test.eosJungle])
   })
 
   it('suppertedLegals', () => {
@@ -40,8 +45,11 @@ describe('EsWallet', function () {
         done(error)
         return
       }
+      if (status === D.status.syncingNewAccount) {
+        return
+      }
       if (status !== statusList[currentStatusIndex]) {
-        done(status !== statusList[currentStatusIndex])
+        done('status !== statusList[currentStatusIndex]')
         return
       }
       currentStatusIndex++
@@ -51,14 +59,14 @@ describe('EsWallet', function () {
     })
   })
 
-  it('setAmountLimit', async function () {
-    let response = await esWallet.setEosAmountLimit('7.0000')
+  it('setEosAmountLimit', async function () {
+    let response = await esWallet.setEosAmountLimit('0.01')
     console.info('setAmountLimit', response)
   })
 
   it('getAccounts', async () => {
     let accounts = await esWallet.getAccounts()
-    accounts.length.should.equal(3)
+    accounts.length.should.above(0)
   })
 
   let availableNewAccountCoinType
@@ -73,7 +81,7 @@ describe('EsWallet', function () {
   it('newAccountAndDelete', async () => {
     let account = await esWallet.newAccount(availableNewAccountCoinType)
     let availableNewAccountCoinTypes = await esWallet.availableNewAccountCoinTypes()
-    availableNewAccountCoinTypes.length.should.equal(1)
+    availableNewAccountCoinTypes.length.should.above(0)
     await account.delete()
   })
 

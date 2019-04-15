@@ -153,40 +153,55 @@ export default class EsWallet {
    */
   async _init () {
     this._esAccounts = []
+    let info = await this._initData()
+    this._esAccounts = await this._initAccount()
+    return info
+  }
 
-    let info
-    if (!this.offlineMode) {
-      info = await this._device.init((status, authCode) => {
-        this._status = status
-        if (status === D.status.auth) {
-          console.log('show auth code', authCode)
-        } else {
-          console.log('auth finish')
-        }
-        this._dispatchCurrentStatus(authCode)
-      })
-      await this._settings.setSetting('lastWalletId', info.walletId)
-    } else {
-      let lastWalletId = await this._settings.getSetting('lastWalletId')
-      if (!lastWalletId) {
-        console.warn('offlineMode no device connected before')
-        throw D.error.offlineModeNotAllowed
-      }
-      let recoveryFinish = await this._settings.getSetting('recoveryFinish', lastWalletId)
-      if (!recoveryFinish) {
-        console.warn('offlineMode last device not recovery finished', lastWalletId)
-        throw D.error.offlineModeNotAllowed
-      }
-      info = {walletId: lastWalletId}
+  async _initData () {
+    let info = {}
+
+    let initNetWork = async () => {
+      await this._coinData.initNetWork()
     }
 
-    await this._coinData.init(info, this.offlineMode)
+    let initDb = async () => {
+      if (!this.offlineMode) {
+        info = await this._device.init((status, authCode) => {
+          this._status = status
+          if (status === D.status.auth) {
+            console.log('show auth code', authCode)
+          } else {
+            console.log('auth finish')
+          }
+          this._dispatchCurrentStatus(authCode)
+        })
+        await this._settings.setSetting('lastWalletId', info.walletId)
+      } else {
+        let lastWalletId = await this._settings.getSetting('lastWalletId')
+        if (!lastWalletId) {
+          console.warn('offlineMode no device connected before')
+          throw D.error.offlineModeNotAllowed
+        }
+        let recoveryFinish = await this._settings.getSetting('recoveryFinish', lastWalletId)
+        if (!recoveryFinish) {
+          console.warn('offlineMode last device not recovery finished', lastWalletId)
+          throw D.error.offlineModeNotAllowed
+        }
+        info = {walletId: lastWalletId}
+      }
+      await this._coinData.init(info, this.offlineMode)
+    }
+
+    await Promise.all([initNetWork(), initDb()])
+    return info
+  }
+
+  async _initAccount () {
+    let esAccounts = []
     let accounts = await this._coinData.getAccounts()
     accounts = accounts.filter(account => EsWallet.supportedCoinTypes().includes(account.coinType))
     accounts.forEach(account => {
-      let exists = this._esAccounts.some(esAccount => esAccount.accountId === account.accountId)
-      if (exists) return
-
       let coinType = account.coinType
       let esAccount
       if (D.isBtc(coinType)) {
@@ -199,10 +214,10 @@ export default class EsWallet {
         console.warn('EsWallet don\'t support this coinType', coinType)
         throw D.error.coinNotSupported
       }
-      this._esAccounts.push(esAccount)
+      esAccounts.push(esAccount)
     })
-    await Promise.all(this._esAccounts.map(esAccount => esAccount.init()))
-    return info
+    await Promise.all(esAccounts.map(esAccount => esAccount.init()))
+    return esAccounts
   }
 
   /**
