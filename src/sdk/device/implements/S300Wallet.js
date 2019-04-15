@@ -10,9 +10,7 @@ import FcBuffer from './protocol/EosFcBuffer'
 import HandShake from './protocol/HandShake'
 import Authenticate from './protocol/Authenticate'
 import Settings from '../../Settings'
-import bitcoin from 'bitcoinjs-lib'
-import ecurve from 'ecurve'
-import Provider from "../../Provider";
+import Provider from '../../Provider'
 
 const getAppId = (coinType) => {
   if (coinType === D.coin.other.hdwallet) {
@@ -225,7 +223,7 @@ export default class S300Wallet {
 
   async getDeriveData (coinType, path) {
     if (!D.isBtc(coinType)) {
-      console.warn('getAccountName only supports BTC', coinType)
+      console.warn('getDeriveData only supports BTC', coinType)
       throw D.error.coinNotSupported
     }
 
@@ -242,7 +240,7 @@ export default class S300Wallet {
 
   async getAddresses (coinType, publicKey, chainCode, type, fromIndex, toIndex) {
     if (!D.isBtc(coinType)) {
-      console.warn('getAccountName only supports BTC', coinType)
+      console.warn('getAddresses only supports BTC', coinType)
       throw D.error.coinNotSupported
     }
 
