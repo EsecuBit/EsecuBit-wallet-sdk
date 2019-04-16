@@ -100,10 +100,14 @@ export default class S300Wallet {
     }
 
     this._handShake = new HandShake(oldFeature || newFeature, HandShake.SM2)
-    this._allEnc = true
     let walletId = D.test.coin ? '01' : '00'
     walletId += D.test.jsWallet ? '01' : '00'
     walletId += (await this.getWalletId()).toString('hex')
+
+    // async handshake and cache cos version
+    this._allEnc = true
+    // noinspection JSIgnoredPromiseFromCall
+    this.getWalletInfo()
 
     return {walletId: walletId}
   }
@@ -130,7 +134,10 @@ export default class S300Wallet {
   }
 
   async _getCosVersion () {
-    // TODO optimize
+    if (this._version) {
+      return this._version
+    }
+
     let version
     try {
       let response = await this.sendApdu('804A000000', false, D.coin.other.hdwallet)
@@ -174,6 +181,7 @@ export default class S300Wallet {
     } catch (e) {
       // ignore
     }
+    this._version = version
     return version
   }
 

@@ -272,7 +272,7 @@ export default class EsWallet {
         this._esAccounts = []
         throw error
       }
-      console.warn('recovery finish, set recoveryFinish true')
+      console.log('recovery finish, set recoveryFinish true')
       await this._settings.setSetting('recoveryFinish', true, this._info.walletId)
     }
 
