@@ -281,35 +281,47 @@ export default class EosAccount extends IAccount {
         addToDevice: D.copy(addDevicePmInfos)
       }))
 
-    for (let pmInfo of removeDevicePmInfos) {
+    for (let pmInfo of D.copy(removeDevicePmInfos)) {
       let error = D.error.succeed
       try {
         await this._device.removePermission(this.coinType, pmInfo)
+        D.dispatch(() => updateCallback(error,
+          D.status.confirmedEosPermission, D.copy(pmInfo)))
       } catch (e) {
         if (e === D.error.deviceConditionNotSatisfied) {
           console.warn('remove permission not exists, ignore')
           error = D.error.permissionNoNeedToConfirmed
+        } else if (e === D.error.userCancel) {
+          console.warn('cancel in removePermission', D.copy(pmInfo))
+          removeDevicePmInfos = removeDevicePmInfos.filter(p => p !== pmInfo)
+          updatePmInfos = updatePmInfos.filter(p => p !== pmInfo)
+          D.dispatch(() => updateCallback(error,
+            D.status.canceledEosPermission, D.copy(pmInfo)))
         } else {
           throw e
         }
       }
-      D.dispatch(() => updateCallback(error,
-        D.status.confirmedEosPermission, D.copy(pmInfo)))
     }
-    for (let pmInfo of addDevicePmInfos) {
+    for (let pmInfo of D.copy(addDevicePmInfos)) {
       let error = D.error.succeed
       try {
         await this._device.addPermission(this.coinType, pmInfo)
+        D.dispatch(() => updateCallback(error,
+          D.status.confirmedEosPermission, D.copy(pmInfo)))
       } catch (e) {
         if (e === D.error.deviceConditionNotSatisfied) {
           console.warn('add permission not exists, ignore')
           error = D.error.permissionNoNeedToConfirmed
+        } else if (e === D.error.userCancel) {
+          console.warn('cancel in addPermission', D.copy(pmInfo))
+          addDevicePmInfos = addDevicePmInfos.filter(p => p !== pmInfo)
+          updatePmInfos = updatePmInfos.filter(p => p !== pmInfo)
+          D.dispatch(() => updateCallback(error,
+            D.status.canceledEosPermission, D.copy(pmInfo)))
         } else {
           throw e
         }
       }
-      D.dispatch(() => updateCallback(error,
-        D.status.confirmedEosPermission, D.copy(pmInfo)))
     }
 
     await this._coinData.updateAddressInfos(updatePmInfos)

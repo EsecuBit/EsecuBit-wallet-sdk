@@ -24,7 +24,8 @@ const D = {
     syncFinish: 20,
     plugOut: 99,
     newEosPermissions: 1001,
-    confirmedEosPermission: 1002
+    confirmedEosPermission: 1002,
+    canceledEosPermission: 1003
   },
 
   error: {
