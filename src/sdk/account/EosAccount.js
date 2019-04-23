@@ -293,8 +293,8 @@ export default class EosAccount extends IAccount {
           error = D.error.permissionNoNeedToConfirmed
         } else if (e === D.error.userCancel) {
           console.warn('cancel in removePermission', D.copy(pmInfo))
-          removeDevicePmInfos = removeDevicePmInfos.filter(p => p !== pmInfo)
-          updatePmInfos = updatePmInfos.filter(p => p !== pmInfo)
+          removeDevicePmInfos = removeDevicePmInfos.filter(p => p.path !== pmInfo.path)
+          updatePmInfos = updatePmInfos.filter(p => p.path !== pmInfo.path)
           D.dispatch(() => updateCallback(error,
             D.status.canceledEosPermission, D.copy(pmInfo)))
         } else {
@@ -314,8 +314,8 @@ export default class EosAccount extends IAccount {
           error = D.error.permissionNoNeedToConfirmed
         } else if (e === D.error.userCancel) {
           console.warn('cancel in addPermission', D.copy(pmInfo))
-          addDevicePmInfos = addDevicePmInfos.filter(p => p !== pmInfo)
-          updatePmInfos = updatePmInfos.filter(p => p !== pmInfo)
+          addDevicePmInfos = addDevicePmInfos.filter(p => p.path !== pmInfo.path)
+          updatePmInfos = updatePmInfos.filter(p => p.path !== pmInfo.path)
           D.dispatch(() => updateCallback(error,
             D.status.canceledEosPermission, D.copy(pmInfo)))
         } else {
@@ -324,6 +324,7 @@ export default class EosAccount extends IAccount {
       }
     }
 
+    console.log('final updatePmInfos', JSON.stringify(updatePmInfos))
     await this._coinData.updateAddressInfos(updatePmInfos)
     // update addressInfo
     this.addressInfos = this.addressInfos.map(a => {
@@ -365,9 +366,9 @@ export default class EosAccount extends IAccount {
         // filter paths that has the same coinType, permission, accountIndex
         let filteredPermissionPaths = permissionPaths.filter(path =>
           subPath === D.address.path.makeSlip48Path(
-            path.pathIndexes[1] - 0x80000000,
-            path.pathIndexes[2] - 0x80000000,
-            path.pathIndexes[3] - 0x80000000))
+          path.pathIndexes[1] - 0x80000000,
+          path.pathIndexes[2] - 0x80000000,
+          path.pathIndexes[3] - 0x80000000))
 
         let maxKeyIndex = filteredPermissionPaths.reduce((max, path) => Math.max(max, path.index), -1)
         let maxRegisteredKeyIndex = filteredPermissionPaths
