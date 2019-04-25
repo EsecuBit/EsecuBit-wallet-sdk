@@ -79,59 +79,11 @@ export default class ICoinNetwork {
   }
 
   get (url) {
-    return new Promise((resolve, reject) => {
-      console.debug('get', url)
-      let xmlhttp = new XMLHttpRequest()
-      xmlhttp.onreadystatechange = () => {
-        if (xmlhttp.readyState === 4) {
-          console.debug('get response', xmlhttp.responseText)
-          if (xmlhttp.status === 200 || xmlhttp.status === 202) {
-            try {
-              resolve(JSON.parse(xmlhttp.responseText))
-            } catch (e) {
-              resolve({response: xmlhttp.responseText})
-            }
-          } else if (xmlhttp.status === 500) {
-            console.warn(url, xmlhttp)
-            reject(D.error.networkProviderError)
-          } else {
-            console.warn(url, xmlhttp)
-            reject(D.error.networkUnavailable)
-          }
-        }
-      }
-      xmlhttp.open('GET', url, true)
-      xmlhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded')
-      xmlhttp.send()
-    })
+    return D.http.get(url)
   }
 
   post (url, args = '', type = 'application/x-www-form-urlencoded') {
-    console.debug('post', url, args)
-    return new Promise((resolve, reject) => {
-      const xmlhttp = new XMLHttpRequest()
-      xmlhttp.onreadystatechange = () => {
-        if (xmlhttp.readyState === 4) {
-          console.debug('post response', xmlhttp.responseText)
-          if (xmlhttp.status === 200 || xmlhttp.status === 202) {
-            try {
-              resolve(JSON.parse(xmlhttp.responseText))
-            } catch (e) {
-              resolve({response: xmlhttp.responseText})
-            }
-          } else if (xmlhttp.status === 500) {
-            console.warn(url, xmlhttp)
-            reject(D.error.networkProviderError)
-          } else {
-            console.warn(url, xmlhttp)
-            reject(D.error.networkUnavailable)
-          }
-        }
-      }
-      xmlhttp.open('POST', url, true)
-      xmlhttp.setRequestHeader('Content-type', type)
-      xmlhttp.send(args)
-    })
+    return D.http.post(url, args, type)
   }
 
   /**
