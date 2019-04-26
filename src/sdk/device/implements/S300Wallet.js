@@ -112,11 +112,25 @@ export default class S300Wallet {
     return {walletId: walletId}
   }
 
+  async reset () {
+    this._version = {}
+    this._currentApp = null
+    this._allEnc = false
+  }
+
   async getWalletInfo () {
-    let cosVersion = await this._getCosVersion()
+    let appletVersions = await this._getAppletVersions()
+    let cosVersion = Object.values(appletVersions).reduce((hex, version) => {
+      if (version.installed) {
+        return hex + '_' + version.rawHex
+      } else {
+        return hex
+      }
+    }, '')
     return {
       sdk_version: D.sdkVersion,
-      cos_version: cosVersion
+      cos_version: cosVersion,
+      applet_versions: appletVersions
     }
   }
 
@@ -133,56 +147,36 @@ export default class S300Wallet {
     }
   }
 
-  async _getCosVersion () {
-    if (this._version) {
-      return this._version
-    }
+  async _getAppletVersions () {
+    this._version = this._version || {}
 
-    let version
+    this._version['HDWallet'] = this._version['HDWallet'] || await this._getVersion(D.coin.other.hdwallet)
+    this._version['Manager'] = this._version['Manager'] || await this._getVersion(D.coin.other.manager)
+    this._version['Backup'] = this._version['Backup'] || await this._getVersion(D.coin.other.backup)
+    this._version['BTC'] = this._version['BTC'] || await this._getVersion(D.coin.main.btc)
+    this._version['ETH'] = this._version['ETH'] || await this._getVersion(D.coin.main.eth)
+    this._version['EOS'] = this._version['EOS'] || await this._getVersion(D.coin.main.eos)
+    return this._version
+  }
+
+  async _getVersion (coinType) {
     try {
-      let response = await this.sendApdu('804A000000', false, D.coin.other.hdwallet)
-      version = response.toString('hex')
+      let response = await this.sendApdu('804A000000', false, coinType)
+      return {
+        installed: true,
+        rawHex: response.toString('hex'),
+        appletId: response.slice(0, 3).toString('hex'),
+        appletPackageId: response.slice(0, 2).toString('hex') + '01',
+        isTestApplet: response[3] === 1,
+        version: response[4] + '.' + response[5] + '.' + response[6],
+        date: response.slice(7, 12).toString('hex'),
+        coinType: coinType
+      }
     } catch (e) {
-      // ignore
+      return {
+        installed: false
+      }
     }
-    try {
-      let response = await this.sendApdu('804A000000', false, D.coin.other.manager)
-      version += '_' + response.toString('hex')
-    } catch (e) {
-      // ignore
-    }
-    try {
-      let response = await this.sendApdu('804A000000', false, D.coin.other.manager)
-      version += '_' + response.toString('hex')
-    } catch (e) {
-      // ignore
-    }
-    try {
-      let response = await this.sendApdu('804A000000', false, D.coin.other.backup)
-      version += '_' + response.toString('hex')
-    } catch (e) {
-      // ignore
-    }
-    try {
-      let response = await this.sendApdu('804A000000', false, D.coin.main.btc)
-      version += '_' + response.toString('hex')
-    } catch (e) {
-      // ignore
-    }
-    try {
-      let response = await this.sendApdu('804A000000', false, D.coin.main.eth)
-      version += '_' + response.toString('hex')
-    } catch (e) {
-      // ignore
-    }
-    try {
-      let response = await this.sendApdu('804A000000', false, D.coin.main.eos)
-      version += '_' + response.toString('hex')
-    } catch (e) {
-      // ignore
-    }
-    this._version = version
-    return version
   }
 
   async getPublicKey (coinType, path, isShowing = false) {
