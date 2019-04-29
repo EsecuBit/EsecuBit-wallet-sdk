@@ -88,7 +88,6 @@ const D = {
     invalidParams: 607,
     permissionNotFound: 608, // for eos
     permissionNoNeedToConfirmed: 609, // for eos
-    invalidPrivateKey: 610, // for eos
     multipleAccounts: 611, // for eos
     keyNotMatch: 612, // for eos
 
@@ -348,9 +347,14 @@ const D = {
     },
 
     eosPrivateToPublicBuffer (privateKey) {
-      let keyPair = bitcoin.ECPair.fromWIF(privateKey)
-      keyPair.compressed = true
-      return keyPair.getPublicKeyBuffer()
+      try {
+        let keyPair = bitcoin.ECPair.fromWIF(privateKey)
+        keyPair.compressed = true
+        return keyPair.getPublicKeyBuffer()
+      } catch (e) {
+        console.warn('eosPrivateToPublicBuffer error', e)
+        throw D.error.invalidParams
+      }
     },
 
     parseEosPrivateKey (privateKey) {
@@ -360,15 +364,15 @@ const D = {
         buffer = base58check.decode(privateKey)
       } catch (e) {
         console.warn('privateKey is not base58 encoded', privateKey)
-        throw D.error.invalidPrivateKey
+        throw D.error.invalidParams
       }
       if (buffer.length !== 33) {
         console.warn('privateKey length invalid', privateKey)
-        throw D.error.invalidPrivateKey
+        throw D.error.invalidParams
       }
       if (buffer[0] !== 0x80) {
         console.warn('privateKey first byte not 0x80', privateKey)
-        throw D.error.invalidPrivateKey
+        throw D.error.invalidParams
       }
       return buffer.slice(1, 33)
     },
