@@ -25,6 +25,11 @@ const tokenList = {
 // but it's too waste time, so we only check first owner key and first active key
 const maxIndexThreshold = 1
 const maxPermissionThreshold = 2
+const importHeader = 'import_'
+
+function isImportKey (address) {
+  return address.path.startsWith(importHeader)
+}
 
 export default class EosAccount extends IAccount {
   constructor (info, device, coinData) {
@@ -122,7 +127,7 @@ export default class EosAccount extends IAccount {
           address: pmInfo.name,
           accountId: this.accountId,
           coinType: this.coinType,
-          path: 'import_' + pmInfo.name + '_' + publicKey,
+          path: importHeader + pmInfo.name + '_' + publicKey,
           type: pmInfo.name,
           index: -1,
           registered: false,
@@ -158,7 +163,13 @@ export default class EosAccount extends IAccount {
     }
 
     let checkNewAccount = async () => {
-      for (let pmInfo of this.addressInfos) {
+      let checkAddressInfos = D.copy(this.addressInfos)
+      let hasImportKeys = checkAddressInfos.some(a => isImportKey(a))
+      if (hasImportKeys) {
+        checkAddressInfos = checkAddressInfos.filter(a => isImportKey(a))
+      }
+
+      for (let pmInfo of checkAddressInfos) {
         console.log('EosAccount not registered, check publickey', pmInfo.path, pmInfo.publicKey)
         // slip-0048 recovery
         let accounts = await this._network.getAccountByPubKey(pmInfo.publicKey)
@@ -194,11 +205,7 @@ export default class EosAccount extends IAccount {
     this._syncPermissions = null
     let updatedPermissions = await this._updatePermissions(syncPermissions, callback)
 
-    let permissionsChanged = updatedPermissions.length > 0
-    if (permissionsChanged) {
-      await this.sync(null)
-    }
-    return permissionsChanged
+    return updatedPermissions.length > 0
   }
 
   async _updatePermissions (permissions, updateCallback) {
@@ -227,7 +234,7 @@ export default class EosAccount extends IAccount {
               !pmInfo.registered ||
               pmInfo.type !== permission.name) {
               // TODO handle permission that only change path or name, first remove then add
-              if (!pmInfo.path.startsWith('import_')) {
+              if (!isImportKey(pmInfo)) {
                 // imported key no need to add
                 addDevicePmInfos.push(pmInfo)
               }
@@ -344,7 +351,7 @@ export default class EosAccount extends IAccount {
     try {
       // see slip-0048 recovery
       let permissionPaths = this.addressInfos
-        .filter(a => !a.path.startsWith('import_'))
+        .filter(a => !isImportKey(a))
         .map(a => {
           return {
             registered: a.registered,
@@ -366,9 +373,9 @@ export default class EosAccount extends IAccount {
         // filter paths that has the same coinType, permission, accountIndex
         let filteredPermissionPaths = permissionPaths.filter(path =>
           subPath === D.address.path.makeSlip48Path(
-          path.pathIndexes[1] - 0x80000000,
-          path.pathIndexes[2] - 0x80000000,
-          path.pathIndexes[3] - 0x80000000))
+            path.pathIndexes[1] - 0x80000000,
+            path.pathIndexes[2] - 0x80000000,
+            path.pathIndexes[3] - 0x80000000))
 
         let maxKeyIndex = filteredPermissionPaths.reduce((max, path) => Math.max(max, path.index), -1)
         let maxRegisteredKeyIndex = filteredPermissionPaths
@@ -473,7 +480,7 @@ export default class EosAccount extends IAccount {
         address: name,
         accountId: this.accountId,
         coinType: this.coinType,
-        path: 'import_' + auth + '_' + publicKey,
+        path: importHeader + auth + '_' + publicKey,
         type: auth,
         index: -1,
         registered: true,
