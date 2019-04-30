@@ -38,7 +38,6 @@ export default class UpgradeManager {
     let appletList = []
     for (let appletInfo of latestAppletVersions) {
       let localAppletVersion = localAppletVersions.find(v => v.name === appletInfo.name) || {}
-      console.warn('???', localAppletVersion, appletInfo)
       // noinspection PointlessBooleanExpressionJS
       appletList.push({
         name: appletInfo.name,
