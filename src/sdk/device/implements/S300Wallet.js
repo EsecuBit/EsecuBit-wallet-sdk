@@ -104,10 +104,10 @@ export default class S300Wallet {
     walletId += D.test.jsWallet ? '01' : '00'
     walletId += (await this.getWalletId()).toString('hex')
 
-    // async handshake and cache cos version
+    // async handshake
     this._allEnc = true
     // noinspection JSIgnoredPromiseFromCall
-    this.getWalletInfo()
+    this.getWalletId()
 
     return {walletId: walletId}
   }
@@ -152,15 +152,22 @@ export default class S300Wallet {
 
     if (this._version.length > 0) {
       return this._version
+    } else if (this._versionTask) {
+      return this._versionTask
     }
 
-    this._version.push(await this._getVersionInfo('HDWallet', D.coin.other.hdwallet))
-    this._version.push(await this._getVersionInfo('Manager', D.coin.other.manager))
-    this._version.push(await this._getVersionInfo('Backup', D.coin.other.backup))
-    this._version.push(await this._getVersionInfo('BTC', D.coin.main.btc))
-    this._version.push(await this._getVersionInfo('ETH', D.coin.main.eth))
-    this._version.push(await this._getVersionInfo('EOS', D.coin.main.eos))
-    return this._version
+    this._versionTask = async () => {
+      this._version.push(await this._getVersionInfo('HDWallet', D.coin.other.hdwallet))
+      this._version.push(await this._getVersionInfo('Manager', D.coin.other.manager))
+      this._version.push(await this._getVersionInfo('Backup', D.coin.other.backup))
+      this._version.push(await this._getVersionInfo('BTC', D.coin.main.btc))
+      this._version.push(await this._getVersionInfo('ETH', D.coin.main.eth))
+      this._version.push(await this._getVersionInfo('EOS', D.coin.main.eos))
+      this._versionTask = null
+      return this._version
+    }
+
+    return this._versionTask
   }
 
   async _getVersionInfo (name, coinType) {
