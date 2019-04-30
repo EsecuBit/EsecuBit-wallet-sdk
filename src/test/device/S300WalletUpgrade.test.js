@@ -44,7 +44,7 @@ describe('S300Wallet', function () {
       return
     }
 
-    await upgradeManager.installUpdate(btcInfo)
+    await upgradeManager.installUpgrade(btcInfo)
   })
 
   it('get btc version again', async () => {

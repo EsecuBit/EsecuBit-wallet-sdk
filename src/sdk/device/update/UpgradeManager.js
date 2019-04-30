@@ -20,46 +20,43 @@ export default class UpgradeManager {
    *  installed: boolean,
    *  upgradable: boolean,
    *  versionDescription: string,
-   *  currentVersion: string,
-   *  newestVersion: string,
+   *  version: string,
+   *  latestVersion: string,
    *  releaseTime: string,
    *  coinType: string,
    * }
    */
   async getAppletList () {
     let walletInfo = {}
-    let newAppletVersions = {}
+    let latestAppletVersions = {}
     await Promise.all([
       this._device.getWalletInfo().then(ret => { walletInfo = ret }),
-      D.http.get(server + 'version').then(ret => { newAppletVersions = ret })])
+      D.http.get(server + 'version').then(ret => { latestAppletVersions = ret })])
 
-    let appletVersions = walletInfo.applet_versions
-    console.log('getAppletList appletVersions', appletVersions)
+    let localAppletVersions = walletInfo.applet_versions
+    console.log('getAppletList appletVersions', localAppletVersions)
     let appletList = []
-    for (let appletName in newAppletVersions) {
-      if (!newAppletVersions.hasOwnProperty(appletName)) {
-        continue
-      }
-      let appletInfo = D.copy(newAppletVersions[appletName])
-      let localAppletVersion = appletVersions[appletName]
+    for (let appletInfo of latestAppletVersions) {
+      let localAppletVersion = localAppletVersions.find(v => v.name === appletInfo.name) || {}
+      console.warn('???', localAppletVersion, appletInfo)
       // noinspection PointlessBooleanExpressionJS
       appletList.push({
-        name: appletName,
+        name: appletInfo.name,
         description: appletInfo.description,
         installed: !!localAppletVersion.installed,
-        upgradable: !!localAppletVersion.installed && UpgradeManager._isNeedUpdate(appletInfo.version, localAppletVersion.version),
+        upgradable: !!localAppletVersion.installed && UpgradeManager._isNeedUpgrade(appletInfo.version, localAppletVersion.version),
         versionDescription: appletInfo.versionDescription,
-        currentVersion: localAppletVersion.version,
-        newestVersion: appletInfo.version,
+        version: localAppletVersion.version,
+        latestVersion: appletInfo.version,
         appletId: appletInfo.appletId,
-        appletPackageId: appletInfo.appletPackageId,
+        packageId: appletInfo.packageId,
         coinType: localAppletVersion.installed ? localAppletVersion.coinType : ''
       })
     }
     return appletList
   }
 
-  static _isNeedUpdate (newVersion, oldVersion) {
+  static _isNeedUpgrade (newVersion, oldVersion) {
     newVersion = newVersion.split('.').map(i => parseInt(i))
     oldVersion = oldVersion.split('.').map(i => parseInt(i))
     let size = Math.min(newVersion.length, oldVersion.length)
@@ -75,18 +72,18 @@ export default class UpgradeManager {
   /**
    * @param appletInfo AppletInfo
    */
-  async installUpdate (appletInfo) {
+  async installUpgrade (appletInfo) {
     if (!appletInfo) {
-      console.warn('installUpdate appletInfo != null', appletInfo)
+      console.warn('installUpgrade appletInfo != null', appletInfo)
       throw D.error.invalidParams
     }
     if (appletInfo.installed && !appletInfo.upgradable) {
-      console.warn('installUpdate appletInfo no need to install', appletInfo)
+      console.warn('installUpgrade appletInfo no need to install', appletInfo)
       throw D.error.invalidParams
     }
 
     // get script
-    let response = await D.http.get(server + 'update/' + appletInfo.name)
+    let response = await D.http.get(server + 'script/' + appletInfo.name + '/' + appletInfo.latestVersion)
     let script = response.script
 
     if (appletInfo.installed) {
@@ -94,7 +91,7 @@ export default class UpgradeManager {
       await this._device.sendApdu('8002000000', true, appletInfo.coinType)
       // delete
       await this._externalAuthenticate()
-      await this._device.sendApdu('80E400800A4F08B000000000' + appletInfo.appletPackageId, true)
+      await this._device.sendApdu('80E400800A4F08B000000000' + appletInfo.packageId, true)
     }
 
     // install
@@ -105,7 +102,7 @@ export default class UpgradeManager {
 
     // instance
     await this._device.sendApdu('80e60c0021' +
-      '08B000000000' + appletInfo.appletPackageId +
+      '08B000000000' + appletInfo.packageId +
       '08B000000000' + appletInfo.appletId +
       '08B000000000' + appletInfo.appletId +
       '010002c90000')
