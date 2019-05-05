@@ -13,6 +13,8 @@
 // import './test/device/fat/Fat.test'
 // import './test/device/fat/WalletData.test'
 
+// import './test/device/S300WalletUpgrade.test'
+
 // data
 // import './test/data/database/IndexedDB.test'
 // import './test/data/network/fee/BitcoinEarn.test'

@@ -264,7 +264,7 @@ export default class S300Wallet {
     return Provider.Crypto.deriveAddresses(network.pubKeyHash, publicKey, chainCode, type, fromIndex, toIndex)
   }
 
-  async getAccountName (coinType, path, isShowing = false, isStoring = false) {
+  async getAccountName (coinType, accountIndex, pmData, isShowing = false, isStoring = false) {
     if (!D.isEos(coinType)) {
       console.warn('getAccountName only supports EOS', coinType)
       throw D.error.coinNotSupported
@@ -275,12 +275,16 @@ export default class S300Wallet {
 
     let apduHead = Buffer.from('8076000000', 'hex')
     let data
-    let isKey = path.startsWith('import_')
+    let isKey = pmData.startsWith('import_')
     if (isKey) {
-      let startIndex = path.indexOf('EOS') + 'EOS'.length
-      data = base58.decode(path.slice(startIndex)).slice(0, -4)
+      let accountIndexBuffer = Buffer.allocUnsafe(4)
+      accountIndexBuffer.writeUInt32BE(accountIndex + 0x80000000, 0)
+
+      let startIndex = pmData.indexOf('EOS') + 'EOS'.length
+      let keyData = base58.decode(pmData.slice(startIndex)).slice(0, -4)
+      data = Buffer.concat([accountIndexBuffer, keyData])
     } else {
-      data = D.address.path.toBuffer(path)
+      data = D.address.path.toBuffer(pmData)
     }
     let apdu = Buffer.concat([apduHead, data])
     apdu[2] = isKey ? 0x01 : 0x00
@@ -312,7 +316,6 @@ export default class S300Wallet {
   }
 
   async getPermissions (coinType, accountIndex) {
-    // TODO S300 support specific accountIndex import
     if (!D.isEos(coinType)) {
       console.warn('getPermissions only supports EOS', coinType)
       throw D.error.coinNotSupported
@@ -335,27 +338,41 @@ export default class S300Wallet {
       }
       offset += returnPmSize
     }
-    permissions = permissions.map(pm => {
+
+    permissions = permissions.reduce((pms, pm) => {
       let type = pm[0]
       let data
+      // type[1] actor[8] name[8] path[20]
       if (type === 0) {
+        let pmAccountIndex = pm.readUInt32BE(1 + 8 + 8 + 4 * 2) // accountIndex in path
+        if (pmAccountIndex !== accountIndex) {
+          return
+        }
+
         data = pm.slice(17, 37)
         data = D.address.path.fromBuffer(data)
+      // type[1] actor[8] name[8] account[4] publicKey[32]
       } else if (type === 1) {
-        data = pm.slice(17, 50)
+        let pmAccountIndex = pm.readUInt32BE(1 + 8 + 8) // accountIndex in path
+        if (pmAccountIndex !== accountIndex) {
+          return
+        }
+
+        data = pm.slice(21, 54)
         data = D.address.toString(coinType, data)
       } else {
         console.warn('getPermissions unknown type', type)
-        throw D.error.deviceApduDataInvalid
+        return
       }
-      return {
+      pms.push({
         type,
         actor: FcBuffer.name.decodeName(pm.slice(1, 9)),
         name: FcBuffer.name.decodeName(pm.slice(9, 17)),
         data
-      }
-    })
+      })
+    }, [])
 
+    console.info('S300Wallet getPermissions', JSON.stringify(permissions))
     return permissions
   }
 
@@ -398,18 +415,21 @@ export default class S300Wallet {
   }
 
   async importKey (coinType, keyInfo) {
-    // TODO S300 support specific accountIndex import
     if (!D.isEos(coinType)) {
       console.warn('importKey only supports EOS', coinType)
       throw D.error.coinNotSupported
     }
 
+    let accountIndexBuffer = Buffer.allocUnsafe(4)
+    accountIndexBuffer.writeUInt32BE(keyInfo.accountIndex + 0x80000000, 0)
+
     let keyBuffer = D.address.parseEosPrivateKey(keyInfo.key)
-    // 8072 0100 lc key[32]
+    // 8072 0100 lc actor[8] name[8] accountIndex[4] key[32]
     let apduHead = Buffer.from('8070010000', 'hex')
     let data = Buffer.concat([
       FcBuffer.name.toBuffer(keyInfo.address), // actor
       FcBuffer.name.toBuffer(keyInfo.type), // name
+      accountIndexBuffer, // accountIndex
       keyBuffer // private key
     ])
     let apdu = Buffer.concat([apduHead, data])
@@ -424,12 +444,16 @@ export default class S300Wallet {
       throw D.error.coinNotSupported
     }
 
+    let accountIndexBuffer = Buffer.allocUnsafe(4)
+    accountIndexBuffer.writeUInt32BE(keyInfo.accountIndex + 0x80000000, 0)
+
     let keyBuffer = D.address.toBuffer(keyInfo.publicKey)
-    // 8072 0100 lc key[33]
+    // 8072 0100 lc actor[8] name[8] accountIndex[4] key[33]
     let apduHead = Buffer.from('8072010000', 'hex')
     let data = Buffer.concat([
       FcBuffer.name.toBuffer(keyInfo.address), // actor
       FcBuffer.name.toBuffer(keyInfo.type), // name
+      accountIndexBuffer, // accountIndex
       keyBuffer // public key
     ])
     let apdu = Buffer.concat([apduHead, data])

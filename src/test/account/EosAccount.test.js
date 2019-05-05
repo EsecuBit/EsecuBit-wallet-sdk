@@ -18,7 +18,7 @@ describe('EosAccount', function () {
   let oldSupported
 
   before(async function () {
-    D.test.jsWallet = true
+    D.test.jsWallet = false
     D.test.coin = true
 
     oldSupported = D.supportedCoinTypes
@@ -44,10 +44,11 @@ describe('EosAccount', function () {
         coinData = new CoinData()
         let walletInfo = await wallet.init()
         await coinData.init(walletInfo)
+        await coinData.initNetWork()
         // await coinData.clearData()
 
         account = new EosAccount({
-          label: 'esecubit1111',
+          label: 'sickworm2111',
           coinType: coinType,
           accountId: coinType + '_0_23f876c8a',
           index: 0,
@@ -82,18 +83,18 @@ describe('EosAccount', function () {
   })
 
   it('importKey', async function () {
-    await account.importAccountByKeys('account name', 'owner key', 'active key')
-  })
-
-  it('getPermissions', async function () {
-    // await account.getPermissions(true)
-    await account.getPermissions()
+    await account.importAccountByKeys('sickworm2111', '5KTm5dZSfHgx3EFoUxfRHWhAuDm7XmwiE8wGwydFov3biug5uJY', '5Jo99M4WWnx14EQUAk1jFYaFZUUsa4DRg1Gq4q1SnC3YhQSfFVY')
   })
 
   it('checkAccountPermissions', async function () {
     await account.checkAccountPermissions(function () {
       console.info('checkNewPermission callback')
     })
+  })
+
+  it('getPermissions', async function () {
+    // await account.getPermissions(true)
+    await account.getPermissions()
   })
 
   it('getAddress', async function () {

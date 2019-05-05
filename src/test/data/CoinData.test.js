@@ -12,6 +12,7 @@ describe('CoinData', function () {
   it('init', async () => {
     let info = await new JsWallet().init()
     await coinData.init(info)
+    await coinData.initNetWork()
   })
 
   it('sync', async () => {

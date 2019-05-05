@@ -467,7 +467,7 @@ export default class EosAccount extends IAccount {
       }
 
       try {
-        await this._device.importKey(this.coinType, {address: name, type: auth, key: key})
+        await this._device.importKey(this.coinType, {accountIndex: this.index, address: name, type: auth, key: key})
       } catch (e) {
         if (e === D.error.deviceConditionNotSatisfied) {
           console.log('device already has this key')
@@ -506,12 +506,13 @@ export default class EosAccount extends IAccount {
   }
 
   async removeKey (key) {
-    let keyInfo = this.addressInfos.find(a => a.publicKey === key)
+    let keyInfo = D.copy(this.addressInfos.find(a => a.publicKey === key))
     if (!keyInfo) {
       console.warn('removeKey not exists', key)
       throw D.error.invalidParams
     }
     try {
+      keyInfo.accountIndex = this.index
       await this._device.removeKey(this.coinType, keyInfo)
     } catch (e) {
       if (e === D.error.deviceConditionNotSatisfied) {
@@ -557,7 +558,7 @@ export default class EosAccount extends IAccount {
     }
 
     let addressInfo = this.addressInfos.find(a => a.registered)
-    let accountName = await this._device.getAccountName(this.coinType, addressInfo.path, true, isStoring)
+    let accountName = await this._device.getAccountName(this.coinType, this.index, addressInfo.path, true, isStoring)
     let prefix = ''
     return {address: accountName, qrAddress: prefix + accountName}
   }

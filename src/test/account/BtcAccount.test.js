@@ -18,7 +18,7 @@ describe('BtcAccount', function () {
   // new EsWallet may trigger sync, so do it when doing Test
   before(async function () {
     D.test.coin = true
-    D.test.jsWallet = true
+    D.test.jsWallet = false
     oldSupported = D.supportedCoinTypes
     D.supportedCoinTypes = () => [D.coin.test.btcTestNet3]
     await new Settings().setTestSeed('00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000')
