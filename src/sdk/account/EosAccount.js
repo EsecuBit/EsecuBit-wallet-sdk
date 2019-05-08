@@ -406,7 +406,7 @@ export default class EosAccount extends IAccount {
         }
       }
 
-      await this._coinData.newAddressInfos(this._toAccountInfo(), newAddressInfos)
+      await this._coinData.updateAddressInfos(this._toAccountInfo(), newAddressInfos)
       this.addressInfos.push(...newAddressInfos)
       return newAddressInfos
     } catch (e) {
