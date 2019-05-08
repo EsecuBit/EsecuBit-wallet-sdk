@@ -47,6 +47,7 @@ const D = {
     deviceNotConnected: 114,
     deviceNeedReauthenticate: 115,
     deviceConditionNotSatisfied: 116,
+    pinLocked: 117,
 
     fatUnavailable: 121,
     fatOutOfRange: 122,
@@ -110,6 +111,7 @@ const D = {
       if (sw1sw2 === 0x6FFE) return D.error.devicePressKeyTooEarly
       if (sw1sw2 === 0x6A83) return D.error.deviceNeedReauthenticate
       if (sw1sw2 === 0x6985) return D.error.deviceConditionNotSatisfied
+      if ((sw1sw2 & 0xFFFF) === 0x63C0) return D.error.pinLocked
       if ((sw1sw2 & 0xFFF0) === 0x63C0) return D.error.pinError
       return D.error.deviceProtocol
     }
