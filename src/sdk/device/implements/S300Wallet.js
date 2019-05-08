@@ -346,7 +346,7 @@ export default class S300Wallet {
       if (type === 0) {
         let pmAccountIndex = pm.readUInt32BE(1 + 8 + 8 + 4 * 2) // accountIndex in path
         if (pmAccountIndex !== accountIndex) {
-          return
+          return pms
         }
 
         data = pm.slice(17, 37)
@@ -355,14 +355,14 @@ export default class S300Wallet {
       } else if (type === 1) {
         let pmAccountIndex = pm.readUInt32BE(1 + 8 + 8) // accountIndex in path
         if (pmAccountIndex !== accountIndex) {
-          return
+          return pms
         }
 
         data = pm.slice(21, 54)
         data = D.address.toString(coinType, data)
       } else {
         console.warn('getPermissions unknown type', type)
-        return
+        return pms
       }
       pms.push({
         type,
@@ -370,6 +370,7 @@ export default class S300Wallet {
         name: FcBuffer.name.decodeName(pm.slice(9, 17)),
         data
       })
+      return pms
     }, [])
 
     console.info('S300Wallet getPermissions', JSON.stringify(permissions))
