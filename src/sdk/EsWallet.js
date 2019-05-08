@@ -444,6 +444,7 @@ export default class EsWallet {
     }
 
     let account = await this._coinData.newAccount(coinType)
+    account.status = D.account.status.show
     let esAccount
     if (D.isBtc(coinType)) {
       esAccount = new BtcAccount(account, this._device, this._coinData)
