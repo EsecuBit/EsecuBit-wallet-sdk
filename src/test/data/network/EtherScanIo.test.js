@@ -33,7 +33,6 @@ describe('Network EtherSacnIo Ethereum', function () {
 
   it('query transaction', async () => {
     let txInfo = await etherScanIo.queryTx('0xf44a36b20ba14a2e9c4ea141a7090e26a7a71b7a6e1e26568dd321ff180aff30')
-    // TODO confirmation not stable
     console.log('txInfo', JSON.stringify(txInfo))
   })
 })

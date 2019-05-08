@@ -134,5 +134,4 @@ describe('IndexedDB', function () {
     await indexedDB.newTx(addressInfo, txInfo, utxo)
   })
 
-  // TODO test newTx with invalid utxo or txInfo
 })

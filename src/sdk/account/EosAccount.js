@@ -445,11 +445,6 @@ export default class EosAccount extends IAccount {
       console.warn('currently not support multiple registered account')
       throw D.error.multipleAccounts
     }
-    // TODO S300 support specific accountIndex import
-    if (this.index !== 0) {
-      console.warn('currently only support import key for first account')
-      throw D.error.multipleAccounts
-    }
 
     let accountInfo = await this._network.getAccountInfo(name, [])
     let importKey = async (key, auth) => {
