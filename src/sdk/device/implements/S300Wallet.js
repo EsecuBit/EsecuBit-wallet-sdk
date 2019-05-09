@@ -328,8 +328,9 @@ export default class S300Wallet {
       apdu[5] = offset
       let response = await this.sendApdu(apdu, false, coinType)
       let returnPmSize = response[1]
+      const pmDataSize = 54 // Math.max(size(type0)=37, size(type1)=54)
       for (let i = 0; i < returnPmSize; i++) {
-        permissions.push(response.slice(2 + i * 0x32, 2 + (i + 1) * 0x32))
+        permissions.push(response.slice(2 + i * pmDataSize, 2 + (i + 1) * pmDataSize))
       }
 
       let remainPmSize = response[0]
@@ -345,16 +346,16 @@ export default class S300Wallet {
       // type[1] actor[8] name[8] path[20]
       if (type === 0) {
         let pmAccountIndex = pm.readUInt32BE(1 + 8 + 8 + 4 * 2) // accountIndex in path
-        if (pmAccountIndex !== accountIndex) {
+        if (pmAccountIndex !== (0x80000000 + accountIndex)) {
           return pms
         }
 
         data = pm.slice(17, 37)
         data = D.address.path.fromBuffer(data)
-      // type[1] actor[8] name[8] account[4] publicKey[32]
+      // type[1] actor[8] name[8] account[4] publicKey[33]
       } else if (type === 1) {
         let pmAccountIndex = pm.readUInt32BE(1 + 8 + 8) // accountIndex in path
-        if (pmAccountIndex !== accountIndex) {
+        if (pmAccountIndex !== (0x80000000 + accountIndex)) {
           return pms
         }
 
