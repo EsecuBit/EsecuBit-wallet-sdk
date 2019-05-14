@@ -7,6 +7,7 @@ import EosAccount from './account/EosAccount'
 import Settings from './Settings'
 import CoreWallet from './device/CoreWallet'
 import EthTokenList from './data/EthTokenList'
+import UpdateManager from './device/update/UpgradeManager'
 import BigInteger from 'bigi'
 
 /**
@@ -42,8 +43,9 @@ export default class EsWallet {
     }
     EsWallet.prototype.Instance = this
 
+    this._autoSync = true
     this._syncBefore = false
-    this.offlineMode = true
+    this._offlineMode = true
     this._settings = new Settings()
     this._info = {}
     this._esAccounts = []
@@ -52,7 +54,7 @@ export default class EsWallet {
     this._callback = () => {}
 
     this._device = new CoreWallet()
-    this._device.listenPlug(async (error, plugStatus) => {
+    this._deviceListener = async (error, plugStatus) => {
       // ignore the same plug event sent multiple times
       if (plugStatus === this._status) {
         return
@@ -70,14 +72,14 @@ export default class EsWallet {
         // send plug status
         this._dispatchCurrentStatus()
         if (this._status === D.status.plugIn) {
-          this.offlineMode = false
-          await this._handleInit(error, plugStatus)
+          this._offlineMode = false
+          await this._initAndSyncWallet(error, plugStatus)
         } else if (this._status === D.status.plugOut) {
-          this.offlineMode = true
+          this._offlineMode = true
           await this._release()
         }
       })
-    })
+    }
 
     // receving event when accounts is syncing
     this._syncCallback = (error, status, objects) => {
@@ -92,10 +94,10 @@ export default class EsWallet {
   async enterOfflineMode () {
     if (this._status !== D.status.plugOut) throw D.error.offlineModeUnnecessary
     // noinspection JSIgnoredPromiseFromCall
-    this._handleInit()
+    this._initAndSyncWallet()
   }
 
-  async _handleInit () {
+  async _initAndSyncWallet () {
     while (this._initLock) await D.wait(10)
     this._initLock = true
 
@@ -112,9 +114,12 @@ export default class EsWallet {
       if (this._status === D.status.plugOut) return
 
       // syncing
+      if (!this._offlineMode && !this._autoSync) {
+        return
+      }
       this._status = D.status.syncing
       this._dispatchCurrentStatus()
-      !this._syncBefore && await this._sync()
+      !this._syncBefore && await this.sync()
       if (this._status === D.status.plugOut) return
       this._syncBefore = true
 
@@ -166,7 +171,7 @@ export default class EsWallet {
     }
 
     let initDb = async () => {
-      if (!this.offlineMode) {
+      if (!this._offlineMode) {
         info = await this._device.init((status, authCode) => {
           this._status = status
           if (status === D.status.auth) {
@@ -180,17 +185,17 @@ export default class EsWallet {
       } else {
         let lastWalletId = await this._settings.getSetting('lastWalletId')
         if (!lastWalletId) {
-          console.warn('offlineMode no device connected before')
+          console.warn('_offlineMode no device connected before')
           throw D.error.offlineModeNotAllowed
         }
         let recoveryFinish = await this._settings.getSetting('recoveryFinish', lastWalletId)
         if (!recoveryFinish) {
-          console.warn('offlineMode last device not recovery finished', lastWalletId)
+          console.warn('_offlineMode last device not recovery finished', lastWalletId)
           throw D.error.offlineModeNotAllowed
         }
         info = {walletId: lastWalletId}
       }
-      await this._coinData.init(info, this.offlineMode)
+      await this._coinData.init(info, this._offlineMode)
     }
 
     await Promise.all([initNetWork(), initDb()])
@@ -225,16 +230,16 @@ export default class EsWallet {
    *
    * @private
    */
-  async _sync () {
+  async sync () {
     await this._coinData.sync()
-    await Promise.all(this._esAccounts.map(esAccount => esAccount.sync(this._syncCallback, true, this.offlineMode)))
+    await Promise.all(this._esAccounts.map(esAccount => esAccount.sync(this._syncCallback, true, this._offlineMode)))
 
     let recoveryFinish = await this._settings.getSetting('recoveryFinish', this._info.walletId)
     recoveryFinish = recoveryFinish || false
 
     let recoverCoinTypes
     if (!recoveryFinish || this._esAccounts.length === 0) {
-      if (this.offlineMode) throw D.error.offlineModeNotAllowed
+      if (this._offlineMode) throw D.error.offlineModeNotAllowed
       recoverCoinTypes = D.recoverCoinTypes()
     } else {
       // if every accounts of a coinType has txs, checkout the next account in case next account
@@ -250,8 +255,8 @@ export default class EsWallet {
     }
 
     if (recoverCoinTypes.length > 0) {
-      if (this.offlineMode) {
-        console.warn('wallet needs discover new accounts but it\'s in offlineMode, wait for next time')
+      if (this._offlineMode) {
+        console.warn('wallet needs discover new accounts but it\'s in _offlineMode, wait for next time')
         return
       }
       console.log('start recovery', recoveryFinish, recoverCoinTypes, this._esAccounts.length)
@@ -352,8 +357,9 @@ export default class EsWallet {
    */
   listenStatus (callback) {
     this._callback = callback || (() => {})
+    this._device.listenPlug(this._deviceListener)
 
-    if (!this.offlineMode) {
+    if (!this._offlineMode && (this._status !== D.status.plugOut)) {
       this._dispatchEvent(D.status.plugIn)
     }
 
@@ -580,5 +586,20 @@ export default class EsWallet {
    */
   setTestSeed (testSeed) {
     return new Settings().setTestSeed(testSeed)
+  }
+
+  /**
+   * whether auto sync after connecting a device, or you can call await sync() manually later
+   * @param enabled
+   */
+  setAutoSyncEnabled (enabled) {
+    this._autoSync = !!enabled
+  }
+
+  /**
+   * Get device update manager
+   */
+  getUpdateManager () {
+    return new UpdateManager(this._device)
   }
 }

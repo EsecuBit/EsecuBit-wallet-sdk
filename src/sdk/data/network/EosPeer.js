@@ -4,7 +4,8 @@ import {BigDecimal} from 'bigdecimal'
 
 // jungle
 const jungle = {
-  httpEndpoint: 'https://junglehistory.cryptolions.io:4433/',
+  // httpEndpoint: 'https://junglehistory.cryptolions.io:4433/', // 502 bad gateway
+  httpEndpoint: 'https://api.jungle.alohaeos.com/',
   provider: 'api.jungle.alohaeos.com',
   txUrl: 'https://eospark.com/Jungle/tx/'
 }

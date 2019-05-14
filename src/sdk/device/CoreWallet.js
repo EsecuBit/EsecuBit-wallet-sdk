@@ -5,17 +5,10 @@ export default class CoreWallet {
   constructor () {
     this._transmitter = null
     this._wallet = null
-    this._externlistener = () => {}
+    this._externListener = () => {}
   }
 
-  listenPlug (listener) {
-    this._externlistener = listener || this._externlistener
-
-    if (this._transmitter) {
-      D.dispatch(() => this._externlistener(D.error.succeed, D.status.plugIn))
-      return
-    }
-
+  _listenPlug () {
     for (let Transmitter of Provider.Transmitters) {
       let transmitter = new Transmitter()
       let plugInListener = (error, status) => {
@@ -30,7 +23,7 @@ export default class CoreWallet {
         console.info('transmitter pluged event', transmitter, error, status)
 
         if (error !== D.error.succeed) {
-          D.dispatch(() => this._externlistener(error, status))
+          D.dispatch(() => this._externListener(error, status))
           return
         }
 
@@ -41,11 +34,20 @@ export default class CoreWallet {
         } else {
           console.warn('unknown status', error, status)
         }
-        D.dispatch(() => this._externlistener(error, status))
+        D.dispatch(() => this._externListener(error, status))
       }
       console.debug('listenPlug', transmitter.constructor.name)
       transmitter.listenPlug(plugInListener)
     }
+  }
+
+  listenPlug (listener) {
+    this._externListener = listener || (() => {})
+
+    if (this._transmitter) {
+      D.dispatch(() => this._externListener(D.error.succeed, D.status.plugIn))
+    }
+    this._listenPlug()
   }
 
   async init (authCallback) {
