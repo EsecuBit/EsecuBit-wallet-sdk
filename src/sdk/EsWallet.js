@@ -126,6 +126,8 @@ export default class EsWallet {
       // syncFinish
       this._status = D.status.syncFinish
       this._dispatchCurrentStatus()
+      // get version async
+      this.getWalletInfo().then(() => console.log('async get wallet info finished'))
     } catch (e) {
       console.warn(e)
       this._dispatchError(e)

@@ -156,7 +156,7 @@ export default class S300Wallet {
       return this._versionTask
     }
 
-    this._versionTask = async () => {
+    this._versionTask = new Promise(async (resolve) => {
       this._version.push(await this._getVersionInfo('HDWallet', D.coin.other.hdwallet))
       this._version.push(await this._getVersionInfo('Manager', D.coin.other.manager))
       this._version.push(await this._getVersionInfo('Backup', D.coin.other.backup))
@@ -164,8 +164,8 @@ export default class S300Wallet {
       this._version.push(await this._getVersionInfo('ETH', D.coin.main.eth))
       this._version.push(await this._getVersionInfo('EOS', D.coin.main.eos))
       this._versionTask = null
-      return this._version
-    }
+      resolve(this._version)
+    })
 
     return this._versionTask
   }
