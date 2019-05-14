@@ -55,14 +55,18 @@ export default class CoreWallet {
       console.warn('device not connected')
       throw D.error.deviceNotConnected
     }
+    if (this._wallet) {
+      console.info('CoreWallet has inited, return')
+      return D.copy(this._walletInfo)
+    }
 
     let messages = []
     for (let Wallet of Provider.Wallets) {
       let wallet = new Wallet(this._transmitter)
       try {
-        let walletInfo = await wallet.init(authCallback)
+        this._walletInfo = await wallet.init(authCallback)
         this._wallet = wallet
-        return walletInfo
+        return D.copy(this._walletInfo)
       } catch (e) {
         messages.push({wallet: wallet.constructor.name, error: e})
         // continue
