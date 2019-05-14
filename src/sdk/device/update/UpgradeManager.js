@@ -71,7 +71,9 @@ export default class UpgradeManager {
   /**
    * @param appletInfo AppletInfo
    */
-  async installUpgrade (appletInfo) {
+  async installUpgrade (appletInfo, progressCallback) {
+    progressCallback = progressCallback || (() => {})
+
     if (!appletInfo) {
       console.warn('installUpgrade appletInfo != null', appletInfo)
       throw D.error.invalidParams
@@ -81,10 +83,12 @@ export default class UpgradeManager {
       throw D.error.invalidParams
     }
 
+    progressCallback(D.updateStatus.getScript, 0)
     // get script
     let response = await D.http.get(server + 'script/' + appletInfo.name + '/' + appletInfo.latestVersion)
     let script = response.script
 
+    progressCallback(D.updateStatus.handleData, 10)
     if (appletInfo.installed) {
       // backup
       await this._device.sendApdu('8002000000', true, appletInfo.coinType)
@@ -93,12 +97,16 @@ export default class UpgradeManager {
       await this._device.sendApdu('80E400800A4F08B000000000' + appletInfo.packageId, true)
     }
 
+    progressCallback(D.updateStatus.install, 15)
     // install
     await this._externalAuthenticate()
+    let count = 0
     for (let apdu of script) {
+      progressCallback(D.updateStatus.install, 15 + Math.floor(60 * count / script.length))
       await this._device.sendApdu(apdu, true)
     }
 
+    progressCallback(D.updateStatus.init, 75)
     // instance
     await this._device.sendApdu('80e60c0021' +
       '08B000000000' + appletInfo.packageId +
@@ -110,7 +118,9 @@ export default class UpgradeManager {
     this._device._currentApp = null
     await this._device.sendApdu('00A4040008B000000000' + appletInfo.appletId, true)
     // init with recover
+    progressCallback(D.updateStatus.init, 80)
     await this._device.sendApdu('8000000000', true)
+    progressCallback(D.updateStatus.initFinish, 100)
   }
 
   async _externalAuthenticate () {

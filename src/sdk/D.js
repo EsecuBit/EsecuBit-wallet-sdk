@@ -28,6 +28,14 @@ const D = {
     canceledEosPermission: 1003
   },
 
+  updateStatus: {
+    getScript: 'get_script',
+    handleData: 'handle_data',
+    install: 'install',
+    init: 'init',
+    initFinish: 'init_finish'
+  },
+
   error: {
     succeed: 0,
 
