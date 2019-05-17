@@ -68,12 +68,10 @@ export default class UpgradeManager {
     return false
   }
 
-  /**
-   * @param appletInfo AppletInfo
-   */
   async installUpgrade (appletInfo, progressCallback) {
     progressCallback = progressCallback || (() => {})
 
+    console.log('installUpgrade appletInfo', appletInfo)
     if (!appletInfo) {
       console.warn('installUpgrade appletInfo != null', appletInfo)
       throw D.error.invalidParams
@@ -119,7 +117,9 @@ export default class UpgradeManager {
     await this._device.sendApdu('00A4040008B000000000' + appletInfo.appletId, true)
     // init with recover
     progressCallback(D.updateStatus.init, 80)
-    await this._device.sendApdu('8000000000', true)
+    if (appletInfo.name !== 'Backup') {
+      await this._device.sendApdu('8000000000', true)
+    }
     progressCallback(D.updateStatus.initFinish, 100)
   }
 
