@@ -90,7 +90,10 @@ export default class UpgradeManager {
     if (appletInfo.installed) {
       // backup
       if (appletInfo.name !== 'Backup') {
-        await this._device.sendApdu('8002000000', true, appletInfo.coinType)
+        // select
+        this._device._currentApp = null
+        await this._device.sendApdu('00A4040008B000000000' + appletInfo.appletId, true)
+        await this._device.sendApdu('8002000000', true)
       }
       // delete
       await this._externalAuthenticate()
@@ -104,6 +107,7 @@ export default class UpgradeManager {
     for (let apdu of script) {
       progressCallback(D.updateStatus.install, 15 + Math.floor(60 * count / script.length))
       await this._device.sendApdu(apdu, true)
+      count++
     }
 
     progressCallback(D.updateStatus.init, 75)
