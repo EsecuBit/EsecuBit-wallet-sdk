@@ -31,6 +31,7 @@ export default class CoreWallet {
           this._transmitter = transmitter
         } else if (status === D.status.plugOut) {
           this._transmitter = null
+          this._wallet = null
         } else {
           console.warn('unknown status', error, status)
         }
