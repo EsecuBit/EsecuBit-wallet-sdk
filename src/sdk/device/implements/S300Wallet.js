@@ -115,7 +115,6 @@ export default class S300Wallet {
   async reset () {
     this._version = {}
     this._currentApp = null
-    this._allEnc = false
   }
 
   async getWalletInfo () {

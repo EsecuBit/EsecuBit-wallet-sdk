@@ -228,4 +228,12 @@ export default class CoreWallet {
     }
     return this._wallet.sendApdu(apdu, isEnc, coinType)
   }
+
+  reset () {
+    if (!this._wallet) {
+      console.warn('init wallet first')
+      throw D.error.deviceNotConnected
+    }
+    return this._wallet.reset()
+  }
 }

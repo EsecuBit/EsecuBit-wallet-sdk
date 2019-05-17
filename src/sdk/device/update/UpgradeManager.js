@@ -90,10 +90,7 @@ export default class UpgradeManager {
     if (appletInfo.installed) {
       // backup
       if (appletInfo.name !== 'Backup') {
-        // select
-        this._device._currentApp = null
-        await this._device.sendApdu('00A4040008B000000000' + appletInfo.appletId, true)
-        await this._device.sendApdu('8002000000', true)
+        await this._device.sendApdu('8002000000', true, appletInfo.coinType)
       }
       // delete
       await this._externalAuthenticate()
@@ -117,10 +114,8 @@ export default class UpgradeManager {
       '08B000000000' + appletInfo.appletId +
       '08B000000000' + appletInfo.appletId +
       '010002c90000')
+    this._device.reset() // clear version and select applet cache
 
-    // select
-    this._device._currentApp = null
-    await this._device.sendApdu('00A4040008B000000000' + appletInfo.appletId, true)
     // init with recover
     progressCallback(D.updateStatus.init, 80)
     if (appletInfo.name !== 'Backup') {
