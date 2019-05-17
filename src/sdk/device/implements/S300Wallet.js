@@ -113,7 +113,7 @@ export default class S300Wallet {
   }
 
   async reset () {
-    this._version = {}
+    this._version = null
     this._currentApp = null
   }
 
@@ -150,20 +150,22 @@ export default class S300Wallet {
     this._version = this._version || []
 
     if (this._version.length > 0) {
-      return this._version
+      return D.copy(this._version)
     } else if (this._versionTask) {
       return this._versionTask
     }
 
     this._versionTask = new Promise(async (resolve) => {
-      this._version.push(await this._getVersionInfo('HDWallet', D.coin.other.hdwallet))
-      this._version.push(await this._getVersionInfo('Manager', D.coin.other.manager))
-      this._version.push(await this._getVersionInfo('Backup', D.coin.other.backup))
-      this._version.push(await this._getVersionInfo('BTC', D.coin.main.btc))
-      this._version.push(await this._getVersionInfo('ETH', D.coin.main.eth))
-      this._version.push(await this._getVersionInfo('EOS', D.coin.main.eos))
+      let version = []
+      version.push(await this._getVersionInfo('HDWallet', D.coin.other.hdwallet))
+      version.push(await this._getVersionInfo('Manager', D.coin.other.manager))
+      version.push(await this._getVersionInfo('Backup', D.coin.other.backup))
+      version.push(await this._getVersionInfo('BTC', D.coin.main.btc))
+      version.push(await this._getVersionInfo('ETH', D.coin.main.eth))
+      version.push(await this._getVersionInfo('EOS', D.coin.main.eos))
+      this._version = version
       this._versionTask = null
-      resolve(this._version)
+      resolve(D.copy(version))
     })
 
     return this._versionTask
