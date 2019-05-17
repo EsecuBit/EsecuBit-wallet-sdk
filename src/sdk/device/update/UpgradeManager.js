@@ -89,7 +89,9 @@ export default class UpgradeManager {
     progressCallback(D.updateStatus.handleData, 10)
     if (appletInfo.installed) {
       // backup
-      await this._device.sendApdu('8002000000', true, appletInfo.coinType)
+      if (appletInfo.name !== 'Backup') {
+        await this._device.sendApdu('8002000000', true, appletInfo.coinType)
+      }
       // delete
       await this._externalAuthenticate()
       await this._device.sendApdu('80E400800A4F08B000000000' + appletInfo.packageId, true)
@@ -118,7 +120,7 @@ export default class UpgradeManager {
     // init with recover
     progressCallback(D.updateStatus.init, 80)
     if (appletInfo.name !== 'Backup') {
-      await this._device.sendApdu('8000000000', true)
+      await this._device.sendApdu('8000000000', true, appletInfo.coinType)
     }
     progressCallback(D.updateStatus.initFinish, 100)
   }
