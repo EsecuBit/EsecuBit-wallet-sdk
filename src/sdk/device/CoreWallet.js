@@ -220,11 +220,11 @@ export default class CoreWallet {
     return this._wallet.getDeriveData(coinType, path)
   }
 
-  sendApdu (apdu, isEnc = false) {
+  sendApdu (apdu, isEnc = false, coinType) {
     if (!this._wallet) {
       console.warn('init wallet first')
       throw D.error.deviceNotConnected
     }
-    return this._wallet.sendApdu(apdu, isEnc)
+    return this._wallet.sendApdu(apdu, isEnc, coinType)
   }
 }
