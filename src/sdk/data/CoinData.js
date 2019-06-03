@@ -388,8 +388,7 @@ export default class CoinData {
     } else if (fromLegal) {
       let exchange = this._exchange[coinType].getCurrentExchange()
       let rRate = Number(exchange.exchange[fromType])
-      let unitValue = Number(D.convertValue(coinType, value, toType, exchange.unit))
-      return (rRate && (unitValue / rRate)).toString()
+      return D.convertValue(coinType, value / rRate, exchange.unit, toType)
     } else if (toLegal) {
       let exchange = this._exchange[coinType].getCurrentExchange()
       let rate = Number(exchange.exchange[toType])
