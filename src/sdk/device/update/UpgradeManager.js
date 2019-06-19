@@ -87,19 +87,19 @@ export default class UpgradeManager {
     let script = response.script
 
     progressCallback(D.updateStatus.handleData, 10)
-    if (appletInfo.installed) {
-      // backup
-      if (appletInfo.name !== 'Backup') {
-        await this._device.sendApdu('8002000000', true, appletInfo.coinType)
-      }
-      // delete
-      await this._externalAuthenticate()
-      await this._device.sendApdu('80E400800A4F08B000000000' + appletInfo.packageId, true)
-    }
+    // if (appletInfo.installed) {
+    //   // backup
+    //   if (appletInfo.name !== 'Backup') {
+    //     await this._device.sendApdu('8002000000', true, appletInfo.coinType)
+    //   }
+    //   // delete
+    //   await this._externalAuthenticate()
+    //   await this._device.sendApdu('80E400800A4F08B000000000' + appletInfo.packageId, true)
+    // }
 
     progressCallback(D.updateStatus.install, 15)
     // install
-    await this._externalAuthenticate()
+    // await this._externalAuthenticate()
     let count = 0
     for (let apdu of script) {
       progressCallback(D.updateStatus.install, 15 + Math.floor(60 * count / script.length))
@@ -108,12 +108,12 @@ export default class UpgradeManager {
     }
 
     progressCallback(D.updateStatus.init, 75)
-    // instance
-    await this._device.sendApdu('80e60c0021' +
-      '08B000000000' + appletInfo.packageId +
-      '08B000000000' + appletInfo.appletId +
-      '08B000000000' + appletInfo.appletId +
-      '010002c90000')
+    // // instance
+    // await this._device.sendApdu('80e60c0021' +
+    //   '08B000000000' + appletInfo.packageId +
+    //   '08B000000000' + appletInfo.appletId +
+    //   '08B000000000' + appletInfo.appletId +
+    //   '010002c90000')
     this._device.reset() // clear version and select applet cache
 
     // init with recover
