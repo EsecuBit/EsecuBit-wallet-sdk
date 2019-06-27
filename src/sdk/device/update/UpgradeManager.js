@@ -29,9 +29,10 @@ export default class UpgradeManager {
   async getAppletList () {
     let walletInfo = {}
     let latestAppletVersions = {}
+    let productName = await this._getProductName()
     await Promise.all([
       this._device.getWalletInfo().then(ret => { walletInfo = ret }),
-      D.http.get(server + 'version').then(ret => { latestAppletVersions = ret })])
+      D.http.get(server + 'version?pro=' + productName).then(ret => { latestAppletVersions = ret })])
 
     let localAppletVersions = walletInfo.applet_versions
     console.log('getAppletList appletVersions', localAppletVersions)
@@ -55,6 +56,18 @@ export default class UpgradeManager {
     return appletList
   }
 
+  async _getProductName () {
+    await this._device.sendApdu('00A4040008B000000000010202')
+    let version = await this._device.sendApdu('804A000000')
+    let flag = version.slice(14, 16)
+    switch (flag) {
+      case '10':
+        return 'tp'
+      default:
+        return 'std'
+    }
+  }
+
   static _isNeedUpgrade (newVersion, oldVersion) {
     newVersion = newVersion.split('.').map(i => parseInt(i))
     oldVersion = oldVersion.split('.').map(i => parseInt(i))
@@ -70,7 +83,6 @@ export default class UpgradeManager {
 
   async installUpgrade (appletInfo, progressCallback) {
     progressCallback = progressCallback || (() => {})
-
     console.log('installUpgrade appletInfo', appletInfo)
     if (!appletInfo) {
       console.warn('installUpgrade appletInfo != null', appletInfo)
@@ -80,13 +92,15 @@ export default class UpgradeManager {
       console.warn('installUpgrade appletInfo no need to install', appletInfo)
       throw D.error.invalidParams
     }
-
+    let productName = await this._getProductName()
+    console.debug('applet product', productName)
     progressCallback(D.updateStatus.getScript, 0)
     // get script
-    let response = await D.http.get(server + 'script/' + appletInfo.name + '/' + appletInfo.latestVersion)
+    let response = await D.http.get(server + 'script/' + appletInfo.name + '/' + appletInfo.latestVersion + '?pro=' + productName)
     let script = response.script
 
     progressCallback(D.updateStatus.handleData, 10)
+
     // if (appletInfo.installed) {
     //   // backup
     //   if (appletInfo.name !== 'Backup') {
@@ -108,7 +122,7 @@ export default class UpgradeManager {
     }
 
     progressCallback(D.updateStatus.init, 75)
-    // // instance
+    // instance
     // await this._device.sendApdu('80e60c0021' +
     //   '08B000000000' + appletInfo.packageId +
     //   '08B000000000' + appletInfo.appletId +
