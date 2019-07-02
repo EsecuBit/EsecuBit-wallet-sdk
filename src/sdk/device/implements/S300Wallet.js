@@ -174,6 +174,9 @@ export default class S300Wallet {
   async _getVersionInfo (name, coinType) {
     try {
       let response = await this.sendApdu('804A000000', false, coinType)
+      // the version data fetched from the Buffer is decimal,
+      // but this is a hexadecimal conversion, so we need to convert back to get the correct version.
+      let version = response[4].toString(16) + '.' + response[5].toString(16) + '.' + response[6].toString(16)
       return {
         name: name,
         installed: true,
@@ -181,7 +184,7 @@ export default class S300Wallet {
         appletId: response.slice(0, 3).toString('hex'),
         packageId: response.slice(0, 2).toString('hex') + '01',
         isTestApplet: response[3] === 1,
-        version: response[4] + '.' + response[5] + '.' + response[6],
+        version: version,
         date: response.slice(7, 12).toString('hex'),
         coinType: coinType
       }
@@ -353,7 +356,7 @@ export default class S300Wallet {
 
         data = pm.slice(17, 37)
         data = D.address.path.fromBuffer(data)
-      // type[1] actor[8] name[8] account[4] publicKey[33]
+        // type[1] actor[8] name[8] account[4] publicKey[33]
       } else if (type === 1) {
         let pmAccountIndex = pm.readUInt32BE(1 + 8 + 8) // accountIndex in path
         if (pmAccountIndex !== (0x80000000 + accountIndex)) {
