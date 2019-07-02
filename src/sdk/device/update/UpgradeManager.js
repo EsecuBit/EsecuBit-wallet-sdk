@@ -101,15 +101,15 @@ export default class UpgradeManager {
 
     progressCallback(D.updateStatus.handleData, 10)
 
-    // if (appletInfo.installed) {
-    //   // backup
-    //   if (appletInfo.name !== 'Backup') {
-    //     await this._device.sendApdu('8002000000', true, appletInfo.coinType)
-    //   }
-    //   // delete
-    //   await this._externalAuthenticate()
-    //   await this._device.sendApdu('80E400800A4F08B000000000' + appletInfo.packageId, true)
-    // }
+    if (appletInfo.installed) {
+      // backup
+      if (appletInfo.name !== 'Backup') {
+        await this._device.sendApdu('8002000000', true, appletInfo.coinType)
+      }
+      // delete
+      // await this._externalAuthenticate()
+      // await this._device.sendApdu('80E400800A4F08B000000000' + appletInfo.packageId, true)
+    }
 
     progressCallback(D.updateStatus.install, 15)
     // install
