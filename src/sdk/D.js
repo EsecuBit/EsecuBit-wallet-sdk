@@ -38,7 +38,6 @@ const D = {
 
   error: {
     succeed: 0,
-
     noDevice: 101,
     deviceComm: 102,
     deviceConnectFailed: 103,
@@ -142,7 +141,7 @@ const D = {
     other: {
       hdwallet: 'hdwallet',
       manager: 'manager',
-      backup: 'hdwallet'
+      backup: 'backup'
     },
 
     params: {
