@@ -106,9 +106,6 @@ export default class S300Wallet {
 
     // async handshake
     this._allEnc = true
-    // noinspection JSIgnoredPromiseFromCall
-    this.getWalletId()
-
     return {walletId: walletId}
   }
 

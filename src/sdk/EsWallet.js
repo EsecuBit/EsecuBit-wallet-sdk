@@ -499,12 +499,20 @@ export default class EsWallet {
   }
 
   /**
-   * Returns wellet version info.
+   * Returns wallet version info.
    *
    * @returns {Promise<Object>}
    */
   getWalletInfo () {
     return this._device.getWalletInfo()
+  }
+
+  /**
+   * Return wallet id
+   * @returns {*|Promise<Object>}
+   */
+  getWalletId () {
+    return this._device.getWalletId()
   }
 
   /**

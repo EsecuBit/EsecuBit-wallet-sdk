@@ -141,6 +141,15 @@ export default class CoreWallet {
     return this._wallet.getWalletBattery()
   }
 
+  async getWalletId() {
+    if (!this._wallet) {
+      console.warn('init wallet first')
+      throw D.error.deviceNotConnected
+    }
+    return this._wallet.getWalletId()
+  }
+
+
   async getDefaultPermissions (coinType, accountIndex) {
     if (!this._wallet) {
       console.warn('init wallet first')
