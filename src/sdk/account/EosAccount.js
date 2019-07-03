@@ -373,9 +373,9 @@ export default class EosAccount extends IAccount {
         // filter paths that has the same coinType, permission, accountIndex
         let filteredPermissionPaths = permissionPaths.filter(path =>
           subPath === D.address.path.makeSlip48Path(
-            path.pathIndexes[1] - 0x80000000,
-            path.pathIndexes[2] - 0x80000000,
-            path.pathIndexes[3] - 0x80000000))
+          path.pathIndexes[1] - 0x80000000,
+          path.pathIndexes[2] - 0x80000000,
+          path.pathIndexes[3] - 0x80000000))
 
         let maxKeyIndex = filteredPermissionPaths.reduce((max, path) => Math.max(max, path.index), -1)
         let maxRegisteredKeyIndex = filteredPermissionPaths
@@ -464,11 +464,7 @@ export default class EosAccount extends IAccount {
       try {
         await this._device.importKey(this.coinType, {accountIndex: this.index, address: name, type: auth, key: key})
       } catch (e) {
-        if (e === D.error.deviceConditionNotSatisfied) {
-          console.log('device already has this key')
-        } else {
-          throw e
-        }
+        throw e
       }
 
       let keyInfo = {
