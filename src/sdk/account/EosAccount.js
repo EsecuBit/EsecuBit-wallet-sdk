@@ -543,13 +543,13 @@ export default class EosAccount extends IAccount {
     }
   }
 
-  async getAddress (isStoring = false) {
+  async getAddress (isShowing = false, isStoring = false) {
     if (!this.isRegistered()) {
       console.warn('getAddress account not registered')
     }
 
     let addressInfo = this.addressInfos.find(a => a.registered)
-    let accountName = await this._device.getAccountName(this.coinType, this.index, addressInfo.path, true, isStoring)
+    let accountName = await this._device.getAccountName(this.coinType, this.index, addressInfo.path, isShowing, isStoring)
     let prefix = ''
     return {address: accountName, qrAddress: prefix + accountName}
   }

@@ -340,10 +340,10 @@ export default class BtcAccount extends IAccount {
     return newAddressInfos
   }
 
-  async getAddress (isStoring = false) {
+  async getAddress (isShowing = false, isStoring = false) {
     let address = await this._device.getAddress(this.coinType,
       D.address.path.makeBip44Path(this.coinType, this.index, D.address.external, this.externalPublicKeyIndex),
-      true, isStoring)
+      isShowing, isStoring)
 
     await this._checkAddressIndexAndGenerateNew()
     let listenAddressInfo = D.copy(this.addressInfos[this.externalPublicKeyIndex])

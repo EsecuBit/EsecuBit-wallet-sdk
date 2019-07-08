@@ -239,7 +239,7 @@ export default class IAccount {
     throw D.error.notImplemented
   }
 
-  async getAddress (isStoring = false) {
+  async getAddress (isShowing = false, isStoring = false) {
     throw D.error.notImplemented
   }
 

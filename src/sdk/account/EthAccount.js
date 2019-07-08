@@ -175,10 +175,10 @@ export default class EthAccount extends IAccount {
     return {total, txInfos}
   }
 
-  async getAddress (isStoring = false) {
+  async getAddress (isShowing = false, isStoring = false) {
     await this._checkAddressIndexAndGenerateNew()
     let path = D.address.path.makeBip44Path(this.coinType, this.index, D.address.external, 0)
-    let address = await this._device.getAddress(this.coinType, path, true, isStoring)
+    let address = await this._device.getAddress(this.coinType, path, isShowing, isStoring)
     address = D.address.toEthChecksumAddress(address)
     let prefix = ''
     return {address: address, qrAddress: prefix + address}
