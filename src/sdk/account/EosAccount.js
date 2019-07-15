@@ -602,6 +602,8 @@ export default class EosAccount extends IAccount {
     handler[D.coin.params.eos.actionTypes.buyram.type] = this.prepareBuyRam
     handler[D.coin.params.eos.actionTypes.buyrambytes.type] = this.prepareBuyRam
     handler[D.coin.params.eos.actionTypes.sellram.type] = this.prepareBuyRam
+    handler[D.coin.params.eos.actionTypes.vote.type] = this.prepareVote
+    handler[D.coin.params.eos.actionTypes.refund.type] = this.prepareRefund
     handler[D.coin.params.eos.actionTypes.other.type] = this.prepareOther
 
     let method = handler[details.type]
@@ -834,6 +836,28 @@ export default class EosAccount extends IAccount {
     prepareTx.actions = [action]
 
     console.log('prepareVote', prepareTx)
+    return prepareTx
+  }
+
+  /**
+   * refund base on eosio API
+   * @param details, common part see prepareTx
+   * {
+   *   owner: string
+   * }
+   * @returns {Promise<> see prepareTx}
+   */
+  async prepareRefund (details) {
+    details = D.copy(details)
+    let owner = details.owner || ''
+    let prepareTx = EosAccount._prepareCommon(details)
+    let actionType = D.coin.params.eos.actionTypes.refund
+    let action = this._makeBasicAction(actionType.account, actionType.name, this.label)
+    action.data = {
+      owner: owner
+    }
+    prepareTx.actions = [action]
+    console.log('prepareRefund', prepareTx)
     return prepareTx
   }
 

@@ -281,6 +281,14 @@ const D = {
               producers: 'name[]'
             }
           },
+          refund: {
+            type: 'eosioRefund',
+            account: 'eosio',
+            name: 'refund',
+            data: {
+              owner: 'name'
+            }
+          },
           other: {
             type: 'other'
           }
