@@ -3,7 +3,7 @@ import Crypto from '../implements/protocol/Crypto'
 import CryptoJS from 'crypto-js'
 import {Buffer} from 'buffer'
 
-const server = 'http://localhost:8080/v1/'
+const server = 'http://api.esecubit.com/app-update-server/applet/v1/'
 
 export default class UpgradeManager {
   constructor (device) {
