@@ -56,6 +56,7 @@ const D = {
     deviceConditionNotSatisfied: 116,
     pinLocked: 117,
     deviceLowBattery: 118,
+    deviceDisplayFailed: 119,
 
     fatUnavailable: 121,
     fatOutOfRange: 122,
@@ -113,13 +114,14 @@ const D = {
       console.warn('sw1sw2 error', sw1sw2 && sw1sw2.toString(16))
       sw1sw2 = sw1sw2 & 0xFFFF
       if (sw1sw2 === 0x6A80) return D.error.deviceApduDataInvalid
-      if (sw1sw2 === 0x6A81) return D.error.deviceNotInit
+      if (sw1sw2 === 0x9A03) return D.error.deviceNotInit
       if (sw1sw2 === 0x6FF8) return D.error.userCancel
       if (sw1sw2 === 0x6FF9) return D.error.operationTimeout
       if (sw1sw2 === 0x6FFE) return D.error.devicePressKeyTooEarly
       if (sw1sw2 === 0x6A83) return D.error.deviceNeedReauthenticate
       if (sw1sw2 === 0x6985) return D.error.deviceConditionNotSatisfied
       if (sw1sw2 === 0x6FD0) return D.error.deviceLowBattery
+      if (sw1sw2 === 0x698F) return D.error.deviceDisplayFailed
       if ((sw1sw2 & 0xFFFF) === 0x63C0) return D.error.pinLocked
       if ((sw1sw2 & 0xFFF0) === 0x63C0) return D.error.pinError
       return D.error.deviceProtocol
