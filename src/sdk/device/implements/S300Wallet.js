@@ -109,7 +109,7 @@ export default class S300Wallet {
     return {walletId: walletId}
   }
 
-  async reset () {
+  reset () {
     this._version = null
     this._currentApp = null
   }

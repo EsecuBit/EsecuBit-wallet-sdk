@@ -26,10 +26,9 @@ export default class UpgradeManager {
    *  coinType: string,
    * }
    */
-  async getAppletList () {
+  async getAppletList (productName = 'std') {
     let walletInfo = {}
     let latestAppletVersions = {}
-    let productName = await this._getProductName()
     await Promise.all([
       this._device.getWalletInfo().then(ret => { walletInfo = ret }),
       D.http.get(server + 'version?pro=' + productName).then(ret => { latestAppletVersions = ret })])
@@ -50,22 +49,11 @@ export default class UpgradeManager {
         latestVersion: appletInfo.version,
         appletId: appletInfo.appletId,
         packageId: appletInfo.packageId,
+        productName: appletInfo.product,
         coinType: localAppletVersion.installed ? localAppletVersion.coinType : ''
       })
     }
     return appletList
-  }
-
-  async _getProductName () {
-    await this._device.sendApdu('00A4040008B000000000010202')
-    let version = await this._device.sendApdu('804A000000')
-    let flag = version.slice(14, 16)
-    switch (flag) {
-      case '10':
-        return 'tp'
-      default:
-        return 'std'
-    }
   }
 
   static _isNeedUpgrade (newVersion, oldVersion) {
@@ -92,11 +80,9 @@ export default class UpgradeManager {
       console.warn('installUpgrade appletInfo no need to install', appletInfo)
       throw D.error.invalidParams
     }
-    let productName = await this._getProductName()
-    console.debug('applet product', productName)
     progressCallback(D.updateStatus.getScript, 0)
     // get script
-    let response = await D.http.get(server + 'script/' + appletInfo.name + '/' + appletInfo.latestVersion + '?pro=' + productName)
+    let response = await D.http.get(server + 'script/' + appletInfo.name + '/' + appletInfo.latestVersion + '?pro=' + appletInfo.productName)
     let script = response.script
 
     progressCallback(D.updateStatus.handleData, 10)
