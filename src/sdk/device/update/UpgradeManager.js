@@ -103,7 +103,15 @@ export default class UpgradeManager {
     let count = 0
     for (let apdu of script) {
       progressCallback(D.updateStatus.install, 15 + Math.floor(60 * count / script.length))
-      await this._device.sendApdu(apdu, true)
+      try {
+        await this._device.sendApdu(apdu, true)
+      } catch (e) {
+        // if you delete an applet that is not installed, you will get D.error.referenceNotFound error.
+        // ignore it.
+        if (e !== D.error.referenceNotFound) {
+          throw e
+        }
+      }
       count++
     }
 
@@ -114,7 +122,7 @@ export default class UpgradeManager {
     //   '08B000000000' + appletInfo.appletId +
     //   '08B000000000' + appletInfo.appletId +
     //   '010002c90000')
-    this._device.reset() // clear version and select applet cache
+    await this._device.reset() // clear version and select applet cache
 
     // init with recover
     progressCallback(D.updateStatus.init, 80)
