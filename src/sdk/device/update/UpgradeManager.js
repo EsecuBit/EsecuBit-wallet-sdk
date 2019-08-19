@@ -126,7 +126,7 @@ export default class UpgradeManager {
 
     // init with recover
     progressCallback(D.updateStatus.init, 80)
-    if (appletInfo.name !== 'Backup') {
+    if (appletInfo.name !== 'Backup' && appletInfo.name !== 'HDWallet') {
       await this._device.sendApdu('8000000000', true, appletInfo.coinType)
     }
     progressCallback(D.updateStatus.initFinish, 100)

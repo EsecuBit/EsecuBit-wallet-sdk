@@ -100,6 +100,7 @@ export default class S300Wallet {
     }
 
     this._handShake = new HandShake(oldFeature || newFeature, HandShake.SM2)
+    await this._initWallet()
     let walletId = D.test.coin ? '01' : '00'
     walletId += D.test.jsWallet ? '01' : '00'
     walletId += (await this.getWalletId()).toString('hex')
@@ -128,6 +129,14 @@ export default class S300Wallet {
       cos_version: cosVersion,
       applet_versions: appletVersions
     }
+  }
+
+  // only for S300 Wallet to init HDWallet
+  // we don't know if the HDWallet has been initialized correctly, because the device needs to be disconnected after installation which is difference from other applet.
+  // so we init the HDWallet after each S300Wallet is created.
+  async _initWallet () {
+    await this.reset()
+    return this.sendApdu('8000000000', false, D.coin.other.hdwallet)
   }
 
   async getWalletId () {
