@@ -136,7 +136,11 @@ export default class S300Wallet {
   // so we init the HDWallet after each S300Wallet is created.
   async _initWallet () {
     await this.reset()
-    return this.sendApdu('8000000000', false, D.coin.other.hdwallet)
+    await this.sendApdu('8000000000', false, D.coin.other.hdwallet)
+    await this.sendApdu('8000000000', false, D.coin.other.manager)
+    for (let coinType of D.supportedCoinTypes()) {
+      await this.sendApdu('8000000000', false, coinType)
+    }
   }
 
   async getWalletId () {
@@ -163,12 +167,14 @@ export default class S300Wallet {
 
     this._versionTask = new Promise(async (resolve) => {
       let version = []
-      version.push(await this._getVersionInfo('HDWallet', D.coin.other.hdwallet))
-      version.push(await this._getVersionInfo('Manager', D.coin.other.manager))
-      version.push(await this._getVersionInfo('Backup', D.coin.other.backup))
-      version.push(await this._getVersionInfo('BTC', D.coin.main.btc))
-      version.push(await this._getVersionInfo('ETH', D.coin.main.eth))
-      version.push(await this._getVersionInfo('EOS', D.coin.main.eos))
+      version.push(await this._getAppletVersionInfo('HDWallet', D.coin.other.hdwallet))
+      version.push(await this._getAppletVersionInfo('Manager', D.coin.other.manager))
+      version.push(await this._getAppletVersionInfo('Backup', D.coin.other.backup))
+      version.push(await this._getAppletVersionInfo('BTC', D.coin.main.btc))
+      version.push(await this._getAppletVersionInfo('ETH', D.coin.main.eth))
+      version.push(await this._getAppletVersionInfo('EOS', D.coin.main.eos))
+      version.push(await this._getLibVersionInfo('Common', D.coin.other.common))
+      version.push(await this._getLibVersionInfo('Method', D.coin.other.method))
       this._version = version
       this._versionTask = null
       resolve(D.copy(version))
@@ -177,7 +183,7 @@ export default class S300Wallet {
     return this._versionTask
   }
 
-  async _getVersionInfo (name, coinType) {
+  async _getAppletVersionInfo (name, coinType) {
     try {
       let response = await this.sendApdu('804A000000', false, coinType)
       // the version data fetched from the Buffer is decimal,
@@ -192,6 +198,34 @@ export default class S300Wallet {
         isTestApplet: response[3] === 1,
         version: version,
         date: response.slice(7, 12).toString('hex'),
+        coinType: coinType
+      }
+    } catch (e) {
+      return {
+        name: name,
+        installed: false
+      }
+    }
+  }
+
+  async _getLibVersionInfo (name, coinType) {
+    try {
+      let response, version, date
+      if (coinType === D.coin.other.common) {
+        response = await this.sendApdu('8036000000',false, D.coin.other.manager)
+        version = response[4].toString(16) + '.' + response[5].toString(16) + '.' + response[6].toString(16)
+        date = response.slice(14, response.toString('hex').length).toString('hex')
+      } else if (coinType === D.coin.other.method) {
+        response = await this.sendApdu('8036020000', false, D.coin.other.manager)
+        version = response[6].toString(16) + '.' + response[7].toString(16) + '.' + response[8].toString(16)
+        date = response.slice(10, response.toString('hex').length).toString('hex')
+      }
+      return {
+        name: name,
+        installed: true,
+        rawHex: response.toString('hex'),
+        version: version,
+        date: date,
         coinType: coinType
       }
     } catch (e) {
@@ -844,7 +878,12 @@ export default class S300Wallet {
 
       // select applet if it's not the require applet
       if (coinType) {
-        let appId = getAppId(coinType)
+        let appId = ''
+        if (coinType === D.coin.other.common || coinType === D.coin.other.method) {
+          appId = getAppId(D.coin.other.manager)
+        } else {
+          appId = getAppId(coinType)
+        }
         if (this._currentApp !== appId) {
           await sendEncApdu('00A4040008B000000000' + appId)
           this._currentApp = appId

@@ -34,7 +34,7 @@ export default class UpgradeManager {
       D.http.get(server + 'version?pro=' + productName).then(ret => { latestAppletVersions = ret })])
 
     let localAppletVersions = walletInfo.applet_versions
-    console.log('getAppletList appletVersions', localAppletVersions)
+    console.debug('getAppletList appletVersions', localAppletVersions)
     let appletList = []
     for (let appletInfo of latestAppletVersions) {
       let localAppletVersion = localAppletVersions.find(v => v.name === appletInfo.name) || {}
@@ -81,15 +81,28 @@ export default class UpgradeManager {
       throw D.error.invalidParams
     }
     progressCallback(D.updateStatus.getScript, 0)
+    let walletInfo = await this._device.getWalletInfo()
+    let localApplets = walletInfo.applet_versions
+    let applets = []
+    localApplets.map(it => applets.push(it.name))
+    applets = applets.filter(it => it !== 'Common' && it !== 'Method')
+    console.debug('local applets', applets)
     // get script
-    let response = await D.http.get(server + 'script/' + appletInfo.name + '/' + appletInfo.latestVersion + '?pro=' + appletInfo.productName)
+    let args = {
+      'pro': appletInfo.productName,
+      'applets': applets
+    }
+    console.debug('get scripts', args)
+    let response = await D.http.post(server + 'script/' + appletInfo.name + '/' + appletInfo.latestVersion, JSON.stringify(args), 'application/json')
     let script = response.script
+    console.debug(JSON.stringify(script))
 
     progressCallback(D.updateStatus.handleData, 10)
 
     if (appletInfo.installed) {
-      // backup
-      if (appletInfo.name !== 'Backup') {
+      // release
+      if (appletInfo.name !== 'Backup' && appletInfo.name !== 'Common' && appletInfo.name !== 'Method') {
+        console.debug(appletInfo.name + ' exec release cmd')
         await this._device.sendApdu('8002000000', true, appletInfo.coinType)
       }
       // delete
@@ -114,21 +127,7 @@ export default class UpgradeManager {
       }
       count++
     }
-
-    progressCallback(D.updateStatus.init, 75)
-    // instance
-    // await this._device.sendApdu('80e60c0021' +
-    //   '08B000000000' + appletInfo.packageId +
-    //   '08B000000000' + appletInfo.appletId +
-    //   '08B000000000' + appletInfo.appletId +
-    //   '010002c90000')
-    await this._device.reset() // clear version and select applet cache
-
-    // init with recover
-    progressCallback(D.updateStatus.init, 80)
-    if (appletInfo.name !== 'Backup' && appletInfo.name !== 'HDWallet') {
-      await this._device.sendApdu('8000000000', true, appletInfo.coinType)
-    }
+    progressCallback(D.updateStatus.init, 90)
     progressCallback(D.updateStatus.initFinish, 100)
   }
 

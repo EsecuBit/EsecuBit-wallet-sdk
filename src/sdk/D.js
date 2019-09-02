@@ -150,7 +150,9 @@ const D = {
     other: {
       hdwallet: 'hdwallet',
       manager: 'manager',
-      backup: 'backup'
+      backup: 'backup',
+      common: 'common',
+      method: 'method',
     },
 
     params: {
@@ -451,8 +453,8 @@ const D = {
           case 0x043587CF: // test net
             // bitcoin-js dont support p2pk
             throw D.error.invalidAddress
-            // if (!D.test.coin) throw D.error.invalidAddress
-            // return D.address.p2pk
+          // if (!D.test.coin) throw D.error.invalidAddress
+          // return D.address.p2pk
           default:
             throw D.error.invalidAddress
         }
