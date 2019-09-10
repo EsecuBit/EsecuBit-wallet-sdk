@@ -106,6 +106,8 @@ const D = {
 
     transactionTooLong: 8001,
     referenceNotFound: 8002,
+    fileNotFound: 8003,
+    claNotCorrect: 8004,
 
     notImplemented: 10000,
     unknown: 10001,
@@ -121,8 +123,10 @@ const D = {
       if (sw1sw2 === 0x6FF8) return D.error.userCancel
       if (sw1sw2 === 0x6FF9) return D.error.operationTimeout
       if (sw1sw2 === 0x6FFE) return D.error.devicePressKeyTooEarly
+      if (sw1sw2 === 0x6A82) return D.error.fileNotFound
       if (sw1sw2 === 0x6A83) return D.error.deviceNeedReauthenticate
       if (sw1sw2 === 0x6A88) return D.error.referenceNotFound
+      if (sw1sw2 === 0x6E00) return D.error.claNotCorrect
       if (sw1sw2 === 0x6985) return D.error.deviceConditionNotSatisfied
       if (sw1sw2 === 0x6FD0) return D.error.deviceLowBattery
       if (sw1sw2 === 0x698F) return D.error.deviceDisplayFailed

@@ -136,10 +136,25 @@ export default class S300Wallet {
   // so we init the HDWallet after each S300Wallet is created.
   async _initWallet () {
     await this.reset()
-    await this.sendApdu('8000000000', false, D.coin.other.hdwallet)
-    await this.sendApdu('8000000000', false, D.coin.other.manager)
-    for (let coinType of D.supportedCoinTypes()) {
-      await this.sendApdu('8000000000', false, coinType)
+    let recoverCoinTypes = []
+    console.debug('init applet 1')
+    try {
+      await this.sendApdu('8000000000', false, D.coin.other.hdwallet)
+      await this.sendApdu('8000000000', false, D.coin.other.manager)
+      for (let coinType of D.supportedCoinTypes()) {
+        try {
+          console.debug('init applet', coinType)
+          await this.sendApdu('8000000000', false, coinType)
+          recoverCoinTypes.push(coinType)
+        } catch (e) {
+          if (e !== D.error.fileNotFound && e !== D.error.claNotCorrect) throw e
+        }
+      }
+    } catch (e) {
+      console.warn('init wallet error', e)
+      if (e !== D.error.fileNotFound && e !== D.error.claNotCorrect) throw e
+    } finally {
+      D.recoverCoinTypes = () => recoverCoinTypes
     }
   }
 
