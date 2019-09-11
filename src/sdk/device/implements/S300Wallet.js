@@ -174,22 +174,18 @@ export default class S300Wallet {
   async _getAppletVersions () {
     this._version = this._version || []
 
-    if (this._version.length > 0) {
-      return D.copy(this._version)
-    } else if (this._versionTask) {
-      return this._versionTask
-    }
+    if (this._versionTask) return this._versionTask
 
     this._versionTask = new Promise(async (resolve) => {
       let version = []
-      version.push(await this._getAppletVersionInfo('HDWallet', D.coin.other.hdwallet))
-      version.push(await this._getAppletVersionInfo('Manager', D.coin.other.manager))
-      version.push(await this._getAppletVersionInfo('Backup', D.coin.other.backup))
-      version.push(await this._getAppletVersionInfo('BTC', D.coin.main.btc))
-      version.push(await this._getAppletVersionInfo('ETH', D.coin.main.eth))
-      version.push(await this._getAppletVersionInfo('EOS', D.coin.main.eos))
-      version.push(await this._getLibVersionInfo('Common', D.coin.other.common))
-      version.push(await this._getLibVersionInfo('Method', D.coin.other.method))
+      version.push(await this._getWalletAppletVersionInfo('HDWallet', D.coin.other.hdwallet))
+      version.push(await this._getWalletAppletVersionInfo('Manager', D.coin.other.manager))
+      version.push(await this._getWalletAppletVersionInfo('Backup', D.coin.other.backup))
+      version.push(await this._getWalletAppletVersionInfo('BTC', D.coin.main.btc))
+      version.push(await this._getWalletAppletVersionInfo('ETH', D.coin.main.eth))
+      version.push(await this._getWalletAppletVersionInfo('EOS', D.coin.main.eos))
+      version.push(await this._getLibAppletVersionInfo('Common', D.coin.other.common))
+      version.push(await this._getLibAppletVersionInfo('Method', D.coin.other.method))
       this._version = version
       this._versionTask = null
       resolve(D.copy(version))
@@ -198,7 +194,7 @@ export default class S300Wallet {
     return this._versionTask
   }
 
-  async _getAppletVersionInfo (name, coinType) {
+  async _getWalletAppletVersionInfo (name, coinType) {
     try {
       let response = await this.sendApdu('804A000000', false, coinType)
       // the version data fetched from the Buffer is decimal,
@@ -223,7 +219,7 @@ export default class S300Wallet {
     }
   }
 
-  async _getLibVersionInfo (name, coinType) {
+  async _getLibAppletVersionInfo (name, coinType) {
     try {
       let response, version, date
       if (coinType === D.coin.other.common) {
