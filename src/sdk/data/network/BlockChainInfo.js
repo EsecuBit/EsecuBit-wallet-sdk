@@ -1,9 +1,13 @@
-
 import ICoinNetwork from './ICoinNetwork'
 import D from '../../D'
+import Url from 'url-parse'
+import Axios, { SERVER } from './Axios'
 
 const testApiUrl = 'https://testnet.blockchain.info'
 const mainApiUrl = 'https://blockchain.info'
+
+const testProxyPath = 'btc/test'
+const mainProxyPath = 'btc/main'
 
 const testTxUrl = 'https://testnet.blockchain.info/tx/'
 const mainTxUrl = 'https://blockchain.info/tx/'
@@ -22,12 +26,14 @@ export default class BlockChainInfo extends ICoinNetwork {
   async init () {
     switch (this.coinType) {
       case D.coin.main.btc:
-        this._apiUrl = mainApiUrl
+        this._proxyApiUrl = [SERVER, mainProxyPath].join('/')
+        this._apiUrl = Axios.isProxy() ? this._proxyApiUrl : mainApiUrl
         this._txUrl = mainTxUrl
         this.provider = mainUrl
         break
       case D.coin.test.btcTestNet3:
-        this._apiUrl = testApiUrl
+        this._proxyApiUrl = [SERVER, testProxyPath].join('/')
+        this._apiUrl = Axios.isProxy() ? this._proxyApiUrl : testApiUrl
         this._txUrl = testTxUrl
         this.provider = testUrl
         break
@@ -38,74 +44,64 @@ export default class BlockChainInfo extends ICoinNetwork {
     return super.init()
   }
 
-  get (url) {
-    return new Promise((resolve, reject) => {
-      console.debug('get', url)
-      let xmlhttp = new XMLHttpRequest()
-      xmlhttp.onreadystatechange = () => {
-        if (xmlhttp.readyState === 4) {
-          console.debug('get response', xmlhttp.responseText)
-          if (xmlhttp.status === 200) {
-            try {
-              resolve(JSON.parse(xmlhttp.responseText))
-            } catch (e) {
-              resolve({response: xmlhttp.responseText})
-            }
-          } else if (xmlhttp.status === 500) {
-            console.warn('BlockChainInfo get', xmlhttp)
-            let response = xmlhttp.responseText
-            if (response.includes('Transaction not found')) {
-              reject(D.error.networkTxNotFound)
-            } else {
-              reject(D.error.networkProviderError)
-            }
-          } else {
-            console.warn(url, xmlhttp)
-            reject(D.error.networkUnavailable)
-          }
+  async get (url, proxy = false) {
+    try {
+      let response = await super.get(url)
+      console.log('BlockChainInfo get response', response)
+      return response
+    } catch (error) {
+      console.warn('BlockChainInfo get', url, error)
+      let request = error.request
+      if (request.status === 500) {
+        let response = request.responseText
+        if (response.includes('Transaction not found')) {
+          throw D.error.networkTxNotFound
+        } else {
+          throw D.error.networkProviderError
         }
+      } else if (request.status === 0) {
+        if (proxy || Axios.isDirect()) throw D.error.networkConnectTimeout
+        let URL = new Url(url)
+        let path = this._proxyApiUrl.concat(URL.pathname, URL.query)
+        console.debug('url is not avaliable, try to forward to proxy server', path)
+        return this.get(path, true)
+      } else {
+        console.warn(url, error.request)
+        throw D.error.networkUnavailable
       }
-      xmlhttp.open('GET', url, true)
-      xmlhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded')
-      xmlhttp.send()
-    })
+    }
   }
 
-  post (url, args) {
-    console.debug('post', url, args)
-    return new Promise((resolve, reject) => {
-      const xmlhttp = new XMLHttpRequest()
-      xmlhttp.onreadystatechange = () => {
-        if (xmlhttp.readyState === 4) {
-          console.debug('post response', xmlhttp.responseText)
-          if (xmlhttp.status === 200) {
-            try {
-              resolve(JSON.parse(xmlhttp.responseText))
-            } catch (e) {
-              resolve({response: xmlhttp.responseText})
-            }
-          } else if (xmlhttp.status === 500) {
-            console.warn('BlockChainInfo post', xmlhttp)
-            let response = xmlhttp.responseText
-            if (response.includes('min relay fee not met')) {
-              reject(D.error.networkFeeTooSmall)
-            } else if (response.includes('Too many pending transactions')) {
-              reject(D.error.networkTooManyPendingTx)
-            } else if (response.includes('dust')) {
-              reject(D.error.networkValueTooSmall)
-            } else {
-              reject(D.error.networkProviderError)
-            }
-          } else {
-            console.warn(url, xmlhttp)
-            reject(D.error.networkUnavailable)
-          }
+  async post (url, args, proxy = false) {
+    try {
+      let response = await super.post(url, args)
+      console.log('BlockChainInfo post response', response)
+      return response
+    } catch (error) {
+      let request = error.request
+      if (error.request.status === 500) {
+        console.warn('BlockChainInfo post', request)
+        let response = request.responseText
+        if (response.includes('min relay fee not met')) {
+          throw D.error.networkFeeTooSmall
+        } else if (response.includes('Too many pending transactions')) {
+          throw D.error.networkTooManyPendingTx
+        } else if (response.includes('dust')) {
+          throw D.error.networkValueTooSmall
+        } else {
+          throw D.error.networkProviderError
         }
+      } else if (request.status === 0) {
+        if (proxy || Axios.isDirect()) throw D.error.networkConnectTimeout
+        let URL = new Url(url)
+        let path = this._proxyApiUrl.concat(URL.pathname, URL.query)
+        console.debug('url is not avaliable, try to forward to proxy server', path, args)
+        return this.post(path, args, true)
+      } else {
+        console.warn(url, request)
+        throw D.error.networkUnavailable
       }
-      xmlhttp.open('POST', url, true)
-      xmlhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded')
-      xmlhttp.send(args)
-    })
+    }
   }
 
   getTxLink (txInfo) {

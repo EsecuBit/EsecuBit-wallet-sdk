@@ -72,6 +72,7 @@ const D = {
     lastAccountNoTransaction: 301,
     accountHasTransactions: 302,
 
+    networkConnectTimeout: 400,
     networkUnavailable: 401,
     networkNotInitialized: 402,
     networkProviderError: 403,
@@ -991,6 +992,11 @@ const D = {
       }
     }
     return Buffer.from(utf8)
+  },
+
+  network: {
+    // auto, proxy, direct
+    type: 'proxy'
   },
 
   http: {

@@ -1,7 +1,8 @@
-
 import D from '../../D'
 import ICoinNetwork from './ICoinNetwork'
 import BigInteger from 'bigi'
+import Url from 'url-parse'
+import Axios, {SERVER} from './Axios'
 
 let apiUrls = {}
 apiUrls[D.coin.main.eth] = 'https://api.etherscan.io'
@@ -18,49 +19,87 @@ urls[D.coin.main.eth] = 'etherscan.io'
 urls[D.coin.test.ethRinkeby] = 'rinkeby.etherscan.io'
 urls[D.coin.test.ethRopsten] = 'ropsten.etherscan.io'
 
+let proxyPath = {}
+proxyPath[D.coin.main.eth] = 'eth/main'
+proxyPath[D.coin.test.ethRopsten] = 'eth/ropsten'
+proxyPath[D.coin.test.ethRinkeby] = 'eth/rinkeby'
+
 export default class EtherScanIo extends ICoinNetwork {
   async init () {
-    this._apiUrl = apiUrls[this.coinType]
+    this._proxyApiUrl = [SERVER, proxyPath[this.coinType]].join('/')
+    this._apiUrl = Axios.isProxy() ? this._proxyApiUrl : apiUrls[this.coinType]
     this._txUrl = txUrls[this.coinType]
     this.provider = urls[this.coinType]
     if (!this._apiUrl) throw D.error.coinNotSupported
     return super.init()
   }
 
-  async get (url, isQueryTx = false) {
-    let response = await super.get(url)
-    if (response.error) {
-      console.warn('etherscan.io get error', response.error)
-      throw D.error.networkProviderError
-    }
-    if (!response.result) {
-      if (isQueryTx) {
-        throw D.error.networkTxNotFound
-      }
-      console.warn('etherscan.io get result null', response)
-      throw D.error.networkProviderError
-    }
-    return response.result
-  }
-
-  async post (url, args) {
-    let response = await super.post(url, args)
-    if (response.error) {
-      console.warn('etherscan.io post error', response.error)
-      let message = response.error.message
-      if (message === 'transaction underpriced') {
-        throw D.error.networkGasPriceTooLow
-      } else if (message === 'intrinsic gas too low') {
-        throw D.error.networkGasTooLow
-      } else {
+  async get (url, isQueryTx = false, proxy = false) {
+    try {
+      let response = await super.get(url)
+      if (response.error) {
+        console.warn('etherscan.io get error', response.error)
         throw D.error.networkProviderError
       }
+      if (!response.result) {
+        if (isQueryTx) {
+          throw D.error.networkTxNotFound
+        }
+        console.warn('etherscan.io get result null', response)
+        throw D.error.networkProviderError
+      }
+      return response.result
+    } catch (error) {
+      let request = error.request
+      if (request.status === 500) {
+        throw D.error.networkProviderError
+      } else if (request.status === 0) {
+        if (proxy || Axios.isDirect()) throw D.error.networkConnectTimeout
+        let URL = new Url(url)
+        let path = this._proxyApiUrl.concat(URL.pathname, URL.query)
+        console.debug('url is not avaliable, try to forward to proxy server', path)
+        return this.get(path, isQueryTx, true)
+      } else {
+        console.warn('etherscan.io connect error', request)
+        throw D.error.networkUnavailable
+      }
     }
-    if (!response.result) {
-      console.warn('etherscan.io post result null', response)
-      throw D.error.networkProviderError
+  }
+
+  async post (url, args, proxy = false) {
+    try {
+      let response = await super.post(url, args)
+      if (response.error) {
+        console.warn('etherscan.io post error', response.error)
+        let message = response.error.message
+        if (message === 'transaction underpriced') {
+          throw D.error.networkGasPriceTooLow
+        } else if (message === 'intrinsic gas too low') {
+          throw D.error.networkGasTooLow
+        } else {
+          throw D.error.networkProviderError
+        }
+      }
+      if (!response.result) {
+        console.warn('etherscan.io post result null', response)
+        throw D.error.networkProviderError
+      }
+      return response.result
+    } catch (error) {
+      let request = error.request
+      if (request.status === 500) {
+        throw D.error.networkProviderError
+      } else if (request.status === 0) {
+        if (proxy || Axios.isDirect()) throw D.error.networkConnectTimeout
+        let URL = new Url(url)
+        let path = this._proxyApiUrl.concat(URL.pathname, URL.query)
+        console.debug('url is not avaliable, try to forward to proxy server', path)
+        return this.post(path, args, true)
+      } else {
+        console.warn('etherscan.io connect error', error.request)
+        throw D.error.networkUnavailable
+      }
     }
-    return response.result
   }
 
   getTxLink (txInfo) {

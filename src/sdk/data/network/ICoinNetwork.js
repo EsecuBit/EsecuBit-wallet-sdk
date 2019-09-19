@@ -1,5 +1,5 @@
-
 import D from '../../D'
+import Axios from './Axios';
 
 const typeAddress = 'address'
 const typeTx = 'tx'
@@ -78,12 +78,12 @@ export default class ICoinNetwork {
     this._requestList = []
   }
 
-  get (url) {
-    return D.http.get(url)
+  async get (url) {
+    return Axios.get(url)
   }
 
   post (url, args = '', type = 'application/x-www-form-urlencoded') {
-    return D.http.post(url, args, type)
+    return Axios.post(url, args)
   }
 
   /**
@@ -255,18 +255,24 @@ export default class ICoinNetwork {
     const _this = this
     if (this._supportMultiAddresses) {
       let addressMap = {}
-      addressInfos.forEach(addressInfo => { addressMap[addressInfo.address] = addressInfo })
+      addressInfos.forEach(addressInfo => {
+        addressMap[addressInfo.address] = addressInfo
+      })
       let addresses = Object.keys(addressMap)
-      return [{request () {
-        return _this.queryAddresses(addresses)
-          .then(multiResponses => Promise.all(multiResponses.map(response => checkTx(response, addressMap[response.address]))))
-          .then(blobs => blobs.reduce((array, item) => array.concat(item), []))
-      }}]
+      return [{
+        request() {
+          return _this.queryAddresses(addresses)
+            .then(multiResponses => Promise.all(multiResponses.map(response => checkTx(response, addressMap[response.address]))))
+            .then(blobs => blobs.reduce((array, item) => array.concat(item), []))
+        }
+      }]
     } else {
       return addressInfos.map(addressInfo => {
-        return {request () {
-          return _this.queryAddress(addressInfo.address).then(response => checkTx(response, addressInfo))
-        }}
+        return {
+          request() {
+            return _this.queryAddress(addressInfo.address).then(response => checkTx(response, addressInfo))
+          }
+        }
       })
     }
   }
