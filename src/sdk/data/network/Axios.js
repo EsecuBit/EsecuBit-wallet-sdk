@@ -4,7 +4,7 @@ import D from '../../D'
 export const SERVER = 'http://proxy.esecubit.com'
 
 axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded'
-axios.defaults.timeout = 3000
+axios.defaults.timeout = 6000
 
 export default class Axios {
   constructor () {
