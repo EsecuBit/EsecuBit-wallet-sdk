@@ -300,6 +300,7 @@ export default class EosPeer extends ICoinNetwork {
         name: p.perm_name,
         parent: p.parent,
         threshold: p.required_auth.threshold,
+        auth: p.required_auth,
         pKeys: p.required_auth.keys.map(key => { return {publicKey: key.key, weight: key.weight} })
       }
     })

@@ -54,6 +54,7 @@ export default class EosAccount extends IAccount {
     info.queryOffset = this.queryOffset
     info.tokens = D.copy(this.tokens)
     info.resources = D.copy(this.resources)
+    info.permissions = D.copy(this._syncPermissions)
     return info
   }
 
@@ -202,7 +203,7 @@ export default class EosAccount extends IAccount {
       console.info('EosAccount registered getAccountInfo', newAccountInfo)
       syncPermissions = newAccountInfo.permissions
     }
-    this._syncPermissions = null
+    // this._syncPermissions = null
     let updatedPermissions = await this._updatePermissions(syncPermissions, callback)
 
     return updatedPermissions.length > 0
@@ -543,6 +544,11 @@ export default class EosAccount extends IAccount {
     }
   }
 
+  async getAccountPermission (tokens = {'EOS': {code: 'eosio.token', symbol: 'EOS'}}) {
+    let newAccountInfo = await this._network.getAccountInfo(this.label, tokens)
+    return newAccountInfo.permissions
+  }
+
   async getAddress (isShowing = false, isStoring = false) {
     if (!this.isRegistered()) {
       console.warn('getAddress account not registered')
@@ -604,6 +610,7 @@ export default class EosAccount extends IAccount {
     handler[D.coin.params.eos.actionTypes.sellram.type] = this.prepareBuyRam
     handler[D.coin.params.eos.actionTypes.vote.type] = this.prepareVote
     handler[D.coin.params.eos.actionTypes.refund.type] = this.prepareRefund
+    handler[D.coin.params.eos.actionTypes.updateauth.type] = this.prepareUpdateAuth
     handler[D.coin.params.eos.actionTypes.other.type] = this.prepareOther
 
     let method = handler[details.type]
@@ -857,7 +864,59 @@ export default class EosAccount extends IAccount {
       owner: owner
     }
     prepareTx.actions = [action]
-    console.log('prepareRefund', prepareTx)
+    console.info('prepareRefund', prepareTx)
+    return prepareTx
+  }
+
+  /**
+   * updateauth base on eosio API
+   * @param details, common part see prepareTx
+   * {
+   *   accounts: [{
+   *     actor: string,
+   *     permission: string,
+   *     weight: number
+   *   }],
+   *   keys: [{
+   *     key: string,
+   *     weight: number
+   *   }],
+   *   threshold: number,
+   *   waits: [{
+   *     wait_sec: number,
+   *     weight: number
+   *   }]
+   *   parent: string,
+   *   permission: string
+   * }
+   * @returns {Promise<Object> see prepareTx}
+   */
+  async prepareUpdateAuth (details) {
+    details = D.copy(details)
+    let accountInfo = this._toAccountInfo()
+    let requiredPermission = {}
+    accountInfo.permissions.map(it => {
+      if (it.name === permission) requiredPermission = it
+    })
+    let permission = details.permission
+    let parent = details.parent
+    if (!permission || !parent || !requiredPermission) throw D.error.invalidParams
+    let auth = requiredPermission.auth
+    auth.threshold = details.threshold
+    auth.waits = details.waits
+    auth.keys = details.keys
+    auth.accounts = details.accounts
+    let prepareTx = EosAccount._prepareCommon(details)
+    let actionType = D.coin.params.eos.actionTypes.updateauth
+    let action = this._makeBasicAction(actionType.account, actionType.name, this.label)
+    action.data = {
+      account: this.label,
+      permission: permission,
+      parent: parent,
+      auth: auth
+    }
+    prepareTx.actions = [action]
+    console.log('prepareUpdateAuth', prepareTx)
     return prepareTx
   }
 

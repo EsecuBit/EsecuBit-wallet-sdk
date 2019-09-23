@@ -305,6 +305,17 @@ const D = {
               owner: 'name'
             }
           },
+          updateauth: {
+            type: 'eosioUpdateAuth',
+            account: 'eosio',
+            name: 'updateauth',
+            data: {
+              account: 'name',
+              permission: 'name',
+              parent: 'name',
+              auth: 'authority'
+            }
+          },
           other: {
             type: 'other'
           }
