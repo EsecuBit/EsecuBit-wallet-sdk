@@ -157,7 +157,7 @@ const D = {
       manager: 'manager',
       backup: 'backup',
       common: 'common',
-      method: 'method',
+      method: 'method'
     },
 
     params: {
@@ -398,6 +398,66 @@ const D = {
       } catch (e) {
         console.warn('eosPrivateToPublicBuffer error', e)
         throw D.error.invalidParams
+      }
+    },
+
+    checkEosPublicKey (publicKey) {
+      if (typeof publicKey !== 'string') {
+        console.warn('unrecognized eos public key format')
+        throw D.error.invalidParams
+      }
+      let publicKeyDataSize = 33
+
+      let digestSuffixRipemd160 = (data, suffix) => {
+        const d = new Uint8Array(data.length + suffix.length)
+        for (let i = 0; i < data.length; ++i) {
+          d[i] = data[i]
+        }
+        for (let i = 0; i < suffix.length; ++i) {
+          d[data.length + i] = suffix.charCodeAt(i)
+        }
+        return createHash('ripemd160').update(Buffer.from(d)).digest()
+      }
+
+      let stringToKey = (s, type, size, suffix) => {
+        const whole = D.base58ToBinary(size + 4, s)
+        const result = { type, data: new Uint8Array(whole.buffer, 0, size) }
+        const digest = new Uint8Array(digestSuffixRipemd160(result.data, suffix))
+        if (digest[0] !== whole[size + 0] || digest[1] !== whole[size + 1] ||
+          digest[2] !== whole[size + 2] || digest[3] !== whole[size + 3]) {
+          console.warn('checksum doesn\'t match', publicKey)
+          throw D.error.invalidAddressChecksum
+        }
+        return result
+      }
+
+      switch (publicKey.substr(0, 3)) {
+        case 'EOS':
+          const whole = D.base58ToBinary(publicKeyDataSize + 4, publicKey.substr(3))
+          const key = { type: D.keyType.k1, data: new Uint8Array(publicKeyDataSize) }
+          for (let i = 0; i < publicKeyDataSize; ++i) {
+            key.data[i] = whole[i]
+          }
+          const digest = new Uint8Array(createHash('ripemd160').update(Buffer.from(key.data)).digest())
+          if (digest[0] !== whole[publicKeyDataSize] || digest[1] !== whole[34] ||
+            digest[2] !== whole[35] || digest[3] !== whole[36]) {
+            console.warn('checksum doesn\'t match', publicKey)
+            throw D.error.invalidAddressChecksum
+          }
+          break
+        case 'PUB':
+          if (publicKey.startsWith('PUB_K1_')) {
+            stringToKey(publicKey.substr(7), D.keyType.k1, publicKeyDataSize, 'K1')
+          } else if (publicKey.startsWith('PUB_R1_')) {
+            stringToKey(publicKey.substr(7), D.keyType.r1, publicKeyDataSize, 'R1')
+          } else {
+            console.warn('unrecognized eos public key format', publicKey)
+            throw D.error.invalidParams
+          }
+          break
+        default:
+          console.warn('unrecognized eos public key format', publicKey)
+          throw D.error.invalidParams
       }
     },
 
@@ -746,6 +806,11 @@ const D = {
     }
   },
 
+  keyType: {
+    k1: 0,
+    r1: 1
+  },
+
   tx: {
     direction: {
       in: 'in',
@@ -1003,6 +1068,43 @@ const D = {
       }
     }
     return Buffer.from(utf8)
+  },
+
+  createBase58Map () {
+    const base58Chars = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
+    const base58M = Array(256).fill(-1)
+    for (let i = 0; i < base58Chars.length; ++i) {
+      base58M[base58Chars.charCodeAt(i)] = i
+    }
+    return base58M
+  },
+
+  /**
+   * copy from eos.js
+   * Convert an unsigned base-58 number in `s` to a bignum
+   * @param size bignum size (bytes)
+   */
+  base58ToBinary (size, s) {
+    const base58Map = D.createBase58Map()
+    const result = new Uint8Array(size)
+    for (let i = 0; i < s.length; ++i) {
+      let carry = base58Map[s.charCodeAt(i)]
+      if (carry < 0) {
+        console.warn('invalid base-58 value')
+        throw D.error.invalidParams
+      }
+      for (let j = 0; j < size; ++j) {
+        const x = result[j] * 58 + carry
+        result[j] = x
+        carry = x >> 8
+      }
+      if (carry) {
+        console.warn('base-58 value is out of range')
+        throw D.error.invalidParams
+      }
+    }
+    result.reverse()
+    return result
   },
 
   network: {
