@@ -902,10 +902,10 @@ export default class EosAccount extends IAccount {
     let parent = details.parent
     if (!permission || !parent || !requiredPermission) throw D.error.invalidParams
     let auth = requiredPermission.auth
-    auth.threshold = details.threshold
-    auth.waits = details.waits
-    auth.keys = details.keys
-    auth.accounts = details.accounts
+    auth.threshold = details.threshold || 1
+    auth.waits = details.waits || []
+    auth.keys = details.keys || []
+    auth.accounts = details.accounts || []
     let prepareTx = EosAccount._prepareCommon(details)
     let actionType = D.coin.params.eos.actionTypes.updateauth
     let action = this._makeBasicAction(actionType.account, actionType.name, this.label)
