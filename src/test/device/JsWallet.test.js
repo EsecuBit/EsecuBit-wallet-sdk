@@ -7,16 +7,16 @@ import FcBuffer from '../../sdk/device/implements/protocol/EosFcBuffer'
 chai.should()
 
 D.test.coin = false
-const jsWallet = new JsWallet()
+
 // This seed has no value. Trust me.
 // menmonic: quick hurt retire forget pupil street twin volcano width word leaf salt
 const seed = '19bc2ed769682d9fc0d08b9a1f59306a5a1e63f140d5743c6a4076cc6b588e32b25c308e07fb0a16354463530c827c85bac67832794fa4798a701b063d01a341'
-
+const jsWallet = new JsWallet(seed)
 describe('JsWallet Bitcoin', function () {
   this.timeout('10000')
 
   before(async function () {
-    await jsWallet.init(seed)
+    await jsWallet.init()
   })
 
   it('getAddress', async function () {
@@ -114,7 +114,7 @@ describe('JsWallet EOS', function () {
 
   it('serialTx', function () {
     let response = FcBuffer.serializeTx(tx)
-    console.log('serializeTx result', response.toString('hex'))
+    console.log('serializeTx1 result', response.toString('hex'))
     response.toString('hex').should.equal('34b5b45b6adb550b1ec9000000000100a6823403ea3055000000572d3ccdcd01000000000093dd7400000000a8ed323221000000000093dd74000000008093dd74701101000000000004535953000000000000')
   })
 
@@ -154,13 +154,57 @@ describe('JsWallet EOS', function () {
       transaction_extensions: []
     }
     let response = FcBuffer.serializeTx(tx2)
-    console.log('serializeTx result', response.toString('hex'))
+    console.log('serializeTx2 result', response.toString('hex'))
     response.toString('hex').should.equal('51eece5b65449da92ae200000000010000000000ea305500003f2a1ba6a24a01104208d91d8d145600000000a8ed323231104208d91d8d1456104208d91d8d1456000000000000000004454f5300000000b80b00000000000004454f53000000000000')
   })
 
+  it('serialTx3', function () {
+    const tx3 = {
+      expiration: 1538569524,
+      ref_block_num: 17509,
+      ref_block_prefix: 3794446749,
+      max_net_usage_words: 0,
+      max_cpu_usage_ms: 0,
+      delay_sec: 0,
+      context_free_actions: [],
+      actions: [{
+        account: 'eosio',
+        name: 'delegatebw',
+        authorization: [
+          {
+            actor: 'esecubit1111',
+            permission: 'active'
+          }
+        ],
+        data: {
+          account: 'esecubit1111',
+          permission: 'active',
+          parent: 'owner',
+          auth: {
+            threshold: 1,
+            keys: [],
+            accounts: [
+              {
+                permission: {
+                  actor: 'excelsecu111',
+                  permission: 'active'
+                },
+                weight: 1
+              }
+            ],
+            waits: []
+          }
+        }
+      }],
+      transaction_extensions: []
+    }
+    let response = FcBuffer.serializeTx(tx3)
+    console.log('serializeTx3 result', response.toString('hex'))
+  })
+
   it('getPublicKey', async function () {
-    let owner = await jsWallet.getPublicKey(D.coin.test.eosJungle, "m/48'/4'/0'/0'/0'")
-    let active = await jsWallet.getPublicKey(D.coin.test.eosJungle, "m/48'/4'/1'/0'/0'")
+    let owner = await jsWallet.getAddress(D.coin.test.eosJungle, "m/48'/4'/0'/0'/0'")
+    let active = await jsWallet.getAddress(D.coin.test.eosJungle, "m/48'/4'/1'/0'/0'")
     console.log('eos publicKey owner', owner)
     console.log('eos publicKey active', active)
     owner.should.not.equal(undefined)
