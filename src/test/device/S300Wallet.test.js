@@ -2,28 +2,33 @@
 import D from '../../sdk/D'
 import Provider from '../../sdk/Provider'
 import S300Wallet from '../../sdk/device/implements/S300Wallet'
-import ChromeUsbDevice from '../../sdk/device/implements/transmitter/io/ChromeUsbDevice'
+import MockDevice from '../../sdk/device/implements/transmitter/io/MockDevice'
 import bitPony from 'bitpony'
 import chai from 'chai'
-import CcidTransmitter from '../../sdk/device/implements/transmitter/CcidTransmitter'
+import MockTransmitter from '../../sdk/device/implements/transmitter/MockTransmitter'
 
-Provider.HardDevice = ChromeUsbDevice
+D.test.mockDevice = true
+D.test.mockTransmitter = true
+Provider.HardDevice = MockDevice
+Provider.Transmitters = MockTransmitter
+
 
 chai.should()
+let transmitter = new MockTransmitter()
+let s300Wallet = new S300Wallet(transmitter)
 describe('S300Wallet', function () {
-  let s300Wallet
+
   this.timeout(600000)
 
-  before(function (done) {
-    let transmitter = new CcidTransmitter()
-    transmitter.listenPlug((error, status) => {
-      error.should.equal(D.error.succeed)
-      if (status === D.status.plugIn) {
-        s300Wallet = new S300Wallet(transmitter)
-        s300Wallet.init().then(() => done())
-      }
-    })
-  })
+  // before(function (done) {
+  //
+  //   transmitter.listenPlug((error, status) => {
+  //     if (status === D.status.plugIn) {
+  //
+  //       // s300Wallet.init().then(() => done())
+  //     }
+  //   })
+  // })
 
   it('get address', async () => {
     let address = await s300Wallet.getAddress(D.coin.main.btc, "m/44'/0'/0'/1/0", false)

@@ -103,8 +103,17 @@ export default class MockTransmitter {
       return Buffer.from('000004000400', 'hex') // max read / write size = 1k
     }
 
-    console.warn('not supported mock apdu', apdu)
-    throw D.error.unknown
+    // console.warn('not supported mock apdu', apdu)
+    // throw D.error.unknown
+  }
+
+  reset () {
+    // do nothing
+  }
+
+  transmit (apdu) {
+    this.sendApdu(apdu)
   }
 }
+
 MockTransmitter.fileSize = fileSize
