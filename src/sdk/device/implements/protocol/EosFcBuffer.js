@@ -265,6 +265,7 @@ const FcBuffer = {
 
       let content = new ByteBuffer(20, true, true)
       Object.entries(actionType.data).forEach(([key, itemType]) => {
+        console.info('parse data type', value, key, itemType)
         let item = value[key]
         if (item === undefined) {
           console.warn('item not found in action type', b, value, key, itemType)
@@ -295,9 +296,79 @@ const FcBuffer = {
     }
   },
 
+  authority: {
+    appendByteBuffer (b, authorityTypes) {
+      console.info('parse authority type', authorityTypes)
+      Object.entries(authorityTypes).forEach(([key, value]) => {
+        let itemType = D.coin.params.eos.getAuthorityType(key)
+        let item = value
+        if (itemType === undefined) {
+          console.warn('item not found in action type', b, value, key, itemType)
+          throw D.error.invalidParams
+        }
+        if (itemType.endsWith('[]')) {
+          // handle vector
+          if (!Array.isArray(item)) {
+            console.warn('item not an array when itemType is vector', b, value, key, itemType)
+            throw D.error.invalidParams
+          }
+          let subItemType = itemType.slice(0, itemType.length - 2)
+
+          b.writeVarint32(item.length)
+          item.map(i => {
+            FcBuffer[subItemType].appendByteBuffer(b, i)
+          })
+        } else {
+          FcBuffer[itemType].appendByteBuffer(b, item)
+        }
+      })
+    }
+  },
+
+  keyWeight: {
+    appendByteBuffer (b, keyWeight) {
+      console.info('parse keyWeight type', keyWeight)
+      FcBuffer.publicKey.appendByteBuffer(b, keyWeight.key)
+      FcBuffer.uint16.appendByteBuffer(b, keyWeight.weight)
+    }
+  },
+
+  permissionLevelWeight: {
+    appendByteBuffer (b, permissionLevelWeight) {
+      console.info('parse permissionLevelWeight type', permissionLevelWeight)
+      FcBuffer.permissionLevel.appendByteBuffer(b, permissionLevelWeight.permission)
+      FcBuffer.uint16.appendByteBuffer(b, permissionLevelWeight.weight)
+    }
+  },
+
+  permissionLevel: {
+    appendByteBuffer (b, permissionLevel) {
+      console.info('parse permission level type', permissionLevel)
+      FcBuffer.name.appendByteBuffer(b, permissionLevel.actor)
+      FcBuffer.name.appendByteBuffer(b, permissionLevel.permission)
+    }
+  },
+
+  publicKey: {
+    appendByteBuffer (b, publicKey) {
+      console.info('parse publicKey type', publicKey)
+      publicKey = D.address.stringToEosPublicKey(publicKey)
+      FcBuffer.uint8.appendByteBuffer(b, publicKey.type)
+      FcBuffer.uint8.appendByteBuffer(b, publicKey.data)
+    }
+  },
+
+  waitWeight: {
+    appendByteBuffer (b, waitWeight) {
+      console.info('parse waitWeight type', waitWeight)
+      FcBuffer.uint32.appendByteBuffer(b, waitWeight.wait_sec)
+      FcBuffer.uint16.appendByteBuffer(b, waitWeight.weight)
+    }
+  },
+
   asset: {
     appendByteBuffer (b, str) {
-      // copy from eos.js, ignore contract part(useless yet)
+      // copy from eos.js v16.0.9, ignore contract part(useless yet)
       let [amountRaw] = str.split(' ')
       let amountMatch = amountRaw.match(/^(-?[0-9]+(\.[0-9]+)?)( |$)/)
       let amount = amountMatch ? amountMatch[1] : null

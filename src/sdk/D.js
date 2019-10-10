@@ -321,11 +321,22 @@ const D = {
           }
         },
 
+        authorityTypes: {
+          threshold: 'uint32',
+          keys: 'keyWeight[]',
+          accounts: 'permissionLevelWeight[]',
+          waits: 'waitWeight[]'
+        },
+
         getActionType (account, name) {
           let actionType = Object.values(D.coin.params.eos.actionTypes).find(type =>
             type.name === name && (!type.account || type.account === account))
           return actionType || D.coin.params.eos.defaultActionType
-        }
+        },
+
+        getAuthorityType (name) {
+          return D.coin.params.eos.authorityTypes[name]
+        },
       }
     }
   },
@@ -401,13 +412,31 @@ const D = {
       }
     },
 
-    checkEosPublicKey (publicKey) {
+    eosPublicKeyDataSize: 33,
+
+    stringToEosPublicKey (publicKey) {
+      let publicKeyDataSize = D.address.eosPublicKeyDataSize
       if (typeof publicKey !== 'string') {
         console.warn('unrecognized eos public key format')
         throw D.error.invalidParams
       }
-      let publicKeyDataSize = 33
+      if (publicKey.substr(0, 3) === 'EOS') {
+        const whole = D.base58ToBinary(publicKeyDataSize + 4, publicKey.substr(3))
+        const key = { type: D.keyType.k1, data: new Uint8Array(publicKeyDataSize) }
+        for (let i = 0; i < publicKeyDataSize; ++i) {
+          key.data[i] = whole[i]
+        }
+        const digest = new Uint8Array(createHash('ripemd160').update(Buffer.from(key.data)).digest())
+        if (digest[0] !== whole[publicKeyDataSize] || digest[1] !== whole[34] ||
+          digest[2] !== whole[35] || digest[3] !== whole[36]) {
+          console.warn('checksum doesn\'t match', publicKey)
+          throw D.error.invalidAddressChecksum
+        }
+        return key
+      }
+    },
 
+    stringToEosKey (s, type, size, suffix) {
       let digestSuffixRipemd160 = (data, suffix) => {
         const d = new Uint8Array(data.length + suffix.length)
         for (let i = 0; i < data.length; ++i) {
@@ -419,37 +448,32 @@ const D = {
         return createHash('ripemd160').update(Buffer.from(d)).digest()
       }
 
-      let stringToKey = (s, type, size, suffix) => {
-        const whole = D.base58ToBinary(size + 4, s)
-        const result = { type, data: new Uint8Array(whole.buffer, 0, size) }
-        const digest = new Uint8Array(digestSuffixRipemd160(result.data, suffix))
-        if (digest[0] !== whole[size + 0] || digest[1] !== whole[size + 1] ||
-          digest[2] !== whole[size + 2] || digest[3] !== whole[size + 3]) {
-          console.warn('checksum doesn\'t match', publicKey)
-          throw D.error.invalidAddressChecksum
-        }
-        return result
+      const whole = D.base58ToBinary(size + 4, s)
+      const result = { type, data: new Uint8Array(whole.buffer, 0, size) }
+      const digest = new Uint8Array(digestSuffixRipemd160(result.data, suffix))
+      if (digest[0] !== whole[size + 0] || digest[1] !== whole[size + 1] ||
+        digest[2] !== whole[size + 2] || digest[3] !== whole[size + 3]) {
+        console.warn('checksum doesn\'t match', s)
+        throw D.error.invalidAddressChecksum
       }
+      return result
+    },
 
+    checkEosPublicKey (publicKey) {
+      if (typeof publicKey !== 'string') {
+        console.warn('unrecognized eos public key format')
+        throw D.error.invalidParams
+      }
+      let publicKeyDataSize = D.address.eosPublicKeyDataSize
       switch (publicKey.substr(0, 3)) {
         case 'EOS':
-          const whole = D.base58ToBinary(publicKeyDataSize + 4, publicKey.substr(3))
-          const key = { type: D.keyType.k1, data: new Uint8Array(publicKeyDataSize) }
-          for (let i = 0; i < publicKeyDataSize; ++i) {
-            key.data[i] = whole[i]
-          }
-          const digest = new Uint8Array(createHash('ripemd160').update(Buffer.from(key.data)).digest())
-          if (digest[0] !== whole[publicKeyDataSize] || digest[1] !== whole[34] ||
-            digest[2] !== whole[35] || digest[3] !== whole[36]) {
-            console.warn('checksum doesn\'t match', publicKey)
-            throw D.error.invalidAddressChecksum
-          }
+          D.address.stringToEosPublicKey(publicKey)
           break
         case 'PUB':
           if (publicKey.startsWith('PUB_K1_')) {
-            stringToKey(publicKey.substr(7), D.keyType.k1, publicKeyDataSize, 'K1')
+            D.address.stringToEosKey(publicKey.substr(7), D.keyType.k1, publicKeyDataSize, 'K1')
           } else if (publicKey.startsWith('PUB_R1_')) {
-            stringToKey(publicKey.substr(7), D.keyType.r1, publicKeyDataSize, 'R1')
+            D.address.stringToEosKey(publicKey.substr(7), D.keyType.r1, publicKeyDataSize, 'R1')
           } else {
             console.warn('unrecognized eos public key format', publicKey)
             throw D.error.invalidParams

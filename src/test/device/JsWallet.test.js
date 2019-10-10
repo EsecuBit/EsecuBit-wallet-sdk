@@ -160,42 +160,51 @@ describe('JsWallet EOS', function () {
 
   it('serialTx3', function () {
     const tx3 = {
-      expiration: 1538569524,
-      ref_block_num: 17509,
-      ref_block_prefix: 3794446749,
+      expiration: 1569434926,
+      ref_block_num: 53098,
+      ref_block_prefix: 4158463145,
       max_net_usage_words: 0,
       max_cpu_usage_ms: 0,
       delay_sec: 0,
       context_free_actions: [],
-      actions: [{
-        account: 'eosio',
-        name: 'delegatebw',
-        authorization: [
-          {
-            actor: 'esecubit1111',
-            permission: 'active'
-          }
-        ],
-        data: {
-          account: 'esecubit1111',
-          permission: 'active',
-          parent: 'owner',
-          auth: {
-            threshold: 1,
-            keys: [],
-            accounts: [
-              {
-                permission: {
-                  actor: 'excelsecu111',
-                  permission: 'active'
+      actions: [
+        {
+          account: 'eosio',
+          name: 'updateauth',
+          authorization: [
+            {
+              actor: 'esecubit1111',
+              permission: 'owner'
+            }
+          ],
+          data: {
+            account: 'esecubit1111',
+            auth: {
+              accounts: [
+                {
+                  permission: {
+                    actor: 'excelsecu111',
+                    permission: 'active'
+                  },
+                  weight: 1
                 },
-                weight: 1
-              }
-            ],
-            waits: []
-          }
+                {
+                  permission: {
+                    actor: 'excelsecu222',
+                    permission: 'active'
+                  },
+                  weight: 1
+                }
+              ],
+              keys: [],
+              threshold: 1,
+              waits: []
+            },
+            parent: 'owner',
+            permission: 'active'
+          },
         }
-      }],
+      ],
       transaction_extensions: []
     }
     let response = FcBuffer.serializeTx(tx3)

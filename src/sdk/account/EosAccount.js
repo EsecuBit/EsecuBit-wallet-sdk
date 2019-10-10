@@ -54,7 +54,6 @@ export default class EosAccount extends IAccount {
     info.queryOffset = this.queryOffset
     info.tokens = D.copy(this.tokens)
     info.resources = D.copy(this.resources)
-    info.permissions = D.copy(this._syncPermissions)
     return info
   }
 
@@ -203,7 +202,7 @@ export default class EosAccount extends IAccount {
       console.info('EosAccount registered getAccountInfo', newAccountInfo)
       syncPermissions = newAccountInfo.permissions
     }
-    // this._syncPermissions = null
+    this._syncPermissions = null
     let updatedPermissions = await this._updatePermissions(syncPermissions, callback)
 
     return updatedPermissions.length > 0
@@ -893,15 +892,11 @@ export default class EosAccount extends IAccount {
    */
   async prepareUpdateAuth (details) {
     details = D.copy(details)
-    let accountInfo = this._toAccountInfo()
-    let requiredPermission = {}
-    accountInfo.permissions.map(it => {
-      if (it.name === permission) requiredPermission = it
-    })
+    let permissions = await this.getAccountPermission()
     let permission = details.permission
     let parent = details.parent
-    if (!permission || !parent || !requiredPermission) throw D.error.invalidParams
-    let auth = requiredPermission.auth
+    if (!permission || !parent || !permissions) throw D.error.invalidParams
+    let auth = permissions[permission].auth
     auth.threshold = details.threshold || 1
     auth.waits = details.waits || []
     auth.keys = details.keys || []
