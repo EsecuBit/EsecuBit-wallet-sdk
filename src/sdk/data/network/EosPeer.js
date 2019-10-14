@@ -124,13 +124,13 @@ export default class EosPeer extends ICoinNetwork {
         Object.values(action.action_trace.act.data).includes(accountName))
 
       // // filter actions that it's the same
-      // response.actions = response.actions.reduce((actions, action) => {
-      //   if (!actions.some(a =>
-      //     a.action_trace.receipt.act_digest === action.action_trace.receipt.act_digest)) {
-      //     actions.push(action)
-      //   }
-      //   return actions
-      // }, [])
+      response.actions = response.actions.reduce((actions, action) => {
+        if (!actions.some(a =>
+          a.action_trace.receipt.act_digest === action.action_trace.receipt.act_digest)) {
+          actions.push(action)
+        }
+        return actions
+      }, [])
 
       // filter actions that is inline actions
       // let inlineActions = []
