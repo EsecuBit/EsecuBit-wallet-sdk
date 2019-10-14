@@ -83,6 +83,8 @@ const D = {
     networkGasTooLow: 408,
     networkGasPriceTooLow: 409,
 
+    refundRequestNotFound: 410,
+
     networkEosTokenNotFound: 450,
     networkEosTxExpired: 451,
     networkEosUnsatisfiedAuth: 452,
@@ -336,7 +338,7 @@ const D = {
 
         getAuthorityType (name) {
           return D.coin.params.eos.authorityTypes[name]
-        },
+        }
       }
     }
   },

@@ -44,19 +44,27 @@ export default class EosPeer extends ICoinNetwork {
   }
 
   async post (url, args) {
-    let response = await super.post(url, args)
-    if (response.code) {
+    let response
+    try {
+      response = await super.post(url, args)
+      return response
+    } catch (e) {
+      response = e.response
       console.warn('EosPeer post error', response)
-      switch (response.error.code) {
-        case 3040005:
-          throw D.error.networkEosTxExpired
-        case 3090003:
-          throw D.error.networkEosUnsatisfiedAuth
-        default:
-          throw D.error.networkTxNotFound
+      if (response) {
+        console.warn('EosPeer post error', response)
+        switch (response.data.error.code) {
+          case 3040005:
+            throw D.error.networkEosTxExpired
+          case 3090003:
+            throw D.error.networkEosUnsatisfiedAuth
+          case 3050003:
+            throw D.error.refundRequestNotFound
+          default:
+            throw D.error.networkTxNotFound
+        }
       }
     }
-    return response
   }
 
   getTxLink (txInfo) {
