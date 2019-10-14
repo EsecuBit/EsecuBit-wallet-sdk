@@ -872,9 +872,11 @@ export default class EosAccount extends IAccount {
    * @param details, common part see prepareTx
    * {
    *   accounts: [{
-   *     actor: string,
-   *     permission: string,
-   *     weight: number
+   *      permission: {
+   *        actor: string
+   *        permission: string
+   *      },
+   *      weight: number
    *   }],
    *   keys: [{
    *     key: string,
@@ -898,9 +900,9 @@ export default class EosAccount extends IAccount {
     if (!permission || !parent || !permissions) throw D.error.invalidParams
     let auth = permissions[permission].auth
     auth.threshold = details.threshold || 1
-    auth.waits = details.waits || []
     auth.keys = details.keys || []
     auth.accounts = details.accounts || []
+    auth.waits = details.waits || []
     let prepareTx = EosAccount._prepareCommon(details)
     let actionType = D.coin.params.eos.actionTypes.updateauth
     let action = this._makeBasicAction(actionType.account, actionType.name, this.label)

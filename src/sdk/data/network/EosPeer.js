@@ -12,9 +12,10 @@ const jungle = {
 
 // TODO configurable
 const main = {
-  // httpEndpoint: 'https://eos.greymass.com/',
+  httpEndpoint: 'https://eos.greymass.com/',
   // httpEndpoint: 'https://public.eosinfra.io/',
-  httpEndpoint: 'https://geo.eosasia.one/',
+  // httpEndpoint: 'https://geo.eosasia.one/',
+  // httpEndpoint: 'https://api.eostribe.io/',
   provider: 'geo.eosasia.one',
   txUrl: 'https://eospark.com/Main/tx/'
 }
@@ -132,22 +133,22 @@ export default class EosPeer extends ICoinNetwork {
       // }, [])
 
       // filter actions that is inline actions
-      let inlineActions = []
-      response.actions.forEach(action => {
-        action.action_trace.inline_traces.forEach(inline => {
-          if (!inlineActions.some(a =>
-            a.receipt.global_sequence === inline.receipt.global_sequence)) {
-            inlineActions.push(inline)
-          }
-        })
-      })
-      response.actions = response.actions.reduce((actions, action) => {
-        if (!inlineActions.some(a =>
-          a.receipt.global_sequence === action.action_trace.receipt.global_sequence)) {
-          actions.push(action)
-        }
-        return actions
-      }, [])
+      // let inlineActions = []
+      // response.actions.forEach(action => {
+      //   action.action_trace.inline_traces.forEach(inline => {
+      //     if (!inlineActions.some(a =>
+      //       a.receipt.global_sequence === inline.receipt.global_sequence)) {
+      //       inlineActions.push(inline)
+      //     }
+      //   })
+      // })
+      // response.actions = response.actions.reduce((actions, action) => {
+      //   if (!inlineActions.some(a =>
+      //     a.receipt.global_sequence === action.action_trace.receipt.global_sequence)) {
+      //     actions.push(action)
+      //   }
+      //   return actions
+      // }, [])
 
       actions.push(...response.actions)
       currentOffset += response.actions.length
