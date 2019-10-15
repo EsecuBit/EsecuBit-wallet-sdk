@@ -73,7 +73,7 @@ export default class EosPeer extends ICoinNetwork {
 
   getBlockInfo () {
     let url = this._apiUrl + 'v1/chain/get_info'
-    return this.post(url)
+    return this.get(url)
   }
 
   /**
