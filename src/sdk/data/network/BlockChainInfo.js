@@ -184,6 +184,11 @@ export default class BlockChainInfo extends ICoinNetwork {
   }
 
   async queryRawTx (txId) {
+    if (D.test.coin) {
+      let url = 'https://api.blockcypher.com/v1/btc/test3/txs/' + txId + '?includeHex=true'
+      let response = await this.get(url)
+      return D.parseBitcoinRawTx(response.hex)
+    }
     let response = await this.get([this._apiUrl, 'rawtx', txId].join('/') + '?cors=true&format=hex')
     return D.parseBitcoinRawTx(response.response)
   }
