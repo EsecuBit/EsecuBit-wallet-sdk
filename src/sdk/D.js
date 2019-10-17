@@ -111,6 +111,7 @@ const D = {
     referenceNotFound: 8002,
     fileNotFound: 8003,
     claNotCorrect: 8004,
+    accountNotExist: 8005,
 
     notImplemented: 10000,
     unknown: 10001,

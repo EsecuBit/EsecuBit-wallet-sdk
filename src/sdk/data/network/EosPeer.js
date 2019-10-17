@@ -50,6 +50,7 @@ export default class EosPeer extends ICoinNetwork {
       return response
     } catch (e) {
       response = e.response
+      let detailes = response.data.error.details
       console.warn('EosPeer post error', response)
       if (response) {
         console.warn('EosPeer post error', response)
@@ -59,12 +60,21 @@ export default class EosPeer extends ICoinNetwork {
           case 3090003:
             throw D.error.networkEosUnsatisfiedAuth
           case 3050003:
-            throw D.error.refundRequestNotFound
+            let message = detailes && detailes[0].message
+            this.throwAssertMsgErrCode(message)
+            break
           default:
             throw D.error.networkTxNotFound
         }
       }
     }
+  }
+
+  throwAssertMsgErrCode (message) {
+    if (!message) return
+    if (message.indexOf('refund is not available yet') !== -1) throw D.error.refundRequestNotFound
+    else if (message.indexOf('to account does not exist') !== -1) throw D.error.accountNotExist
+    else throw D.error.networkProviderError
   }
 
   getTxLink (txInfo) {
