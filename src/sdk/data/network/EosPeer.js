@@ -21,7 +21,7 @@ const main = {
 }
 
 export default class EosPeer extends ICoinNetwork {
-  async init () {
+  async init() {
     this._maxActionSeq = {}
 
     switch (this.coinType) {
@@ -43,7 +43,7 @@ export default class EosPeer extends ICoinNetwork {
     return super.init()
   }
 
-  async post (url, args) {
+  async post(url, args) {
     let response
     try {
       response = await super.post(url, args)
@@ -70,18 +70,18 @@ export default class EosPeer extends ICoinNetwork {
     }
   }
 
-  throwAssertMsgErrCode (message) {
+  throwAssertMsgErrCode(message) {
     if (!message) return
     if (message.indexOf('refund is not available yet') !== -1) throw D.error.refundRequestNotFound
     else if (message.indexOf('to account does not exist') !== -1) throw D.error.accountNotExist
     else throw D.error.networkProviderError
   }
 
-  getTxLink (txInfo) {
+  getTxLink(txInfo) {
     return this._txUrl + txInfo.txId
   }
 
-  getBlockInfo () {
+  getBlockInfo() {
     let url = this._apiUrl + 'v1/chain/get_info'
     return this.get(url)
   }
@@ -90,17 +90,17 @@ export default class EosPeer extends ICoinNetwork {
    * get the irreversible block height
    * @returns {Promise<*>}
    */
-  async getBlockHeight () {
+  async getBlockHeight() {
     let response = await this.getIrreversibleBlockInfo()
     return response.lastIrreversibleBlockNum
   }
 
-  async getRealBlockHeight () {
+  async getRealBlockHeight() {
     let response = await this.getBlockInfo()
     return response.head_block_num
   }
 
-  async queryAddress (address, offset = 0) {
+  async queryAddress(address, offset = 0) {
     let actions = await this.queryActions(address, offset)
 
     let txs = []
@@ -119,7 +119,7 @@ export default class EosPeer extends ICoinNetwork {
     return txs
   }
 
-  async queryActions (accountName, offset = 0) {
+  async queryActions(accountName, offset = 0) {
     if (D.test.coin) {
       // TODO testnet has different data structor
       return []
@@ -180,27 +180,27 @@ export default class EosPeer extends ICoinNetwork {
     return actions
   }
 
-  getNextActionSeq (address) {
+  getNextActionSeq(address) {
     if (this._maxActionSeq[address]) {
       return this._maxActionSeq[address] + 1
     }
     return 0
   }
 
-  async queryTx (txId) {
+  async queryTx(txId) {
     const url = this._apiUrl + 'v1/history/get_transaction'
     const args = JSON.stringify({id: txId})
     let response = await this.post(url, args)
     return this._wrapTx(response)
   }
 
-  async sendTx (rawTransaction) {
+  async sendTx(rawTransaction) {
     const url = this._apiUrl + 'v1/chain/push_transaction'
     const args = JSON.stringify(rawTransaction)
     await this.post(url, args)
   }
 
-  _wrapTx (rTx) {
+  _wrapTx(rTx) {
     return {
       txId: rTx.id,
       blockNumber: rTx.block_num,
@@ -212,7 +212,7 @@ export default class EosPeer extends ICoinNetwork {
     }
   }
 
-  _wrapActionToTx (rAction) {
+  _wrapActionToTx(rAction) {
     return {
       txId: rAction.action_trace.trx_id,
       blockNumber: rAction.block_num,
@@ -224,13 +224,13 @@ export default class EosPeer extends ICoinNetwork {
     }
   }
 
-  static _getTimeStamp (dateString) {
+  static _getTimeStamp(dateString) {
     let localDate = new Date(dateString)
     let localTime = localDate.getTime()
     return new Date(localTime).getTime()
   }
 
-  async getIrreversibleBlockInfo () {
+  async getIrreversibleBlockInfo() {
     let response = await this.getBlockInfo()
     let refBlockNum = response.last_irreversible_block_num & 0xffff
     let refBlockPrefixHex = response.last_irreversible_block_id.slice(16, 24)
@@ -243,7 +243,7 @@ export default class EosPeer extends ICoinNetwork {
     }
   }
 
-  async getAccountInfo (accountName, tokens) {
+  async getAccountInfo(accountName, tokens) {
     if (!accountName || !tokens) {
       console.warn('EosPeer getAccountInfo invalid params', accountName, tokens)
       throw D.error.invalidParams
@@ -320,7 +320,9 @@ export default class EosPeer extends ICoinNetwork {
         parent: p.parent,
         threshold: p.required_auth.threshold,
         auth: p.required_auth,
-        pKeys: p.required_auth.keys.map(key => { return {publicKey: key.key, weight: key.weight} })
+        pKeys: p.required_auth.keys.map(key => {
+          return {publicKey: key.key, weight: key.weight}
+        })
       }
     })
 
@@ -348,5 +350,14 @@ export default class EosPeer extends ICoinNetwork {
     let url = this._apiUrl + 'v1/history/get_key_accounts'
     let response = await this.post(url, args)
     return response.account_names
+  }
+
+  async getVoteProducers () {
+    let url = 'https://www.api.bloks.io/producers'
+    if (D.test.coin) {
+      url = 'https://www.api.bloks.io/jungle/producers'
+    }
+    let response = await this.get(url)
+    return response.producers
   }
 }

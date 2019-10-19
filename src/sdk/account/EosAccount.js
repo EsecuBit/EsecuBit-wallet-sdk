@@ -977,6 +977,7 @@ export default class EosAccount extends IAccount {
     }
 
     let parts = value.split('.')
+    D.validValue(parts[0])
     let precision = (parts[1] && parts[1].length) || 0
     if (precision > 18) { // eosjs format.js
       console.warn('Precision should be 18 characters or less', tokenPrecision, value)
@@ -1088,5 +1089,9 @@ export default class EosAccount extends IAccount {
     console.log('sendTx', signedTx)
     if (!test) await this._coinData.sendTx(this.coinType, signedTx.signedTx)
     await this._handleNewTx(signedTx.txInfo)
+  }
+
+  async getVoteProducers () {
+    return this._network.getVoteProducers()
   }
 }

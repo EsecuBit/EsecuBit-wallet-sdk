@@ -1197,6 +1197,16 @@ const D = {
     }
   },
 
+  // make sure the value is positive integer and can not be more than one hundred million
+  validValue (value) {
+    let reg = /^(([1-9]\d*)|0)$/
+    if (!reg.test(value.toString())) throw D.error.invalidParams
+    let max = new BigDecimal(100000000)
+    let zero = new BigDecimal(0)
+    value = new BigDecimal(value)
+    if (value.compareTo(max) >= 0 || value.compareTo(zero) < 0) throw D.error.invalidParams
+  },
+
   test: {
     coin: true,
     jsWallet: true,
