@@ -1136,7 +1136,7 @@ const D = {
 
   network: {
     // auto, proxy, direct
-    type: 'proxy'
+    type: 'auto'
   },
 
   http: {
