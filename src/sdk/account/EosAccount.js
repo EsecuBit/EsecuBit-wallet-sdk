@@ -1091,7 +1091,7 @@ export default class EosAccount extends IAccount {
     await this._handleNewTx(signedTx.txInfo)
   }
 
-  async getVoteProducers () {
-    return this._network.getVoteProducers()
+  async getVoteProducers (pageNum = 1, perPage = 50) {
+    return this._network.getVoteProducers(pageNum, perPage)
   }
 }

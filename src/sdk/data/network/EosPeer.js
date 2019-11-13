@@ -352,12 +352,12 @@ export default class EosPeer extends ICoinNetwork {
     return response.account_names
   }
 
-  async getVoteProducers () {
+  async getVoteProducers (pageNum = 1, perPage = 50) {
     let url = 'https://www.api.bloks.io/producers'
     if (D.test.coin) {
       url = 'https://www.api.bloks.io/jungle/producers'
     }
-    let response = await this.get(url)
+    let response = await this.get(url + '?pageNum=' + pageNum + '&perPage=' + perPage)
     return response.producers
   }
 }
