@@ -21,7 +21,7 @@ const main = {
 }
 
 export default class EosPeer extends ICoinNetwork {
-  async init() {
+  async init () {
     this._maxActionSeq = {}
 
     switch (this.coinType) {
@@ -353,11 +353,24 @@ export default class EosPeer extends ICoinNetwork {
   }
 
   async getVoteProducers (pageNum = 1, perPage = 50) {
-    let url = 'https://www.api.bloks.io/producers'
-    if (D.test.coin) {
-      url = 'https://www.api.bloks.io/jungle/producers'
-    }
+    let url = D.test.coin ? 'https://www.api.bloks.io/jungle/producers' : 'https://www.api.bloks.io/producers'
     let response = await this.get(url + '?pageNum=' + pageNum + '&perPage=' + perPage)
     return response.producers
+  }
+
+  async getVoteProxies (pageNum = 1, perPage = 50) {
+    let url = 'https://www.alohaeos.com/vote/proxy?output=json'
+    // get eos testnet type, only support jungle & kylin currently
+    if (D.test.coin) {
+      let network = ''
+      D.recoverCoinTypes().map(it => {
+        if (it.startsWith('eos')) {
+          network = it.slice(4)
+        }
+      })
+      url = 'https://eosauthority.com/api/spa/proxies?network=' + network
+    }
+    let response = await this.get(url)
+    return D.test.coin ? response : response.proxies
   }
 }

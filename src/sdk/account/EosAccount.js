@@ -1094,4 +1094,8 @@ export default class EosAccount extends IAccount {
   async getVoteProducers (pageNum = 1, perPage = 50) {
     return this._network.getVoteProducers(pageNum, perPage)
   }
+
+  async getVoteProxies (pageNum = 1, perPage = 50) {
+    return this._network.getVoteProxies(pageNum, perPage)
+  }
 }
