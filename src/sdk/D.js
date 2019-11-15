@@ -84,6 +84,11 @@ const D = {
     networkGasPriceTooLow: 409,
 
     refundRequestNotFound: 410,
+    ramNotEnough: 411,
+    networkNotEnough: 412,
+    networkOveruse: 413,
+    cpuNotEnough: 414,
+    cpuOveruse: 415,
 
     networkEosTokenNotFound: 450,
     networkEosTxExpired: 451,

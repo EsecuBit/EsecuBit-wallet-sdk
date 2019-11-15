@@ -43,34 +43,46 @@ export default class EosPeer extends ICoinNetwork {
     return super.init()
   }
 
-  async post(url, args) {
+  async post (url, args) {
     let response
     try {
       response = await super.post(url, args)
       return response
     } catch (e) {
-      response = e.response
-      let detailes = response.data.error.details
-      console.warn('EosPeer post error', response)
-      if (response) {
-        console.warn('EosPeer post error', response)
-        switch (response.data.error.code) {
-          case 3040005:
-            throw D.error.networkEosTxExpired
-          case 3090003:
-            throw D.error.networkEosUnsatisfiedAuth
-          case 3050003:
-            let message = detailes && detailes[0].message
-            this.throwAssertMsgErrCode(message)
-            break
-          default:
-            throw D.error.networkTxNotFound
-        }
+      console.warn('EosPeer post error', e.response)
+      this.handleErrorCode(e.response)
+    }
+  }
+
+  handleErrorCode (response) {
+    let detailes = response.data.error.details
+    if (response) {
+      switch (response.data.error.code) {
+        case 3040005:
+          throw D.error.networkEosTxExpired
+        case 3090003:
+          throw D.error.networkEosUnsatisfiedAuth
+        case 3050003:
+          let message = detailes && detailes[0].message
+          this.throwAssertMsgErrCode(message)
+          break
+        case 3080001:
+          throw D.error.ramNotEnough
+        case 3080002:
+          throw D.error.networkNotEnough
+        case 3080003:
+          throw D.error.networkOveruse
+        case 3080004:
+          throw D.error.cpuNotEnough
+        case 3080005:
+          throw D.error.cpuOveruse
+        default:
+          throw D.error.networkProviderError
       }
     }
   }
 
-  throwAssertMsgErrCode(message) {
+  throwAssertMsgErrCode (message) {
     if (!message) return
     if (message.indexOf('refund is not available yet') !== -1) throw D.error.refundRequestNotFound
     else if (message.indexOf('to account does not exist') !== -1) throw D.error.accountNotExist
