@@ -55,30 +55,30 @@ export default class EosPeer extends ICoinNetwork {
   }
 
   handleErrorCode (response) {
-    let detailes = response.data.error.details
-    if (response) {
-      switch (response.data.error.code) {
-        case 3040005:
-          throw D.error.networkEosTxExpired
-        case 3090003:
-          throw D.error.networkEosUnsatisfiedAuth
-        case 3050003:
-          let message = detailes && detailes[0].message
-          this.throwAssertMsgErrCode(message)
-          break
-        case 3080001:
-          throw D.error.ramNotEnough
-        case 3080002:
-          throw D.error.networkNotEnough
-        case 3080003:
-          throw D.error.networkOveruse
-        case 3080004:
-          throw D.error.cpuNotEnough
-        case 3080005:
-          throw D.error.cpuOveruse
-        default:
-          throw D.error.networkProviderError
-      }
+    let errors = response.data.error
+    // api server error
+    if (!errors) throw D.error.networkProviderError
+    switch (response.data.error.code) {
+      case 3040005:
+        throw D.error.networkEosTxExpired
+      case 3090003:
+        throw D.error.networkEosUnsatisfiedAuth
+      case 3050003:
+        let message = errors.details && errors.details[0].message
+        this.throwAssertMsgErrCode(message)
+        break
+      case 3080001:
+        throw D.error.ramNotEnough
+      case 3080002:
+        throw D.error.networkNotEnough
+      case 3080003:
+        throw D.error.networkOveruse
+      case 3080004:
+        throw D.error.cpuNotEnough
+      case 3080005:
+        throw D.error.cpuOveruse
+      default:
+        throw D.error.networkProviderError
     }
   }
 
