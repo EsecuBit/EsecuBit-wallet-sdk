@@ -138,7 +138,7 @@ export default class EosPeer extends ICoinNetwork {
     }
 
     const url = this._apiUrl + 'v1/history/get_actions'
-    const defaultPageSize = 1000
+    const defaultPageSize = 100
 
     let actions = []
     let currentOffset = offset
