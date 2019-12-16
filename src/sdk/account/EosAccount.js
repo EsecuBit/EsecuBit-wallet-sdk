@@ -1098,4 +1098,8 @@ export default class EosAccount extends IAccount {
   async getVoteProxies (pageNum = 1, perPage = 50) {
     return this._network.getVoteProxies(pageNum, perPage)
   }
+
+  async getLatestAccountInfo (token = {'EOS': {code: 'eosio.token', symbol: 'EOS'}}) {
+    return this._network.getAccountInfo(this.label, token)
+  }
 }
