@@ -55,6 +55,7 @@ export default class EosPeer extends ICoinNetwork {
   }
 
   handleErrorCode (response) {
+    if (!response) throw D.error.networkUnavailable
     let errors = response.data.error
     // api server error
     if (!errors) throw D.error.networkProviderError
