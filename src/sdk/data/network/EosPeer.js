@@ -94,9 +94,12 @@ export default class EosPeer extends ICoinNetwork {
     return this._txUrl + txInfo.txId
   }
 
-  getBlockInfo() {
+  getBlockInfo () {
     let url = this._apiUrl + 'v1/chain/get_info'
-    return this.get(url)
+    return this.get(url).catch(e => {
+      if (e.request.status === 0) throw D.error.networkUnavailable
+      else throw D.error.networkProviderError
+    })
   }
 
   /**
