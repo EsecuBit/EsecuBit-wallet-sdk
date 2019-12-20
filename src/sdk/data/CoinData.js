@@ -133,7 +133,12 @@ export default class CoinData {
   }
 
   async getAccounts (filter = {}) {
-    return (await this._db.getAccounts(filter)).sort((a, b) => a.index - b.index)
+    let accounts = []
+    if (this._db) {
+      accounts = await this._db.getAccounts(filter)
+      accounts.sort((a, b) => a.index - b.index)
+    }
+    return accounts
   }
 
   setListner (callback) {
