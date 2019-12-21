@@ -1,4 +1,3 @@
-
 import D from '../D'
 import IAccount from './IAccount'
 import {BigDecimal} from 'bigdecimal'
@@ -104,24 +103,22 @@ export default class EosAccount extends IAccount {
     let pmInfos = []
     for (let pmInfo of response) {
       this.label = pmInfo.actor
-      // if (pmInfo.type === 0) {
-      //   let path = pmInfo.data
-      //   let publicKey = await this._device.getAddress(this.coinType, path)
-      //   pmInfos.push({
-      //     address: name,
-      //     accountId: this.accountId,
-      //     coinType: this.coinType,
-      //     path: path,
-      //     type: pmInfo.name,
-      //     index: D.address.path.toArray(path)[4] - 0x80000000,
-      //     registered: false,
-      //     publicKey: publicKey,
-      //     parent: '',
-      //     txs: []
-      //   })
-      // }
-      // only handle import key
-      if (pmInfo.type === 1) {
+      if (pmInfo.type === 0) {
+        let path = pmInfo.data
+        let publicKey = await this._device.getAddress(this.coinType, path)
+        pmInfos.push({
+          address: pmInfo.name,
+          accountId: this.accountId,
+          coinType: this.coinType,
+          path: path,
+          type: pmInfo.name,
+          index: D.address.path.toArray(path)[4] - 0x80000000,
+          registered: false,
+          publicKey: publicKey,
+          parent: '',
+          txs: []
+        })
+      } else if (pmInfo.type === 1) {
         let publicKey = pmInfo.data
         pmInfos.push({
           address: pmInfo.name,
@@ -155,7 +152,11 @@ export default class EosAccount extends IAccount {
   async checkAccountPermissions (callback) {
     try {
       if (!(await this._checkAccountImportedKey())) {
-        await this._checkPermissionAndGenerateNew()
+        if (this.type === 0) {
+          await this._checkPermissionAndGenerateNew()
+        } else {
+          await this._checkPermissionAndRecover()
+        }
       }
     } catch (e) {
       console.warn('checkNewPermission check error', e)
@@ -164,11 +165,10 @@ export default class EosAccount extends IAccount {
 
     let checkNewAccount = async () => {
       let checkAddressInfos = D.copy(this.addressInfos)
-      let hasImportKeys = checkAddressInfos.some(a => isImportKey(a))
-      if (hasImportKeys) {
-        checkAddressInfos = checkAddressInfos.filter(a => isImportKey(a))
-      }
-
+      // let hasImportKeys = checkAddressInfos.some(a => isImportKey(a))
+      // if (hasImportKeys) {
+      //   checkAddressInfos = checkAddressInfos.filter(a => isImportKey(a))
+      // }
       for (let pmInfo of checkAddressInfos) {
         console.log('EosAccount not registered, check publickey', pmInfo.path, pmInfo.publicKey)
         // slip-0048 recovery
@@ -342,6 +342,67 @@ export default class EosAccount extends IAccount {
     return D.copy(updatePmInfos)
   }
 
+  async _checkPermissionAndRecover () {
+    try {
+      let newAddressInfos = []
+      let response = await this._device.getPermissions(this.coinType, this.index)
+      let hash = {}
+      let accountLength = response.reduce((item, next) => {
+        hash[next.actor] ? '' : hash[next.actor] === true && item.push(next)
+        return item
+      }, []).length
+      let accounts = new Array(accountLength)
+      let index = 0
+      for (let i = 0; i < accountLength; i++) {
+        accounts[i] = new Array(0)
+        for (let j = index; j < response.length; j++) {
+          if (accounts[i].length === 0) {
+            accounts[i].push(response[j])
+            ++index
+          } else {
+            let account = accounts[i]
+            let prevPermission = account[j - 1]
+            if (prevPermission && prevPermission.actor === response[j].actor && prevPermission.name !== response[j].name) {
+              accounts[i].push(response[j])
+              ++index
+            }
+          }
+        }
+      }
+      let permissions = accounts[this.index]
+      console.log('account permission', permissions)
+      permissions.map((it, index) => {
+        let addressInfoIndex = index
+        if (index !== 0) {
+          ++addressInfoIndex
+        }
+        let publicKey = it.data
+        newAddressInfos.push({
+          address: '',
+          accountId: this.accountId,
+          coinType: this.coinType,
+          path: importHeader + it.name + '_' + publicKey,
+          type: '',
+          index: addressInfoIndex,
+          registered: false,
+          publicKey: it.data,
+          parent: '',
+          txs: [] // rfu
+        })
+      })
+      await this._coinData.updateAddressInfos(newAddressInfos)
+      this.addressInfos.push(...newAddressInfos)
+      return newAddressInfos
+    } catch (e) {
+      if (e === D.error.deviceConditionNotSatisfied) {
+        console.warn('device has no wallet, ignore')
+        return []
+      } else {
+        throw e
+      }
+    }
+  }
+
   async _checkPermissionAndGenerateNew () {
     while (this._busy) {
       await D.wait(10)
@@ -373,9 +434,9 @@ export default class EosAccount extends IAccount {
         // filter paths that has the same coinType, permission, accountIndex
         let filteredPermissionPaths = permissionPaths.filter(path =>
           subPath === D.address.path.makeSlip48Path(
-          path.pathIndexes[1] - 0x80000000,
-          path.pathIndexes[2] - 0x80000000,
-          path.pathIndexes[3] - 0x80000000))
+            path.pathIndexes[1] - 0x80000000,
+            path.pathIndexes[2] - 0x80000000,
+            path.pathIndexes[3] - 0x80000000))
 
         let maxKeyIndex = filteredPermissionPaths.reduce((max, path) => Math.max(max, path.index), -1)
         let maxRegisteredKeyIndex = filteredPermissionPaths
@@ -404,6 +465,7 @@ export default class EosAccount extends IAccount {
             })
           }
         }
+        //
       }
 
       await this._coinData.updateAddressInfos(newAddressInfos)

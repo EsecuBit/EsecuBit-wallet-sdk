@@ -309,33 +309,49 @@ export default class EsWallet {
    * @private
    */
   async _recover (coinType) {
+    let accountsAmount = 0
+    let permissions = []
+    if (D.isEos(coinType) && !this._isHadGetPermissions) {
+      permissions = await this._device.getPermissions(coinType, 0)
+      let hash = {};
+      permissions = permissions.reduce((item, next) => {
+        hash[next.actor] ? "" : hash[next.actor] = true && item.push(next);
+        return item
+      }, []);
+      accountsAmount = permissions.length;
+      this._isHadGetPermissions = true
+    }
+    let accountIndex = 0
     while (true) {
       let esAccount
       let lastAccount = this._getLastAccount(coinType)
-      if (lastAccount && lastAccount.txInfos.length === 0) {
+      if (!D.isEos(coinType) && lastAccount && lastAccount.txInfos.length === 0) {
         esAccount = lastAccount
       } else {
-        let account = await this._coinData.newAccount(coinType)
+        let account = await this._coinData.newAccount(coinType, permissions[accountIndex])
         if (D.isBtc(coinType)) {
           esAccount = new BtcAccount(account, this._device, this._coinData)
         } else if (D.isEth(coinType)) {
           esAccount = new EthAccount(account, this._device, this._coinData)
         } else if (D.isEos(coinType)) {
           esAccount = new EosAccount(account, this._device, this._coinData)
+          ++accountIndex
         } else {
           console.warn('EsWallet don\'t support this coinType', coinType)
           throw D.error.coinNotSupported
         }
-
         this._dispatchEvent(D.status.syncingNewAccount, esAccount)
         await esAccount.init()
         this._esAccounts.push(esAccount)
       }
-
       await esAccount.sync(this._syncCallback, true)
-      // new account has no transactions, recover finish
-      if (esAccount.txInfos.length === 0) {
+      // new account has no transactions, recover finish (for btc, eth)
+      if (!D.isEos(coinType) && esAccount.txInfos.length === 0) {
         console.log(esAccount.accountId, 'has no txInfo, stop')
+        break
+      }
+      if (accountsAmount === accountIndex) {
+        console.log(esAccount.accountId, 'has recover finish, stop')
         break
       }
     }
@@ -454,9 +470,11 @@ export default class EsWallet {
    */
   async newAccount (coinType) {
     let lastAccount = this._getLastAccount(coinType)
+    console.log('newAccount', lastAccount)
     if (lastAccount.status === D.account.status.hideByNoTxs) {
       lastAccount.status = D.account.status.show
       await this._coinData.updateAccount(lastAccount)
+      console.log('newAccount`', lastAccount)
       return lastAccount
     }
 
@@ -560,6 +578,18 @@ export default class EsWallet {
     }
     value = value.toString()
     return this._device.setAmountLimit(D.coin.main.eos, value)
+  }
+
+  async _getEosAccountsAmountFromHardware(coinType) {
+    // accountIndex set to 0 currently
+    let permissions = await this._device.getPermissions(coinType, 0)
+    let hash = {};
+    permissions = permissions.reduce((item, next) => {
+      hash[next.actor] ? "" : hash[next.actor] = true && item.push(next);
+      return item
+    }, []);
+    console.log('permission1', permissions)
+    return permissions
   }
 
   /**

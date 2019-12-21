@@ -401,18 +401,20 @@ export default class S300Wallet {
       // type[1] actor[8] name[8] path[20]
       if (type === 0) {
         let pmAccountIndex = pm.readUInt32BE(1 + 8 + 8 + 4 * 2) // accountIndex in path
-        if (pmAccountIndex !== (0x80000000 + accountIndex)) {
-          return pms
-        }
+        // if (pmAccountIndex !== (0x80000000 + accountIndex)) {
+        //   console.log('permission2', pms, pm, pm[0])
+        //   return pms
+        // }
 
         data = pm.slice(17, 37)
         data = D.address.path.fromBuffer(data)
         // type[1] actor[8] name[8] account[4] publicKey[33]
       } else if (type === 1) {
-        let pmAccountIndex = pm.readUInt32BE(1 + 8 + 8) // accountIndex in path
-        if (pmAccountIndex !== (0x80000000 + accountIndex)) {
-          return pms
-        }
+        // let pmAccountIndex = pm.readUInt32BE(1 + 8 + 8) // accountIndex in path
+        // if (pmAccountIndex !== (0x80000000 + accountIndex)) {
+        //   console.log('permission3', pms, pm, pm[0])
+        //   return pms
+        // }
 
         data = pm.slice(21, 54)
         data = D.address.toString(coinType, data)

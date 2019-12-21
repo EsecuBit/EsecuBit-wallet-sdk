@@ -185,16 +185,16 @@ export default class CoinData {
     return providers
   }
 
-  async newAccount (coinType) {
+  async newAccount (coinType, permission) {
     let accountIndex = await await this._newAccountIndex(coinType)
     if (accountIndex === -1) throw D.error.lastAccountNoTransaction
 
-    let account = await this._newAccount(coinType, accountIndex)
+    let account = await this._newAccount(coinType, accountIndex, permission)
     await this._db.newAccount(account)
     return account
   }
 
-  async _newAccount (coinType, accountIndex) {
+  async _newAccount (coinType, accountIndex, permission) {
     let makeId = () => {
       let id = ''
       const possible = '0123456789abcdef'
@@ -203,20 +203,25 @@ export default class CoinData {
       return coinType + '_' + accountIndex + '_' + id
     }
     let status = D.account.status.hideByNoTxs
-    // eos account should be showed directly
+    let label = 'Account#' + (accountIndex + 1)
+    let type = 0
+    // eos account should be show directly
     if (D.isEos(coinType)) {
       status = D.account.status.show
+      label = permission.actor
+      type = permission.type
     }
     let account = {
       accountId: makeId(),
-      label: 'Account#' + (accountIndex + 1),
+      label: label,
       status: status,
       coinType: coinType,
       index: accountIndex,
       balance: '0',
       externalPublicKeyIndex: 0,
       changePublicKeyIndex: 0,
-      queryOffset: 0
+      queryOffset: 0,
+      type: type
     }
     console.log('newAccount', account)
     return account
@@ -229,15 +234,19 @@ export default class CoinData {
   async _newAccountIndex (coinType) {
     if (!coinType) return -1
     let accounts = await this._db.getAccounts({coinType})
+    console.log('_newAccountIndex', accounts)
 
     // check whether the last spec coinType account has transaction
     let lastAccount = accounts.reduce(
       (lastAccount, account) => lastAccount.index > account.index ? lastAccount : account,
       accounts[0])
+    console.log('_newAccountIndex1', lastAccount)
+
     if (!lastAccount) return 0
 
     let txInfos = await this._db.getTxInfos({accountId: lastAccount.accountId})
-    if (txInfos.length === 0) return -1
+    console.log('_newAccountIndex2', txInfos)
+    if (!D.isEos(coinType) && txInfos.length === 0) return -1
     return lastAccount.index + 1
   }
 

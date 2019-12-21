@@ -66,7 +66,7 @@ export default class IAccount {
     info.balance = this.balance
     info.externalPublicKeyIndex = this.externalPublicKeyIndex
     info.changePublicKeyIndex = this.changePublicKeyIndex
-
+    info.type = this.type
     return info
   }
 
@@ -85,6 +85,7 @@ export default class IAccount {
     this.balance = info.balance
     this.externalPublicKeyIndex = info.externalPublicKeyIndex
     this.changePublicKeyIndex = info.changePublicKeyIndex
+    this.type = info.type
   }
 
   async init () {
