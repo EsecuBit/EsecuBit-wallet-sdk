@@ -202,11 +202,15 @@ export default class CoinData {
       // obviously it's no need for random part(id), but we keep it for unpredictable future
       return coinType + '_' + accountIndex + '_' + id
     }
-
+    let status = D.account.status.hideByNoTxs
+    // eos account should be showed directly
+    if (D.isEos(coinType)) {
+      status = D.account.status.show
+    }
     let account = {
       accountId: makeId(),
       label: 'Account#' + (accountIndex + 1),
-      status: D.account.status.hideByNoTxs,
+      status: status,
       coinType: coinType,
       index: accountIndex,
       balance: '0',
