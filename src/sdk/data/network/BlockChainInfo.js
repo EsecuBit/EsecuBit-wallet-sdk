@@ -60,7 +60,10 @@ export default class BlockChainInfo extends ICoinNetwork {
           throw D.error.networkProviderError
         }
       } else if (request.status === 0) {
-        if (proxy || Axios.isDirect()) throw D.error.networkConnectTimeout
+        if (proxy || Axios.isDirect()) {
+          console.warn('BlockchainInfo get error', D.error.networkConnectTimeout)
+          throw D.error.networkConnectTimeout
+        }
         let URL = new Url(url)
         let path = this._proxyApiUrl.concat(URL.pathname, URL.query)
         console.debug('url is not avaliable, try to forward to proxy server', path)
@@ -92,7 +95,10 @@ export default class BlockChainInfo extends ICoinNetwork {
           throw D.error.networkProviderError
         }
       } else if (request.status === 0) {
-        if (proxy || Axios.isDirect()) throw D.error.networkConnectTimeout
+        if (proxy || Axios.isDirect()) {
+          console.warn('BlockchainInfo get error', D.error.networkConnectTimeout)
+          throw D.error.networkConnectTimeout
+        }
         let URL = new Url(url)
         let path = this._proxyApiUrl.concat(URL.pathname, URL.query)
         console.debug('url is not avaliable, try to forward to proxy server', path, args)
