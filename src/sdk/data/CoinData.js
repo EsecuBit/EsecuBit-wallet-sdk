@@ -208,8 +208,11 @@ export default class CoinData {
     // eos account should be show directly
     if (D.isEos(coinType)) {
       status = D.account.status.show
-      label = permission.actor
-      type = permission.type
+      // recovery eos account
+      if (permission) {
+        label = permission.actor
+        type = permission.type
+      }
     }
     let account = {
       accountId: makeId(),
