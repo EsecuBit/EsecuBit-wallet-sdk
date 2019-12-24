@@ -345,33 +345,35 @@ export default class EosAccount extends IAccount {
   async _checkPermissionAndRecover () {
     try {
       let newAddressInfos = []
-      let response = await this._device.getPermissions(this.coinType, this.index)
+      let response = await this._device.getPermissions(this.coinType, 0)
+      let permissionArray = D.copy(response)
+      let permissionLength = permissionArray.length
       let hash = {}
-      let accountLength = response.reduce((item, next) => {
-        hash[next.actor] ? '' : hash[next.actor] === true && item.push(next)
+      response = response.reduce((item, next) => {
+        hash[next.actor] ? '' : hash[next.actor] = true && item.push(next)
         return item
-      }, []).length
-      let accounts = new Array(accountLength)
+      }, [])
+      let accountLength = response.length
+      let accountArray = new Array(accountLength)
       let index = 0
       for (let i = 0; i < accountLength; i++) {
-        accounts[i] = new Array(0)
-        for (let j = index; j < response.length; j++) {
-          if (accounts[i].length === 0) {
-            accounts[i].push(response[j])
+        accountArray[i] = new Array(0)
+        for (let j = index; j < permissionLength; j++) {
+          if (accountArray[i].length === 0) {
+            accountArray[i].push(permissionArray[j])
             ++index
           } else {
-            let account = accounts[i]
+            let account = accountArray[i]
             let prevPermission = account[j - 1]
-            if (prevPermission && prevPermission.actor === response[j].actor && prevPermission.name !== response[j].name) {
-              accounts[i].push(response[j])
+            if (prevPermission && prevPermission.actor === permissionArray[j].actor && prevPermission.name !== permissionArray[j].name) {
+              accountArray[i].push(permissionArray[j])
               ++index
             }
           }
         }
       }
-      let permissions = accounts[this.index]
-      console.log('account permission', permissions)
-      permissions.map((it, index) => {
+      let permissions = accountArray[this.index]
+      permissions && permissions.map((it, index) => {
         let addressInfoIndex = index
         if (index !== 0) {
           ++addressInfoIndex
@@ -530,7 +532,7 @@ export default class EosAccount extends IAccount {
       })
       if (isKeyExist) {
         console.warn(name + 'had imported key')
-        throw D.error.keyIsExist
+        throw D.error.deviceConditionNotSatisfied
       }
       try {
         await this._device.importKey(this.coinType, {accountIndex: this.index, address: name, type: auth, key: key})
