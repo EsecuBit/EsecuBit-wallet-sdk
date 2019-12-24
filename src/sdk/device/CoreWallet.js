@@ -79,7 +79,7 @@ export default class CoreWallet {
 
   async verifyPin () {
     if (!this._wallet) {
-      console.warn('init wallet first')
+      console.warn('before verifyPin, init wallet first')
       throw D.error.deviceNotConnected
     }
     return this._wallet.verifyPin()
@@ -87,7 +87,7 @@ export default class CoreWallet {
 
   getWalletInfo () {
     if (!this._wallet) {
-      console.warn('init wallet first')
+      console.warn('before getWalletInfo, init wallet first')
       throw D.error.deviceNotConnected
     }
     return this._wallet.getWalletInfo()
@@ -95,7 +95,7 @@ export default class CoreWallet {
 
   getAddress (coinType, path, isShowing = false, isStoring = false) {
     if (!this._wallet) {
-      console.warn('init wallet first')
+      console.warn('before getAddress, init wallet first')
       throw D.error.deviceNotConnected
     }
     return this._wallet.getAddress(coinType, path, isShowing, isStoring)
@@ -103,7 +103,7 @@ export default class CoreWallet {
 
   getAddresses (coinType, publicKey, chainNode, type, fromIndex, toIndex) {
     if (!this._wallet) {
-      console.warn('init wallet first')
+      console.warn('before getAddresses, init wallet first')
       throw D.error.deviceNotConnected
     }
     return this._wallet.getAddresses(coinType, publicKey, chainNode, type, fromIndex, toIndex)
@@ -111,7 +111,7 @@ export default class CoreWallet {
 
   getAccountName (coinType, accountIndex, pmData, isShowing = false, isStoring = false) {
     if (!this._wallet) {
-      console.warn('init wallet first')
+      console.warn('before getAccountName, init wallet first')
       throw D.error.deviceNotConnected
     }
     return this._wallet.getAccountName(coinType, accountIndex, pmData, isShowing, isStoring)
@@ -119,7 +119,7 @@ export default class CoreWallet {
 
   getPublicKey (coinType, keyPath) {
     if (!this._wallet) {
-      console.warn('init wallet first')
+      console.warn('before getPublicKey, init wallet first')
       throw D.error.deviceNotConnected
     }
     return this._wallet.getPublicKey(coinType, keyPath)
@@ -127,7 +127,7 @@ export default class CoreWallet {
 
   async signTransaction (coinType, tx) {
     if (!this._wallet) {
-      console.warn('init wallet first')
+      console.warn('before signTransaction, init wallet first')
       throw D.error.deviceNotConnected
     }
     return this._wallet.signTransaction(coinType, tx)
@@ -135,7 +135,7 @@ export default class CoreWallet {
 
   async getWalletBattery () {
     if (!this._wallet) {
-      console.warn('init wallet first')
+      console.warn('before getWalletBattery, init wallet first')
       throw D.error.deviceNotConnected
     }
     return this._wallet.getWalletBattery()
@@ -143,7 +143,7 @@ export default class CoreWallet {
 
   async getWalletId() {
     if (!this._wallet) {
-      console.warn('init wallet first')
+      console.warn('before getWalletId, init wallet first')
       throw D.error.deviceNotConnected
     }
     return this._wallet.getWalletId()
@@ -152,7 +152,7 @@ export default class CoreWallet {
 
   async getDefaultPermissions (coinType, accountIndex) {
     if (!this._wallet) {
-      console.warn('init wallet first')
+      console.warn('before getDefaultPermissions, init wallet first')
       throw D.error.deviceNotConnected
     }
     return this._wallet.getDefaultPermissions(coinType, accountIndex)
@@ -160,7 +160,7 @@ export default class CoreWallet {
 
   async addPermission (coinType, pmInfo) {
     if (!this._wallet) {
-      console.warn('init wallet first')
+      console.warn('before addPermission, init wallet first')
       throw D.error.deviceNotConnected
     }
     return this._wallet.addPermission(coinType, pmInfo)
@@ -168,7 +168,7 @@ export default class CoreWallet {
 
   async removePermission (coinType, pmInfo) {
     if (!this._wallet) {
-      console.warn('init wallet first')
+      console.warn('before removePermission, init wallet first')
       throw D.error.deviceNotConnected
     }
     return this._wallet.removePermission(coinType, pmInfo)
@@ -176,7 +176,7 @@ export default class CoreWallet {
 
   async getPermissions (coinType, accountIndex) {
     if (!this._wallet) {
-      console.warn('init wallet first')
+      console.warn('before getPermissions, init wallet first')
       throw D.error.deviceNotConnected
     }
     return this._wallet.getPermissions(coinType, accountIndex)
@@ -184,7 +184,7 @@ export default class CoreWallet {
 
   async importKey (coinType, keyInfo) {
     if (!this._wallet) {
-      console.warn('init wallet first')
+      console.warn('before importKey, init wallet first')
       throw D.error.deviceNotConnected
     }
     return this._wallet.importKey(coinType, keyInfo)
@@ -192,7 +192,7 @@ export default class CoreWallet {
 
   async removeKey (coinType, keyInfo) {
     if (!this._wallet) {
-      console.warn('init wallet first')
+      console.warn('before removeKey, init wallet first')
       throw D.error.deviceNotConnected
     }
     return this._wallet.removeKey(coinType, keyInfo)
@@ -200,7 +200,7 @@ export default class CoreWallet {
 
   async addToken (coinType, token) {
     if (!this._wallet) {
-      console.warn('init wallet first')
+      console.warn('before addToken, init wallet first')
       throw D.error.deviceNotConnected
     }
     return this._wallet.addToken(coinType, token)
@@ -208,7 +208,7 @@ export default class CoreWallet {
 
   async removeToken (coinType, token) {
     if (!this._wallet) {
-      console.warn('init wallet first')
+      console.warn('before removeToken, init wallet first')
       throw D.error.deviceNotConnected
     }
     return this._wallet.removeToken(coinType, token)
@@ -216,7 +216,7 @@ export default class CoreWallet {
 
   async setAmountLimit (coinType, amountLimit) {
     if (!this._wallet) {
-      console.warn('init wallet first')
+      console.warn('before setAmountLimit, init wallet first')
       throw D.error.deviceNotConnected
     }
     return this._wallet.setAmountLimit(coinType, amountLimit)
@@ -224,7 +224,7 @@ export default class CoreWallet {
 
   async getDeriveData (coinType, path) {
     if (!this._wallet) {
-      console.warn('init wallet first')
+      console.warn('before getDeriveData, init wallet first')
       throw D.error.deviceNotConnected
     }
     return this._wallet.getDeriveData(coinType, path)
@@ -232,7 +232,7 @@ export default class CoreWallet {
 
   sendApdu (apdu, isEnc = false, coinType) {
     if (!this._wallet) {
-      console.warn('init wallet first')
+      console.warn('before sendApdu, init wallet first')
       throw D.error.deviceNotConnected
     }
     return this._wallet.sendApdu(apdu, isEnc, coinType)
@@ -240,7 +240,7 @@ export default class CoreWallet {
 
   reset () {
     if (!this._wallet) {
-      console.warn('init wallet first')
+      console.warn('before reset wallet, init wallet first')
       throw D.error.deviceNotConnected
     }
     return this._wallet.reset()
