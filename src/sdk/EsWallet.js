@@ -127,7 +127,7 @@ export default class EsWallet {
       this._status = D.status.syncFinish
       this._dispatchCurrentStatus()
       // get version async
-      this.getWalletInfo().then(() => console.log('async get wallet info finished'))
+      // this.getWalletInfo().then(() => console.log('async get wallet info finished'))
     } catch (e) {
       console.warn(e)
       this._dispatchError(e)
@@ -345,7 +345,7 @@ export default class EsWallet {
         console.log(esAccount.accountId, 'has no txInfo, stop')
         break
       }
-      if (accountIndex >= accountsAmount) {
+      if (D.isEos(coinType) && accountIndex >= accountsAmount) {
         console.log(esAccount.accountId, 'has recover finish, stop')
         break
       }
