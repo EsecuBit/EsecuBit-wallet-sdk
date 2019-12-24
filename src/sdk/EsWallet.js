@@ -312,13 +312,8 @@ export default class EsWallet {
     let accountsAmount = 0
     let permissions = []
     if (D.isEos(coinType) && !this._isHadGetPermissions) {
-      permissions = await this._device.getPermissions(coinType, 0)
-      let hash = {};
-      permissions = permissions.reduce((item, next) => {
-        hash[next.actor] ? "" : hash[next.actor] = true && item.push(next);
-        return item
-      }, []);
-      accountsAmount = permissions.length;
+      permissions = await this._getEosAccountsAmountFromHardware(coinType)
+      accountsAmount = permissions.length
       this._isHadGetPermissions = true
     }
     let accountIndex = 0
@@ -350,7 +345,7 @@ export default class EsWallet {
         console.log(esAccount.accountId, 'has no txInfo, stop')
         break
       }
-      if (accountsAmount === accountIndex) {
+      if (accountIndex >= accountsAmount) {
         console.log(esAccount.accountId, 'has recover finish, stop')
         break
       }
@@ -580,15 +575,14 @@ export default class EsWallet {
     return this._device.setAmountLimit(D.coin.main.eos, value)
   }
 
-  async _getEosAccountsAmountFromHardware(coinType) {
+  async _getEosAccountsAmountFromHardware (coinType) {
     // accountIndex set to 0 currently
     let permissions = await this._device.getPermissions(coinType, 0)
-    let hash = {};
+    let hash = {}
     permissions = permissions.reduce((item, next) => {
-      hash[next.actor] ? "" : hash[next.actor] = true && item.push(next);
+      hash[next.actor] ? '' : hash[next.actor] = true && item.push(next)
       return item
-    }, []);
-    console.log('permission1', permissions)
+    }, [])
     return permissions
   }
 
