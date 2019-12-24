@@ -522,7 +522,16 @@ export default class EosAccount extends IAccount {
         console.warn('owner key not found in owner', publicKey)
         throw D.error.keyNotMatch
       }
-
+      // check the key whehter if exist
+      let addressInfos = await this._coinData.getAddressInfos({coinType: this.coinType})
+      let isKeyExist = addressInfos.filter(it => it.address === name).some(t => {
+        if (ownerKey) return t.type === 'owner'
+        if (activeKey) return t.type === 'active'
+      })
+      if (isKeyExist) {
+        console.warn(name + 'had imported key')
+        throw D.error.keyIsExist
+      }
       try {
         await this._device.importKey(this.coinType, {accountIndex: this.index, address: name, type: auth, key: key})
       } catch (e) {
