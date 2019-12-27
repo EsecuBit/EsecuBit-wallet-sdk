@@ -242,6 +242,13 @@ export default class EsWallet {
         return D.test.coin ? [D.coin.test.eosJungle] : [D.coin.main.eos]
       }
     }
+    // if syning data costs too much time. the hardware will be power off in two minture and syning will be failed
+    // so we send heart packet to avoid the hardware power off
+    let syncHeartPacket = setInterval(() => {
+      console.info('sync heart packet')
+      this.getCosVersion().catch(e => console.warn('send heart packet: get cos version error', e))
+    }, 1000 * 90)
+
     await this._coinData.sync()
     await Promise.all(this._esAccounts.map(esAccount => esAccount.sync(this._syncCallback, true, this._offlineMode)))
 
@@ -300,6 +307,8 @@ export default class EsWallet {
         await this._coinData.updateAccount(esAccount._toAccountInfo())
       }
     }
+
+    syncHeartPacket && clearInterval(syncHeartPacket)
   }
 
   /**
