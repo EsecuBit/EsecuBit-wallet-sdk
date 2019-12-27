@@ -537,6 +537,11 @@ export default class EsWallet {
     return this._device.getWalletId()
   }
 
+
+  getCosVersion() {
+    return this._device.getCosVersion()
+  }
+
   /**
    * Returns network providers info that using in this SDK. Thanks for their helps.
    *

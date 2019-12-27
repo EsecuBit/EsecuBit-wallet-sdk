@@ -131,6 +131,10 @@ export default class S300Wallet {
     }
   }
 
+  async getCosVersion() {
+    return await this.sendApdu("803300000ABD080000000000000000")
+  }
+
   // only for S300 Wallet to init HDWallet
   // we don't know if the HDWallet has been initialized correctly, because the device needs to be disconnected after installation which is difference from other applet.
   // so we init the HDWallet after each S300Wallet is created.
