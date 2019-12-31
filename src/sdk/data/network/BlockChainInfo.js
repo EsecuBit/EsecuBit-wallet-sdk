@@ -231,6 +231,7 @@ export default class BlockChainInfo extends ICoinNetwork {
         this.indexMap[input.prev_out.tx_index] = prevTxId
       }
       return {
+        spent: input.prev_out.spent,
         prevAddress: input.prev_out.addr,
         prevTxId: prevTxId,
         prevOutIndex: input.prev_out.n,
@@ -241,6 +242,7 @@ export default class BlockChainInfo extends ICoinNetwork {
     }))
     tx.outputs = rTx.out.map(output => {
       return {
+        spent: output.spent,
         address: output.addr,
         value: output.value,
         index: output.n,

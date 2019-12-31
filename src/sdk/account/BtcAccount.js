@@ -116,7 +116,7 @@ export default class BtcAccount extends IAccount {
 
       // find out utxos for address
       let utxos = []
-      let unspentOutputs = txInfo.outputs.filter(output => output.isMine)
+      let unspentOutputs = txInfo.outputs.filter(output => output.isMine && !output.spent)
       let unspentUtxos = unspentOutputs.map(output => {
         let addressInfo = this.addressInfos.find(a => a.address === output.address)
         return {
@@ -133,7 +133,7 @@ export default class BtcAccount extends IAccount {
       })
       utxos.push(...unspentUtxos)
 
-      let spentInputs = txInfo.inputs.filter(input => input.isMine)
+      let spentInputs = txInfo.inputs.filter(input => input.isMine && input.spent)
       if (spentInputs.length > 0) {
         let spentUtxos = spentInputs.map(input => {
           let addressInfo = this.addressInfos.find(a => a.address === input.prevAddress)
