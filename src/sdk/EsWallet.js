@@ -259,6 +259,10 @@ export default class EsWallet {
     if (!recoveryFinish || this._esAccounts.length === 0) {
       if (this._offlineMode) throw D.error.offlineModeNotAllowed
       recoverCoinTypes = D.recoverCoinTypes()
+      if (recoverCoinTypes.findIndex(it => D.isEos(it)) !== -1) {
+        this._deleteEosAccount()
+        console.log('delete old eos account finish')
+      }
     } else {
       // if every accounts of a coinType has txs, checkout the next account in case next account
       // is generated and make transaction on other device
@@ -297,6 +301,28 @@ export default class EsWallet {
       }
       console.log('recovery finish, set recoveryFinish true')
       await this._settings.setSetting('recoveryFinish', true, this._info.walletId)
+      // // TODO:
+      // if (D.supportedCoinTypes().findIndex(it => D.isEos(it)) !== -1) {
+      //   console.log('find the duplicate eos account')
+      //   let accounts = await this._initAccount()
+      //   let eosAccounts = accounts.filter(it => D.isEos(it.coinType))
+      //   let duplicates = new Set()
+      //   // find the duplicate eos account
+      //   eosAccounts.reduce((prev, current) => {
+      //     prev.map(it => {
+      //       if(it.label === current.label) {
+      //         duplicates.add(current)
+      //       }
+      //     })
+      //     prev.push(current)
+      //     return prev
+      //   }, [])
+      //   console.log('had find the duplicate eos account', duplicates)
+      //   // delete the duplicate eos account
+      //   for (let account of duplicates) {
+      //     await this._coinData.deleteAccount(account)
+      //   }
+      // }
     }
 
     // set account show status
@@ -309,6 +335,16 @@ export default class EsWallet {
     }
 
     syncHeartPacket && clearInterval(syncHeartPacket)
+  }
+
+  async _deleteEosAccount() {
+    let accounts = await this._initAccount()
+    let eosAccounts = accounts.filter(it => D.isEos(it.coinType))
+    console.log('ready to delete eos account', JSON.stringify(eosAccounts))
+    for (let account of eosAccounts) {
+      console.log('delete eos account', account)
+      await this._coinData.deleteAccount(account)
+    }
   }
 
   /**
@@ -324,6 +360,7 @@ export default class EsWallet {
       permissions = await this._getEosAccountsAmountFromHardware(coinType)
       accountsAmount = permissions.length
       this._isHadGetPermissions = true
+      console.log(accountsAmount + ' eos account wait for sync', permissions)
     }
     let accountIndex = 0
     while (true) {
@@ -338,6 +375,7 @@ export default class EsWallet {
         } else if (D.isEth(coinType)) {
           esAccount = new EthAccount(account, this._device, this._coinData)
         } else if (D.isEos(coinType)) {
+          console.log('new eos account', accountIndex)
           esAccount = new EosAccount(account, this._device, this._coinData)
           ++accountIndex
         } else {
@@ -355,7 +393,7 @@ export default class EsWallet {
         break
       }
       if (D.isEos(coinType) && accountIndex >= accountsAmount) {
-        console.log(esAccount.accountId, 'has recover finish, stop')
+        console.log('eos account has recover finish, stop')
         break
       }
     }
