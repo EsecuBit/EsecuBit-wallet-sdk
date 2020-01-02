@@ -237,18 +237,14 @@ export default class CoinData {
   async _newAccountIndex (coinType) {
     if (!coinType) return -1
     let accounts = await this._db.getAccounts({coinType})
-    console.log('_newAccountIndex', accounts)
-
     // check whether the last spec coinType account has transaction
     let lastAccount = accounts.reduce(
       (lastAccount, account) => lastAccount.index > account.index ? lastAccount : account,
       accounts[0])
-    console.log('_newAccountIndex1', lastAccount)
 
     if (!lastAccount) return 0
 
     let txInfos = await this._db.getTxInfos({accountId: lastAccount.accountId})
-    console.log('_newAccountIndex2', txInfos)
     if (!D.isEos(coinType) && txInfos.length === 0) return -1
     return lastAccount.index + 1
   }
