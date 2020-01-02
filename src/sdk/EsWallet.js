@@ -244,9 +244,13 @@ export default class EsWallet {
     }
     // if syning data costs too much time. the hardware will be power off in two minture and syning will be failed
     // so we send heart packet to avoid the hardware power off
-    let syncHeartPacket = setInterval(() => {
-      console.info('sync heart packet')
-      this.getCosVersion().catch(e => console.warn('send heart packet: get cos version error', e))
+    let syncHeartPacket = setInterval(async () => {
+      try {
+        console.info('sync heart packet')
+        await this.getCosVersion()
+      } catch (e) {
+        console.warn('send heart packet: get cos version error', e)
+      }
     }, 1000 * 90)
 
     await this._coinData.sync()
@@ -334,7 +338,7 @@ export default class EsWallet {
       }
     }
 
-    syncHeartPacket && clearInterval(syncHeartPacket)
+    clearInterval(syncHeartPacket)
   }
 
   async _deleteEosAccount() {
