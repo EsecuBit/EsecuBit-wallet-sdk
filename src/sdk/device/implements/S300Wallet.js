@@ -652,7 +652,7 @@ export default class S300Wallet {
           } else if (remainLen === data.length) {
             // first package
             let apduHead = Buffer.from('80480100FF', 'hex')
-            await this.sendApdu(Buffer.concat([apduHead, data.slice(0, 0xFF)]), true)
+            await this.sendApdu(Buffer.concat([apduHead, data.slice(0, 0xFF)]), true, coinType)
           } else {
             // middle package
             let apduHead = Buffer.from('80480000FF', 'hex')
