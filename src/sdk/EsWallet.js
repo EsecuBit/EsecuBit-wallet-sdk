@@ -234,7 +234,7 @@ export default class EsWallet {
    */
   async sync () {
     // if walletId is fill with zero, it means applet has skipped to create wallet and it only support eos
-    if (parseFloat(this._info.walletId) === 0) {
+    if (!isNaN(Number(this._info.walletId))) {
       D.supportedCoinTypes = () => {
         return D.test.coin ? [D.coin.test.eosJungle] : [D.coin.main.eos]
       }
