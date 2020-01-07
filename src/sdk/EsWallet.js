@@ -238,9 +238,12 @@ export default class EsWallet {
       D.supportedCoinTypes = () => {
         return D.test.coin ? [D.coin.test.eosJungle] : [D.coin.main.eos]
       }
-      D.recoverCoinTypes =  () => {
+      D.recoverCoinTypes = () => {
         return D.test.coin ? [D.coin.test.eosJungle] : [D.coin.main.eos]
       }
+    } else {
+      D.supportedCoinTypes = () => D.backupCoinTypes()
+      D.recoverCoinTypes = () => D.backupCoinTypes()
     }
     // if syning data costs too much time. the hardware will be power off in two minture and syning will be failed
     // so we send heart packet to avoid the hardware power off
@@ -338,7 +341,7 @@ export default class EsWallet {
       }
     }
 
-    clearInterval(syncHeartPacket)
+    syncHeartPacket && clearInterval(syncHeartPacket)
   }
 
   async _deleteEosAccount() {
@@ -418,6 +421,7 @@ export default class EsWallet {
    * @private
    */
   async reset () {
+    this._isHadGetPermissions = false
     this._syncBefore = false
     await this._coinData.clearData()
   }

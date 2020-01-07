@@ -947,6 +947,12 @@ const D = {
     return D.supportedCoinTypes()
   },
 
+  backupCoinTypes () {
+    return D.test.coin
+      ? [D.coin.test.btcTestNet3, D.coin.test.ethRinkeby, D.coin.test.eosJungle]
+      : [D.coin.main.btc, D.coin.main.eth, D.coin.main.eos]
+  },
+
   convertValue (coinType, value, fromType, toType) {
     let mul = (a, b) => {
       a = new BigDecimal(a)
