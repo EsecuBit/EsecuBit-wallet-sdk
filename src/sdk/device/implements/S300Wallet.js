@@ -131,8 +131,8 @@ export default class S300Wallet {
     }
   }
 
-  async getCosVersion() {
-    return await this.sendApdu("803300000ABD080000000000000000")
+  async getCosVersion () {
+    return this.sendApdu('803300000ABD080000000000000000')
   }
 
   // only for S300 Wallet to init HDWallet
@@ -766,15 +766,25 @@ export default class S300Wallet {
       let changePathBuffer = tx.changePath && D.address.path.toBuffer(tx.changePath)
       // execute in order
       let sequence = Promise.resolve()
-      tx.inputs.forEach((input, i) => {
+      tx.inputs.forEach((input, i, inputs) => {
         sequence = sequence.then(async () => {
           let pathBuffer = D.address.path.toBuffer(input.path)
           let preSignScript = makePreSignScript(i, basicScript)
           let apduData = buildSign(pathBuffer, changePathBuffer, preSignScript)
-          let response = await sendSign(apduData, true)
-          let {r, s, pubKey} = await parseSignResponse(coinType, response)
-          let scirptSig = makeScriptSig(r, s, pubKey)
-          signedTx.inputs[i].scriptSig = scirptSig.toString('hex')
+          let response
+          try {
+            response = await sendSign(apduData, true)
+            let {r, s, pubKey} = await parseSignResponse(coinType, response)
+            let scirptSig = makeScriptSig(r, s, pubKey)
+            signedTx.inputs[i].scriptSig = scirptSig.toString('hex')
+          } catch (e) {
+            let length = inputs.length
+            if (i !== 1 && i !== length) {
+              console.warn('middle input has error')
+              await this.sendApdu('00A4040008B000000000020002', true)
+            }
+            throw e
+          }
         })
       })
       await sequence
