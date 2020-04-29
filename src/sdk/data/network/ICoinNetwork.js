@@ -59,7 +59,7 @@ export default class ICoinNetwork {
       }
       setTimeout(blockHeightRequest, blockHeightRequestPeriod * 1000)
     }
-    setTimeout(blockHeightRequest, 0)
+    setTimeout(blockHeightRequest, blockHeightRequestPeriod * 1000)
   }
 
   async sync () {

@@ -23,6 +23,7 @@ let proxyPath = {}
 proxyPath[D.coin.main.eth] = 'eth/main'
 proxyPath[D.coin.test.ethRopsten] = 'eth/ropsten'
 proxyPath[D.coin.test.ethRinkeby] = 'eth/rinkeby'
+let apiKey = "CI4AX657QB1TNM2NPBQJZWX55XDSMA3AEM"
 
 export default class EtherScanIo extends ICoinNetwork {
   async init () {
@@ -113,16 +114,17 @@ export default class EtherScanIo extends ICoinNetwork {
   }
 
   async getBlockHeight () {
-    let response = await this.get(this._apiUrl + '/api?module=proxy&action=eth_blockNumber')
+    let response = await this.get(this._apiUrl + '/api?module=proxy&action=eth_blockNumber&apiKey='+apiKey)
     return parseInt(response)
   }
 
   async queryAddress (address, offset = 0) {
-    let responseEth = await this.get(this._apiUrl + '/api?module=account&action=txlist&address=' + address)
+    let responseEth = await this.get(this._apiUrl + '/api?module=account&action=txlist&address=' + address+'&apiKey='+apiKey)
     responseEth = responseEth.map(tx => this._wrapTx(tx))
 
-    let responseToken = await this.get(this._apiUrl + '/api?module=account&action=tokentx&address=' + address)
-    responseToken = responseToken.map(tx => this._wrapTx(tx, true))
+    let responseToken = await this.get(this._apiUrl + '/api?module=account&action=tokentx&address=' + address+'&apiKey='+apiKey)
+    console.log("responseToken", responseToken)
+    responseToken = responseToken && responseToken.map(tx => this._wrapTx(tx, true))
 
     let response = []
     response.push(...responseEth)
@@ -136,7 +138,7 @@ export default class EtherScanIo extends ICoinNetwork {
   }
 
   async queryTokenAddress (address, offset = 0) {
-    let response = await this.get(this._apiUrl + '/api?module=account&action=tokentx&address=' + address)
+    let response = await this.get(this._apiUrl + '/api?module=account&action=tokentx&address=' + address+'&apiKey='+apiKey)
     return {
       address: address,
       txCount: response.length,
@@ -145,12 +147,12 @@ export default class EtherScanIo extends ICoinNetwork {
   }
 
   async isToken (address) {
-    let response = await this.get(this._apiUrl + '/api?module=stats&action=tokensupply&contractaddress=' + address)
+    let response = await this.get(this._apiUrl + '/api?module=stats&action=tokensupply&contractaddress=' + address+'&apiKey='+apiKey)
     return !!((response && response.result !== '0'))
   }
 
   async queryTx (txId) {
-    let response = await this.get(this._apiUrl + '/api?module=proxy&action=eth_getTransactionByHash&txhash=' + txId, true)
+    let response = await this.get(this._apiUrl + '/api?module=proxy&action=eth_getTransactionByHash&txhash=' + txId+'&apiKey='+apiKey, true)
     return this._wrapTx(response)
   }
 
