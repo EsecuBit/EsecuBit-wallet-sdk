@@ -373,6 +373,18 @@ export default class NetBankWallet {
     }
   }
 
+  async getDeriveData () {
+    return {}
+  }
+
+  async getAddresses () {
+    return []
+  }
+
+  async getPermissions () {
+    return []
+  }
+
   async _doHandShake () {
     if (this._handShake.isFinished) return
     let {tempKeyPair, apdu} = await this._handShake.generateHandshakeApdu()
