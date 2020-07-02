@@ -253,4 +253,8 @@ export default class CoreWallet {
     }
     return this._wallet.reset()
   }
+
+  getWalletName () {
+    throw D.error.notImplemented
+  }
 }

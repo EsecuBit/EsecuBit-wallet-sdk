@@ -963,6 +963,11 @@ export default class S300Wallet {
     return response
   }
 
+  getWalletName () {
+    console.debug('s300 wallet')
+    return D.wallet.s300
+  }
+
   static _checkSw1Sw2 (sw1sw2) {
     let errorCode = D.error.checkSw1Sw2(sw1sw2)
     if (errorCode !== D.error.succeed) throw errorCode

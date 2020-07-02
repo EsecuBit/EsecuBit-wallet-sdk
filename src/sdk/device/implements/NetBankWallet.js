@@ -420,6 +420,11 @@ export default class NetBankWallet {
     return response
   }
 
+  getWalletName () {
+    console.debug('netbank wallet')
+    return D.wallet.netbank
+  }
+
   static _checkSw1Sw2 (sw1sw2) {
     let errorCode = D.error.checkSw1Sw2(sw1sw2)
     if (errorCode !== D.error.succeed) throw errorCode

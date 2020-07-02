@@ -1219,6 +1219,11 @@ const D = {
     if (value.compareTo(max) >= 0 || value.compareTo(zero) < 0) throw D.error.invalidParams
   },
 
+  wallet: {
+    netbank: 'netbank',
+    s300: 's300'
+  },
+
   test: {
     coin: true,
     jsWallet: true,

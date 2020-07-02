@@ -162,6 +162,7 @@ export default class EsWallet {
     this._esAccounts = []
     let info = await this._initData()
     this._esAccounts = await this._initAccount()
+    await this._initCoinTypes()
     return info
   }
 
@@ -228,23 +229,39 @@ export default class EsWallet {
   }
 
   /**
+   * init the supported coin types for the wallet
+   * @returns {Promise<void>}
+   * @private
+   */
+  async _initCoinTypes () {
+    if (this._device.getWalletName() === D.wallet.s300) {
+      // if walletId is fill with zero, it means applet has skipped to create wallet and it only support eos
+      if (!isNaN(Number(this._info.walletId))) {
+        D.supportedCoinTypes = () => {
+          return D.test.coin ? [D.coin.test.eosJungle] : [D.coin.main.eos]
+        }
+        D.recoverCoinTypes = () => {
+          return D.test.coin ? [D.coin.test.eosJungle] : [D.coin.main.eos]
+        }
+      } else {
+        D.supportedCoinTypes = () => D.backupCoinTypes()
+        D.recoverCoinTypes = () => D.backupCoinTypes()
+      }
+    } else if (this._device.getWalletName() === D.wallet.netbank) {
+      // netbank wallet only support btc and eth , it won't be update no longer
+      D.supportedCoinTypes = () => {
+        return D.test.coin ? [D.coin.test.btcTestNet3, D.coin.test.ethRinkeby] : [D.coin.main.btc, D.coin.main.eth]
+      }
+    }
+    await this._settings.setSetting('supportedCoinTypes', D.supportedCoinTypes())
+  }
+
+  /**
    * Synchronize data from device and network. Invoke inside when detect device plugin or called enterOfflineMode().
    *
    * @private
    */
   async sync () {
-    // if walletId is fill with zero, it means applet has skipped to create wallet and it only support eos
-    if (!isNaN(Number(this._info.walletId))) {
-      D.supportedCoinTypes = () => {
-        return D.test.coin ? [D.coin.test.eosJungle] : [D.coin.main.eos]
-      }
-      D.recoverCoinTypes = () => {
-        return D.test.coin ? [D.coin.test.eosJungle] : [D.coin.main.eos]
-      }
-    } else {
-      D.supportedCoinTypes = () => D.backupCoinTypes()
-      D.recoverCoinTypes = () => D.backupCoinTypes()
-    }
     // if syning data costs too much time. the hardware will be power off in two minture and syning will be failed
     // so we send heart packet to avoid the hardware power off
     let syncHeartPacket = setInterval(async () => {
