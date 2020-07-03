@@ -255,6 +255,10 @@ export default class CoreWallet {
   }
 
   getWalletName () {
+    if (!this._wallet) {
+      console.warn('before get wallet name, init wallet first')
+      throw D.error.deviceNotConnected
+    }
     return this._wallet.getWalletName()
   }
 }
