@@ -14,7 +14,6 @@ import BigInteger from 'bigi'
  * Main entry of SDK, singleton. Object to manage wallet operation and wallet data.
  */
 export default class EsWallet {
-
   /**
    * Will init fields and listen device plugin.
    *
@@ -247,7 +246,10 @@ export default class EsWallet {
    */
   async supportedCoinTypes () {
     let coinTypes = await this._settings.getSetting('supportedCoinTypes')
-    return JSON.parse(coinTypes)
+    if (!coinTypes) {
+      return D.supportedCoinTypes()
+    }
+    return coinTypes
   }
 
   /**
