@@ -14,23 +14,6 @@ import BigInteger from 'bigi'
  * Main entry of SDK, singleton. Object to manage wallet operation and wallet data.
  */
 export default class EsWallet {
-  /**
-   * Get supported coin types.
-   *
-   * @returns String array
-   */
-  static supportedCoinTypes () {
-    return D.supportedCoinTypes()
-  }
-
-  /**
-   * Get supported legal currency types.
-   *
-   * @returns String array
-   */
-  static suppertedLegals () {
-    return D.suppertedLegals()
-  }
 
   /**
    * Will init fields and listen device plugin.
@@ -208,7 +191,8 @@ export default class EsWallet {
   async _initAccount () {
     let esAccounts = []
     let accounts = await this._coinData.getAccounts()
-    accounts = accounts.filter(account => EsWallet.supportedCoinTypes().includes(account.coinType))
+    let supportedCoinTypes = await this.supportedCoinTypes()
+    accounts = accounts.filter(account => supportedCoinTypes.includes(account.coinType))
     accounts.forEach(account => {
       let coinType = account.coinType
       let esAccount
@@ -254,6 +238,25 @@ export default class EsWallet {
       }
     }
     await this._settings.setSetting('supportedCoinTypes', D.supportedCoinTypes())
+  }
+
+  /**
+   * Get supported coin types.
+   *
+   * @returns String array
+   */
+  async supportedCoinTypes () {
+    let coinTypes = await this._settings.getSetting('supportedCoinTypes')
+    return JSON.parse(coinTypes)
+  }
+
+  /**
+   * Get supported legal currency types.
+   *
+   * @returns String array
+   */
+  suppertedLegals () {
+    return D.suppertedLegals()
   }
 
   /**
