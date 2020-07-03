@@ -364,9 +364,11 @@ export default class EsWallet {
     }
 
     syncHeartPacket && clearInterval(syncHeartPacket)
+    // update the connected wallet name
+    await this._settings.setSetting('lastWalletName', await this._device.getWalletName())
   }
 
-  async _deleteEosAccount() {
+  async _deleteEosAccount () {
     let accounts = await this._initAccount()
     let eosAccounts = accounts.filter(it => D.isEos(it.coinType))
     console.log('ready to delete eos account', JSON.stringify(eosAccounts))
@@ -614,8 +616,11 @@ export default class EsWallet {
     return this._device.getWalletId()
   }
 
-
-  getCosVersion() {
+  /**
+   * Return the device cos version
+   * @returns {*}
+   */
+  getCosVersion () {
     return this._device.getCosVersion()
   }
 
@@ -632,6 +637,11 @@ export default class EsWallet {
     return this._device.getWalletBattery()
   }
 
+  /**
+   * Set eos transfer value limit
+   * @param amount
+   * @returns {Promise<*>}
+   */
   setEosAmountLimit (amount) {
     let value = amount
     if (value.includes('.')) {
@@ -726,5 +736,17 @@ export default class EsWallet {
    */
   getUpdateManager () {
     return new UpdateManager(this._device)
+  }
+
+  /**
+   * Return the current connected wallet name or the last time connected wallet name
+   */
+  async getWalletName () {
+    try {
+      return this._device.getWalletName()
+    } catch (e) {
+      let name = await this._settings.getSetting('lastWalletName')
+      return name
+    }
   }
 }
