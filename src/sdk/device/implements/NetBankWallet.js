@@ -86,7 +86,7 @@ export default class NetBankWallet {
   }
 
   // noinspection JSMethodCanBeStatic
-  async _getCosVersion () {
+  async getCosVersion () {
     return (await this.sendApdu('803300000ABD080000000000000000')).toString('hex')
   }
 

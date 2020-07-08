@@ -85,7 +85,7 @@ export default class CoreWallet {
     return this._wallet.verifyPin()
   }
 
-  getCosVersion() {
+  getCosVersion () {
     if (!this._wallet) {
       console.warn('before getCosVersion, init wallet first')
       throw D.error.deviceNotConnected
