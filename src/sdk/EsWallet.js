@@ -176,6 +176,7 @@ export default class EsWallet {
         let recoveryFinish = await this._settings.getSetting('recoveryFinish', lastWalletId)
         if (!recoveryFinish) {
           console.warn('_offlineMode last device not recovery finished', lastWalletId)
+          await this._coinData.clearData()
           throw D.error.offlineModeNotAllowed
         }
         info = {walletId: lastWalletId}

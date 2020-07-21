@@ -26,6 +26,7 @@ export default class NetBankWallet {
 
   async init (authCallback) {
     console.log('NetBankWallet init')
+    await this._transmitter.reset()
     if (!authCallback) {
       console.warn('NetBankWallet auth missing authCallback')
       authCallback = () => {}
@@ -372,19 +373,6 @@ export default class NetBankWallet {
       this._busy = false
     }
   }
-
-  async getDeriveData () {
-    return {}
-  }
-
-  async getAddresses () {
-    return []
-  }
-
-  async getPermissions () {
-    return []
-  }
-
   async _doHandShake () {
     if (this._handShake.isFinished) return
     let {tempKeyPair, apdu} = await this._handShake.generateHandshakeApdu()
