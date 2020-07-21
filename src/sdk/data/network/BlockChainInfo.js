@@ -50,7 +50,6 @@ export default class BlockChainInfo extends ICoinNetwork {
       console.log('BlockChainInfo get response', response)
       return response
     } catch (error) {
-      console.warn('BlockChainInfo get', url, error)
       let request = error.request
       if (request.status === 500) {
         let response = request.responseText
@@ -59,7 +58,7 @@ export default class BlockChainInfo extends ICoinNetwork {
         } else {
           throw D.error.networkProviderError
         }
-      } else if (request.status === 0) {
+      } else if (request.status === 0 || request.status > 500) {
         if (proxy || Axios.isDirect()) {
           console.warn('BlockchainInfo get error', D.error.networkConnectTimeout)
           throw D.error.networkConnectTimeout
@@ -69,7 +68,7 @@ export default class BlockChainInfo extends ICoinNetwork {
         console.debug('url is not avaliable, try to forward to proxy server', path)
         return this.get(path, true)
       } else {
-        console.warn(url, error.request)
+        console.warn('url', error.request)
         throw D.error.networkUnavailable
       }
     }
@@ -94,7 +93,7 @@ export default class BlockChainInfo extends ICoinNetwork {
         } else {
           throw D.error.networkProviderError
         }
-      } else if (request.status === 0) {
+      } else if (request.status === 0 || request.status > 500) {
         if (proxy || Axios.isDirect()) {
           console.warn('BlockchainInfo get error', D.error.networkConnectTimeout)
           throw D.error.networkConnectTimeout
@@ -115,12 +114,18 @@ export default class BlockChainInfo extends ICoinNetwork {
   }
 
   async getBlockHeight () {
+    // if (D.test.coin) {
+    //   let url = 'https://api.blockcypher.com/v1/btc/test3'
+    //   let response = await this.get(url)
+    //   return parseInt(response.height)
+    // }
+    // return parseInt(await this.get([this._apiUrl, 'q', 'getblockcount?cors=true'].join('/')))
+    let url = 'https://api.blockcypher.com/v1/btc/main'
     if (D.test.coin) {
-      let url = 'https://api.blockcypher.com/v1/btc/test3'
-      let response = await this.get(url)
-      return parseInt(response.height)
+      url = 'https://api.blockcypher.com/v1/btc/test3'
     }
-    return parseInt(await this.get([this._apiUrl, 'q', 'getblockcount?cors=true'].join('/')))
+    let response = await this.get(url)
+    return parseInt(response.height)
   }
 
   async queryAddresses (addresses, offset = 0) {
