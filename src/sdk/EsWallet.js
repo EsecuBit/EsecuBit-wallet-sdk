@@ -173,17 +173,17 @@ export default class EsWallet {
           console.warn('_offlineMode no device connected before')
           throw D.error.offlineModeNotAllowed
         }
-        let recoveryFinish = await this._settings.getSetting('recoveryFinish', lastWalletId)
-        if (!recoveryFinish) {
-          console.warn('_offlineMode last device not recovery finished', lastWalletId)
-          throw D.error.offlineModeNotAllowed
-        }
         info = {walletId: lastWalletId}
       }
       await this._coinData.init(info, this._offlineMode)
     }
 
     await Promise.all([initNetWork(), initDb()])
+    let recoveryFinish = await this._settings.getSetting('recoveryFinish', info.walletId)
+    if (!recoveryFinish) {
+      console.warn('_offlineMode last device not recovery finished', info.walletId)
+      await this._coinData.clearData()
+    }
     return info
   }
 

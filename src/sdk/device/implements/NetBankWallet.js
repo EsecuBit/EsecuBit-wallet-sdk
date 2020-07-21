@@ -79,7 +79,7 @@ export default class NetBankWallet {
   }
 
   async getWalletInfo () {
-    let cosVersion = await this._getCosVersion()
+    let cosVersion = await this.getCosVersion()
     return {
       sdk_version: D.sdkVersion,
       cos_version: cosVersion
