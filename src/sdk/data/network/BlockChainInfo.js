@@ -114,18 +114,18 @@ export default class BlockChainInfo extends ICoinNetwork {
   }
 
   async getBlockHeight () {
-    // if (D.test.coin) {
-    //   let url = 'https://api.blockcypher.com/v1/btc/test3'
-    //   let response = await this.get(url)
-    //   return parseInt(response.height)
-    // }
-    // return parseInt(await this.get([this._apiUrl, 'q', 'getblockcount?cors=true'].join('/')))
-    let url = 'https://api.blockcypher.com/v1/btc/main'
     if (D.test.coin) {
-      url = 'https://api.blockcypher.com/v1/btc/test3'
+      let url = 'https://api.blockcypher.com/v1/btc/test3'
+      let response = await this.get(url)
+      return parseInt(response.height)
     }
-    let response = await this.get(url)
-    return parseInt(response.height)
+    return parseInt(await this.get([this._apiUrl, 'q', 'getblockcount?cors=true'].join('/')))
+    // let url = 'https://api.blockcypher.com/v1/btc/main'
+    // if (D.test.coin) {
+    //   url = 'https://api.blockcypher.com/v1/btc/test3'
+    // }
+    // let response = await this.get(url)
+    // return parseInt(response.height)
   }
 
   async queryAddresses (addresses, offset = 0) {
