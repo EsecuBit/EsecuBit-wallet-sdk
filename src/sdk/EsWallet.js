@@ -33,6 +33,7 @@ export default class EsWallet {
     this._esAccounts = []
     this._coinData = new CoinData()
     this._status = D.status.plugOut
+    this._syncHeartPacket = null
     this._callback = () => {}
 
     this._device = new CoreWallet()
@@ -267,16 +268,18 @@ export default class EsWallet {
    * @private
    */
   async sync () {
-    // if syning data costs too much time. the hardware will be power off in two minture and syning will be failed
-    // so we send heart packet to avoid the hardware power off
-    let syncHeartPacket = setInterval(async () => {
-      try {
-        console.info('sync heart packet')
-        await this.getCosVersion()
-      } catch (e) {
-        console.warn('send heart packet: get cos version error', e)
-      }
-    }, 1000 * 90)
+    if (!this._syncHeartPacket) {
+      // if syning data costs too much time. the hardware will be power off in two minture and syning will be failed
+      // so we send heart packet to avoid the hardware power off
+      this._syncHeartPacket = setInterval(async () => {
+        try {
+          console.info('sync heart packet')
+          await this.getCosVersion()
+        } catch (e) {
+          console.warn('send heart packet: get cos version error', e)
+        }
+      }, 1000 * 90)
+    }
 
     await this._coinData.sync()
     await Promise.all(this._esAccounts.map(esAccount => esAccount.sync(this._syncCallback, true, this._offlineMode)))
@@ -363,7 +366,7 @@ export default class EsWallet {
       }
     }
 
-    syncHeartPacket && clearInterval(syncHeartPacket)
+    this._syncHeartPacket && clearInterval(this._syncHeartPacket)
     // update the connected wallet name
     await this._settings.setSetting('lastWalletName', await this._device.getWalletName())
   }
