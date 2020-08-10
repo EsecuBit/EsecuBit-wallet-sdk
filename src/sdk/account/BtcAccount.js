@@ -119,36 +119,42 @@ export default class BtcAccount extends IAccount {
       let unspentOutputs = txInfo.outputs.filter(output => output.isMine && !output.spent)
       let unspentUtxos = unspentOutputs.map(output => {
         let addressInfo = this.addressInfos.find(a => a.address === output.address)
-        return {
-          accountId: addressInfo.accountId,
-          coinType: addressInfo.coinType,
-          address: addressInfo.address,
-          path: addressInfo.path,
-          txId: txInfo.txId,
-          index: output.index,
-          script: output.script,
-          value: output.value,
-          status: txInfo.confirmations === D.tx.confirmation.inMemory ? D.utxo.status.unspent_pending : D.utxo.status.unspent
+        if (addressInfo) {
+          return {
+            accountId: addressInfo.accountId,
+            coinType: addressInfo.coinType,
+            address: addressInfo.address,
+            path: addressInfo.path,
+            txId: txInfo.txId,
+            index: output.index,
+            script: output.script,
+            value: output.value,
+            status: txInfo.confirmations === D.tx.confirmation.inMemory ? D.utxo.status.unspent_pending : D.utxo.status.unspent
+          }
         }
       })
+      unspentUtxos = unspentUtxos.filter(u => u !== undefined)
       utxos.push(...unspentUtxos)
 
       let spentInputs = txInfo.inputs.filter(input => input.isMine || input.spent)
       if (spentInputs.length > 0) {
         let spentUtxos = spentInputs.map(input => {
           let addressInfo = this.addressInfos.find(a => a.address === input.prevAddress)
-          return {
-            accountId: addressInfo.accountId,
-            coinType: addressInfo.coinType,
-            address: addressInfo.address,
-            path: addressInfo.path,
-            txId: input.prevTxId,
-            index: input.prevOutIndex,
-            script: input.prevOutScript,
-            value: input.value,
-            status: txInfo.confirmations === D.tx.confirmation.inMemory ? D.utxo.status.spent_pending : D.utxo.status.spent
+          if (addressInfo) {
+            return {
+              accountId: addressInfo.accountId,
+              coinType: addressInfo.coinType,
+              address: addressInfo.address,
+              path: addressInfo.path,
+              txId: input.prevTxId,
+              index: input.prevOutIndex,
+              script: input.prevOutScript,
+              value: input.value,
+              status: txInfo.confirmations === D.tx.confirmation.inMemory ? D.utxo.status.spent_pending : D.utxo.status.spent
+            }
           }
         })
+        spentUtxos = spentUtxos.filter(s => s !== undefined)
         utxos.push(...spentUtxos)
       }
       await this._handleNewTxInner(txInfo, utxos)
