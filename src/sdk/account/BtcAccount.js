@@ -4,6 +4,7 @@ import BtcCoinSelect from './BtcCoinSelect'
 import IAccount from './IAccount'
 
 export default class BtcAccount extends IAccount {
+
   async _handleRemovedTx (removedTxId) {
     console.warn('btc removed txId', removedTxId)
     // async operation may lead to disorder. so we need a simple lock
@@ -78,11 +79,10 @@ export default class BtcAccount extends IAccount {
    */
   async _handleNewTx (txInfo) {
     console.log('btc newTransaction', JSON.stringify(txInfo))
-
     // async operation may lead to disorder. so we need a simple lock
     // eslint-disable-next-line
     while (this._busy) {
-      await D.wait(2)
+      await D.wait(3)
     }
     this._busy = true
 
@@ -116,6 +116,7 @@ export default class BtcAccount extends IAccount {
 
       // find out utxos for address
       let utxos = []
+
       let unspentOutputs = txInfo.outputs.filter(output => output.isMine && !output.spent)
       let unspentUtxos = unspentOutputs.map(output => {
         let addressInfo = this.addressInfos.find(a => a.address === output.address)
@@ -136,7 +137,7 @@ export default class BtcAccount extends IAccount {
       unspentUtxos = unspentUtxos.filter(u => u !== undefined)
       utxos.push(...unspentUtxos)
 
-      let spentInputs = txInfo.inputs.filter(input => input.isMine || input.spent)
+      let spentInputs = txInfo.inputs.filter(input => input.isMine)
       if (spentInputs.length > 0) {
         let spentUtxos = spentInputs.map(input => {
           let addressInfo = this.addressInfos.find(a => a.address === input.prevAddress)
@@ -251,7 +252,7 @@ export default class BtcAccount extends IAccount {
       this.changePublicKeyIndex = Math.max(maxChangeIndex, this.changePublicKeyIndex)
 
       // listen unmatured tx
-      await this._coinData.newTx(this._toAccountInfo(), D.copy(relativeAddresses), D.copy(txInfo), D.copy(utxos))
+      await this._coinData.newTx(this._toAccountInfo(), D.copy(relativeAddresses), D.copy(txInfo), D.copy(this.utxos))
 
       if (txInfo.confirmations < D.tx.getMatureConfirms(this.coinType)) {
         if (!this._listenedTxs.some(tx => tx === txInfo.txId)) {
