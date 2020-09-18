@@ -219,17 +219,30 @@ export default class EsWallet {
    */
   async _initCoinTypes () {
     if (this._device.getWalletName() === D.wallet.s300) {
-      // if walletId is fill with zero, it means applet has skipped to create wallet and it only support eos
-      if (!isNaN(Number(this._info.walletId))) {
+      // if necessary applets not exist in the wallet, app WOULD NOT continue to sync account
+      if (!await this.isExistNecessaryApplet()) {
         D.supportedCoinTypes = () => {
-          return D.test.coin ? [D.coin.test.eosJungle] : [D.coin.main.eos]
+          return []
         }
         D.recoverCoinTypes = () => {
-          return D.test.coin ? [D.coin.test.eosJungle] : [D.coin.main.eos]
+          return []
+        }
+        D.backupCoinTypes = () => {
+          return []
         }
       } else {
-        D.supportedCoinTypes = () => D.backupCoinTypes()
-        D.recoverCoinTypes = () => D.backupCoinTypes()
+        // if walletId is fill with zero, it means applet has skipped to create wallet and it only support eos
+        if (!isNaN(Number(this._info.walletId))) {
+          D.supportedCoinTypes = () => {
+            return D.test.coin ? [D.coin.test.eosJungle] : [D.coin.main.eos]
+          }
+          D.recoverCoinTypes = () => {
+            return D.test.coin ? [D.coin.test.eosJungle] : [D.coin.main.eos]
+          }
+        } else {
+          D.supportedCoinTypes = () => D.backupCoinTypes()
+          D.recoverCoinTypes = () => D.backupCoinTypes()
+        }
       }
     } else if (this._device.getWalletName() === D.wallet.netbank) {
       // netbank wallet only support btc and eth , it won't be update no longer
@@ -238,6 +251,17 @@ export default class EsWallet {
       }
     }
     await this._settings.setSetting('supportedCoinTypes', D.supportedCoinTypes())
+  }
+
+  // check `HDWallet` Applet if exist
+  async isExistNecessaryApplet () {
+    try {
+      // check HDWallet
+      await this._device.sendApdu('8000000000', false, D.coin.other.hdwallet)
+      return true
+    } catch (e) {
+      return false
+    }
   }
 
   /**
