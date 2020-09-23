@@ -58,7 +58,7 @@ export default class BlockChainInfo extends ICoinNetwork {
         } else {
           throw D.error.networkProviderError
         }
-      } else if (request.status === 0 || request.status > 500) {
+      } else if (request.status === 0) {
         if (proxy || Axios.isDirect()) {
           console.warn('BlockchainInfo get error', D.error.networkConnectTimeout)
           throw D.error.networkConnectTimeout
@@ -93,7 +93,7 @@ export default class BlockChainInfo extends ICoinNetwork {
         } else {
           throw D.error.networkProviderError
         }
-      } else if (request.status === 0 || request.status > 500) {
+      } else if (request.status === 0) {
         if (proxy || Axios.isDirect()) {
           console.warn('BlockchainInfo get error', D.error.networkConnectTimeout)
           throw D.error.networkConnectTimeout
@@ -130,7 +130,7 @@ export default class BlockChainInfo extends ICoinNetwork {
 
   async queryAddresses (addresses, offset = 0) {
     // blockchain.info return 502 when addresses.length > 141, it seems a bug of them
-    const maxAddressesSize = 140
+    const maxAddressesSize = 100
     let response = {
       txs: [],
       addresses: []
