@@ -260,7 +260,8 @@ export default class EsWallet {
       await this._device.sendApdu('8000000000', false, D.coin.other.hdwallet)
       return true
     } catch (e) {
-      return false
+      // 'get wallet name' func is not working, so it will always return true
+      return true
     }
   }
 
