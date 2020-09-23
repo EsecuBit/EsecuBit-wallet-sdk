@@ -23,7 +23,7 @@ let proxyPath = {}
 proxyPath[D.coin.main.eth] = 'eth/main'
 proxyPath[D.coin.test.ethRopsten] = 'eth/ropsten'
 proxyPath[D.coin.test.ethRinkeby] = 'eth/rinkeby'
-let apiKey = "CI4AX657QB1TNM2NPBQJZWX55XDSMA3AEM"
+let apiKey = 'CI4AX657QB1TNM2NPBQJZWX55XDSMA3AEM'
 
 export default class EtherScanIo extends ICoinNetwork {
   async init () {
